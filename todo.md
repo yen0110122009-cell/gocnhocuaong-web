@@ -94,14 +94,14 @@
 - [x] Remove misleading GitHub Pages registration tab or implement only the supported code 111 first-login creation path
 - [x] Add direct Supabase app_state INSERT/RLS verification evidence for the empty-row path
 
-- [ ] Add basic member dashboard after successful login with greeting and member information
-- [ ] Add login button loading state and clear red invalid-login error message
-- [ ] Add Forgot password and Forgot member code links with admin-contact guidance popup
-- [ ] Add regression tests and responsive browser QA for the new auth/dashboard flow
+- [x] Add basic member dashboard after successful login with greeting and member information
+- [x] Add login button loading state and clear red invalid-login error message
+- [x] Add Forgot password and Forgot member code links with admin-contact guidance popup
+- [x] Add regression tests for the new auth/dashboard flow and public mobile QA; authenticated browser shell QA remains pending a test account/code
 
-- [ ] Audit configuration and runtime behavior for the four learning challenge/reward cards shown on the dashboard
-- [ ] Configure missing challenge/reward thresholds or clearly mark unsupported items as pending configuration
-- [ ] Add regression coverage for challenge/reward configuration and verify the dashboard display
+- [x] Audit configuration and runtime behavior for the four learning challenge/reward cards shown on the dashboard; `getFragmentWays(AppConfig)` now derives runtime state
+- [x] Configure missing challenge/reward thresholds or clearly mark unsupported items as pending configuration; pending cards now expose explicit Admin/Founder guidance
+- [x] Add regression coverage for challenge/reward configuration and verify the dashboard display; 30 files/84 tests pass
 
 - [x] Show explicit unlock requirements for every achievement
 - [x] Calculate and display current achievement progress percentage, current value, target, and remaining amount
