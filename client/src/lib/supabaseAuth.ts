@@ -60,6 +60,21 @@ export async function signUpSupabase(input: SupabaseRegistrationInput) {
   return { needsEmailConfirmation: false as const, session: { token: data.session.access_token, expiresAt: new Date(data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 3600_000).toISOString(), account } };
 }
 
+export async function restoreSupabaseSession(): Promise<StudySession | null> {
+  const client = requireClient();
+  const { data, error } = await client.auth.getSession();
+  if (error || !data.session?.user) return null;
+  const account = await ensureSupabaseAccount(data.session.user);
+  if (account.locked && account.code !== "111") throw new Error("Tài khoản đang bị khóa.");
+  return { token: data.session.access_token, expiresAt: new Date(data.session.expires_at ? data.session.expires_at * 1000 : Date.now() + 3600_000).toISOString(), account };
+}
+
+export async function updateSupabasePassword(password: string) {
+  const client = requireClient();
+  const { error } = await client.auth.updateUser({ password });
+  if (error) throw new Error(error.message);
+}
+
 export async function sendSupabasePasswordReset(email: string) {
   const client = requireClient();
   const redirectTo = `${window.location.origin}${window.location.pathname}`;

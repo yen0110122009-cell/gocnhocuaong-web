@@ -17,3 +17,14 @@ Kết quả browser QA:
 Kiểm thử tự động local: 21 test files / 58 tests passed; TypeScript check và production build passed.
 
 Giới hạn còn lại: cần người dùng cung cấp email và tự đặt mật khẩu để kiểm thử live signup; Supabase Auth email confirmation/reset redirect phải được cho phép trong project settings nếu Supabase đang bật email confirmation.
+
+## QA follow-up — Supabase recovery
+
+- Pages commit: `f07db83`
+- URL kiểm tra: `https://yen0110122009-cell.github.io/gocnhocuaong2/?recovery=f07db83`
+- Giao diện đăng nhập hiển thị đúng các trường email/mật khẩu và nút quên mật khẩu.
+- Tab tạo tài khoản hiển thị đúng email, tên thành viên, mật khẩu và mã thành viên.
+- Luồng recovery đã được nối vào Supabase Auth: khi mở URL có `#type=recovery`, ứng dụng hiển thị màn hình đặt lại mật khẩu và gọi `updateUser({ password })`.
+- Chưa thực hiện gửi email/đăng nhập tài khoản thật vì cần email và mật khẩu do người dùng cung cấp; không dùng dữ liệu giả để tạo tài khoản Supabase.
+
+Kiểm tra kỹ thuật: `pnpm check`, `pnpm test -- --run` đạt 21 test files / 58 tests; production build đạt.
