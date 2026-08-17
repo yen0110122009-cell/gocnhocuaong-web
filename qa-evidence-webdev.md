@@ -75,3 +75,7 @@ Sau khi restart dev server, phiên Founder QA vẫn authenticated. Mở tab **Th
 AI Studio đã đi qua mutation thực tế với metadata và JSON hợp lệ, tạo thành công bộ `QA Ôn tập Lịch sử Việt Nam` gồm 2 Flashcard; sau mutation, màn hình Flashcard hiển thị bộ, số thẻ, câu hỏi đầu tiên và các thao tác lật thẻ/đánh dấu.
 
 Pomodoro đã chọn preset Nhanh 10 phút và bắt đầu phiên; UI chuyển sang `Tạm dừng`/`Kết thúc phiên` với đồng hồ giảm từ 10:00 xuống 09:59. Browser session timeout xảy ra khi thao tác kết thúc, vì vậy persistence của phiên hoàn thành vẫn được giữ là hạng mục cần kiểm tra thêm.
+
+## Login fix — 2026-08-17
+
+Tái hiện lỗi cho thấy request sai path `study.login` trả `NOT_FOUND`; procedure đúng trong appRouter là `study.auth.login`. Đồng thời `studyStore.ts` thiếu import `eq`, `and`, `gt` từ `drizzle-orm`, làm mutation login lỗi runtime khi được gọi đúng path. Sau khi bổ sung import, request `study.auth.login` với Founder QA `Lumi QA` / mã `111` trả HTTP 200 và token; request tiếp theo tới `study.auth.session` bằng token trả HTTP 200, nhận đúng tài khoản role Founder, `locked: false` và session còn hạn. `pnpm check`, build và Vitest đạt sau bản sửa. Browser UI retry end-to-end chưa được ghi nhận trong phiên này.

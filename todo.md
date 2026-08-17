@@ -28,12 +28,15 @@
 - [x] Xác nhận trực quan mascot Lumi hiển thị đúng trên UI và ghi lại evidence brand fidelity gồm tên thương hiệu, màu sắc, hình ong và typography.
 - [x] Chạy browser QA chi tiết trên Catalog: tìm kiếm, bộ lọc và thanh tiến trình đã được xác nhận trực tiếp.
 - [x] Chạy browser QA chi tiết trên Museum Journey: empty, non-empty và locked state đã được xác nhận trực tiếp.
-- [ ] Chạy end-to-end QA cho AI Studio: tạo Flashcard đã đạt; còn upload tài liệu, tạo Quiz và kiểm tra lịch sử làm bài.
-- [ ] Chạy QA Pomodoro end-to-end: đổi cấu hình và bắt đầu phiên đã đạt; còn lưu và truy xuất trạng thái phiên học.
-- [ ] Chạy QA Admin Panel end-to-end: quản lý thành viên, cấu hình phần thưởng và import nhân vật với kết quả mutation rõ ràng.
+- [ ] Chạy browser QA thật cho AI Studio file upload, tạo Quiz và kiểm tra lịch sử sau mutation; implementation đọc file TXT/MD/JSON và test contract đã đạt, Flashcard từ JSON đã có evidence.
+- [ ] Chạy browser QA Pomodoro đến bước kết thúc phiên, rồi xác nhận phiên được lưu/truy xuất trong lịch sử hoặc trạng thái persisted; cấu hình và active state đã có evidence.
+- [ ] Chạy browser QA Admin Panel cho member management, role change, lock/reset/delete và reward config mutations; import nhân vật đã có evidence.
 - [x] Bổ sung và chạy Vitest cho study router/module cốt lõi cùng database invariants thực tế.
 - [x] Xác nhận trực tiếp progress bar của Catalog trong browser, không chỉ số đếm văn bản.
 - [x] Tạo dữ liệu nhân vật lịch sử hợp lệ qua Admin flow để kiểm tra Museum non-empty state và trạng thái mảnh ghép.
-- [ ] Hoàn tất regression end-to-end cho AI Studio, Pomodoro và Admin Panel với mutation/persistence thật rồi lưu evidence.
+- [ ] Chỉ đánh dấu regression E2E hoàn tất sau khi AI Studio, Pomodoro và Admin Panel có evidence thực thi trực tiếp; hiện 20 test files/51 tests mới là contract/unit coverage.
 - [x] Chạy lại browser QA trên Catalog sau khi thêm progress bar, ghi rõ thanh tiến trình hiển thị trong UI và lưu screenshot/evidence sau thay đổi.
 - [x] Cập nhật qa-evidence-webdev.md với bằng chứng trực tiếp cho progress bar Catalog sau restart, tách biệt khỏi evidence search/filter cũ.
+- [x] Khắc phục lỗi Study Account không đăng nhập được trên live preview bằng cách bổ sung import `eq`, `and`, `gt` cho studyStore.
+- [x] Xác minh validation, session bootstrap và quyền truy cập procedure sau login; `study.auth.login` và `study.auth.session` đều trả HTTP 200 với tài khoản Lumi QA Founder.
+- [ ] Chạy browser login end-to-end với `Lumi QA` / `LumiQA2026!` / `111` và lưu evidence; server-side login/session smoke cùng build/Vitest đã đạt.

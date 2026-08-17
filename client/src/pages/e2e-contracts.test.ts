@@ -18,6 +18,8 @@ describe("Góc học tập end-to-end contracts", () => {
 
   it("keeps AI import file, validation, content creation and history persistence wired", () => {
     expect(aiImport).toContain('accept=".json,.txt,.md"');
+    expect(aiImport).toContain("await file.text()");
+    expect(aiImport).toContain("setRawData(await file.text())");
     expect(aiImport).toContain("validateExternalAiData");
     expect(aiImport).toContain("createLearningContent");
     expect(aiImport).toContain("aiImportHistory: [record, ...profile.aiImportHistory]");
