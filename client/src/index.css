@@ -26,7 +26,7 @@
 
 @layer base {
   * { @apply border-[#ead8c4]; }
-  html { @apply bg-[#fffaf1]; }
+  html { @apply bg-[#fffaf1]; scroll-behavior: smooth; }
   body { @apply m-0 min-w-[320px] bg-[#fffaf1] font-sans antialiased text-[#2f211e] dark:bg-[#241b18] dark:text-[#fff4e4]; }
   #root > div.min-h-screen { background: #fffaf1 !important; color: #2f211e; }
   #root > div.min-h-screen > aside { background: rgba(255, 250, 241, .96) !important; border-color: #ead8c4 !important; }
@@ -68,6 +68,8 @@
   .filter-pill.active { @apply border-[#3f7656] bg-[#3f7656] text-white shadow-md shadow-[#315f46]/20; }
   .nav-item { @apply flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-[#6f625b] transition hover:bg-[#f8e8e3] hover:text-[#8f3029] dark:text-[#fff4e4]/75 dark:hover:bg-white/10; }
   .nav-item.active { @apply bg-[#f8e8e3] text-[#8f3029] ring-1 ring-[#e2b2a7] dark:bg-[#a53b32]/20 dark:text-[#ffc1b6]; }
+  .scroll-reveal { opacity: 0; transform: translate3d(0, 16px, 0); transition: opacity 480ms var(--ease-out), transform 480ms var(--ease-out); transition-delay: var(--reveal-delay, 0ms); }
+  .scroll-reveal.is-visible { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 /* Các trang đã có từ trước dùng utility xanh/tím; ánh xạ chúng về bảng màu mật ong
@@ -80,6 +82,24 @@
 [class*="from-cyan-"], [class*="from-blue-"] { --tw-gradient-from: #b7791f var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(183 121 31 / 0) var(--tw-gradient-to-position) !important; }
 [class*="to-violet-"], [class*="to-blue-"] { --tw-gradient-to: #e0a32b var(--tw-gradient-to-position) !important; }
 .dark [class*="dark:bg-slate-950"], .dark [class*="dark:bg-slate-900"], .dark [class*="dark:bg-slate-800"] { background-color: #2d241b !important; }
+
+@media (max-width: 767px) {
+  body { overflow-x: hidden; }
+  #root > div.min-h-screen > aside { width: min(86vw, 20rem); }
+  #root > div.min-h-screen header { height: 64px; gap: .5rem; padding-inline: .75rem; }
+  #root > div.min-h-screen header .relative { min-width: 0; }
+  #root > div.min-h-screen header .icon-button { width: 2.25rem; height: 2.25rem; flex: 0 0 auto; }
+  #root > div.min-h-screen main { padding: .875rem; }
+  .panel, .study-card { border-radius: 1.25rem; }
+  .primary-button, .secondary-button, .icon-text-button { min-height: 2.75rem; }
+}
+
+@media (max-width: 420px) {
+  #root > div.min-h-screen header { padding-inline: .625rem; }
+  #root > div.min-h-screen header .icon-button { width: 2.125rem; height: 2.125rem; }
+  #root > div.min-h-screen header input { font-size: .75rem; }
+  main[data-scroll-reveal-root] { padding-inline: .75rem; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }

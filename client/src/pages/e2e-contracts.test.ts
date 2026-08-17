@@ -76,6 +76,16 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(pomodoro).toContain("playAlert()");
   });
 
+  it("keeps scroll reveal and reduced-motion responsive contracts wired", () => {
+    const styles = readFileSync(join(process.cwd(), "client/src/index.css"), "utf8");
+    expect(home).toContain('main data-scroll-reveal-root');
+    expect(home).toContain('IntersectionObserver');
+    expect(home).toContain('classList.add("scroll-reveal")');
+    expect(styles).toContain('.scroll-reveal.is-visible');
+    expect(styles).toContain('@media (max-width: 767px)');
+    expect(styles).toContain('@media (prefers-reduced-motion: reduce)');
+  });
+
   it("keeps Admin member, role, lock, reset, delete and content mutations guarded", () => {
     expect(admin).toContain('account.role === "Admin" || account.role === "Founder"');
     expect(admin).toContain("create.mutate");
