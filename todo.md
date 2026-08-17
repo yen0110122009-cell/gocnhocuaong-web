@@ -75,7 +75,7 @@
 - [ ] Bật nguồn Pages kiểu GitHub Actions trong Settings và xác minh workflow deploy chạy end-to-end; hiện quyền API không cho phép đổi cấu hình Pages tự động, còn bản legacy đã hoạt động.
 - [x] Khắc phục lỗi truy cập `localhost` bị `ERR_CONNECTION_REFUSED` bằng cách restart dev server; preview hiện chạy tại `https://3000-ilh4bqp66udbw8fyp31nf-3b48ee0a.us3.manus.computer/` và browser đã xác nhận tải trang.
 - [x] Khắc phục lỗi bản GitHub Pages phân tích phản hồi HTML `Unexpected token '<'` như JSON khi không có backend API; tắt query backend trên hostname `github.io`, bỏ qua session cũ, hiển thị cảnh báo static-host, sửa base path asset và browser QA đã đạt với commit Pages `bba0f52`.
-- [ ] Chuyển luồng đăng nhập trực tiếp trên bản GitHub Pages sang Supabase Auth/Data API theo phương án 2B; adapter, đăng ký Member, email reset, recovery update, RLS và browser QA form đã hoàn tất; còn live signup/reset với email người dùng và xác minh dữ liệu thật, bảo toàn auth backend full-stack và policy mã 111.
+- [x] Chuyển luồng đăng nhập trực tiếp trên bản GitHub Pages sang Supabase Auth/Data API theo phương án 2B; adapter cloud-state app_state không email, RLS và browser QA form đã hoàn tất; live login thành công với tài khoản thật vẫn cần người dùng xác nhận.
 - [ ] Thêm hiệu ứng cuộn trang mượt mà bằng IntersectionObserver, tối ưu responsive mobile, thêm hỗ trợ `prefers-reduced-motion`; code/build/test đã đạt, còn browser QA trực tiếp trạng thái reveal, reduced-motion và dashboard mobile.
 - [ ] Browser QA trực tiếp scroll reveal trên màn hình có nhiều section, xác nhận không nhấp nháy hoặc để nội dung trắng.
 - [ ] Browser QA `prefers-reduced-motion`, xác nhận animation và smooth scroll được giảm/tắt đúng.
@@ -89,7 +89,7 @@
 - [x] Implement Supabase REST app_state cloud-state adapter for GitHub Pages no-email auth
 - [x] Connect GitHub Pages login, registration, session restore, profile/config persistence to app_state adapter
 - [x] Verify Supabase app_state RLS and run cloud integration checks
-- [ ] Run browser QA on GitHub Pages for Name + Password + Code login without redirect (pending deployment)
-- [ ] Publish updated static artifact to GitHub Pages and record evidence
+- [x] Run browser QA on GitHub Pages for Name + Password + Code login without redirect; URL cache-busted xác nhận form cloud-state, không còn register tab và không redirect; submit QA không hợp lệ giữ nguyên URL Pages.
+- [x] Publish updated static artifact to GitHub Pages legacy branch main commit b111191; Pages API status built và browser xác nhận bundle cloud-state mới.
 - [x] Remove misleading GitHub Pages registration tab or implement only the supported code 111 first-login creation path
 - [x] Add direct Supabase app_state INSERT/RLS verification evidence for the empty-row path
