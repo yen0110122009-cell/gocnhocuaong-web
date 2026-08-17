@@ -156,3 +156,7 @@ Qua mutation `study.auth.login`, hai tài khoản khác tên `QA Shared 111 A` v
 ## Shared code 111 cloud and menu QA — 2026-08-17
 
 Supabase project `cuompgnxcbzufaeodgvx` đã nhận migration `allow_shared_code_111` với version `20260817084111`; migration bỏ unique index account code và tạo index thường trên `lower(account_code)`. Live preview đăng nhập thành công bằng `Lumi QA` / mã `111`; sidebar hiển thị `Trung tâm 111`. Mở trang này cho thấy tiêu đề `Trung tâm điều khiển của Lumi QA`, nhãn `Mã 111 · Không giới hạn`, bốn lối tắt Ôn tập thông minh/Pomodoro/AI Studio/Thành tích và các quyền đặc biệt. Screenshot mobile độc lập hiện mở trạng thái login vì không thừa hưởng browser session, nên chưa coi đó là bằng chứng authenticated mobile.
+
+## Audio Center QA — 2026-08-17
+
+Đã sửa lỗi nút `Nghe thử` trong Pomodoro: trước đây chỉ hiển thị toast, nay tạo preview âm thanh bằng Web Audio API, có điều khiển âm lượng nền, dừng preview khi tắt âm thanh/unmount và âm báo khi phiên hoàn thành. Regression contract mới bảo vệ `AudioContext`, `previewBackground`, `stopPreview`, volume scaling và `playAlert`. Kết quả: 20 test files / 56 tests passed, TypeScript check passed, production build passed. Browser UI screenshot đã xác nhận trang login không vỡ layout; việc nghe âm thanh thực tế cần xác nhận thêm trên thiết bị/trình duyệt có loa.

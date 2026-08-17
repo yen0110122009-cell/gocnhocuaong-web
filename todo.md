@@ -60,3 +60,5 @@
 - [ ] Chạy browser QA trực tiếp với ít nhất một tài khoản không thuộc policy `111`, xác nhận menu/bảng điều khiển đặc biệt không hiển thị trong UI.
 
 - [x] Export phiên bản hiện tại của dự án lên repository GitHub `yen0110122009-cell/gocnhocuaong2`, xác minh branch `webdev/gocnhocuaong-platform` và commit `faeaad5`.
+
+- [ ] Điều tra và sửa lỗi âm thanh được người dùng báo; xác định module/luồng phát audio, thêm regression test và browser QA trước checkpoint.

@@ -67,6 +67,15 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(pomodoro).toContain("localStorage");
   });
 
+  it("implements working Pomodoro audio preview and completion alert", () => {
+    expect(pomodoro).toContain("AudioContext");
+    expect(pomodoro).toContain("function previewBackground()");
+    expect(pomodoro).toContain("source.start()");
+    expect(pomodoro).toContain("backgroundVolume / 100");
+    expect(pomodoro).toContain("function stopPreview()");
+    expect(pomodoro).toContain("playAlert()");
+  });
+
   it("keeps Admin member, role, lock, reset, delete and content mutations guarded", () => {
     expect(admin).toContain('account.role === "Admin" || account.role === "Founder"');
     expect(admin).toContain("create.mutate");
