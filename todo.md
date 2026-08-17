@@ -124,3 +124,7 @@
 - [x] Add render test mounting Admin config UI with Member and verify controls are blocked
 - [x] Add render tests for Admin and Founder showing config controls
 - [x] Add executable mutation-flow tests for achievement and wheel reward create/edit/toggle/delete behavior
+
+- [x] Diagnose the reported Unexpected token '<' response and identify the exact non-JSON request path: cloud-state REST parsing had no content-type/body guard, so an HTML response surfaced as a raw JSON SyntaxError
+- [x] Add defensive response parsing and environment-specific error handling for HTML-as-JSON responses
+- [x] Add regression coverage for the repaired request path; browser verification on GitHub Pages remains pending until the new artifact is served

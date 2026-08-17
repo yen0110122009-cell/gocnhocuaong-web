@@ -15,6 +15,25 @@ function assertConfigured() {
   if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error("GitHub Pages chưa được cấu hình Supabase cloud-state.");
 }
 function headers(extra?: HeadersInit): HeadersInit { return { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", ...extra }; }
+
+export async function readCloudJson<T>(response: Response, operation: string): Promise<T> {
+  const body = await response.text();
+  const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+  if (!response.ok) {
+    const detail = body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
+    throw new Error(`${operation} (${response.status})${detail ? `: ${detail}` : "."}`);
+  }
+  if (!body.trim()) return undefined as T;
+  if (!contentType.includes("json") && !/^[\[{]/.test(body.trim())) {
+    throw new Error(`${operation} trả về HTML thay vì JSON. Hãy tải lại đúng bản GitHub Pages mới hoặc kiểm tra cấu hình Supabase cloud-state.`);
+  }
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    throw new Error(`${operation} trả về dữ liệu JSON không hợp lệ. Vui lòng tải lại trang và thử lại.`);
+  }
+}
+
 export function normalizeCloudName(value: string) { return value.trim().toLocaleLowerCase("vi-VN").replace(/\s+/g, " "); }
 const normalizeName = normalizeCloudName;
 function makeId() { return typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
@@ -38,7 +57,7 @@ async function loadRow(): Promise<AppStateRow | null> {
   assertConfigured();
   const response = await fetch(`${REST_URL}?id=eq.global_state&select=id,payload`, { headers: headers(), cache: "no-store" });
   if (!response.ok) throw new Error(`Không thể đọc cloud-state (${response.status}).`);
-  const rows = await response.json() as AppStateRow[];
+  const rows = await readCloudJson<AppStateRow[]>(response, "Không thể đọc cloud-state");
   return rows[0] ?? null;
 }
 async function savePayload(currentRow: AppStateRow | null, payload: CloudPayload) {
