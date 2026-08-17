@@ -17,7 +17,7 @@
 - [x] Thêm kiểm thử Vitest cho database contract, phân quyền, ledger và router cốt lõi.
 - [x] Chạy kiểm thử build và smoke test giao diện.
 - [x] Đồng bộ các thay đổi phù hợp lên GitHub repository yen0110122009-cell/gocnhocuaong2.
-- [ ] Tạo checkpoint sau khi toàn bộ hạng mục hoàn thành và bàn giao website.
+- [x] Tạo checkpoint trung gian trước khi tiếp tục QA E2E và cloud apply.
 
 - [x] Chạy browser smoke/regression trực tiếp cho Dashboard, Catalog, Museum, AI Studio, Pomodoro và Admin Panel trong gocnhocuaong-web.
 - [x] Chạy test router/module cốt lõi trực tiếp trong gocnhocuaong-web; catalog 900/400, permissions/auth, ledger và Supabase smoke đã đạt.
@@ -28,8 +28,8 @@
 - [x] Xác nhận trực quan mascot Lumi hiển thị đúng trên UI và ghi lại evidence brand fidelity gồm tên thương hiệu, màu sắc, hình ong và typography.
 - [x] Chạy browser QA chi tiết trên Catalog: tìm kiếm, bộ lọc và thanh tiến trình đã được xác nhận trực tiếp.
 - [x] Chạy browser QA chi tiết trên Museum Journey: empty, non-empty và locked state đã được xác nhận trực tiếp.
-- [ ] Chạy end-to-end QA cho AI Studio: upload tài liệu, tạo Flashcard/Quiz và kiểm tra lịch sử làm bài.
-- [ ] Chạy QA Pomodoro end-to-end: đổi cấu hình, bắt đầu phiên, lưu và truy xuất trạng thái phiên học.
+- [ ] Chạy end-to-end QA cho AI Studio: tạo Flashcard đã đạt; còn upload tài liệu, tạo Quiz và kiểm tra lịch sử làm bài.
+- [ ] Chạy QA Pomodoro end-to-end: đổi cấu hình và bắt đầu phiên đã đạt; còn lưu và truy xuất trạng thái phiên học.
 - [ ] Chạy QA Admin Panel end-to-end: quản lý thành viên, cấu hình phần thưởng và import nhân vật với kết quả mutation rõ ràng.
 - [x] Bổ sung và chạy Vitest cho study router/module cốt lõi cùng database invariants thực tế.
 - [x] Xác nhận trực tiếp progress bar của Catalog trong browser, không chỉ số đếm văn bản.

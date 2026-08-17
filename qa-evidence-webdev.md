@@ -69,3 +69,9 @@ Các mutation AI/Pomodoro/Admin được bảo vệ bằng contract tests và ca
 ## Catalog progress bar — post-restart browser evidence
 
 Sau khi restart dev server, phiên Founder QA vẫn authenticated. Mở tab **Thành tích** trực tiếp cho thấy progress bar có nhãn `Tiến trình mở khóa`, dòng `0/900 thành tích · 400/400 danh hiệu có sẵn`, giá trị `0%`, thanh nền trực quan, cùng `Đang hiển thị 900/900 mục · 400 danh hiệu trong bộ lọc`. Đây là evidence sau thay đổi `Home.tsx`, tách biệt với search/filter evidence trước đó. Browser capture: `/home/ubuntu/screenshots/3000-ilh4bqp66udbw8fyp31nf-3b48ee0a.us3.manus.computer_2026-08-17_04-09-19_7170.webp`.
+
+## E2E QA bổ sung sau final verification
+
+AI Studio đã đi qua mutation thực tế với metadata và JSON hợp lệ, tạo thành công bộ `QA Ôn tập Lịch sử Việt Nam` gồm 2 Flashcard; sau mutation, màn hình Flashcard hiển thị bộ, số thẻ, câu hỏi đầu tiên và các thao tác lật thẻ/đánh dấu.
+
+Pomodoro đã chọn preset Nhanh 10 phút và bắt đầu phiên; UI chuyển sang `Tạm dừng`/`Kết thúc phiên` với đồng hồ giảm từ 10:00 xuống 09:59. Browser session timeout xảy ra khi thao tác kết thúc, vì vậy persistence của phiên hoàn thành vẫn được giữ là hạng mục cần kiểm tra thêm.
