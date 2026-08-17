@@ -7,6 +7,7 @@ const aiImport = readFileSync(join(process.cwd(), "client/src/pages/AIDataImport
 const pomodoro = readFileSync(join(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
 const admin = readFileSync(join(process.cwd(), "client/src/pages/AdminEnhanced.tsx"), "utf8");
 const adminContent = readFileSync(join(process.cwd(), "client/src/pages/AdminContentHub.tsx"), "utf8");
+const quizPersistence = readFileSync(join(process.cwd(), "shared/quizPersistence.ts"), "utf8");
 
 describe("Góc học tập end-to-end contracts", () => {
   it("renders the Catalog completion progressbar with 900/400 totals", () => {
@@ -28,11 +29,12 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(aiImport).toContain("quizzes: quiz ? [quiz, ...profile.quizzes]");
   });
 
-  it("normalizes short-answer quiz grading for punctuation and whitespace", () => {
-    expect(home).toContain('value.normalize("NFKC")');
-    expect(home).toContain('replace(/[.,!?;:()[\\]{}"\'“”‘’]/g, "")');
-    expect(home).toContain('function quizAnswerMatches(question: QuizQuestion, given: string)');
-    expect(home).toContain('expected.endsWith(actual) || actual.endsWith(expected)');
+  it("normalizes short-answer quiz grading centrally for punctuation, whitespace and numeric context", () => {
+    expect(quizPersistence).toContain("export function normalizeQuizAnswer");
+    expect(quizPersistence).toContain('value.normalize("NFKC")');
+    expect(quizPersistence).toContain("const referenceNumbers: string[]");
+    expect(quizPersistence).toContain("referenceNumbers.includes(actualNumber)");
+    expect(quizPersistence).toContain("correct: quizAnswerMatches(answer, question.answer)");
   });
 
   it("keeps Pomodoro configuration and completed session persistence wired", () => {

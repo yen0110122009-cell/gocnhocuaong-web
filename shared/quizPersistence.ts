@@ -20,6 +20,20 @@ export function createQuizFromFlashcardSet(set: FlashcardSet, now = new Date().t
   };
 }
 
+export function normalizeQuizAnswer(value: string): string {
+  return value.normalize("NFKC").toLocaleLowerCase().replace(/[“”"'`´]/g, "").replace(/[.,!?;:，。！？；：]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function quizAnswerMatches(answer: string, expected: string): boolean {
+  const actual = normalizeQuizAnswer(answer);
+  const reference = normalizeQuizAnswer(expected);
+  if (!actual || !reference) return actual === reference;
+  if (actual === reference) return true;
+  const actualNumber = actual.match(/^\d+(?:[.,]\d+)?$/)?.[0];
+  const referenceNumbers: string[] = reference.match(/\d+(?:[.,]\d+)?/g) ?? [];
+  return Boolean(actualNumber && referenceNumbers.includes(actualNumber));
+}
+
 export function buildQuizAttempt(input: {
   quiz: Quiz;
   answers: Record<string, string>;
@@ -36,7 +50,7 @@ export function buildQuizAttempt(input: {
       questionId: question.id,
       answer,
       flagged: flagged.includes(question.id),
-      correct: answer.trim().toLocaleLowerCase() === question.answer.trim().toLocaleLowerCase(),
+      correct: quizAnswerMatches(answer, question.answer),
     };
   });
   const correct = answerItems.filter((item) => item.correct).length;
