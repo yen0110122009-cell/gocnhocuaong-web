@@ -37,6 +37,27 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(quizPersistence).toContain("correct: quizAnswerMatches(answer, question.answer)");
   });
 
+  it("supports multiple accounts sharing code 111 without weakening credential checks", () => {
+    const schema = readFileSync(join(process.cwd(), "drizzle/schema.ts"), "utf8");
+    const store = readFileSync(join(process.cwd(), "server/studyStore.ts"), "utf8");
+    expect(schema).toContain('code: varchar("code", { length: 48 }).notNull(),');
+    expect(schema).not.toContain('code: varchar("code", { length: 48 }).notNull().unique(),');
+    expect(store).toContain('code === "111"');
+    expect(store).toContain("eq(studyAccounts.normalizedName, normalizedName)");
+    expect(store).toContain('if (code === "999")');
+    expect(store).toContain('if (code !== "111")');
+    expect(store).not.toContain('code === "111" || code === "999"');
+  });
+
+  it("exposes the special 111 dashboard only through the unlimited-account guard", () => {
+    expect(home).toContain('import { isUnlimitedAccountCode } from "../../../shared/permissions";');
+    expect(home).toContain('"special111"');
+    expect(home).toContain('(!x.special111 || isUnlimitedAccountCode(account.code))');
+    expect(home).toContain('isUnlimitedAccountCode(account.code) ? <Special111Dashboard');
+    expect(home).toContain("Mã 111 · Không giới hạn");
+    expect(home).toContain("Menu truy cập nhanh dành cho mã 111");
+  });
+
   it("keeps Pomodoro configuration and completed session persistence wired", () => {
     expect(pomodoro).toContain("onProfile");
     expect(pomodoro).toContain("pomodoroHistory");

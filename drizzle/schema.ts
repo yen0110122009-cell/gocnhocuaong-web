@@ -16,7 +16,7 @@ export const studyAccounts = mysqlTable("study_accounts", {
   id: varchar("id", { length: 64 }).primaryKey(),
   name: varchar("name", { length: 120 }).notNull(),
   normalizedName: varchar("normalizedName", { length: 160 }).notNull().unique(),
-  code: varchar("code", { length: 48 }).notNull().unique(),
+  code: varchar("code", { length: 48 }).notNull(),
   role: mysqlEnum("role", ["Member", "Admin", "Founder"]).notNull().default("Member"),
   passwordHash: text("passwordHash"),
   locked: boolean("locked").notNull().default(false),

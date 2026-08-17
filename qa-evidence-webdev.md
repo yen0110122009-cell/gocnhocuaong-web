@@ -148,3 +148,7 @@ Admin reward mutation đã được kiểm tra trực tiếp: tạo `QA Reward T
 ## QA — Mã thành viên 111 không giới hạn
 
 Backend hiện nhận diện mã `111` qua `isUnlimitedAccountCode`. Tài khoản mã này được miễn kiểm tra `locked` khi đăng nhập và khôi phục session; thao tác quản trị không thể bật trạng thái khóa cho mã `111`. Regression test đã được bổ sung trong `server/permissions.test.ts`. Kết quả: 20 test files, 53 tests passed; TypeScript check và production build đạt.
+
+## Shared code 111 execution QA — 2026-08-17
+
+Qua mutation `study.auth.login`, hai tài khoản khác tên `QA Shared 111 A` và `QA Shared 111 B` cùng mã `111` đều đăng nhập HTTP 200; mỗi token khôi phục đúng session HTTP 200 của chính tài khoản tương ứng. Thử sai mật khẩu trả HTTP 400 với thông báo `Mật khẩu không đúng.`. Hai tài khoản QA cùng session/profile liên quan đã được xóa; truy vấn xác minh chỉ còn `Lumi QA` với mã `111`. Local schema/migration, login/create logic và 55 regression tests cùng TypeScript/build đã đạt. Migration Supabase cloud và browser screenshot menu 111 vẫn pending.

@@ -66,10 +66,13 @@ export async function loginStudyAccount(input: { name: string; password: string;
   const name = input.name.trim();
   const code = input.code.trim().toUpperCase();
   const password = input.password;
+  const normalizedName = normalizeName(name);
   if (!name || !password || !code) throw new Error("Vui lòng nhập đủ tên, mật khẩu và mã tài khoản.");
   if (password.length < 6) throw new Error("Mật khẩu cần có ít nhất 6 ký tự.");
   const db = await database();
-  let accountRows = await db.select().from(studyAccounts).where(eq(studyAccounts.code, code)).limit(1);
+  let accountRows = code === "111"
+    ? await db.select().from(studyAccounts).where(and(eq(studyAccounts.code, code), eq(studyAccounts.normalizedName, normalizedName))).limit(1)
+    : await db.select().from(studyAccounts).where(eq(studyAccounts.code, code)).limit(1);
   let account = accountRows[0];
   if (!account && code === "111") {
     const now = new Date();
@@ -77,7 +80,7 @@ export async function loginStudyAccount(input: { name: string; password: string;
     await db.insert(studyAccounts).values({
       id: founderId,
       name,
-      normalizedName: normalizeName(name),
+      normalizedName,
       code: "111",
       role: "Founder",
       passwordHash: null,
@@ -192,10 +195,12 @@ export async function createAccountForToken(token: string, input: { name: string
   const name = input.name.trim();
   const code = input.code.trim().toUpperCase();
   if (!name || !code) throw new Error("Tên và mã tài khoản là bắt buộc.");
-  if (code === "111" || code === "999") throw new Error("Mã 111 và 999 được dành cho Founder và Admin hệ thống.");
+  if (code === "999") throw new Error("Mã 999 được dành cho Admin hệ thống.");
   const db = await database();
-  const duplicated = await db.select().from(studyAccounts).where(eq(studyAccounts.code, code)).limit(1);
-  if (duplicated[0]) throw new Error("Mã tài khoản đã được sử dụng.");
+  if (code !== "111") {
+    const duplicated = await db.select().from(studyAccounts).where(eq(studyAccounts.code, code)).limit(1);
+    if (duplicated[0]) throw new Error("Mã tài khoản đã được sử dụng.");
+  }
   const sameName = await db.select().from(studyAccounts).where(eq(studyAccounts.normalizedName, normalizeName(name))).limit(1);
   if (sameName[0]) throw new Error("Tên tài khoản đã tồn tại.");
   const now = new Date();

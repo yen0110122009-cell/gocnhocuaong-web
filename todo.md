@@ -48,3 +48,11 @@
 - [x] Chỉ đánh dấu regression E2E hoàn tất sau khi AI Quiz, Pomodoro history list và Admin reward config đều có evidence trực tiếp, không còn bug rõ ràng; AI Quiz 100%, Pomodoro history và Admin reward mutation đều đã xác nhận.
 
 - [x] Miễn giới hạn tài khoản cho mã thành viên `111`: login/session bỏ qua trạng thái khóa, Admin không thể khóa mã này; regression test, TypeScript check và production build đã đạt.
+
+- [ ] Tạo menu truy cập nhanh và bảng điều khiển đặc biệt chỉ hiển thị cho tài khoản mã `111` sau đăng nhập; code, sidebar guard, contract test và build đã đạt, còn cần QA browser thực tế bằng tài khoản 111 ở desktop/mobile và xác nhận tài khoản khác không thấy menu.
+
+- [x] Điều tra lỗi mã thành viên `111` vẫn không đăng nhập được: code/schema local đã sửa để bỏ unique và login theo mã+tên; execution test thật xác nhận hai account khác tên login/session 200, sai mật khẩu bị từ chối; dữ liệu QA đã dọn.
+
+- [ ] Thiết kế và triển khai policy cho nhiều tài khoản dùng mã `111`: local schema/login/create, migration file, execution test hai account và 55 tests/build đã đạt; dữ liệu QA đã dọn. Còn áp dụng/xác minh migration Supabase cloud và browser screenshot menu đặc biệt.
+
+- [x] Tạo hai tài khoản QA tạm thời khác tên dùng chung mã `111`, kiểm thử login độc lập/session và sai mật khẩu, rồi xóa sạch cả hai tài khoản cùng session/profile liên quan.
