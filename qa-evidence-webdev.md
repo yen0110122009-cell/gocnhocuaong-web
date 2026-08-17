@@ -83,3 +83,23 @@ Tái hiện lỗi cho thấy request sai path `study.login` trả `NOT_FOUND`; p
 ## Browser login retry — 2026-08-17
 
 Sau bản sửa import Drizzle, browser live preview đã đăng nhập thành công bằng `Lumi QA` / `LumiQA2026!` / `111`. UI chuyển khỏi form login vào dashboard, hiển thị `Chào mừng Lumi QA`, role `Founder`, sidebar các module học tập/Admin Panel, XP 0 và tiến trình hôm nay 0%. Đây là bằng chứng end-to-end cho form login, session bootstrap và quyền truy cập dashboard.
+
+## AI Studio mutation QA — 2026-08-17
+
+Sau khi mở Flashcard trong phiên Founder QA, bộ `QA Study Set` hiển thị 2 thẻ về Lịch sử Việt Nam. Nhấn `Tạo đề từ bộ Flashcard` trả toast `Đã tạo đề ôn tập 2 câu từ bộ Flashcard`; UI vẫn hiển thị bộ thẻ, câu hỏi và thao tác ôn tập. Đây là bằng chứng mutation Flashcard-to-Quiz hoạt động trực tiếp.
+
+## Pomodoro mutation QA — 2026-08-17
+
+Sau AI Studio, Founder QA mở Pomodoro thành công. Màn hình hiển thị timer 25:00, nút `Bắt đầu tập trung`, `Đặt lại`, môn học/nội dung, hoạt động học và các preset; preset `Nhanh 10 phút` có thể chọn để bắt đầu phiên QA.
+
+Pomodoro QA tiếp tục: chọn preset `Nhanh 10 phút` làm timer đổi trực tiếp thành `10:00`, trong khi nút `Bắt đầu tập trung`, `Đặt lại` và lịch sử phiên vẫn hiển thị đúng.
+
+Pomodoro active-state QA: sau khi nhấn `Bắt đầu tập trung`, UI đổi sang countdown `09:59`, hiển thị `Tạm dừng` và `Kết thúc phiên`, xác nhận active session thực tế đã được mở.
+
+Pomodoro end-session QA: lần click `Kết thúc phiên` bị timeout và browser chuyển sang `about:blank`; vì vậy chưa ghi nhận persistence hoàn tất, không sử dụng kết quả này để đánh dấu E2E hoàn chỉnh.
+
+## Browser session state after Pomodoro timeout — 2026-08-17
+
+Live preview URL: https://3000-ilh4bqp66udbw8fyp31nf-3b48ee0a.us3.manus.computer/
+
+Sau lỗi timeout khi kết thúc Pomodoro, mở lại URL cho thấy trang public Study Account login với ba trường Tên thành viên, Mật khẩu, Mã thành viên; session Founder QA không còn được giữ. Vì vậy Admin E2E cần một phiên đăng nhập mới trước khi thao tác tiếp.
