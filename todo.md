@@ -74,3 +74,4 @@
 - [x] Tạo bản frontend tĩnh cho GitHub Pages và ghi rõ các chức năng backend không thể chạy trên Pages trong `github-pages-qa.md`; Pages hiện publish thành công từ branch `main` theo chế độ legacy.
 - [ ] Bật nguồn Pages kiểu GitHub Actions trong Settings và xác minh workflow deploy chạy end-to-end; hiện quyền API không cho phép đổi cấu hình Pages tự động, còn bản legacy đã hoạt động.
 - [x] Khắc phục lỗi bản GitHub Pages phân tích phản hồi HTML `Unexpected token '<'` như JSON khi không có backend API; tắt query backend trên hostname `github.io`, bỏ qua session cũ, hiển thị cảnh báo static-host, sửa base path asset và browser QA đã đạt với commit Pages `bba0f52`.
+- [ ] Chuyển luồng đăng nhập trực tiếp trên bản GitHub Pages sang Supabase Auth/Data API theo phương án 2B; tài khoản hiện tại đăng ký hoặc đặt lại mật khẩu, bảo toàn auth backend full-stack và policy mã 111.
