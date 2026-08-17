@@ -128,3 +128,7 @@
 - [x] Diagnose the reported Unexpected token '<' response and identify the exact non-JSON request path: cloud-state REST parsing had no content-type/body guard, so an HTML response surfaced as a raw JSON SyntaxError
 - [x] Add defensive response parsing and environment-specific error handling for HTML-as-JSON responses
 - [x] Add regression coverage for the repaired request path, push the repaired artifact to Pages legacy branch `main` at commit `535d89c`, and verify browser now serves `assets/index-CVazIDuF.js` with the no-email cloud-state form
+
+- [x] Reproduce and diagnose the reported deployed GitHub Pages error at https://yen0110122009-cell.github.io/gocnhocuaong2/
+- [x] Verify the deployed HTML and JavaScript asset hashes match the repaired cloud-state parser
+- [x] Re-publish and browser-verify the repaired artifact; exact URL now shows `Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.` instead of `Unexpected token '<'`
