@@ -81,3 +81,5 @@
 - [ ] Browser QA `prefers-reduced-motion`, xác nhận animation và smooth scroll được giảm/tắt đúng.
 - [ ] Browser QA mobile cho login và dashboard/auth shell, xác nhận không tràn ngang, header/search/menu và vùng chạm.
 - [ ] Đối chiếu file mẫu `12.html` và sửa luồng đăng nhập hiện tại theo cách đăng nhập đã được xác minh; đã thêm nút xem mật khẩu, hướng dẫn mã `111`, placeholder rõ ràng và đạt TypeScript/59 tests, còn live login cần xác nhận với tên + mật khẩu >=6 ký tự + mã.
+- [x] Đổi bản đăng nhập GitHub Pages từ Supabase email/password sang luồng không email: Tên + Mật khẩu + Mã thành viên; người dùng đã xác nhận dùng full-stack preview cho auth, GitHub Pages chỉ làm bản tĩnh; giữ an toàn hash/password và không đưa secret backend lên frontend.
+- [x] Cập nhật thông báo và liên kết giữa GitHub Pages/full-stack để người dùng không nhầm bản tĩnh có thể đăng nhập không email; commit Pages `4ef9e93`, Pages status `built`, browser xác nhận nút `Mở bản full-stack để đăng nhập`.
