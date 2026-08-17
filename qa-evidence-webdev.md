@@ -79,3 +79,7 @@ Pomodoro đã chọn preset Nhanh 10 phút và bắt đầu phiên; UI chuyển 
 ## Login fix — 2026-08-17
 
 Tái hiện lỗi cho thấy request sai path `study.login` trả `NOT_FOUND`; procedure đúng trong appRouter là `study.auth.login`. Đồng thời `studyStore.ts` thiếu import `eq`, `and`, `gt` từ `drizzle-orm`, làm mutation login lỗi runtime khi được gọi đúng path. Sau khi bổ sung import, request `study.auth.login` với Founder QA `Lumi QA` / mã `111` trả HTTP 200 và token; request tiếp theo tới `study.auth.session` bằng token trả HTTP 200, nhận đúng tài khoản role Founder, `locked: false` và session còn hạn. `pnpm check`, build và Vitest đạt sau bản sửa. Browser UI retry end-to-end chưa được ghi nhận trong phiên này.
+
+## Browser login retry — 2026-08-17
+
+Sau bản sửa import Drizzle, browser live preview đã đăng nhập thành công bằng `Lumi QA` / `LumiQA2026!` / `111`. UI chuyển khỏi form login vào dashboard, hiển thị `Chào mừng Lumi QA`, role `Founder`, sidebar các module học tập/Admin Panel, XP 0 và tiến trình hôm nay 0%. Đây là bằng chứng end-to-end cho form login, session bootstrap và quyền truy cập dashboard.

@@ -39,4 +39,4 @@
 - [x] Cập nhật qa-evidence-webdev.md với bằng chứng trực tiếp cho progress bar Catalog sau restart, tách biệt khỏi evidence search/filter cũ.
 - [x] Khắc phục lỗi Study Account không đăng nhập được trên live preview bằng cách bổ sung import `eq`, `and`, `gt` cho studyStore.
 - [x] Xác minh validation, session bootstrap và quyền truy cập procedure sau login; `study.auth.login` và `study.auth.session` đều trả HTTP 200 với tài khoản Lumi QA Founder.
-- [ ] Chạy browser login end-to-end với `Lumi QA` / `LumiQA2026!` / `111` và lưu evidence; server-side login/session smoke cùng build/Vitest đã đạt.
+- [x] Chạy browser login end-to-end với `Lumi QA` / `LumiQA2026!` / `111` và lưu evidence; server-side login/session smoke cùng build/Vitest đã đạt.
