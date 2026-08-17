@@ -138,3 +138,9 @@ Lưu ý: thao tác xóa cần native confirmation nên lần click trực tiếp
 - Regression sau thay đổi `quizAnswerMatches`: 20 test files, 52 tests passed; `pnpm check` và `pnpm build` passed.
 - Browser QA nộp lại Quiz QA vẫn hiển thị 50% và câu “40” chưa chính xác dù câu “Trưng Nhị.” đúng. Vì vậy short-answer grading vẫn pending để điều tra tiếp; không coi browser evidence này là pass.
 - Pomodoro 1 phút và Admin member mutations đã có evidence trực tiếp ở mục 115–121; reward-config mutation trực tiếp vẫn pending.
+
+## QA bổ sung — numeric matching và Admin reward — 17/08/2026
+
+Sau bản sửa functional answer state và numeric matching, browser đã chạy lại Quiz QA với `40.` cho câu “Khởi nghĩa Hai Bà Trưng bắt đầu năm nào?” và `Trưng Nhị.` cho câu 2. Kết quả vẫn hiển thị **50%**, câu 1 vẫn sai và câu 2 đúng; regression 20 test files/52 tests và TypeScript check đều đạt. Numeric matching vẫn là gap cần điều tra tiếp, chưa đánh dấu hoàn tất.
+
+Admin reward mutation đã được kiểm tra trực tiếp: tạo `QA Reward Temp` loại XP, giá trị 5, trọng số 1 hiển thị toast `Đã thêm phần thưởng vòng quay` và xuất hiện trong danh sách. Sau đó xóa thành công với toast `Đã xóa phần thưởng vòng quay`; danh sách trở về empty state. Dữ liệu reward QA đã được dọn sạch.
