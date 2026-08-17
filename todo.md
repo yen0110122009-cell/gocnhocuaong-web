@@ -2,7 +2,7 @@
 
 - [x] Thiết kế migration Supabase cho 10 bảng bắt buộc và các enum/trigger liên quan.
 - [x] Thiết lập Row Level Security và chính sách truy cập cho từng bảng Supabase.
-- [ ] Kiểm tra hoặc kích hoạt connector Supabase, áp dụng migration vào cloud khi có quyền quản trị cần thiết.
+- [x] Kiểm tra hoặc kích hoạt connector Supabase, áp dụng migration additive vào cloud và xác minh đủ 10 bảng cùng RLS policies.
 - [x] Đồng bộ domain schema MySQL/Drizzle cho dữ liệu học tập, catalog, ledger, AI Studio và quản trị.
 - [x] Tạo migration Drizzle và áp dụng schema MySQL/TiDB của website.
 - [x] Triển khai ranh giới xác thực Founder, Admin và Member với các quy tắc khóa, xóa tài khoản và phiên làm việc.

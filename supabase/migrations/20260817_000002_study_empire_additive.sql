@@ -1,0 +1,198 @@
+begin;
+
+-- The Ong project already has legacy study_accounts/study_profiles. This migration
+-- extends those tables instead of replacing their user_id-based identity model.
+create extension if not exists pgcrypto;
+
+alter table public.study_accounts add column if not exists locked_at timestamptz;
+alter table public.study_accounts add column if not exists locked_reason text;
+alter table public.study_accounts add column if not exists deleted_at timestamptz;
+alter table public.study_accounts add column if not exists last_signed_in_at timestamptz;
+create unique index if not exists study_accounts_account_code_lower_key on public.study_accounts (lower(account_code));
+create index if not exists study_accounts_active_role_idx on public.study_accounts (role, created_at desc) where deleted_at is null;
+
+alter table public.study_profiles add column if not exists score integer not null default 0 check (score >= 0);
+alter table public.study_profiles add column if not exists knowledge_map jsonb not null default '{}'::jsonb;
+alter table public.study_profiles add column if not exists created_at timestamptz not null default now();
+
+create table if not exists public.study_sessions (
+  id uuid primary key default gen_random_uuid(),
+  account_id uuid not null references public.study_accounts(user_id) on delete cascade,
+  token_hash text not null unique,
+  expires_at timestamptz not null,
+  revoked_at timestamptz,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  check (expires_at > created_at)
+);
+create index if not exists study_sessions_account_active_idx on public.study_sessions (account_id, expires_at desc) where revoked_at is null;
+
+create table if not exists public.study_settings (
+  key text primary key check (char_length(trim(key)) between 1 and 100),
+  data jsonb not null default '{}'::jsonb,
+  updated_by uuid references public.study_accounts(user_id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.piece_types (
+  id text primary key check (char_length(trim(id)) between 1 and 96),
+  name text not null check (char_length(trim(name)) between 1 and 120),
+  ordinal integer not null unique check (ordinal >= 0),
+  unit_value integer not null default 1 check (unit_value > 0),
+  enabled boolean not null default true,
+  deleted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.user_pieces (
+  account_id uuid not null references public.study_accounts(user_id) on delete cascade,
+  piece_type_id text not null references public.piece_types(id) on delete restrict,
+  balance integer not null default 0 check (balance >= 0),
+  updated_at timestamptz not null default now(),
+  primary key (account_id, piece_type_id)
+);
+create index if not exists user_pieces_account_idx on public.user_pieces (account_id, updated_at desc);
+
+create table if not exists public.piece_transactions (
+  id uuid primary key default gen_random_uuid(),
+  account_id uuid not null references public.study_accounts(user_id) on delete restrict,
+  piece_type_id text not null references public.piece_types(id) on delete restrict,
+  delta integer not null check (delta <> 0),
+  kind text not null check (kind in ('award','adjustment','consume','reversal')),
+  idempotency_key text not null check (char_length(trim(idempotency_key)) between 8 and 160),
+  reference_type text,
+  reference_id text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  unique (account_id, idempotency_key)
+);
+create index if not exists piece_transactions_account_created_idx on public.piece_transactions (account_id, created_at desc);
+
+create table if not exists public.audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  actor_account_id uuid references public.study_accounts(user_id) on delete set null,
+  target_account_id uuid references public.study_accounts(user_id) on delete set null,
+  action text not null check (char_length(trim(action)) between 1 and 64),
+  entity_type text not null check (char_length(trim(entity_type)) between 1 and 64),
+  entity_id text,
+  before_data jsonb,
+  after_data jsonb,
+  reason text,
+  created_at timestamptz not null default now()
+);
+create index if not exists audit_logs_target_created_idx on public.audit_logs (target_account_id, created_at desc);
+
+create table if not exists public.catalog_achievements (
+  id text primary key,
+  rank integer not null check (rank > 0),
+  rank_name text not null,
+  icon text not null,
+  name text not null,
+  description text not null,
+  metric text not null,
+  threshold integer not null default 0 check (threshold >= 0),
+  reward_xp integer not null default 0 check (reward_xp >= 0),
+  reward_fragments integer not null default 0 check (reward_fragments >= 0),
+  title_id text,
+  title_meaning text,
+  difficulty text not null,
+  badge_label text not null,
+  encouragement text not null,
+  animation text not null,
+  enabled boolean not null default true,
+  deleted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists catalog_achievements_rank_idx on public.catalog_achievements (rank, id) where enabled = true and deleted_at is null;
+
+create table if not exists public.catalog_titles (
+  id text primary key,
+  achievement_id text not null unique references public.catalog_achievements(id) on delete restrict,
+  name text not null,
+  meaning text not null,
+  enabled boolean not null default true,
+  deleted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists catalog_titles_visible_idx on public.catalog_titles (name) where enabled = true and deleted_at is null;
+
+create or replace function public.study_additive_updated_at()
+returns trigger language plpgsql security invoker set search_path = public as $$
+begin new.updated_at = now(); return new; end;
+$$;
+
+drop trigger if exists study_accounts_additive_updated_at on public.study_accounts;
+create trigger study_accounts_additive_updated_at before update on public.study_accounts for each row execute function public.study_additive_updated_at();
+drop trigger if exists study_profiles_additive_updated_at on public.study_profiles;
+create trigger study_profiles_additive_updated_at before update on public.study_profiles for each row execute function public.study_additive_updated_at();
+
+create or replace function public.study_is_active_account_additive()
+returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce((select not locked and deleted_at is null from public.study_accounts where user_id = auth.uid()), false);
+$$;
+create or replace function public.study_is_staff_additive()
+returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce((select not locked and deleted_at is null and role in ('Founder','Admin') from public.study_accounts where user_id = auth.uid()), false);
+$$;
+revoke all on function public.study_is_active_account_additive() from public;
+revoke all on function public.study_is_staff_additive() from public;
+grant execute on function public.study_is_active_account_additive() to authenticated;
+grant execute on function public.study_is_staff_additive() to authenticated;
+
+alter table public.study_accounts enable row level security;
+alter table public.study_profiles enable row level security;
+alter table public.study_sessions enable row level security;
+alter table public.study_settings enable row level security;
+alter table public.piece_types enable row level security;
+alter table public.user_pieces enable row level security;
+alter table public.piece_transactions enable row level security;
+alter table public.audit_logs enable row level security;
+alter table public.catalog_achievements enable row level security;
+alter table public.catalog_titles enable row level security;
+
+revoke all on public.study_accounts, public.study_profiles, public.study_sessions, public.study_settings, public.piece_types, public.user_pieces, public.piece_transactions, public.audit_logs, public.catalog_achievements, public.catalog_titles from anon, authenticated;
+grant select on public.study_accounts, public.study_profiles, public.study_settings, public.piece_types, public.user_pieces, public.piece_transactions, public.audit_logs, public.catalog_achievements, public.catalog_titles to authenticated;
+grant select on public.catalog_achievements, public.catalog_titles to anon;
+
+drop policy if exists study_accounts_additive_read on public.study_accounts;
+create policy study_accounts_additive_read on public.study_accounts for select to authenticated using (user_id = auth.uid() or public.study_is_staff_additive());
+drop policy if exists study_profiles_additive_read on public.study_profiles;
+create policy study_profiles_additive_read on public.study_profiles for select to authenticated using ((user_id = auth.uid() and public.study_is_active_account_additive()) or public.study_is_staff_additive());
+drop policy if exists study_settings_additive_read on public.study_settings;
+create policy study_settings_additive_read on public.study_settings for select to authenticated using (public.study_is_active_account_additive());
+drop policy if exists study_settings_additive_manage on public.study_settings;
+create policy study_settings_additive_manage on public.study_settings for all to authenticated using (public.study_is_staff_additive()) with check (public.study_is_staff_additive());
+
+drop policy if exists study_sessions_additive_deny on public.study_sessions;
+create policy study_sessions_additive_deny on public.study_sessions for all to authenticated using (false) with check (false);
+drop policy if exists user_pieces_additive_read on public.user_pieces;
+create policy user_pieces_additive_read on public.user_pieces for select to authenticated using ((account_id = auth.uid() and public.study_is_active_account_additive()) or public.study_is_staff_additive());
+drop policy if exists user_pieces_additive_deny on public.user_pieces;
+create policy user_pieces_additive_deny on public.user_pieces for all to authenticated using (false) with check (false);
+drop policy if exists piece_transactions_additive_read on public.piece_transactions;
+create policy piece_transactions_additive_read on public.piece_transactions for select to authenticated using ((account_id = auth.uid() and public.study_is_active_account_additive()) or public.study_is_staff_additive());
+drop policy if exists piece_transactions_additive_deny on public.piece_transactions;
+create policy piece_transactions_additive_deny on public.piece_transactions for all to authenticated using (false) with check (false);
+drop policy if exists audit_logs_additive_read on public.audit_logs;
+create policy audit_logs_additive_read on public.audit_logs for select to authenticated using (public.study_is_staff_additive());
+drop policy if exists audit_logs_additive_deny on public.audit_logs;
+create policy audit_logs_additive_deny on public.audit_logs for all to authenticated using (false) with check (false);
+
+drop policy if exists piece_types_additive_read on public.piece_types;
+create policy piece_types_additive_read on public.piece_types for select to authenticated using ((enabled and deleted_at is null and public.study_is_active_account_additive()) or public.study_is_staff_additive());
+drop policy if exists piece_types_additive_manage on public.piece_types;
+create policy piece_types_additive_manage on public.piece_types for all to authenticated using (public.study_is_staff_additive()) with check (public.study_is_staff_additive());
+drop policy if exists catalog_achievements_additive_read on public.catalog_achievements;
+create policy catalog_achievements_additive_read on public.catalog_achievements for select to anon, authenticated using (enabled and deleted_at is null);
+drop policy if exists catalog_achievements_additive_manage on public.catalog_achievements;
+create policy catalog_achievements_additive_manage on public.catalog_achievements for all to authenticated using (public.study_is_staff_additive()) with check (public.study_is_staff_additive());
+drop policy if exists catalog_titles_additive_read on public.catalog_titles;
+create policy catalog_titles_additive_read on public.catalog_titles for select to anon, authenticated using (enabled and deleted_at is null);
+drop policy if exists catalog_titles_additive_manage on public.catalog_titles;
+create policy catalog_titles_additive_manage on public.catalog_titles for all to authenticated using (public.study_is_staff_additive()) with check (public.study_is_staff_additive());
+
+commit;
