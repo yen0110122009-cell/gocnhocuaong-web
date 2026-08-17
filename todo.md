@@ -61,7 +61,7 @@
 
 - [x] Export phiên bản hiện tại của dự án lên repository GitHub `yen0110122009-cell/gocnhocuaong2`, xác minh branch `webdev/gocnhocuaong-platform` và commit `faeaad5`.
 
-- [ ] Điều tra và sửa lỗi âm thanh được người dùng báo; xác định module/luồng phát audio, thêm regression test và browser QA trước checkpoint.
+- [ ] Điều tra và sửa lỗi âm thanh được người dùng báo; Web Audio preview, volume scaling, stop preview và Pomodoro alert đã được triển khai cùng regression test/build, còn xác nhận âm thanh thực tế trên thiết bị người dùng.
 
 - [x] Rà soát `study-quest-standalone.html`: lập bản đồ tính năng, đánh giá khoảng trống ý tưởng/UX và đề xuất roadmap ưu tiên trong `idea-review-report.md`.
 
@@ -69,7 +69,7 @@
 
 - [ ] Cập nhật tài khoản `102` mã `102` về vai trò Admin theo yêu cầu người dùng, đăng nhập QA và xác nhận không hiển thị Trung tâm 111.
 
-- [ ] Sửa quyền Admin Panel để Founder được xóa Founder khác khi không phải tài khoản hệ thống, giữ bảo vệ tài khoản owner/system và thêm regression test + QA; backend đã sửa, regression đạt 57 tests, TypeScript và production build đạt, còn browser QA xóa thật cần xác nhận đúng tài khoản mục tiêu.
+- [ ] Sửa quyền Admin Panel để Founder được xóa Founder khác khi không phải tài khoản hệ thống, giữ bảo vệ tài khoản owner/system và thêm regression test + QA; backend/UI đã sửa, regression đạt 57 tests, TypeScript và production build đạt, còn browser QA xóa thật cần xác nhận đúng tài khoản mục tiêu.
 - [x] Điều tra và khắc phục GitHub Pages trả về lỗi không tìm thấy `index.html` khi truy cập URL site; branch `main` đã có `index.html`, Pages build trạng thái `built` và browser xác nhận URL hiển thị frontend.
 - [x] Tạo bản frontend tĩnh cho GitHub Pages và ghi rõ các chức năng backend không thể chạy trên Pages trong `github-pages-qa.md`; Pages hiện publish thành công từ branch `main` theo chế độ legacy.
 - [ ] Bật nguồn Pages kiểu GitHub Actions trong Settings và xác minh workflow deploy chạy end-to-end; hiện quyền API không cho phép đổi cấu hình Pages tự động, còn bản legacy đã hoạt động.
@@ -79,7 +79,17 @@
 - [ ] Thêm hiệu ứng cuộn trang mượt mà bằng IntersectionObserver, tối ưu responsive mobile, thêm hỗ trợ `prefers-reduced-motion`; code/build/test đã đạt, còn browser QA trực tiếp trạng thái reveal, reduced-motion và dashboard mobile.
 - [ ] Browser QA trực tiếp scroll reveal trên màn hình có nhiều section, xác nhận không nhấp nháy hoặc để nội dung trắng.
 - [ ] Browser QA `prefers-reduced-motion`, xác nhận animation và smooth scroll được giảm/tắt đúng.
-- [ ] Browser QA mobile cho login và dashboard/auth shell, xác nhận không tràn ngang, header/search/menu và vùng chạm.
+- [ ] Browser QA mobile cho login và dashboard/auth shell; login public ở viewport 390x844 đã đạt, còn dashboard/authenticated shell, header/search/menu cần phiên đăng nhập người dùng.
 - [ ] Đối chiếu file mẫu `12.html` và sửa luồng đăng nhập hiện tại theo cách đăng nhập đã được xác minh; đã thêm nút xem mật khẩu, hướng dẫn mã `111`, placeholder rõ ràng và đạt TypeScript/59 tests, còn live login cần xác nhận với tên + mật khẩu >=6 ký tự + mã.
+- [x] Xác minh lại kết nối Supabase của `12.html` và đối chiếu với app hiện tại, đặc biệt Auth, RLS, redirect URL và cách gọi REST/API trên GitHub Pages; xác nhận `app_state` cho phép anon SELECT/INSERT/UPDATE và auth không email nằm trong state cloud-sync.
+- [x] Triển khai bản GitHub Pages demo theo mô hình B: login Tên + Mật khẩu + Mã thành viên, đồng bộ state qua Supabase `app_state`, không dùng service-role key; hiển thị cảnh báo dữ liệu không phù hợp cho thông tin nhạy cảm.
 - [x] Đổi bản đăng nhập GitHub Pages từ Supabase email/password sang luồng không email: Tên + Mật khẩu + Mã thành viên; người dùng đã xác nhận dùng full-stack preview cho auth, GitHub Pages chỉ làm bản tĩnh; giữ an toàn hash/password và không đưa secret backend lên frontend.
 - [x] Cập nhật thông báo và liên kết giữa GitHub Pages/full-stack để người dùng không nhầm bản tĩnh có thể đăng nhập không email; commit Pages `4ef9e93`, Pages status `built`, browser xác nhận nút `Mở bản full-stack để đăng nhập`.
+
+- [x] Implement Supabase REST app_state cloud-state adapter for GitHub Pages no-email auth
+- [x] Connect GitHub Pages login, registration, session restore, profile/config persistence to app_state adapter
+- [x] Verify Supabase app_state RLS and run cloud integration checks
+- [ ] Run browser QA on GitHub Pages for Name + Password + Code login without redirect (pending deployment)
+- [ ] Publish updated static artifact to GitHub Pages and record evidence
+- [x] Remove misleading GitHub Pages registration tab or implement only the supported code 111 first-login creation path
+- [x] Add direct Supabase app_state INSERT/RLS verification evidence for the empty-row path
