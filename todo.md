@@ -59,4 +59,4 @@
 - [ ] Chạy browser QA mobile trong phiên đã đăng nhập bằng tài khoản mã `111`, chụp evidence sidebar/dashboard Trung tâm 111 ở authenticated state.
 - [ ] Chạy browser QA trực tiếp với ít nhất một tài khoản không thuộc policy `111`, xác nhận menu/bảng điều khiển đặc biệt không hiển thị trong UI.
 
-- [ ] Export phiên bản hiện tại của dự án lên repository GitHub `yen0110122009-cell/gocnhocuaong2`, xác minh branch và commit sau khi push.
+- [x] Export phiên bản hiện tại của dự án lên repository GitHub `yen0110122009-cell/gocnhocuaong2`, xác minh branch `webdev/gocnhocuaong-platform` và commit `faeaad5`.
