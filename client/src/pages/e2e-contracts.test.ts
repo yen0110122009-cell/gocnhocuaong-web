@@ -14,8 +14,11 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(home).toContain('aria-label="Tiến trình mở khóa thành tích"');
     expect(home).toContain('aria-valuemax={100}');
     expect(home).toContain('const list = Array.isArray(raw) ? raw : raw?.cards');
-    expect(home).toContain("earned.length}/900 thành tích");
-    expect(home).toContain("/400 danh hiệu có sẵn");
+    expect(home).toContain("earned.length}/{all.length} đã mở");
+    expect(home).toContain("all.filter((a) => a.title).length} danh hiệu có sẵn");
+    expect(home).toContain("Điều kiện:");
+    expect(home).toContain("a.currentValue.toLocaleString");
+    expect(home).toContain("a.remaining.toLocaleString");
   });
 
   it("keeps AI import file, validation, content creation and history persistence wired", () => {
@@ -50,7 +53,7 @@ describe("Góc học tập end-to-end contracts", () => {
   });
 
   it("exposes the special 111 dashboard only through the unlimited-account guard", () => {
-    expect(home).toContain('import { isUnlimitedAccountCode } from "../../../shared/permissions";');
+    expect(home).toContain('isUnlimitedAccountCode } from "../../../shared/permissions";');
     expect(home).toContain('"special111"');
     expect(home).toContain('(!x.special111 || isUnlimitedAccountCode(account.code))');
     expect(home).toContain('isUnlimitedAccountCode(account.code) ? <Special111Dashboard');
@@ -97,3 +100,15 @@ describe("Góc học tập end-to-end contracts", () => {
   });
 });
 
+
+
+describe("Admin milestone and reward configuration contracts", () => {
+  it("exposes editable milestone and wheel reward controls", () => {
+    expect(home).toContain('setTab("achievements")');
+    expect(home).toContain("Tạo mốc thành tích");
+    expect(home).toContain("toggleAchievement");
+    expect(home).toContain("removeAchievement");
+    expect(home).toContain("Thêm phần thưởng");
+    expect(home).toContain("Không giả lập tiến độ");
+  });
+});

@@ -93,3 +93,34 @@
 - [x] Publish updated static artifact to GitHub Pages legacy branch main commit b111191; Pages API status built và browser xác nhận bundle cloud-state mới.
 - [x] Remove misleading GitHub Pages registration tab or implement only the supported code 111 first-login creation path
 - [x] Add direct Supabase app_state INSERT/RLS verification evidence for the empty-row path
+
+- [ ] Add basic member dashboard after successful login with greeting and member information
+- [ ] Add login button loading state and clear red invalid-login error message
+- [ ] Add Forgot password and Forgot member code links with admin-contact guidance popup
+- [ ] Add regression tests and responsive browser QA for the new auth/dashboard flow
+
+- [ ] Audit configuration and runtime behavior for the four learning challenge/reward cards shown on the dashboard
+- [ ] Configure missing challenge/reward thresholds or clearly mark unsupported items as pending configuration
+- [ ] Add regression coverage for challenge/reward configuration and verify the dashboard display
+
+- [x] Show explicit unlock requirements for every achievement
+- [x] Calculate and display current achievement progress percentage, current value, target, and remaining amount
+- [x] Update achievement list UI with progress bars, condition text and actionable next-step text
+- [x] Add achievement progress regression tests
+- [ ] Run browser QA on Achievements screen at desktop and mobile, verifying locked/unlocked states, condition text, progress percentage, current/target and remaining amount
+
+- [x] Add clearly labeled starter achievement/reward configuration examples without fabricating user-earned progress
+- [x] Add Admin/Founder controls to create, edit, enable/disable and delete achievement milestones
+- [x] Add Admin/Founder controls to create, edit, enable/disable and delete wheel rewards
+- [x] Add regression tests for starter config integrity and admin-only mutation behavior
+
+- [x] Add edit/update and save/cancel flow for existing custom achievement milestones
+- [x] Add edit/update and enable/disable controls for existing wheel rewards
+- [x] Add runtime regression tests proving non-admin access is denied and Admin/Founder config mutations are allowed
+
+- [x] Add a real Admin milestone edit UI with explicit save/cancel controls and full-field editing for existing custom achievements
+- [x] Add runtime/UI regression tests that verify Members cannot access or use config controls, while Admin/Founder can perform achievement and wheel reward config mutations through the actual component flow
+
+- [x] Add render test mounting Admin config UI with Member and verify controls are blocked
+- [x] Add render tests for Admin and Founder showing config controls
+- [x] Add executable mutation-flow tests for achievement and wheel reward create/edit/toggle/delete behavior

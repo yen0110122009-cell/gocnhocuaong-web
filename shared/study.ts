@@ -210,6 +210,7 @@ export type WheelReward = {
   value: number;
   probability: number;
   color: string;
+  enabled?: boolean;
 };
 
 export type AchievementOverride = {
@@ -332,6 +333,8 @@ export type Achievement = {
   badgeLabel: string;
   encouragement: string;
   progress: number;
+  currentValue: number;
+  remaining: number;
   animation: "spark" | "glow" | "legendary";
   unlockedAt: string | null;
 };
@@ -365,11 +368,19 @@ export const emptyProfile = (): ProfileState => ({
 export const emptyAppConfig = (): AppConfig => ({
   characters: [],
   encouragements: [],
-  wheelRewards: [],
+  wheelRewards: [
+    { id: "starter-xp-20", label: "Mẫu khởi đầu · +20 XP", kind: "xp", value: 20, probability: 45, color: "#22d3ee" },
+    { id: "starter-fragment-1", label: "Mẫu khởi đầu · 1 mảnh ghép", kind: "fragment", value: 1, probability: 30, color: "#f4b942" },
+    { id: "starter-ticket-1", label: "Mẫu khởi đầu · +1 vé quay", kind: "ticket", value: 1, probability: 25, color: "#86efac" },
+  ],
   wheelTicketsPerAchievement: 1,
   dailyFragmentCap: 10,
   achievementOverrides: [],
-  customAchievements: [],
+  customAchievements: [
+    { id: "starter-5-pomodoros", name: "Mẫu khởi đầu · Nhịp tập trung", description: "Hoàn thành 5 phiên Pomodoro.", metric: "pomodoroSessions", threshold: 5, rewardXp: 50, rewardFragments: 0, title: "Người giữ nhịp", titleMeaning: "Bền bỉ duy trì từng phiên học.", enabled: true },
+    { id: "starter-25-cards", name: "Mẫu khởi đầu · Bộ thẻ đầu tiên", description: "Học thuộc 25 Flashcard.", metric: "learnedCards", threshold: 25, rewardXp: 75, rewardFragments: 1, title: "Người gom kiến thức", titleMeaning: "Tích lũy từng mảnh hiểu biết.", enabled: true },
+    { id: "starter-3-quizzes", name: "Mẫu khởi đầu · Ba lần chinh phục", description: "Hoàn thành 3 bài kiểm tra.", metric: "completedQuizzes", threshold: 3, rewardXp: 60, rewardFragments: 0, enabled: true },
+  ],
   updatedAt: new Date().toISOString(),
 });
 
@@ -466,6 +477,8 @@ export function generateAchievements(): Achievement[] {
         badgeLabel: `${rankName} · Huy hiệu ${withinRank + 1}`,
         encouragement: index === 899 ? "Ong đã đi hết hành trình 900 mốc — không phải vì con đường kết thúc, mà vì bạn đã chứng minh mình có thể đi rất xa." : title ? "Ong đã bay thêm một chặng dài trên hành trình tri thức." : "Mỗi bước học đều làm nền cho bước tiến tiếp theo.",
         progress: 0,
+        currentValue: 0,
+        remaining: threshold,
         animation: index === 899 ? "legendary" : rank >= 7 ? "glow" : "spark",
         unlockedAt: null,
       });
@@ -474,17 +487,21 @@ export function generateAchievements(): Achievement[] {
   return result;
 }
 
-export function computedAchievements(profile: ProfileState, config: AppConfig): Achievement[] {
+export function allAchievementsWithProgress(profile: ProfileState, config: AppConfig): Achievement[] {
   const stats = statsForProfile(profile) as Record<AchievementMetric, number>;
   const overrides = new Map(config.achievementOverrides.map((item) => [item.achievementId, item]));
   const standard = generateAchievements()
-    .map((achievement) => ({ ...achievement, ...overrides.get(achievement.id), progress: Math.min(100, Math.round((stats[achievement.metric] / achievement.threshold) * 100)), unlockedAt: profile.achievementUnlockDates[achievement.id] ?? null }))
-    .filter((achievement) => achievement.enabled !== false)
-    .filter((achievement) => stats[achievement.metric] >= achievement.threshold);
+    .map((achievement) => {
+      const merged = { ...achievement, ...overrides.get(achievement.id) };
+      const currentValue = Math.max(0, stats[merged.metric] ?? 0);
+      return { ...merged, progress: Math.min(100, Math.round((currentValue / Math.max(1, merged.threshold)) * 100)), currentValue, remaining: Math.max(0, merged.threshold - currentValue), unlockedAt: profile.achievementUnlockDates[merged.id] ?? null };
+    })
+    .filter((achievement) => achievement.enabled !== false);
   const customs: Achievement[] = config.customAchievements
     .filter((item) => item.enabled)
-    .filter((item) => (stats[item.metric] ?? 0) >= item.threshold)
-    .map((item) => ({
+    .map((item) => {
+      const currentValue = Math.max(0, stats[item.metric] ?? 0);
+      return {
       id: item.id,
       rank: 9,
       rankName: "Tùy chỉnh",
@@ -500,12 +517,20 @@ export function computedAchievements(profile: ProfileState, config: AppConfig): 
       difficulty: "Khó",
       badgeLabel: "Thành tích tùy chỉnh",
       encouragement: "Một cột mốc riêng đang được mở khóa.",
-      progress: Math.min(100, Math.round(((stats[item.metric] ?? 0) / item.threshold) * 100)),
+      progress: Math.min(100, Math.round((currentValue / Math.max(1, item.threshold)) * 100)),
+      currentValue,
+      remaining: Math.max(0, item.threshold - currentValue),
       animation: "spark",
       unlockedAt: profile.achievementUnlockDates[item.id] ?? null,
-    }));
+    };
+    });
   return [...standard, ...customs];
 }
+
+export function computedAchievements(profile: ProfileState, config: AppConfig): Achievement[] {
+  return allAchievementsWithProgress(profile, config).filter((achievement) => achievement.currentValue >= achievement.threshold);
+}
+
 
 export type GeneratedValidation = { valid: boolean; errors: string[]; warnings: string[] };
 

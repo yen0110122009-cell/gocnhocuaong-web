@@ -8,6 +8,10 @@ export function canManageMembers(role: StudyRole): boolean {
   return role === "Admin" || role === "Founder";
 }
 
+export function canManageLearningConfig(role: StudyRole): boolean {
+  return canManageMembers(role);
+}
+
 export function canAssignRole(actor: StudyRole, target: StudyRole): boolean {
   return canManageMembers(actor) && (actor === "Founder" || target !== "Founder");
 }
