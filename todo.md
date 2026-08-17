@@ -28,7 +28,7 @@
 - [x] Xác nhận trực quan mascot Lumi hiển thị đúng trên UI và ghi lại evidence brand fidelity gồm tên thương hiệu, màu sắc, hình ong và typography.
 - [x] Chạy browser QA chi tiết trên Catalog: tìm kiếm, bộ lọc và thanh tiến trình đã được xác nhận trực tiếp.
 - [x] Chạy browser QA chi tiết trên Museum Journey: empty, non-empty và locked state đã được xác nhận trực tiếp.
-- [ ] Chạy browser QA AI Studio file upload và history; mutation tạo Flashcard và Quiz đã đạt, implementation đọc TXT/MD/JSON và contract test đã đạt.
+- [ ] AI Studio file TXT upload, document-to-JSON, Flashcard và Quiz mutation đã được xác minh trực tiếp; còn kiểm tra history sau khi làm bài.
 - [ ] Chạy browser QA Pomodoro đến bước kết thúc phiên và xác nhận persistence; preset 10 phút và active state đã có evidence, end-session bị timeout.
 - [ ] Chạy browser QA Admin Panel cho member management, role change, lock/reset/delete và reward config mutations; import nhân vật đã có evidence.
 - [x] Bổ sung và chạy Vitest cho study router/module cốt lõi cùng database invariants thực tế.
@@ -40,3 +40,4 @@
 - [x] Khắc phục lỗi Study Account không đăng nhập được trên live preview bằng cách bổ sung import `eq`, `and`, `gt` cho studyStore.
 - [x] Xác minh validation, session bootstrap và quyền truy cập procedure sau login; `study.auth.login` và `study.auth.session` đều trả HTTP 200 với tài khoản Lumi QA Founder.
 - [x] Chạy browser login end-to-end với Founder QA và lưu evidence; server-side login/session smoke cùng build/Vitest đã đạt.
+- [x] Sửa AI Studio parser để chấp nhận cả JSON array trực tiếp và wrapper `{ "cards": [...] }`, đồng bộ output của `Tạo từ tài liệu` với nút `Tạo Flashcard`, rồi thêm regression test.

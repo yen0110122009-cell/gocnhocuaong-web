@@ -11,7 +11,8 @@ const adminContent = readFileSync(join(process.cwd(), "client/src/pages/AdminCon
 describe("Góc học tập end-to-end contracts", () => {
   it("renders the Catalog completion progressbar with 900/400 totals", () => {
     expect(home).toContain('aria-label="Tiến trình mở khóa thành tích"');
-    expect(home).toContain("aria-valuemax={100}");
+    expect(home).toContain('aria-valuemax={100}');
+    expect(home).toContain('const list = Array.isArray(raw) ? raw : raw?.cards');
     expect(home).toContain("earned.length}/900 thành tích");
     expect(home).toContain("/400 danh hiệu có sẵn");
   });

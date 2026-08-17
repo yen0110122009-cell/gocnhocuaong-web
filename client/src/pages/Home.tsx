@@ -27,7 +27,7 @@ const nav: { id: View; label: string; icon: typeof LayoutDashboard; admin?: bool
 ];
 
 function storedSession(): StudySession | null { try { const item = sessionStorage.getItem(SESSION_KEY); return item ? JSON.parse(item) as StudySession : null; } catch { return null; } }
-function parseCards(value: string): Flashcard[] { try { const list = JSON.parse(value); if (!Array.isArray(list)) return []; const cards = list.map((x) => ({ id: uid(), front: String(x.front ?? x.question ?? "").trim(), back: String(x.back ?? x.answer ?? "").trim(), status: "new" as const, starred: false })).filter((x) => x.front && x.back); return limitFlashcards(cards); } catch { return []; } }
+function parseCards(value: string): Flashcard[] { try { const raw = JSON.parse(value); const list = Array.isArray(raw) ? raw : raw?.cards; if (!Array.isArray(list)) return []; const cards = list.map((x) => ({ id: uid(), front: String(x.front ?? x.question ?? "").trim(), back: String(x.back ?? x.answer ?? "").trim(), status: "new" as const, starred: false })).filter((x) => x.front && x.back); return limitFlashcards(cards); } catch { return []; } }
 function parseQuestions(value: string): QuizQuestion[] { try { const raw = JSON.parse(value); const list = Array.isArray(raw) ? raw : raw.questions; if (!Array.isArray(list)) return []; return list.map((x) => ({ id: uid(), type: x.type === "boolean" || x.type === "short" ? x.type : "multiple", prompt: String(x.prompt ?? x.question ?? ""), options: Array.isArray(x.options) ? x.options.map(String) : undefined, answer: String(x.answer ?? ""), explanation: String(x.explanation ?? "") })).filter((x) => x.prompt && x.answer); } catch { return []; } }
 
 export default function Home() {

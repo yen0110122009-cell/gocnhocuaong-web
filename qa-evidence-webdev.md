@@ -103,3 +103,12 @@ Pomodoro end-session QA: lần click `Kết thúc phiên` bị timeout và brows
 Live preview URL: https://3000-ilh4bqp66udbw8fyp31nf-3b48ee0a.us3.manus.computer/
 
 Sau lỗi timeout khi kết thúc Pomodoro, mở lại URL cho thấy trang public Study Account login với ba trường Tên thành viên, Mật khẩu, Mã thành viên; session Founder QA không còn được giữ. Vì vậy Admin E2E cần một phiên đăng nhập mới trước khi thao tác tiếp.
+
+## AI Studio document upload QA — 2026-08-17
+
+Founder QA upload file `qa-ai-studio.txt`; UI hiển thị `Đã chọn: qa-ai-studio.txt`. Sau khi nhấn `Tạo từ tài liệu`, UI hiển thị thông báo `AI đã tạo JSON từ tài liệu` và nạp JSON gồm 7 thẻ về Định luật Charles vào vùng kết quả. Browser evidence xác nhận file TXT được đọc và chuyển thành dữ liệu AI, không chỉ lưu tên file.
+
+## AI Studio wrapper parser regression — 2026-08-17
+
+Founder QA mở AI Studio, nhập JSON `{"cards":[{"front":"Câu hỏi kiểm tra wrapper","back":"Đáp án kiểm tra wrapper"}]}` cùng tên bộ `QA Wrapper Parser` và môn `Vật lí`. Sau khi bấm `Tạo Flashcard`, UI hiển thị toast `Đã tạo 1 Flashcard.` và chuyển sang Flashcard view, trong đó bộ `QA Wrapper Parser` hiển thị `1 thẻ · Vật lí` và mặt thẻ hiển thị đúng `Câu hỏi kiểm tra wrapper`. Điều này xác nhận trực tiếp parser chấp nhận wrapper `cards` và persistence/UI wiring hoạt động trong phiên QA.
+
