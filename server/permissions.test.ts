@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canAssignRole, canManageMembers, canModifyAccount, isUnlimitedAccountCode } from "../shared/permissions";
+import { canAssignRole, canDeleteAccount, canManageMembers, canModifyAccount, isUnlimitedAccountCode } from "../shared/permissions";
 
 describe("study permissions", () => {
   it("allows Founder and Admin to manage members", () => {
@@ -26,5 +26,13 @@ describe("study permissions", () => {
     expect(canModifyAccount("Founder", "Founder", false)).toBe(false);
     expect(canModifyAccount("Admin", "Founder", false)).toBe(false);
     expect(canModifyAccount("Admin", "Member")).toBe(true);
+  });
+
+  it("allows Founder to delete another Founder but protects self and system account", () => {
+    expect(canDeleteAccount("Founder", "Founder", false, "102")).toBe(true);
+    expect(canDeleteAccount("Admin", "Founder", false, "102")).toBe(false);
+    expect(canDeleteAccount("Founder", "Founder", true, "102")).toBe(false);
+    expect(canDeleteAccount("Founder", "Founder", false, "999")).toBe(false);
+    expect(canDeleteAccount("Admin", "Member", false, "112")).toBe(true);
   });
 });

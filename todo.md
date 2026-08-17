@@ -64,3 +64,9 @@
 - [ ] Điều tra và sửa lỗi âm thanh được người dùng báo; xác định module/luồng phát audio, thêm regression test và browser QA trước checkpoint.
 
 - [x] Rà soát `study-quest-standalone.html`: lập bản đồ tính năng, đánh giá khoảng trống ý tưởng/UX và đề xuất roadmap ưu tiên trong `idea-review-report.md`.
+
+- [ ] Tạo tài khoản QA mã `112` theo xác nhận người dùng, kiểm tra browser account không thuộc policy `111`, sau đó xóa sạch tài khoản và dữ liệu liên quan.
+
+- [ ] Cập nhật tài khoản `102` mã `102` về vai trò Admin theo yêu cầu người dùng, đăng nhập QA và xác nhận không hiển thị Trung tâm 111.
+
+- [ ] Sửa quyền Admin Panel để Founder được xóa Founder khác khi không phải tài khoản hệ thống, giữ bảo vệ tài khoản owner/system và thêm regression test + QA; backend đã sửa, regression đạt 57 tests, TypeScript và production build đạt, còn browser QA xóa thật cần xác nhận đúng tài khoản mục tiêu.

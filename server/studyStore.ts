@@ -2,7 +2,7 @@ import { randomBytes, scryptSync, timingSafeEqual, createHash, randomUUID } from
 import { and, eq, gt } from "drizzle-orm";
 import { studyAccounts, studyProfiles, studySessions, studySettings } from "../drizzle/schema";
 import { emptyAppConfig, emptyProfile, normalizeProfile, type AppConfig, type ProfileState, type StudyAccount, type StudyRole } from "../shared/study";
-import { canAssignRole, canManageMembers, canModifyAccount, isUnlimitedAccountCode } from "../shared/permissions.ts";
+import { canAssignRole, canDeleteAccount, canManageMembers, canModifyAccount, isUnlimitedAccountCode } from "../shared/permissions.ts";
 import { getDb } from "./db";
 
 const SESSION_HOURS = 12;
@@ -236,7 +236,7 @@ export async function deleteAccountForToken(token: string, id: string) {
   const db = await database();
   const target = (await db.select().from(studyAccounts).where(eq(studyAccounts.id, id)).limit(1))[0];
   if (!target) throw new Error("Không tìm thấy tài khoản.");
-  if (target.role === "Founder") throw new Error("Không thể xóa tài khoản Founder.");
+  if (!canDeleteAccount(actor.role, target.role, actor.id === target.id, target.code)) throw new Error("Không thể xóa tài khoản này với vai trò hiện tại hoặc đây là tài khoản hệ thống.");
   await db.delete(studySessions).where(eq(studySessions.accountId, id));
   await db.delete(studyProfiles).where(eq(studyProfiles.accountId, id));
   await db.delete(studyAccounts).where(eq(studyAccounts.id, id));

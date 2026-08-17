@@ -16,3 +16,9 @@ export function canModifyAccount(actor: StudyRole, target: StudyRole, sameAccoun
   if (target === "Founder") return actor === "Founder" && sameAccount;
   return canManageMembers(actor);
 }
+
+export function canDeleteAccount(actor: StudyRole, target: StudyRole, sameAccount = false, targetCode = ""): boolean {
+  if (sameAccount || targetCode.trim().toUpperCase() === "999") return false;
+  if (target === "Founder") return actor === "Founder";
+  return canManageMembers(actor);
+}
