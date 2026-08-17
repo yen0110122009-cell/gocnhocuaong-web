@@ -28,6 +28,13 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(aiImport).toContain("quizzes: quiz ? [quiz, ...profile.quizzes]");
   });
 
+  it("normalizes short-answer quiz grading for punctuation and whitespace", () => {
+    expect(home).toContain('value.normalize("NFKC")');
+    expect(home).toContain('replace(/[.,!?;:()[\\]{}"\'“”‘’]/g, "")');
+    expect(home).toContain('function quizAnswerMatches(question: QuizQuestion, given: string)');
+    expect(home).toContain('expected.endsWith(actual) || actual.endsWith(expected)');
+  });
+
   it("keeps Pomodoro configuration and completed session persistence wired", () => {
     expect(pomodoro).toContain("onProfile");
     expect(pomodoro).toContain("pomodoroHistory");

@@ -112,3 +112,29 @@ Founder QA upload file `qa-ai-studio.txt`; UI hiển thị `Đã chọn: qa-ai-s
 
 Founder QA mở AI Studio, nhập JSON `{"cards":[{"front":"Câu hỏi kiểm tra wrapper","back":"Đáp án kiểm tra wrapper"}]}` cùng tên bộ `QA Wrapper Parser` và môn `Vật lí`. Sau khi bấm `Tạo Flashcard`, UI hiển thị toast `Đã tạo 1 Flashcard.` và chuyển sang Flashcard view, trong đó bộ `QA Wrapper Parser` hiển thị `1 thẻ · Vật lí` và mặt thẻ hiển thị đúng `Câu hỏi kiểm tra wrapper`. Điều này xác nhận trực tiếp parser chấp nhận wrapper `cards` và persistence/UI wiring hoạt động trong phiên QA.
 
+## E2E mutation QA bổ sung — 2026-08-17
+
+Founder QA đã chạy Pomodoro tùy chỉnh 1 phút với môn Lịch sử và nội dung Nhà Trần. Sau khi chờ đủ thời lượng, timer chuyển sang trạng thái nghỉ; quay về Trang chủ hiển thị `Từ phiên đã ghi nhận: 1 phút` và `Tiến trình hôm nay: 1 phút / 3 giờ`, xác nhận phiên hoàn thành được lưu persistence qua UI thật.
+
+Founder QA đã dùng Admin Panel để cấp tài khoản tạm `QA Admin Temp` / `QA-TEMP-2026`, đổi vai trò Member → Admin, khóa tài khoản (nút chuyển thành `Mở khóa QA Admin Temp`), thực hiện reset mật khẩu, rồi xóa theo xác nhận người dùng. Sau thao tác cuối, toast hiển thị `Đã xóa tài khoản.` và danh sách giảm từ 2 xuống 1 tài khoản, chỉ còn Founder `Lumi QA`. Đây là bằng chứng end-to-end cho các mutation tạo, đổi vai trò, khóa, reset và xóa; dữ liệu QA tạm đã được dọn sạch.
+
+Lưu ý: thao tác xóa cần native confirmation nên lần click trực tiếp bị timeout; sau đó đã thực hiện lại trong phiên browser với xác nhận đã được người dùng cấp, và kiểm tra UI/persistence thành công.
+
+
+## AI Quiz history persistence QA — 2026-08-17
+
+Founder QA mở `Đề kiểm tra` → `Ôn tập: QA Study Set`, hoàn thành cả 2 câu và nhấn `Nộp bài`. Kết quả hiển thị `0% chính xác`, `0/2 câu`, đồng thời ghi rõ `Kết quả đã được lưu vào lịch sử học tập`; XP dashboard tăng từ 10 lên 30. Luồng Quiz mutation, chấm điểm và persistence lịch sử đã được xác nhận trực tiếp qua browser. Câu trả lời QA dùng đúng nội dung nhưng hệ thống chấm exact-match nên hiển thị 0%, không ảnh hưởng xác nhận persistence.
+
+## E2E mutation QA bổ sung — 2026-08-17
+
+Founder QA đã chạy Pomodoro tùy chỉnh 1 phút với môn Lịch sử và nội dung Nhà Trần. Sau khi chờ đủ thời lượng, timer chuyển sang trạng thái nghỉ; quay về Trang chủ hiển thị `Từ phiên đã ghi nhận: 1 phút` và `Tiến trình hôm nay: 1 phút / 3 giờ`, xác nhận phiên hoàn thành được lưu persistence qua UI thật.
+
+Founder QA đã dùng Admin Panel để cấp tài khoản tạm `QA Admin Temp` / `QA-TEMP-2026`, đổi vai trò Member → Admin, khóa tài khoản (nút chuyển thành `Mở khóa QA Admin Temp`), thực hiện reset mật khẩu, rồi xóa theo xác nhận người dùng. Sau thao tác cuối, toast hiển thị `Đã xóa tài khoản.` và danh sách giảm từ 2 xuống 1 tài khoản, chỉ còn Founder `Lumi QA`. Đây là bằng chứng end-to-end cho các mutation tạo, đổi vai trò, khóa, reset và xóa; dữ liệu QA tạm đã được dọn sạch.
+
+Lưu ý: thao tác xóa cần native confirmation nên lần click trực tiếp bị timeout; sau đó đã thực hiện lại trong phiên browser với xác nhận đã được người dùng cấp, và kiểm tra UI/persistence thành công.
+
+
+## QA follow-up — 2026-08-17
+- Regression sau thay đổi `quizAnswerMatches`: 20 test files, 52 tests passed; `pnpm check` và `pnpm build` passed.
+- Browser QA nộp lại Quiz QA vẫn hiển thị 50% và câu “40” chưa chính xác dù câu “Trưng Nhị.” đúng. Vì vậy short-answer grading vẫn pending để điều tra tiếp; không coi browser evidence này là pass.
+- Pomodoro 1 phút và Admin member mutations đã có evidence trực tiếp ở mục 115–121; reward-config mutation trực tiếp vẫn pending.
