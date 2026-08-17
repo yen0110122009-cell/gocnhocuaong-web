@@ -152,3 +152,7 @@ Backend hiện nhận diện mã `111` qua `isUnlimitedAccountCode`. Tài khoả
 ## Shared code 111 execution QA — 2026-08-17
 
 Qua mutation `study.auth.login`, hai tài khoản khác tên `QA Shared 111 A` và `QA Shared 111 B` cùng mã `111` đều đăng nhập HTTP 200; mỗi token khôi phục đúng session HTTP 200 của chính tài khoản tương ứng. Thử sai mật khẩu trả HTTP 400 với thông báo `Mật khẩu không đúng.`. Hai tài khoản QA cùng session/profile liên quan đã được xóa; truy vấn xác minh chỉ còn `Lumi QA` với mã `111`. Local schema/migration, login/create logic và 55 regression tests cùng TypeScript/build đã đạt. Migration Supabase cloud và browser screenshot menu 111 vẫn pending.
+
+## Shared code 111 cloud and menu QA — 2026-08-17
+
+Supabase project `cuompgnxcbzufaeodgvx` đã nhận migration `allow_shared_code_111` với version `20260817084111`; migration bỏ unique index account code và tạo index thường trên `lower(account_code)`. Live preview đăng nhập thành công bằng `Lumi QA` / mã `111`; sidebar hiển thị `Trung tâm 111`. Mở trang này cho thấy tiêu đề `Trung tâm điều khiển của Lumi QA`, nhãn `Mã 111 · Không giới hạn`, bốn lối tắt Ôn tập thông minh/Pomodoro/AI Studio/Thành tích và các quyền đặc biệt. Screenshot mobile độc lập hiện mở trạng thái login vì không thừa hưởng browser session, nên chưa coi đó là bằng chứng authenticated mobile.
