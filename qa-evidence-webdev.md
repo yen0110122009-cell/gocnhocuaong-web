@@ -57,3 +57,15 @@ Founder QA mở `Admin Panel`. Màn hình hiển thị tab Thành viên/Nhân v�
 Founder QA dùng Admin Panel → Nhân vật để tạo hồ sơ có kiểm chứng cho **Trưng Trắc**. Mutation trả toast `Đã lưu nhân vật và nguồn tư liệu`; hồ sơ hiển thị `12 mảnh · Có nguồn`, nguồn Encyclopaedia Britannica, URL nguồn tư liệu, nguồn ảnh Wikimedia Commons và timeline JSON gồm hai mốc. Mở Bảo tàng Hành trình cho thấy nhân vật Trưng Trắc ở non-empty state, bộ sưu tập hiển thị `0/12 mảnh ghép · Đang sở hữu`, trạng thái `Nhân vật chưa mở khóa`, bộ lọc/search và liên kết nguồn đều hoạt động.
 
 Sources used in QA data: https://www.britannica.com/biography/Trung-Sisters and https://commons.wikimedia.org/wiki/Category:Tr%C6%B0ng_Sisters
+
+## 2026-08-17 — Final webdev verification snapshot
+
+Sau khi mở rộng Vitest discovery cho cả server và client, project đạt **20 test files / 51 tests passed**, gồm Auth, permissions, catalog 900/400, Piece Ledger, study router, Supabase smoke, AI Import, Museum, Catalog UI, Pomodoro/Admin contracts và các test UI hiện có. `pnpm check` và `pnpm build` cũng đạt; build chỉ còn warning không chặn runtime về asset `/manus-storage/study-historia-bee-mascot_45260784.png` được giữ nguyên để resolve ở runtime và chunk JS lớn.
+
+Catalog đã có progress bar trực quan có `aria-label="Tiến trình mở khóa thành tích"`, max 100 và tổng số 900 thành tích/400 danh hiệu. Website đã được push lên branch `webdev/gocnhocuaong-platform` của repository GitHub `yen0110122009-cell/gocnhocuaong2`, commit `005f84770d3f61344e14d293c2139387c6d02be9`.
+
+Các mutation AI/Pomodoro/Admin được bảo vệ bằng contract tests và callback persistence. Browser QA trước đó chủ động không tạo thêm dữ liệu cloud cho các mutation này ngoài hồ sơ Trưng Trắc đã kiểm chứng, để tránh làm bẩn dữ liệu tài khoản QA.
+
+## Catalog progress bar — post-restart browser evidence
+
+Sau khi restart dev server, phiên Founder QA vẫn authenticated. Mở tab **Thành tích** trực tiếp cho thấy progress bar có nhãn `Tiến trình mở khóa`, dòng `0/900 thành tích · 400/400 danh hiệu có sẵn`, giá trị `0%`, thanh nền trực quan, cùng `Đang hiển thị 900/900 mục · 400 danh hiệu trong bộ lọc`. Đây là evidence sau thay đổi `Home.tsx`, tách biệt với search/filter evidence trước đó. Browser capture: `/home/ubuntu/screenshots/3000-ilh4bqp66udbw8fyp31nf-3b48ee0a.us3.manus.computer_2026-08-17_04-09-19_7170.webp`.
