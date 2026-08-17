@@ -127,4 +127,4 @@
 
 - [x] Diagnose the reported Unexpected token '<' response and identify the exact non-JSON request path: cloud-state REST parsing had no content-type/body guard, so an HTML response surfaced as a raw JSON SyntaxError
 - [x] Add defensive response parsing and environment-specific error handling for HTML-as-JSON responses
-- [x] Add regression coverage for the repaired request path and push the repaired artifact to Pages legacy branch `main` at commit `535d89c`; browser CDN verification remains pending while Pages still serves the previous asset hash
+- [x] Add regression coverage for the repaired request path, push the repaired artifact to Pages legacy branch `main` at commit `535d89c`, and verify browser now serves `assets/index-CVazIDuF.js` with the no-email cloud-state form
