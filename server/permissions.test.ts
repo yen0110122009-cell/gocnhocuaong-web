@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canAssignRole, canManageMembers, canModifyAccount } from "../shared/permissions";
+import { canAssignRole, canManageMembers, canModifyAccount, isUnlimitedAccountCode } from "../shared/permissions";
 
 describe("study permissions", () => {
   it("allows Founder and Admin to manage members", () => {
@@ -13,6 +13,12 @@ describe("study permissions", () => {
     expect(canAssignRole("Admin", "Founder")).toBe(false);
     expect(canAssignRole("Admin", "Member")).toBe(true);
     expect(canAssignRole("Member", "Admin")).toBe(false);
+  });
+
+  it("treats member code 111 as an unrestricted account code", () => {
+    expect(isUnlimitedAccountCode("111")).toBe(true);
+    expect(isUnlimitedAccountCode(" 111 ")).toBe(true);
+    expect(isUnlimitedAccountCode("112")).toBe(false);
   });
 
   it("protects Founder account mutations", () => {

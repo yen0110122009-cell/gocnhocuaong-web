@@ -1,5 +1,9 @@
 import type { StudyRole } from "./study";
 
+export function isUnlimitedAccountCode(code: string): boolean {
+  return code.trim().toUpperCase() === "111";
+}
+
 export function canManageMembers(role: StudyRole): boolean {
   return role === "Admin" || role === "Founder";
 }

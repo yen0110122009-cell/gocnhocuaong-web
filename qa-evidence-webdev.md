@@ -144,3 +144,7 @@ Lưu ý: thao tác xóa cần native confirmation nên lần click trực tiếp
 Sau bản sửa functional answer state và numeric matching, browser đã chạy lại Quiz QA với `40.` cho câu “Khởi nghĩa Hai Bà Trưng bắt đầu năm nào?” và `Trưng Nhị.` cho câu 2. Kết quả vẫn hiển thị **50%**, câu 1 vẫn sai và câu 2 đúng; regression 20 test files/52 tests và TypeScript check đều đạt. Numeric matching vẫn là gap cần điều tra tiếp, chưa đánh dấu hoàn tất.
 
 Admin reward mutation đã được kiểm tra trực tiếp: tạo `QA Reward Temp` loại XP, giá trị 5, trọng số 1 hiển thị toast `Đã thêm phần thưởng vòng quay` và xuất hiện trong danh sách. Sau đó xóa thành công với toast `Đã xóa phần thưởng vòng quay`; danh sách trở về empty state. Dữ liệu reward QA đã được dọn sạch.
+
+## QA — Mã thành viên 111 không giới hạn
+
+Backend hiện nhận diện mã `111` qua `isUnlimitedAccountCode`. Tài khoản mã này được miễn kiểm tra `locked` khi đăng nhập và khôi phục session; thao tác quản trị không thể bật trạng thái khóa cho mã `111`. Regression test đã được bổ sung trong `server/permissions.test.ts`. Kết quả: 20 test files, 53 tests passed; TypeScript check và production build đạt.

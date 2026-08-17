@@ -2,7 +2,7 @@ import { randomBytes, scryptSync, timingSafeEqual, createHash, randomUUID } from
 import { and, eq, gt } from "drizzle-orm";
 import { studyAccounts, studyProfiles, studySessions, studySettings } from "../drizzle/schema";
 import { emptyAppConfig, emptyProfile, normalizeProfile, type AppConfig, type ProfileState, type StudyAccount, type StudyRole } from "../shared/study";
-import { canAssignRole, canManageMembers, canModifyAccount } from "../shared/permissions.ts";
+import { canAssignRole, canManageMembers, canModifyAccount, isUnlimitedAccountCode } from "../shared/permissions.ts";
 import { getDb } from "./db";
 
 const SESSION_HOURS = 12;
@@ -90,7 +90,7 @@ export async function loginStudyAccount(input: { name: string; password: string;
     account = accountRows[0];
   }
   if (!account) throw new Error("Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.");
-  if (account.locked) throw new Error("Tài khoản đang bị khóa. Hãy liên hệ quản trị viên.");
+  if (account.locked && !isUnlimitedAccountCode(account.code)) throw new Error("Tài khoản đang bị khóa. Hãy liên hệ quản trị viên.");
   if (account.normalizedName !== normalizeName(name)) throw new Error("Tên đăng nhập không khớp với mã tài khoản.");
   if (!account.passwordHash) {
     await db.update(studyAccounts).set({ passwordHash: hashPassword(password), updatedAt: new Date() }).where(eq(studyAccounts.id, account.id));
@@ -113,7 +113,7 @@ export async function getStudySession(token: string) {
     .where(and(eq(studySessions.tokenHash, tokenHash(token)), gt(studySessions.expiresAt, new Date())))
     .limit(1);
   const row = rows[0];
-  if (!row || row.account.locked) throw new Error("Phiên đăng nhập đã hết hạn hoặc không còn hợp lệ.");
+  if (!row || (row.account.locked && !isUnlimitedAccountCode(row.account.code))) throw new Error("Phiên đăng nhập đã hết hạn hoặc không còn hợp lệ.");
   return { account: toPublicAccount(row.account), session: row.session };
 }
 
@@ -214,6 +214,7 @@ export async function updateAccountForToken(token: string, input: { id: string; 
   if (!target) throw new Error("Không tìm thấy tài khoản.");
   if (!canModifyAccount(actor.role, target.role, actor.id === target.id)) throw new Error("Không thể thay đổi tài khoản này với vai trò hiện tại.");
   if (input.role && !canAssignRole(actor.role, input.role)) throw new Error("Chỉ Founder được cấp quyền Founder.");
+  if (target.code === "111" && input.locked === true) throw new Error("Tài khoản mã 111 luôn được miễn giới hạn khóa.");
   const values: Partial<typeof studyAccounts.$inferInsert> = { updatedAt: new Date() };
   if (input.role) values.role = input.role;
   if (typeof input.locked === "boolean") values.locked = input.locked;
