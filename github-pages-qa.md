@@ -1,11 +1,4 @@
-# GitHub Pages QA Evidence
 
-Ngày kiểm tra: 2026-08-17.
+## QA hoàn tất sau commit bba0f52
 
-GitHub Pages URL: https://yen0110122009-cell.github.io/gocnhocuaong2/
-
-Kết quả: Sau khi branch `main` nhận commit `12689759d93baf322e661bd43da54ef9368bbd42`, GitHub Pages build API báo trạng thái `built`. Browser mở URL với cache-busting query và nhận title `GÓC HỌC TẬP CỦA ONG`, hiển thị landing page, mascot Lumi, nội dung thương hiệu và form đăng nhập gồm tên thành viên, mật khẩu, mã thành viên.
-
-Giới hạn: Đây là bản frontend tĩnh trên GitHub Pages. Các luồng cần Express/tRPC/database/session không thể chạy đầy đủ nếu không có backend riêng; URL Manus vẫn là nơi chạy bản full-stack.
-
-Workflow source: `.github/workflows/deploy-pages.yml` trên branch `webdev/gocnhocuaong-platform`.
+GitHub Pages build API báo `built` với commit `bba0f522b009ae4636ffcdf2bb5a27329a919c9a`. Browser xác nhận trang không còn trắng; HTML dùng asset path `/gocnhocuaong2/assets/...`; giao diện branded hiển thị bình thường. Form đăng nhập hiển thị thông báo: `Đây là bản xem trước trên GitHub Pages. Đăng nhập và dữ liệu cần mở bản website đầy đủ có backend.` Các query profile/config bị tắt trên hostname `github.io`, session cũ bị bỏ qua, nên không còn request tương đối trả HTML rồi gây `Unexpected token '<'` như JSON.
