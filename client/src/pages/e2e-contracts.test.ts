@@ -87,6 +87,8 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(styles).toContain('.scroll-reveal.is-visible');
     expect(styles).toContain('@media (max-width: 767px)');
     expect(styles).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(styles).toContain('scroll-behavior: auto');
+    expect(styles).toContain('transition-duration: .01ms');
   });
 
   it("keeps Admin member, role, lock, reset, delete and content mutations guarded", () => {
