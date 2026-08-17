@@ -70,3 +70,5 @@
 - [ ] Cập nhật tài khoản `102` mã `102` về vai trò Admin theo yêu cầu người dùng, đăng nhập QA và xác nhận không hiển thị Trung tâm 111.
 
 - [ ] Sửa quyền Admin Panel để Founder được xóa Founder khác khi không phải tài khoản hệ thống, giữ bảo vệ tài khoản owner/system và thêm regression test + QA; backend đã sửa, regression đạt 57 tests, TypeScript và production build đạt, còn browser QA xóa thật cần xác nhận đúng tài khoản mục tiêu.
+- [ ] Điều tra và khắc phục GitHub Pages trả về lỗi không tìm thấy `index.html` khi truy cập URL site.
+- [ ] Tạo bản frontend tĩnh và quy trình GitHub Actions để website có thể hiển thị trên GitHub Pages; ghi rõ các chức năng backend không thể chạy trên Pages.
