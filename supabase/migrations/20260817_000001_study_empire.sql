@@ -373,10 +373,40 @@ create policy piece_transactions_read_own_or_staff on public.piece_transactions
   for select to authenticated
   using ((account_id = auth.uid() and public.study_is_active_account()) or public.study_is_staff());
 
+drop policy if exists study_sessions_service_role_only on public.study_sessions;
+create policy study_sessions_service_role_only on public.study_sessions
+  for all to authenticated
+  using (false)
+  with check (false);
+
+drop policy if exists study_profiles_service_role_only_mutation on public.study_profiles;
+create policy study_profiles_service_role_only_mutation on public.study_profiles
+  for all to authenticated
+  using (false)
+  with check (false);
+
+drop policy if exists user_pieces_service_role_only_mutation on public.user_pieces;
+create policy user_pieces_service_role_only_mutation on public.user_pieces
+  for all to authenticated
+  using (false)
+  with check (false);
+
+drop policy if exists piece_transactions_service_role_only_mutation on public.piece_transactions;
+create policy piece_transactions_service_role_only_mutation on public.piece_transactions
+  for all to authenticated
+  using (false)
+  with check (false);
+
 drop policy if exists audit_logs_read_staff on public.audit_logs;
 create policy audit_logs_read_staff on public.audit_logs
   for select to authenticated
   using (public.study_is_staff());
+
+drop policy if exists audit_logs_service_role_only_mutation on public.audit_logs;
+create policy audit_logs_service_role_only_mutation on public.audit_logs
+  for all to authenticated
+  using (false)
+  with check (false);
 
 drop policy if exists catalog_achievements_read_public on public.catalog_achievements;
 create policy catalog_achievements_read_public on public.catalog_achievements
@@ -400,9 +430,8 @@ create policy catalog_titles_manage_staff on public.catalog_titles
   using (public.study_is_staff())
   with check (public.study_is_staff());
 
--- No browser policies are created for study_sessions, user_pieces writes,
--- piece_transactions writes, audit log writes, or study_profile writes.
--- Those sensitive mutations must execute only through a trusted backend or service role.
+-- Sensitive session/profile/ledger/audit mutations are explicitly denied to the
+-- authenticated browser role and must execute only through a trusted backend or service role.
 
 commit;
 
