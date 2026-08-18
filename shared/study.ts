@@ -125,7 +125,9 @@ export type RewardSourceKind = "achievement" | "studySession" | "pomodoroMilesto
 export type FragmentRewardGrant = { tier: FragmentTier; amount: number; label?: string };
 export type LearningMilestone = { id: string; label: string; studySeconds: number; rewards: FragmentRewardGrant[]; achievementPoints?: number; enabled: boolean };
 export type AdminReward = { id: string; name: string; type: "achievement_points" | "piece" | "ticket" | "cosmetic" | "mascot_item" | "profile_item"; value: number; rarity: "common" | "rare" | "epic" | "legendary"; icon: string; description: string; condition: string; active: boolean; createdAt: string; updatedAt: string; recipientUserId?: string; grantReason?: string; auditId?: string; approvalStatus?: "draft" | "approved" | "revoked" };
-export type PieceExchangeRule = { id: string; fromTier: FragmentTier; fromAmount: number; toTier: FragmentTier; toAmount: number; enabled: boolean };
+export type PieceExchangeRule = { id: string; fromTier: FragmentTier; fromAmount: number; toTier: FragmentTier; toAmount: number; enabled: boolean; extraInputs?: Array<{ kind: "tier" | "ticket" | "item"; code: string; amount: number }> };
+export type DynamicFragmentType = { id: string; code: string; name: string; rarity: FragmentRarity; value: number; description: string; uses: string[]; earnMethods: string[]; exchangeMethods: string[]; icon: string; enabled: boolean; createdAt: string; updatedAt: string };
+export type PieceExchangeFormula = { id: string; name: string; inputs: Array<{ kind: "tier" | "ticket" | "item"; code: string; amount: number }>; outputs: Array<{ kind: "tier" | "ticket" | "item"; code: string; amount: number }>; enabled: boolean; startsAt?: string; endsAt?: string; createdAt: string; updatedAt: string };
 export type PieceTransaction = {
   id: string;
   occurredAt: string;
@@ -197,7 +199,7 @@ export type CollectionEvent = {
   updatedAt: string;
   deletedAt?: string;
 };
-export type CollectionConfig = { tierValues: FragmentTierConfig[]; ticketExchange: { fragmentValue: number; tickets: number; enabled: boolean }; shopItems: CollectionShopItem[]; rewardSources?: FragmentRewardSourceRule[]; events?: CollectionEvent[]; learningMilestones?: LearningMilestone[]; adminRewards?: AdminReward[]; pieceExchangeRules?: PieceExchangeRule[]; rewardExplanations?: RewardSourceExplanation[] };
+export type CollectionConfig = { tierValues: FragmentTierConfig[]; ticketExchange: { fragmentValue: number; tickets: number; enabled: boolean }; shopItems: CollectionShopItem[]; rewardSources?: FragmentRewardSourceRule[]; events?: CollectionEvent[]; learningMilestones?: LearningMilestone[]; adminRewards?: AdminReward[]; pieceExchangeRules?: PieceExchangeRule[]; exchangeFormulas?: PieceExchangeFormula[]; fragmentTypes?: DynamicFragmentType[]; rewardExplanations?: RewardSourceExplanation[] };
 export type SourceVerificationStatus = "verified" | "unverified" | "missing";
 export type CharacterUnlockStatus = "locked" | "assembling" | "ready" | "unlocked";
 

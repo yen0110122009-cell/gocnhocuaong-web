@@ -1,0 +1,22 @@
+import { useMemo, useState } from "react";
+import { ADMIN_AI_COMMANDS, approveAdminAiDraft, canPublishAdminDraft, createAdminAiDraft, type AdminAiCommand, type AdminAiDraft } from "../../../shared/adminCommandCenter";
+
+type Props = { adminId: string };
+
+export default function AdminCommandCenter({ adminId }: Props) {
+  const [command, setCommand] = useState<AdminAiCommand>("CREATE_ACHIEVEMENT");
+  const [title, setTitle] = useState("");
+  const [sourceText, setSourceText] = useState("");
+  const [draft, setDraft] = useState<AdminAiDraft | null>(null);
+  const selected = useMemo(() => ADMIN_AI_COMMANDS.find((item) => item.value === command), [command]);
+  const generateDraft = () => setDraft(createAdminAiDraft(command, { title: title.trim(), sourceText, requestedBy: adminId }));
+  const approveDraft = () => { if (!draft) return; const result = approveAdminAiDraft(draft, adminId, "Admin đã kiểm tra bản nháp trước khi công bố."); if (result.approved) setDraft(result.draft); };
+
+  return <section className="mt-6 rounded-3xl border border-amber-200 bg-white/80 p-5 shadow-sm dark:border-amber-400/15 dark:bg-slate-950/40" aria-labelledby="ai-command-center-title">
+    <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">AI · kiểm duyệt thủ công</p><h2 id="ai-command-center-title" className="mt-1 text-2xl font-black">🤖 AI Command Center</h2><p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-300">AI chỉ tạo bản nháp có cấu trúc. Không có thao tác tự xuất bản, tự sửa dữ liệu chính thức, tự xóa hoặc tự cấp thưởng.</p></div><span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">{draft ? `Trạng thái: ${draft.status}` : "Chưa có bản nháp"}</span></div>
+    <div className="mt-5 grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end"><label className="text-sm font-bold">Lệnh nghiệp vụ<select className="input mt-1" value={command} onChange={(event) => setCommand(event.target.value as AdminAiCommand)}>{ADMIN_AI_COMMANDS.map((item) => <option key={item.value} value={item.value}>[{item.value}] {item.label}</option>)}</select></label><label className="text-sm font-bold">Tên/chủ đề bản nháp<input className="input mt-1" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Tuần lễ Chăm Chỉ" /></label><button className="primary-button" type="button" onClick={generateDraft}>Tạo bản nháp</button></div>
+    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{selected?.description}</p>
+    <label className="mt-4 block text-sm font-bold">Tư liệu/nguồn Admin cung cấp<textarea className="input mt-1 min-h-24" value={sourceText} onChange={(event) => setSourceText(event.target.value)} placeholder="Dán tư liệu đã kiểm tra; AI không được tự bịa dữ kiện hoặc nguồn." /></label>
+    {draft && <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_.8fr]"><div className="rounded-2xl border border-slate-200 p-4 dark:border-white/10"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-black">Bản nháp: {draft.title}</h3><span className="text-xs font-bold text-slate-500">{draft.createdAt}</span></div><pre className="mt-3 max-h-64 overflow-auto rounded-xl bg-slate-950 p-3 text-xs text-emerald-200">{JSON.stringify(draft.payload, null, 2)}</pre></div><div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-400/15 dark:bg-amber-500/[.05]"><h3 className="font-black text-amber-900 dark:text-amber-100">Checklist kiểm duyệt</h3><ul className="mt-2 space-y-2 text-sm">{draft.verificationChecklist.map((item) => <li key={item}>☐ {item}</li>)}</ul><div className="mt-4 space-y-2 text-xs text-amber-900 dark:text-amber-100">{draft.warnings.map((item) => <p key={item}>⚠ {item}</p>)}</div><button className="secondary-button mt-4 w-full" type="button" onClick={approveDraft} disabled={draft.status === "approved"}>{draft.status === "approved" ? "Đã duyệt — chờ lưu chính thức" : "Admin duyệt bản nháp"}</button><p className="mt-2 text-xs text-slate-500">{canPublishAdminDraft(draft) ? "Đủ điều kiện để bước sang quy trình lưu chính thức." : "Chưa được phép công bố khi chưa có phê duyệt Admin."}</p></div></div>}
+  </section>;
+}

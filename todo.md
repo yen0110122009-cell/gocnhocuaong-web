@@ -386,3 +386,12 @@
 - [x] Bổ sung lịch sử Mảnh ghép hiển thị ngày, loại, số lượng, nguồn và hành động.
 - [x] Viết regression và chạy browser QA responsive cho các bảng, bộ lọc, chi tiết và lịch sử mới.
 - [x] Cập nhật checkpoint sau khi toàn bộ mục mở rộng đạt kiểm thử.
+
+- [x] Bổ sung transaction đổi mảnh nguyên tử: kiểm tra số dư, đúng loại, item/event còn hiệu lực, trừ mảnh, cộng vật phẩm và ghi lịch sử.
+- [x] Bổ sung transaction mở khóa nhân vật lịch sử với kiểm tra chi phí, trạng thái đã mở khóa, ledger và collection progress.
+- [x] Bổ sung Admin tạo loại mảnh động với mã, độ hiếm, giá trị, công dụng, cách nhận và cách đổi.
+- [x] Bổ sung Admin tạo công dụng và công thức đổi nhiều đầu vào, lưu cấu hình thay vì hard-code.
+- [x] Bổ sung AI Command Center với các lệnh tạo bản nháp có cấu trúc và hàng đợi duyệt thủ công, không tự xuất bản/sửa/xóa/cấp thưởng.
+- [x] Viết regression cho tính nguyên tử, không âm số dư, idempotency, mở khóa nhân vật và approval gate của AI.
+- [x] Chạy TypeScript, Vitest, production build và browser QA cho các luồng mới.
+- [x] Lưu checkpoint cho vòng mở rộng đổi mảnh, nhân vật, cấu hình và AI Command Center.

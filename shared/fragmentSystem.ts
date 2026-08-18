@@ -184,7 +184,7 @@ export function purchaseCollectionItem(config: AppConfig, profile: ProfileState,
 }
 
 export function appendPieceTransaction(profile: ProfileState, transaction: Omit<PieceTransaction, "id" | "sourceType" | "sourceId" | "reason"> & { id?: string; sourceType?: PieceTransaction["sourceType"]; sourceId?: string; reason?: string }) {
-  const amount = Math.max(0, Math.floor(transaction.amount));
+  const amount = Math.floor(Number(transaction.amount) || 0);
   if (!amount) return profile;
   const id = transaction.id ?? `piece-tx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   if ((profile.pieceTransactions ?? []).some((item) => item.id === id)) return profile;
@@ -195,7 +195,7 @@ export function appendPieceTransaction(profile: ProfileState, transaction: Omit<
     sourceId: transaction.sourceId ?? transaction.relatedId ?? "legacy",
     reason: transaction.reason ?? transaction.description ?? "Không có lý do được ghi nhận",
     amount,
-    value: Math.max(0, Math.floor(transaction.value)),
+    value: Math.floor(Number(transaction.value) || 0),
   };
   return { ...profile, pieceTransactions: [...(profile.pieceTransactions ?? []), nextTransaction] };
 }
@@ -366,5 +366,60 @@ export function validateHistoricalCharacterDraft(draft: HistoricalCharacterDraft
 
 export function visibleCharacters(config: AppConfig): HistoricalCharacter[] {
   return config.characters.filter((character) => character.visibility !== "hidden");
+}
+
+/** Pure atomic-style exchange: the returned profile is changed only after every validation passes. */
+export function exchangePieceRuleAtomic(config: AppConfig, profile: ProfileState, rule: PieceExchangeRule, occurredAt = new Date().toISOString()) {
+  const key = `piece-exchange:${rule.id}`;
+  const alreadyClaimed = Math.max(0, Math.floor(Number(profile.claimedPieceExchanges?.[key] ?? 0)));
+  const fromAmount = Math.max(0, Math.floor(rule.fromAmount));
+  const toAmount = Math.max(0, Math.floor(rule.toAmount));
+  const balance = Math.max(0, Math.floor(Number(profile.fragmentLedger?.[rule.fromTier] ?? 0)));
+  if (!rule.enabled || !fromAmount || !toAmount) return { profile, exchanged: false, reason: "unavailable" as const };
+  if (alreadyClaimed > 0) return { profile, exchanged: false, reason: "already_claimed" as const };
+  if (balance < fromAmount) return { profile, exchanged: false, reason: "insufficient_pieces" as const };
+  const ledger = { ...(profile.fragmentLedger ?? {}) } as Partial<Record<FragmentTier, number>>;
+  ledger[rule.fromTier] = balance - fromAmount;
+  ledger[rule.toTier] = Math.max(0, Math.floor(Number(ledger[rule.toTier] ?? 0))) + toAmount;
+  const spendId = `piece-tx-${key}-spend`;
+  const grantId = `piece-tx-${key}-grant`;
+  let nextProfile: ProfileState = { ...profile, fragmentLedger: ledger, claimedPieceExchanges: { ...(profile.claimedPieceExchanges ?? {}), [key]: 1 } };
+  nextProfile = appendPieceTransaction(nextProfile, { id: spendId, occurredAt, source: "collectionShop", sourceType: "collectionShop", sourceId: rule.id, reason: `Đổi ${fromAmount} mảnh cấp ${rule.fromTier} thành ${toAmount} mảnh cấp ${rule.toTier}`, claimKey: key, type: "exchange", tier: rule.fromTier, amount: -fromAmount, value: -fromAmount * configuredFragmentValue(config, rule.fromTier), description: "Mảnh đã dùng", relatedId: rule.id });
+  nextProfile = appendPieceTransaction(nextProfile, { id: grantId, occurredAt, source: "collectionShop", sourceType: "collectionShop", sourceId: rule.id, reason: `Đổi ${fromAmount} mảnh cấp ${rule.fromTier} thành ${toAmount} mảnh cấp ${rule.toTier}`, claimKey: key, type: "exchange", tier: rule.toTier, amount: toAmount, value: toAmount * configuredFragmentValue(config, rule.toTier), description: "Mảnh nhận được", relatedId: rule.id });
+  return { profile: appendRewardAudit(nextProfile, {     occurredAt, actor: "system", action: "piece_exchange", entityType: "piece_exchange", entityId: rule.id, summary: `Đổi ${fromAmount} ${rule.fromTier} → ${toAmount} ${rule.toTier}`, metadata: { claimKey: key, fromTier: rule.fromTier, fromAmount, toTier: rule.toTier, toAmount } }), exchanged: true, reason: "ok" as const, transactionIds: [spendId, grantId] };
+}
+
+/** Unlocks a historical character by consuming configured collection value and writing ledger/audit entries together. */
+export function unlockHistoricalCharacterAtomic(config: AppConfig, profile: ProfileState, character: HistoricalCharacter, occurredAt = new Date().toISOString()) {
+  const progress = getCharacterProgress(profile, character);
+  const cost = Math.max(0, Math.floor(Number(character.unlockCost ?? character.fragmentCost ?? character.fragmentTotal) || 0));
+  const key = `character-unlock:${character.id}`;
+  if (progress.status === "unlocked") return { profile, unlocked: false, reason: "already_unlocked" as const };
+  if (!cost) return { profile, unlocked: false, reason: "invalid_cost" as const };
+  if (fragmentLedgerValue(config, profile.fragmentLedger ?? {}) < cost) return { profile, unlocked: false, reason: "insufficient_value" as const };
+  const ledger = { ...(profile.fragmentLedger ?? {}) } as Partial<Record<FragmentTier, number>>;
+  let remaining = cost;
+  const transactions: string[] = [];
+  for (const tier of ["I", "II", "III", "IV", "V", "VI"] as FragmentTier[]) {
+    const unit = configuredFragmentValue(config, tier);
+    const available = Math.max(0, Math.floor(Number(ledger[tier] ?? 0)));
+    const take = Math.min(available, Math.ceil(remaining / unit));
+    if (!take) continue;
+    ledger[tier] = available - take;
+    remaining -= take * unit;
+    const id = `piece-tx-${key}-${tier}`;
+    transactions.push(id);
+  }
+  if (remaining > 0) return { profile, unlocked: false, reason: "insufficient_value" as const };
+  let nextProfile: ProfileState = { ...profile, fragmentLedger: ledger, collectionValueSpent: Math.max(0, profile.collectionValueSpent ?? 0) + cost, characterProgress: { ...profile.characterProgress, [character.id]: { ...progress, status: "unlocked", assembledAt: occurredAt, unlockedAt: occurredAt } } };
+  let index = 0;
+  for (const tier of ["I", "II", "III", "IV", "V", "VI"] as FragmentTier[]) {
+    const before = Math.max(0, Math.floor(Number(profile.fragmentLedger?.[tier] ?? 0)));
+    const after = Math.max(0, Math.floor(Number(ledger[tier] ?? 0)));
+    const amount = before - after;
+    if (!amount) continue;
+    nextProfile = appendPieceTransaction(nextProfile, { id: transactions[index++], occurredAt, source: "collectionProfile", sourceType: "collectionProfile", sourceId: character.id, reason: `Mở khóa hồ sơ ${character.name}`, claimKey: key, type: "spend", tier, amount: -amount, value: -amount * configuredFragmentValue(config, tier), description: `Mở khóa ${character.name}`, relatedId: character.id });
+  }
+  return { profile: appendRewardAudit(nextProfile, {     occurredAt, actor: "system", action: "character_unlock", entityType: "historical_character", entityId: character.id, summary: `Đã mở khóa ${character.name}`, metadata: { claimKey: key, cost, characterId: character.id, source: "fragment_ledger" } }), unlocked: true, reason: "ok" as const, transactionIds: transactions };
 }
 
