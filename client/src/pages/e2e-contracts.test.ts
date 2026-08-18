@@ -73,7 +73,7 @@ describe("Góc học tập end-to-end contracts", () => {
   it("implements working Pomodoro audio preview and completion alert", () => {
     expect(pomodoro).toContain("AudioContext");
     expect(pomodoro).toContain("function previewBackground()");
-    expect(pomodoro).toContain("source.start()");
+    expect(pomodoro).toContain("oscillator.start()");
     expect(pomodoro).toContain("backgroundVolume / 100");
     expect(pomodoro).toContain("function stopPreview()");
     expect(pomodoro).toContain("playAlert()");

@@ -176,3 +176,9 @@
 - [x] Tách đúng nhận diện nhân vật theo ảnh tham chiếu: Lumi = nữ đeo kính, tóc nâu, kẹp sao vàng; Ong = nữ áo đỏ, kẹp lửa đỏ-xanh.
 - [x] Thay mascot ong SVG chung ở login/dashboard bằng asset/illustration riêng Lumi và Ong, có nhãn accessible, responsive và dùng đúng mapping nhân vật.
 - [x] Bổ sung regression test và QA desktop/mobile cho mapping hai nhân vật; 5 test mục tiêu, TypeScript và production build đạt. Asset mascot sạch đã chuyển sang reserved URLs của webdev.
+
+- [ ] Người dùng xác nhận cả ba thao tác QA destructive/account: xóa QA 112, kiểm tra 102/Admin và kiểm tra quyền xóa Founder; chờ mật khẩu test 102 cùng tên/mã Founder mục tiêu.
+- [ ] Sau khi đủ thông tin, thực hiện từng thao tác có kiểm soát, ghi evidence và cập nhật trạng thái các mục 68, 70, 72.
+
+- [x] Khôi phục soundscape âm thanh nền trong Pomodoro; tự bật khi bắt đầu phiên sau tương tác người dùng, tự dừng khi pause/mute/cleanup, dùng tonal notes và tôn trọng mute/volume.
+- [x] Bổ sung/chạy regression test cho soundscape nền, typecheck, 13 audio/e2e tests, production build và mobile preview sau khi sửa.

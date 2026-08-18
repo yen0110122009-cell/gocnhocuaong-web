@@ -51,6 +51,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const completionRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const previewStopRef = useRef<(() => void) | null>(null);
+  const backgroundStopRef = useRef<(() => void) | null>(null);
 
   function getAudioContext() {
     if (!audioContextRef.current) audioContextRef.current = new AudioContext();
@@ -59,6 +60,46 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   function stopPreview() {
     previewStopRef.current?.();
     previewStopRef.current = null;
+  }
+  function stopBackground() {
+    backgroundStopRef.current?.();
+    backgroundStopRef.current = null;
+  }
+  function startBackground() {
+    stopBackground();
+    if (!sound || backgroundVolume <= 0 || backgroundSound === "Không âm thanh") return;
+    try {
+      const context = getAudioContext();
+      void context.resume();
+      const notes = SOUNDSCAPE_NOTES[backgroundSound];
+      if (!notes?.length) return;
+      const master = context.createGain();
+      master.gain.setValueAtTime(0.001, context.currentTime);
+      master.gain.exponentialRampToValueAtTime(Math.min(1, backgroundVolume / 100) * 0.09, context.currentTime + 0.25);
+      master.connect(context.destination);
+      const oscillators = notes.map((frequency, index) => {
+        const oscillator = context.createOscillator();
+        oscillator.type = backgroundSound === "Thư viện" ? "sine" : "triangle";
+        oscillator.frequency.value = frequency;
+        oscillator.detune.value = index % 2 ? -7 : 7;
+        oscillator.connect(master);
+        oscillator.start();
+        return oscillator;
+      });
+      let noteIndex = 0;
+      const interval = window.setInterval(() => {
+        const oscillator = oscillators[noteIndex % oscillators.length];
+        oscillator.frequency.setTargetAtTime(notes[noteIndex % notes.length], context.currentTime, 0.18);
+        noteIndex += 1;
+      }, 520);
+      backgroundStopRef.current = () => {
+        window.clearInterval(interval);
+        master.gain.cancelScheduledValues(context.currentTime);
+        master.gain.setTargetAtTime(0.001, context.currentTime, 0.12);
+        window.setTimeout(() => oscillators.forEach((oscillator) => { try { oscillator.stop(); } catch { /* already stopped */ } }), 500);
+        window.setTimeout(() => master.disconnect(), 650);
+      };
+    } catch { /* browsers may deny audio until a user gesture */ }
   }
   function playSequence(event: SoundEvent) {
     if (!sound || alertVolume <= 0) return;
@@ -93,41 +134,18 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
       toast.info("Âm thanh đang tắt hoặc âm lượng nền bằng 0.");
       return;
     }
-    try {
-      const context = getAudioContext();
-      void context.resume();
-      const master = context.createGain();
-      master.gain.setValueAtTime(0.001, context.currentTime);
-      master.gain.exponentialRampToValueAtTime(Math.min(1, backgroundVolume / 100) * 0.09, context.currentTime + 0.25);
-      master.connect(context.destination);
-      const oscillators = SOUNDSCAPE_NOTES[backgroundSound].map((frequency, index) => {
-        const oscillator = context.createOscillator();
-        oscillator.type = backgroundSound === "Thư viện" ? "sine" : "triangle";
-        oscillator.frequency.value = frequency;
-        oscillator.detune.value = index % 2 ? -7 : 7;
-        oscillator.connect(master);
-        oscillator.start();
-        return oscillator;
-      });
-      let noteIndex = 0;
-      const interval = window.setInterval(() => {
-        const oscillator = oscillators[noteIndex % oscillators.length];
-        oscillator.frequency.setTargetAtTime(SOUNDSCAPE_NOTES[backgroundSound][noteIndex % SOUNDSCAPE_NOTES[backgroundSound].length], context.currentTime, 0.18);
-        noteIndex += 1;
-      }, 520);
-      previewStopRef.current = () => {
-        window.clearInterval(interval);
-        master.gain.cancelScheduledValues(context.currentTime);
-        master.gain.setTargetAtTime(0.001, context.currentTime, 0.12);
-        window.setTimeout(() => oscillators.forEach((oscillator) => { try { oscillator.stop(); } catch { /* already stopped */ } }), 500);
-        window.setTimeout(() => master.disconnect(), 650);
-      };
-      window.setTimeout(() => { if (previewStopRef.current) stopPreview(); }, 5000);
-      toast.success(`Đang nghe thử: ${backgroundSound}`);
-    } catch { toast.error("Trình duyệt không cho phép phát âm thanh."); }
+    startBackground();
+    previewStopRef.current = () => stopBackground();
+    window.setTimeout(() => { if (previewStopRef.current) stopPreview(); }, 5000);
+    toast.success(`Đang nghe thử: ${backgroundSound}`);
   }
-  useEffect(() => () => { stopPreview(); void audioContextRef.current?.close(); }, []);
-  useEffect(() => { if (!sound) stopPreview(); }, [sound]);
+  useEffect(() => () => { stopPreview(); stopBackground(); void audioContextRef.current?.close(); }, []);
+  useEffect(() => { if (!sound) { stopPreview(); stopBackground(); } }, [sound]);
+  useEffect(() => {
+    if (running && sound) startBackground();
+    else stopBackground();
+    return () => stopBackground();
+  }, [running, sound, backgroundSound, backgroundVolume]);
 
   useEffect(() => {
     try {
@@ -183,6 +201,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     if (mode === "focus" && !subject.trim()) toast.info("Bạn có thể nhập môn học để thống kê chính xác hơn.");
     if (!sessionStartedAt && mode === "focus") setSessionStartedAt(new Date().toISOString());
     completionRef.current = false; setRunning(true); playSequence("start");
+    startBackground();
   }
   function reset(record = false) {
     if (record && running && mode === "focus" && sessionStartedAt) {
@@ -191,7 +210,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
       const abandoned: PomodoroSession = { id: crypto.randomUUID(), startedAt: sessionStartedAt, endedAt: new Date().toISOString(), durationMinutes: Math.floor(elapsed / 60), subject, topic, sessionNumber: completedToday + 1, totalSessions, mode: "focus", status: "abandoned" };
       onProfile({ ...profile, pomodoroHistory: elapsed > 0 ? [abandoned, ...profile.pomodoroHistory] : profile.pomodoroHistory }, "Đã đặt lại phiên; thời gian đã học được lưu vào lịch sử.");
     }
-    setRunning(false); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); completionRef.current = false;
+    setRunning(false); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); completionRef.current = false; stopBackground();
   }
   function choosePreset(preset: Preset) { if (running && !window.confirm("Đổi preset sẽ dừng phiên hiện tại. Tiếp tục?")) return; setRunning(false); setFocus(preset.focus); setShortBreak(preset.short); setLongBreak(preset.long); setMode("focus"); setSeconds(preset.focus * 60); setSessionStartedAt(null); }
   function completeFocus() {
