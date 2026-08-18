@@ -258,3 +258,13 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
 .dark .panel, .dark .study-card, .dark .emotion-studio { border-color: rgba(169, 230, 173, .28) !important; }
 .dark [class*="bg-sky-"], .dark [class*="bg-cyan-"], .dark [class*="bg-blue-"], .dark [class*="bg-violet-"] { background-color: #203c27 !important; }
 .dark .learner-mascot { background: #1d3d26; color: #b9efbc; border-color: #67bd6c; }
+
+/* Sidebar navigation: the list must scroll independently when the viewport is short. */
+#root > div.min-h-screen > aside > nav.mt-2.space-y-1 {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: .25rem;
+  padding-bottom: 1rem;
+}

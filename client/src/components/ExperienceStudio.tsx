@@ -11,7 +11,7 @@ const companionImage = "/manus-storage/lumi-mascot-clean_28a6da68.png";
 export function ExperienceStudio({ selected, onSelect, onStartTwoMinutes, customContent = [] }: Props) {
   const [command, setCommand] = useState("");
   const [message, setMessage] = useState("");
-  const [lazyLevel, setLazyLevel] = useState<"mild" | "very" | "none">("mild");
+  const [lazyLevel, setLazyLevel] = useState<"mild" | "very" | "none" | null>(null);
   const [speechGroup, setSpeechGroup] = useState<SpeechGroup>("comfort");
   const [speech, setSpeech] = useState(() => speechForEvent("procrastination"));
   const [recentContentIds, setRecentContentIds] = useState<string[]>([]);
@@ -53,10 +53,15 @@ export function ExperienceStudio({ selected, onSelect, onStartTwoMinutes, custom
   }
 
   function chooseLazy(level: "mild" | "very" | "none") {
+    if (lazyLevel === level) {
+      setLazyLevel(null);
+      setMessage("Đã bỏ chọn Chế độ lười. Ong có thể chọn lại mức phù hợp bất cứ lúc nào.");
+      return;
+    }
     setLazyLevel(level);
-    if (level === "none") setMessage("Không sao cả. Hôm nay mình chỉ cần nghỉ ngơi tử tế.");
-    else if (level === "very") setMessage("Mình không ép Ong. Chỉ thử một nhiệm vụ 2 phút khi sẵn sàng nhé.");
-    else setMessage("Hơi lười cũng được. Mở sách hoặc một thẻ học trong 2 phút thôi.");
+    if (level === "none") setMessage("Không sao cả. Hôm nay mình chỉ cần nghỉ ngơi tử tế. Nhấn lại lựa chọn này để bỏ chọn.");
+    else if (level === "very") setMessage("Mình không ép Ong. Chỉ thử một nhiệm vụ 2 phút khi sẵn sàng nhé. Nhấn lại để bỏ chọn.");
+    else setMessage("Hơi lười cũng được. Mở sách hoặc một thẻ học trong 2 phút thôi. Nhấn lại để bỏ chọn.");
   }
 
   return <section className="panel emotion-studio border-2 border-[#c62828]/15 bg-[linear-gradient(135deg,#fff7f2_0%,#f5fff5_100%)] p-5 sm:p-6" aria-labelledby="emotion-studio-title">

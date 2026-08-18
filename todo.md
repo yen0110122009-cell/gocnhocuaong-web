@@ -443,3 +443,8 @@
 - [x] Hỗ trợ nhập prompt tùy chỉnh trong một ô chung và giữ cảnh báo AI chỉ tạo bản nháp
 - [x] Thêm regression test cho prompt explanation, custom prompt và approval gate
 - [x] Chạy typecheck, Vitest, build và QA giao diện Admin Command Center
+
+## Sửa menu và Chế độ lười
+- [x] Cho menu điều hướng cuộn được toàn bộ mục trên màn hình nhỏ và desktop có chiều cao hạn chế
+- [x] Cho phép bỏ chọn/tắt Chế độ lười sau khi đã chọn một micro-task
+- [x] Thêm regression và QA responsive cho menu cuộn cùng thao tác bỏ chọn
