@@ -164,7 +164,20 @@ body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%
 #root > div.min-h-screen header { background: rgba(255,247,242,.94) !important; border-bottom-color: rgba(198,40,40,.18) !important; }
 .emotion-studio { box-shadow: 0 16px 40px rgba(198,40,40,.09), 0 8px 25px rgba(46,125,50,.08); }
 .pomodoro-starting { animation: pomodoro-enter 680ms var(--ease-out) both; background-image: linear-gradient(135deg, rgba(255,240,235,.96), rgba(239,249,239,.96)); }
-.pomodoro-critical { box-shadow: 0 0 0 2px rgba(198,40,40,.16), 0 18px 44px rgba(198,40,40,.12); }
+	.pomodoro-critical { box-shadow: 0 0 0 2px rgba(198,40,40,.16), 0 18px 44px rgba(198,40,40,.12); }
+	.pomodoro-breathing { position: relative; isolation: isolate; }
+	.pomodoro-breathing::before { content: ""; position: absolute; inset: 8% 12%; z-index: -1; border-radius: 999px; pointer-events: none; opacity: .26; filter: blur(28px); background: radial-gradient(circle, rgba(46,125,50,.28), transparent 68%); }
+	.pomodoro-breathing--morning::before { background: radial-gradient(circle, rgba(255,193,7,.28), rgba(46,125,50,.14) 52%, transparent 72%); }
+	.pomodoro-breathing--afternoon::before { background: radial-gradient(circle, rgba(46,125,50,.26), rgba(198,40,40,.12) 54%, transparent 72%); }
+	.pomodoro-breathing--night::before { background: radial-gradient(circle, rgba(46,125,50,.22), rgba(198,40,40,.14) 54%, transparent 72%); }
+	.pomodoro-journey { background: linear-gradient(120deg, rgba(255,247,242,.94), rgba(245,255,245,.94)); }
+	.pomodoro-journey--morning { box-shadow: 0 12px 28px rgba(255,193,7,.09); }
+	.pomodoro-journey--afternoon { box-shadow: 0 12px 28px rgba(46,125,50,.1); }
+	.pomodoro-journey--night { background: linear-gradient(120deg, rgba(255,247,242,.88), rgba(239,249,239,.9)); box-shadow: 0 12px 28px rgba(46,125,50,.12); }
+	@media (prefers-reduced-motion: no-preference) {
+	  .pomodoro-breathing::before { animation: pomodoro-breathe 8s ease-in-out infinite; }
+	}
+	@keyframes pomodoro-breathe { 0%, 100% { transform: scale(.96); opacity: .18; } 50% { transform: scale(1.04); opacity: .34; } }
 .pomodoro-complete { animation: pomodoro-complete-in 520ms var(--ease-out) both; }
 @keyframes pomodoro-enter { 0% { opacity: .72; transform: translateY(6px) scale(.985); } 55% { transform: translateY(0) scale(1.01); } 100% { opacity: 1; transform: scale(1); } }
 @keyframes pomodoro-complete-in { 0% { opacity: .2; transform: translateY(10px) scale(.97); } 100% { opacity: 1; transform: translateY(0) scale(1); } }

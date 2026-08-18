@@ -207,4 +207,4 @@
 - [x] Bổ sung regression test cho alert sequence/gain, chạy typecheck, production build và QA preview sau khi sửa.
 - [x] Kiểm kê và khôi phục các ý tưởng bị thiếu trong file nguồn, đặc biệt soundscape dài và đa lớp.
 - [x] Mở rộng soundscape Pomodoro thành các cảnh âm thanh phong phú, chuyển lớp mượt và duy trì liên tục.
-- [ ] Khôi phục tiếp Background “thở”, chuyển cảnh theo thời gian, Comeback, trì hoãn analytics và hộp nhiệm vụ ngẫu nhiên theo roadmap.
+- [x] Khôi phục tiếp Background “thở”, chuyển cảnh theo thời gian, Comeback, trì hoãn analytics và hộp nhiệm vụ ngẫu nhiên theo roadmap.
