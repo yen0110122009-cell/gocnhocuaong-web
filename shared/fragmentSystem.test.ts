@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assembleCharacter, collectionValueBalance, collectNextCharacterPiece, exchangeCollectionTickets, getCharacterProgress, purchaseCollectionItem, unlockCharacterProfileLevel, validateHistoricalCharacterDraft } from "./fragmentSystem";
+import { assembleCharacter, collectionValueBalance, collectNextCharacterPiece, exchangeCollectionTickets, getCharacterProgress, grantFragmentSourceReward, purchaseCollectionItem, unlockCharacterProfileLevel, validateHistoricalCharacterDraft } from "./fragmentSystem";
 import { emptyProfile } from "./study";
 
 const character = {
@@ -54,6 +54,21 @@ describe("fragment character lifecycle", () => {
     const purchased = purchaseCollectionItem(config, exchanged.profile, config.collectionConfig.shopItems[0]);
     expect(purchased.purchased).toBe(true);
     expect(purchased.profile.collectionInventory).toContain("frame");
+  });
+
+  it("enforces source daily caps and idempotent claim keys", () => {
+    const config = { collectionConfig: { tierValues: [{ tier: "I", label: "Phổ thông", value: 1, rarity: "common", enabled: true }], rewardSources: [{ id: "session", kind: "studySession", label: "Phiên học", description: "Một phiên học hoàn thành", enabled: true, dailyCap: 2, claimLimit: 2, rewards: [{ tier: "I", amount: 1 }] }] } } as any;
+    const rule = config.collectionConfig.rewardSources[0];
+    let profile = emptyProfile();
+    const first = grantFragmentSourceReward(config, profile, rule, "activity-1", "2026-08-19T08:00:00.000Z");
+    expect(first.granted).toBe(true);
+    profile = first.profile;
+    expect(grantFragmentSourceReward(config, profile, rule, "activity-1", "2026-08-19T08:01:00.000Z").reason).toBe("already_claimed");
+    const second = grantFragmentSourceReward(config, profile, rule, "activity-2", "2026-08-19T08:02:00.000Z");
+    expect(second.granted).toBe(true);
+    profile = second.profile;
+    expect(grantFragmentSourceReward(config, profile, rule, "activity-3", "2026-08-19T08:03:00.000Z").reason).toBe("limit_reached");
+    expect(profile.fragmentLedger?.I).toBe(2);
   });
 
   it("keeps an existing member's progress isolated and validates source completeness", () => {

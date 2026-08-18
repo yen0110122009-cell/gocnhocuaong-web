@@ -304,3 +304,9 @@
 - [x] Bổ sung quy đổi mảnh thành Vé Sưu Tầm theo tỷ lệ cấu hình trong Admin.
 - [x] Xây dựng Cửa hàng Sưu tầm với vật phẩm, giá, loại tiền, độ hiếm, số lượng và trạng thái.
 - [x] Viết kiểm thử ledger/kinh tế, kiểm tra dữ liệu lịch sử có nguồn và browser QA responsive cho Kho/Cửa hàng.
+
+- [x] Bổ sung catalog nguồn nhận mảnh cho thành tích, phiên học, Pomodoro, làm đề/Deep Review, streak, nhiệm vụ và event.
+- [x] Cấu hình giới hạn nhận theo ngày và theo từng mốc để ngăn farm vô hạn; mọi giới hạn phải hiển thị rõ cho người dùng.
+- [x] Bổ sung reward rules cho các mốc Pomodoro, streak, cải thiện điểm và Deep Review với điều kiện cấu hình được.
+- [x] Xây dựng module Event CRUD cho Admin gồm tên, mô tả, banner, thời gian, trạng thái, độ khó, mục tiêu, nhiệm vụ, điều kiện tham gia, phần thưởng và giới hạn nhận.
+- [x] Viết regression cho idempotency/ledger, giới hạn nhận, phân quyền Admin và browser QA responsive cho nguồn nhận mảnh/Event.

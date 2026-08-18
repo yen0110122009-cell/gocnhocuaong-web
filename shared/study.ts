@@ -1,5 +1,7 @@
 export type StudyRole = "Member" | "Admin" | "Founder";
 
+import { grantFragmentSourceReward } from "./fragmentSystem";
+
 export type Flashcard = {
   id: string;
   front: string;
@@ -119,7 +121,41 @@ export type FragmentTier = "I" | "II" | "III" | "IV" | "V" | "VI";
 export type FragmentTierConfig = { tier: FragmentTier; label: string; value: number; rarity: FragmentRarity; enabled: boolean };
 export type CollectionProfileLevel = { id: string; label: string; requiredValue: number; description: string; unlocked: boolean };
 export type CollectionShopItem = { id: string; name: string; description: string; kind: "profileFrame" | "profileBackground" | "icon" | "decorativeBadge" | "mascotAccessory" | "profileEffect" | "historyTheme"; price: number; currency: "collectionTicket" | "fragmentValue"; rarity: "common" | "rare" | "epic" | "legendary"; stock: number | null; enabled: boolean };
-export type CollectionConfig = { tierValues: FragmentTierConfig[]; ticketExchange: { fragmentValue: number; tickets: number; enabled: boolean }; shopItems: CollectionShopItem[] };
+export type RewardSourceKind = "achievement" | "studySession" | "pomodoroMilestone" | "quiz" | "deepReview" | "scoreImprovement" | "streak" | "task" | "event";
+export type FragmentRewardGrant = { tier: FragmentTier; amount: number; label?: string };
+export type FragmentRewardSourceRule = {
+  id: string;
+  kind: RewardSourceKind;
+  label: string;
+  description: string;
+  enabled: boolean;
+  dailyCap?: number;
+  claimLimit?: number;
+  milestone?: number;
+  conditionParameters?: Record<string, number | string>;
+  rewards: FragmentRewardGrant[];
+};
+export type CollectionEventTask = { id: string; title: string; description: string; target: number; metric: RewardSourceKind; reward?: FragmentRewardGrant[] };
+export type CollectionEvent = {
+  id: string;
+  name: string;
+  description: string;
+  bannerUrl?: string;
+  startsAt: string;
+  endsAt: string;
+  status: "draft" | "scheduled" | "active" | "ended" | "archived";
+  difficulty: "Dễ" | "Bình thường" | "Khó" | "Rất khó";
+  objective: string;
+  tasks: CollectionEventTask[];
+  rewards: Array<{ type: "xp" | "ticket" | "item"; amount: number; itemId?: string; label?: string }>;
+  fragmentRewards: FragmentRewardGrant[];
+  participationConditions: Array<{ id: string; label: string; metric: string; target: number }>;
+  claimLimit: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+};
+export type CollectionConfig = { tierValues: FragmentTierConfig[]; ticketExchange: { fragmentValue: number; tickets: number; enabled: boolean }; shopItems: CollectionShopItem[]; rewardSources?: FragmentRewardSourceRule[]; events?: CollectionEvent[] };
 export type SourceVerificationStatus = "verified" | "unverified" | "missing";
 export type CharacterUnlockStatus = "locked" | "assembling" | "ready" | "unlocked";
 
@@ -378,6 +414,7 @@ export type ProfileState = {
   attempts: QuizAttempt[];
   studyActivity: StudyActivity[];
   fragments: Record<string, number>;
+  fragmentLedger?: Partial<Record<FragmentTier, number>>;
   unlockedAchievementIds: string[];
   ownedBadges: string[];
   activeTitle: string | null;
@@ -405,6 +442,9 @@ export type ProfileState = {
   achievementMoments?: AchievementMoment[];
   achievementEvidence?: Record<string, AchievementEvidence[]>;
   mascotVoiceLines?: MascotVoiceLine[];
+  fragmentRewardClaims?: Record<string, number>;
+  eventProgress?: Record<string, Record<string, number>>;
+  claimedEventRewards?: Record<string, number>;
 };
 
 export type PomodoroSession = {
@@ -501,6 +541,7 @@ export const emptyProfile = (): ProfileState => ({
   attempts: [],
   studyActivity: [],
   fragments: {},
+  fragmentLedger: {},
   unlockedAchievementIds: [],
   ownedBadges: [],
   activeTitle: null,
@@ -523,6 +564,9 @@ export const emptyProfile = (): ProfileState => ({
   achievementMoments: [],
   achievementEvidence: {},
   mascotVoiceLines: [],
+  fragmentRewardClaims: {},
+  eventProgress: {},
+  claimedEventRewards: {},
   deepLearningEvents: [],
 });
 
@@ -568,6 +612,14 @@ export const emptyAppConfig = (): AppConfig => ({
     ],
     ticketExchange: { fragmentValue: 10, tickets: 1, enabled: true },
     shopItems: [],
+    rewardSources: [
+      { id: "source-study-session", kind: "studySession", label: "Phiên học hoàn thành", description: "Nhận mảnh khi hoàn thành phiên học; bị giới hạn theo ngày.", enabled: true, dailyCap: 3, rewards: [{ tier: "I", amount: 1 }] },
+      { id: "source-pomodoro-10", kind: "pomodoroMilestone", label: "Mốc 10 Pomodoro", description: "Thưởng một lần khi tổng số Pomodoro hoàn thành chạm mốc.", enabled: true, claimLimit: 1, milestone: 10, rewards: [{ tier: "II", amount: 1 }] },
+      { id: "source-quiz-complete", kind: "quiz", label: "Hoàn thành đề", description: "Thưởng cho mỗi đề hoàn thành; giới hạn theo ngày.", enabled: true, dailyCap: 2, rewards: [{ tier: "I", amount: 1 }] },
+      { id: "source-deep-review", kind: "deepReview", label: "Deep Review", description: "Thưởng khi hoàn thành phiên review sâu.", enabled: true, dailyCap: 2, rewards: [{ tier: "II", amount: 1 }] },
+      { id: "source-streak-7", kind: "streak", label: "Streak 7 ngày", description: "Thưởng một lần ở mốc streak.", enabled: true, claimLimit: 1, milestone: 7, rewards: [{ tier: "III", amount: 1 }] },
+    ],
+    events: [],
   },
   achievementOverrides: [],
   levelDefinitions: DEFAULT_LEVEL_DEFINITIONS,
@@ -940,17 +992,23 @@ export function applyStudyActivityRewards(profile: ProfileState, activity: Study
   const quantity = Math.max(0, Math.floor(activity.quantity));
   const xpEarned = Math.max(0, Math.floor(activity.xpEarned));
   const previousPomodoros = profile.pomodoroHistory.filter((session) => session.status === "completed").length;
-  const rawFragmentReward = activity.kind === "pomodoro" ? ((previousPomodoros + 1) % 10 === 0 ? 1 : 0) : Math.max(0, Math.floor(quantity / 10));
   const dayKey = activity.occurredAt.slice(0, 10);
-  const fragmentsToday = profile.studyActivity.filter((item) => item.occurredAt.slice(0, 10) === dayKey).reduce((sum, item) => sum + Math.max(0, Math.floor(item.quantity / 10)), 0);
-  const fragmentReward = Math.max(0, Math.min(rawFragmentReward, Math.max(0, Number(config.dailyFragmentCap ?? 10) - fragmentsToday)));
+  const sourceId = activity.kind === "pomodoro" ? "source-study-session" : activity.kind === "quiz" ? "source-quiz-complete" : "source-study-session";
+  const sourceRule = config.collectionConfig?.rewardSources?.find((rule) => rule.id === sourceId);
+  const sourceReward = sourceRule ? grantFragmentSourceReward(config, profile, sourceRule, activity.id, activity.occurredAt) : { profile, granted: false, amount: 0 };
+  const milestoneRule = activity.kind === "pomodoro" ? config.collectionConfig?.rewardSources?.find((rule) => rule.kind === "pomodoroMilestone" && rule.milestone && (previousPomodoros + 1) >= rule.milestone && (previousPomodoros + 1) % rule.milestone === 0) : undefined;
+  const milestoneReward = milestoneRule ? grantFragmentSourceReward(config, sourceReward.profile, milestoneRule, `${activity.id}:milestone:${milestoneRule.milestone}`, activity.occurredAt) : { profile: sourceReward.profile, granted: false, amount: 0 };
+  const rewardProfile = milestoneReward.profile;
+  const fragmentReward = sourceReward.amount + milestoneReward.amount;
   const next: ProfileState = {
-    ...updateStudyStreak(profile, activity.occurredAt),
+    ...updateStudyStreak(rewardProfile, activity.occurredAt),
     xp: profile.xp + xpEarned,
     level: levelForXp(profile.xp + xpEarned),
     streakShields: nextStreakShield(profile, activity.occurredAt),
     studyActivity: [...profile.studyActivity, { ...activity, quantity, xpEarned }],
-    fragments: fragmentReward ? { ...profile.fragments, general: (profile.fragments.general ?? 0) + fragmentReward } : profile.fragments,
+    fragments: fragmentReward ? { ...rewardProfile.fragments, general: (rewardProfile.fragments.general ?? 0) + fragmentReward } : rewardProfile.fragments,
+    fragmentLedger: rewardProfile.fragmentLedger, 
+    fragmentRewardClaims: rewardProfile.fragmentRewardClaims,
     lastActivityAt: activity.occurredAt,
   };
   const rewarded = applyAchievementRewards(next, config);
@@ -969,6 +1027,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     attempts: Array.isArray(source.attempts) ? source.attempts.flatMap((value) => { const attempt = value && typeof value === "object" ? (value as Partial<QuizAttempt>) : null; if (!attempt?.id || !attempt.quizId) return []; return [{ id: String(attempt.id), quizId: String(attempt.quizId), completedAt: String(attempt.completedAt ?? new Date(0).toISOString()), correct: Math.max(0, Number(attempt.correct) || 0), total: Math.max(0, Number(attempt.total) || 0), accuracy: Math.max(0, Math.min(100, Number(attempt.accuracy) || 0)), durationSeconds: Math.max(0, Number(attempt.durationSeconds) || 0), answers: Array.isArray(attempt.answers) ? attempt.answers : [] }]; }) : [],
     studyActivity: Array.isArray(source.studyActivity) ? source.studyActivity.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<StudyActivity>) : null; if (!item?.id || (item.kind !== "flashcard" && item.kind !== "quiz" && item.kind !== "wheel" && item.kind !== "pomodoro")) return []; return [{ id: String(item.id), occurredAt: String(item.occurredAt ?? new Date(0).toISOString()), kind: item.kind, quantity: Math.max(0, Number(item.quantity) || 0), durationSeconds: Math.max(0, Number(item.durationSeconds) || 0), xpEarned: Math.max(0, Number(item.xpEarned) || 0), correct: item.correct === undefined ? undefined : Math.max(0, Number(item.correct) || 0), total: item.total === undefined ? undefined : Math.max(0, Number(item.total) || 0) }]; }) : [],
     fragments: source.fragments && typeof source.fragments === "object" ? source.fragments : {},
+    fragmentLedger: source.fragmentLedger && typeof source.fragmentLedger === "object" ? Object.fromEntries((Object.entries(source.fragmentLedger) as Array<[FragmentTier, unknown]>).filter(([tier]) => ["I", "II", "III", "IV", "V", "VI"].includes(tier)).map(([tier, value]) => [tier, Math.max(0, Math.floor(Number(value) || 0))])) as Partial<Record<FragmentTier, number>> : {},
     unlockedAchievementIds: Array.isArray(source.unlockedAchievementIds) ? source.unlockedAchievementIds : [],
     ownedBadges: Array.isArray(source.ownedBadges) ? source.ownedBadges : [],
     inventory: Array.isArray(source.inventory) ? source.inventory : [],

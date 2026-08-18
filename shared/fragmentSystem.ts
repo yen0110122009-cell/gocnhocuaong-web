@@ -6,6 +6,7 @@ import type {
   CollectionShopItem,
   FragmentPiece,
   FragmentTier,
+  FragmentRewardSourceRule,
   HistoricalCharacter,
   ProfileState,
   SourceVerificationStatus,
@@ -29,6 +30,35 @@ export function characterCollectionValue(config: AppConfig, character: Historica
 
 export function totalCollectionValue(config: AppConfig, profile: ProfileState, characters = visibleCharacters(config)) {
   return characters.reduce((sum, character) => sum + characterCollectionValue(config, character, profile), 0);
+}
+
+export function fragmentLedgerValue(config: AppConfig, ledger: Partial<Record<FragmentTier, number>> = {}) {
+  return (["I", "II", "III", "IV", "V", "VI"] as FragmentTier[]).reduce((sum, tier) => sum + Math.max(0, Math.floor(Number(ledger[tier]) || 0)) * configuredFragmentValue(config, tier), 0);
+}
+
+export function rewardSourceClaimsToday(profile: ProfileState, sourceId: string, occurredAt: string) {
+  const dayKey = occurredAt.slice(0, 10);
+  return Object.entries(profile.fragmentRewardClaims ?? {}).reduce((sum, [key, amount]) => key.startsWith(`${dayKey}:${sourceId}:`) ? sum + Math.max(0, Math.floor(Number(amount) || 0)) : sum, 0);
+}
+
+export function grantFragmentSourceReward(config: AppConfig, profile: ProfileState, rule: FragmentRewardSourceRule, claimKey: string, occurredAt = new Date().toISOString()) {
+  if (!rule.enabled || !rule.rewards.length) return { profile, granted: false, reason: "disabled" as const, amount: 0 };
+  const key = `${occurredAt.slice(0, 10)}:${rule.id}:${claimKey}`;
+  if ((profile.fragmentRewardClaims ?? {})[key]) return { profile, granted: false, reason: "already_claimed" as const, amount: 0 };
+  const claimedToday = rewardSourceClaimsToday(profile, rule.id, occurredAt);
+  const requested = rule.rewards.reduce((sum, reward) => sum + Math.max(0, Math.floor(reward.amount)), 0);
+  const remainingDaily = rule.dailyCap === undefined ? requested : Math.max(0, Math.floor(rule.dailyCap) - claimedToday);
+  const grantScale = requested > 0 ? Math.min(1, remainingDaily / requested) : 0;
+  if (grantScale <= 0 || (rule.claimLimit !== undefined && claimedToday >= Math.max(0, Math.floor(rule.claimLimit)))) return { profile, granted: false, reason: "limit_reached" as const, amount: 0 };
+  const ledger = { ...(profile.fragmentLedger ?? {}) } as Partial<Record<FragmentTier, number>>;
+  let amount = 0;
+  for (const reward of rule.rewards) {
+    const granted = Math.floor(Math.max(0, reward.amount) * grantScale);
+    ledger[reward.tier] = Math.max(0, Math.floor(Number(ledger[reward.tier]) || 0)) + granted;
+    amount += granted;
+  }
+  if (!amount) return { profile, granted: false, reason: "limit_reached" as const, amount: 0 };
+  return { profile: { ...profile, fragmentLedger: ledger, fragmentRewardClaims: { ...(profile.fragmentRewardClaims ?? {}), [key]: amount } }, granted: true, reason: "ok" as const, amount };
 }
 
 export function collectionTicketQuote(config: AppConfig, value: number) {
