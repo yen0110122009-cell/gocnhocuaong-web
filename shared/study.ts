@@ -421,18 +421,39 @@ export type StudySession = {
 };
 
 export type AchievementMetric = "xp" | "learnedCards" | "completedQuizzes" | "completedSets" | "fragments" | "pomodoroSessions";
+export type AchievementConditionType = AchievementMetric | "currentStreak" | "bestStreak" | "studySeconds" | "deepFocusSessions";
+export type AchievementCondition = {
+  id: string;
+  label: string;
+  type: AchievementConditionType;
+  parameters: Record<string, number | string>;
+  currentProgress: number;
+  targetProgress: number;
+  progressPercentage: number;
+  remaining: number;
+  met: boolean;
+};
 
 export type Achievement = {
   id: string;
+  achievementCode: string;
   rank: number;
   rankName: string;
+  group: string;
   icon: string;
   name: string;
   description: string;
   metric: AchievementMetric;
+  conditionType: AchievementConditionType;
+  conditionParameters: Record<string, number | string>;
+  conditions: AchievementCondition[];
   threshold: number;
   rewardXp: number;
   rewardFragments: number;
+  rewardType: "xp" | "fragment" | "title" | "mixed";
+  rewardAmount: number;
+  pieceReward: number;
+  pieceTier: "I" | "II" | "III" | "IV";
   title: string | null;
   titleMeaning: string | null;
   difficulty: "Dễ" | "Bình thường" | "Khó" | "Rất khó" | "Cực khó" | "Huyền thoại";
@@ -443,7 +464,10 @@ export type Achievement = {
   remaining: number;
   animation: "spark" | "glow" | "legendary";
   unlockedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
   evidence?: AchievementEvidence[];
+  enabled?: boolean;
   isSecret?: boolean;
 };
 
@@ -572,6 +596,9 @@ export const statsForProfile = (profile: ProfileState) => {
     fragments,
     pomodoroSessions,
     studySeconds,
+    currentStreak: profile.currentStreak,
+    bestStreak: profile.bestStreak,
+    deepFocusSessions: profile.attempts.filter((attempt) => attempt.mode === "deep").length,
   };
 };
 
@@ -627,15 +654,24 @@ export function generateAchievements(): Achievement[] {
       const difficultyLabel = rank === 8 ? "Huyền thoại" : difficulty;
       result.push({
         id: `rank-${rank + 1}-${withinRank + 1}`,
+        achievementCode: `ACH-${String(index + 1).padStart(3, "0")}`,
         rank: rank + 1,
         rankName,
+        group: rankName,
         icon,
         name: `${rankName} ${withinRank + 1}`,
         description: `Đạt ${threshold.toLocaleString("vi-VN")} ${metricLabels[metric]}.`,
         metric,
+        conditionType: metric,
+        conditionParameters: { target: threshold },
+        conditions: [],
         threshold,
         rewardXp: 20 + rank * 25 + Math.floor(withinRank / 10) * 5,
         rewardFragments: withinRank % 20 === 19 ? 1 : 0,
+        rewardType: title ? "mixed" : withinRank % 20 === 19 ? "fragment" : "xp",
+        rewardAmount: 20 + rank * 25 + Math.floor(withinRank / 10) * 5,
+        pieceReward: withinRank % 20 === 19 ? 1 : 0,
+        pieceTier: rank >= 8 ? "IV" : rank >= 6 ? "III" : rank >= 3 ? "II" : "I",
         title,
         titleMeaning: title ? index === 899 ? "Danh hiệu tối thượng dành cho người đã đi hết hành trình, giữ lửa học tập và truyền cảm hứng cho những chặng đường tiếp theo." : titleMeaning(titleSeed, qualifier, specialIndex) : null,
         difficulty: difficultyLabel,
@@ -646,6 +682,9 @@ export function generateAchievements(): Achievement[] {
         remaining: threshold,
         animation: index === 899 ? "legendary" : rank >= 7 ? "glow" : "spark",
         unlockedAt: null,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        enabled: true,
       });
     }
   });
@@ -672,8 +711,47 @@ export function advancedAchievementCards(profile: ProfileState): Achievement[] {
     { id: "advanced-error-recovery", icon: "🛡️", name: "Đã vượt qua lỗi cũ", description: "Ong đã ghi nhận và xử lý lại nhiều lỗi thay vì né tránh chúng.", threshold: 3, currentValue: fixedErrorCount, rewardXp: 25, encouragement: "Ong không cần hoàn hảo, chỉ cần tiến bộ thật." },
     { id: "advanced-self-improvement", icon: "📈", name: "Tốt hơn chính mình", description: "Thời lượng học tuần này cao hơn tuần trước dựa trên lịch sử học đã lưu.", threshold: 1, currentValue: recentMinutes > previousMinutes && completed.length > 0 ? 1 : 0, rewardXp: 20, encouragement: "Ong đang so sánh với chính mình của ngày hôm qua." },
   ];
-  return cards.map((card) => ({ ...card, rank: 7, rankName: "Tiến bộ", metric: "xp" as const, rewardFragments: 0, title: null, titleMeaning: null, difficulty: "Khó" as const, badgeLabel: "Thành tích tiến bộ", progress: Math.min(100, Math.round((card.currentValue / card.threshold) * 100)), remaining: Math.max(0, card.threshold - card.currentValue), animation: "glow" as const, unlockedAt: profile.achievementUnlockDates[card.id] ?? null, evidence: [] }));
+  return cards.map((card) => { const now = new Date().toISOString(); const progress = Math.min(100, Math.round((card.currentValue / card.threshold) * 100)); return ({ ...card, achievementCode: `ADV-${card.id.toUpperCase()}`, rank: 7, rankName: "Tiến bộ", group: "Tiến bộ", metric: "xp" as const, conditionType: "xp" as const, conditionParameters: { target: card.threshold }, conditions: [], rewardFragments: 0, rewardType: "xp" as const, rewardAmount: card.rewardXp, pieceReward: 0, pieceTier: "I" as const, title: null, titleMeaning: null, difficulty: "Khó" as const, badgeLabel: "Thành tích tiến bộ", progress, currentValue: card.currentValue, remaining: Math.max(0, card.threshold - card.currentValue), animation: "glow" as const, unlockedAt: profile.achievementUnlockDates[card.id] ?? null, createdAt: now, updatedAt: now, evidence: [] }); });
 }
+
+const conditionLabels: Record<AchievementConditionType, string> = {
+  xp: "XP tích lũy",
+  learnedCards: "Flashcard đã nhớ",
+  completedQuizzes: "Bài kiểm tra hoàn thành",
+  completedSets: "Bộ Flashcard hoàn thành",
+  fragments: "Mảnh ghép sở hữu",
+  pomodoroSessions: "Phiên Pomodoro hoàn thành",
+  currentStreak: "Streak hiện tại",
+  bestStreak: "Streak tốt nhất",
+  studySeconds: "Thời gian học",
+  deepFocusSessions: "Phiên Deep Focus",
+};
+
+const conditionValueForProfile = (profile: ProfileState, type: AchievementConditionType) => {
+  const stats = statsForProfile(profile) as Record<string, number>;
+  return Math.max(0, stats[type] ?? 0);
+};
+
+const conditionDefinitionsFor = (achievement: Achievement) => {
+  if (achievement.rank === 9 && achievement.title) return [
+    { id: `${achievement.id}-streak`, label: "Streak", type: "bestStreak" as const, target: 30 },
+    { id: `${achievement.id}-time`, label: "Thời gian học", type: "studySeconds" as const, target: 30 * 60 * 60 },
+    { id: `${achievement.id}-sessions`, label: "Phiên học", type: "pomodoroSessions" as const, target: 50 },
+    { id: `${achievement.id}-deep`, label: "Deep Focus", type: "deepFocusSessions" as const, target: 10 },
+  ];
+  return [{ id: `${achievement.id}-primary`, label: conditionLabels[achievement.conditionType], type: achievement.conditionType, target: achievement.threshold }];
+};
+
+const withAchievementConditions = (profile: ProfileState, achievement: Achievement) => {
+  const conditions = conditionDefinitionsFor(achievement).map((definition) => {
+    const currentProgress = conditionValueForProfile(profile, definition.type);
+    const targetProgress = definition.target;
+    return { id: definition.id, label: definition.label, type: definition.type, parameters: { target: targetProgress }, currentProgress, targetProgress, progressPercentage: Math.min(100, Math.round(currentProgress / Math.max(1, targetProgress) * 100)), remaining: Math.max(0, targetProgress - currentProgress), met: currentProgress >= targetProgress };
+  });
+  const progress = Math.min(...conditions.map((condition) => condition.progressPercentage));
+  const primary = conditions.find((condition) => condition.type === achievement.conditionType) ?? conditions[0];
+  return { ...achievement, conditions, progress, currentValue: primary.currentProgress, threshold: primary.targetProgress, remaining: Math.max(0, primary.targetProgress - primary.currentProgress) };
+};
 
 export function allAchievementsWithProgress(profile: ProfileState, config: AppConfig): Achievement[] {
   const stats = statsForProfile(profile) as Record<AchievementMetric, number>;
@@ -681,9 +759,8 @@ export function allAchievementsWithProgress(profile: ProfileState, config: AppCo
   const standard = generateAchievements()
     .map((achievement) => {
       const merged = { ...achievement, ...overrides.get(achievement.id) };
-      const currentValue = Math.max(0, stats[merged.metric] ?? 0);
-      const progress = Math.min(100, Math.round((currentValue / Math.max(1, merged.threshold)) * 100));
-      return { ...merged, progress, currentValue, remaining: Math.max(0, merged.threshold - currentValue), unlockedAt: profile.achievementUnlockDates[merged.id] ?? null, evidence: achievementEvidenceFor(profile, { ...merged, progress, currentValue, remaining: Math.max(0, merged.threshold - currentValue), unlockedAt: profile.achievementUnlockDates[merged.id] ?? null } as Achievement) };
+      const withConditions = withAchievementConditions(profile, merged);
+      return { ...withConditions, unlockedAt: profile.achievementUnlockDates[merged.id] ?? null, evidence: achievementEvidenceFor(profile, { ...withConditions, unlockedAt: profile.achievementUnlockDates[merged.id] ?? null } as Achievement) };
     })
     .filter((achievement) => achievement.enabled !== false);
   const customs: Achievement[] = config.customAchievements
@@ -692,15 +769,24 @@ export function allAchievementsWithProgress(profile: ProfileState, config: AppCo
       const currentValue = Math.max(0, stats[item.metric] ?? 0);
       return {
       id: item.id,
+      achievementCode: `CUSTOM-${item.id.toUpperCase()}`,
       rank: 9,
       rankName: "Tùy chỉnh",
+      group: "Tùy chỉnh",
       icon: "🏆",
       name: item.name,
       description: item.description,
       metric: item.metric,
+      conditionType: item.metric,
+      conditionParameters: { target: item.threshold },
+      conditions: [],
       threshold: item.threshold,
       rewardXp: item.rewardXp,
       rewardFragments: item.rewardFragments,
+      rewardType: item.title?.trim() ? "mixed" : item.rewardFragments > 0 ? "fragment" : "xp",
+      rewardAmount: item.rewardXp,
+      pieceReward: item.rewardFragments,
+      pieceTier: "I",
       title: item.title?.trim() || null,
       titleMeaning: item.titleMeaning?.trim() || null,
       difficulty: "Khó",
@@ -711,7 +797,9 @@ export function allAchievementsWithProgress(profile: ProfileState, config: AppCo
       remaining: Math.max(0, item.threshold - currentValue),
       animation: "spark",
       unlockedAt: profile.achievementUnlockDates[item.id] ?? null,
-      evidence: achievementEvidenceFor(profile, { id: item.id, rank: 9, rankName: "Tùy chỉnh", icon: "🏆", name: item.name, description: item.description, metric: item.metric, threshold: item.threshold, rewardXp: item.rewardXp, rewardFragments: item.rewardFragments, title: item.title?.trim() || null, titleMeaning: item.titleMeaning?.trim() || null, difficulty: "Khó", badgeLabel: "Thành tích tùy chỉnh", encouragement: "Một cột mốc riêng đang được mở khóa.", progress: Math.min(100, Math.round((currentValue / Math.max(1, item.threshold)) * 100)), currentValue, remaining: Math.max(0, item.threshold - currentValue), animation: "spark", unlockedAt: profile.achievementUnlockDates[item.id] ?? null } as Achievement),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      evidence: achievementEvidenceFor(profile, { id: item.id, achievementCode: `CUSTOM-${item.id.toUpperCase()}`, rank: 9, rankName: "Tùy chỉnh", group: "Tùy chỉnh", icon: "🏆", name: item.name, description: item.description, metric: item.metric, threshold: item.threshold, rewardXp: item.rewardXp, rewardFragments: item.rewardFragments, title: item.title?.trim() || null, titleMeaning: item.titleMeaning?.trim() || null, difficulty: "Khó", badgeLabel: "Thành tích tùy chỉnh", encouragement: "Một cột mốc riêng đang được mở khóa.", progress: Math.min(100, Math.round((currentValue / Math.max(1, item.threshold)) * 100)), currentValue, remaining: Math.max(0, item.threshold - currentValue), animation: "spark", unlockedAt: profile.achievementUnlockDates[item.id] ?? null } as Achievement),
     };
     });
   return [...standard, ...customs, ...advancedAchievementCards(profile)];

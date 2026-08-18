@@ -33,6 +33,22 @@ describe("achievement progress", () => {
     expect(catalog.every((item) => item.isSecret !== true)).toBe(true);
   });
 
+  it("exposes the complete achievement schema and primary condition metadata", () => {
+    const achievement = allAchievementsWithProgress(emptyProfile(), emptyAppConfig())[0];
+    expect(achievement).toMatchObject({ achievementCode: "ACH-001", group: "Khởi Đầu", conditionType: achievement.metric, rewardType: expect.any(String), pieceTier: expect.any(String), createdAt: expect.any(String), updatedAt: expect.any(String) });
+    expect(achievement.conditions).toHaveLength(1);
+    expect(achievement.conditions[0]).toMatchObject({ currentProgress: 0, targetProgress: achievement.threshold, progressPercentage: 0, remaining: achievement.threshold, met: false });
+  });
+
+  it("reports each independent condition for a difficult public title", () => {
+    const profile = { ...emptyProfile(), currentStreak: 30, bestStreak: 30, studyActivity: Array.from({ length: 50 }, (_, index) => ({ id: `activity-${index}`, occurredAt: new Date().toISOString(), kind: "pomodoro" as const, quantity: 1, durationSeconds: 3600, xpEarned: 1, correct: 0, total: 0 })), pomodoroHistory: Array.from({ length: 50 }, (_, index) => ({ id: `pom-${index}`, startedAt: new Date().toISOString(), endedAt: new Date().toISOString(), durationMinutes: 25, subject: "Lý", status: "completed" as const })), attempts: Array.from({ length: 8 }, (_, index) => ({ id: `attempt-${index}`, quizId: "q", completedAt: new Date().toISOString(), correct: 1, total: 1, accuracy: 100, durationSeconds: 60, mode: "deep" as const })) };
+    const achievement = allAchievementsWithProgress(profile, emptyAppConfig()).find((item) => item.rank === 9 && item.title);
+    expect(achievement?.conditions).toHaveLength(4);
+    expect(achievement?.conditions.map((condition) => condition.met)).toEqual([true, true, true, false]);
+    expect(achievement?.progress).toBe(80);
+    expect(achievement?.remaining).toBe(0);
+  });
+
   it("includes enabled custom achievements with the same progress contract", () => {
     const config = { ...emptyAppConfig(), customAchievements: [{ id: "custom-1", name: "Bền bỉ", description: "Đạt 5 XP", metric: "xp" as const, threshold: 5, rewardXp: 10, rewardFragments: 0, enabled: true }] };
     const achievement = allAchievementsWithProgress({ ...emptyProfile(), xp: 3 }, config).find((item) => item.id === "custom-1");

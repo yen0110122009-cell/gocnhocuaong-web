@@ -287,3 +287,8 @@
 - [x] Loại bỏ trạng thái ẩn/bí mật trên toàn bộ giao diện achievement; mục chưa đạt phải hiển thị đầy đủ thông tin và trạng thái 🔒 Chưa đạt.
 - [x] Hoàn thiện hệ thống mảnh ghép: nguồn nhận, số lượng, công dụng, ngưỡng ghép, đã nhận, còn thiếu và thành phẩm.
 - [x] Bổ sung regression, hiệu năng và browser QA cho catalog 900 achievement/400 danh hiệu trên desktop và mobile.
+
+- [x] Bổ sung schema đầy đủ cho achievement: code, nhóm, điều kiện, tiến độ, phần thưởng, mảnh ghép và timestamps.
+- [x] Hỗ trợ nhiều điều kiện độc lập trong một achievement và tính trạng thái tổng hợp còn thiếu.
+- [x] Hiển thị progress bar, phần trăm, giá trị hiện tại, mục tiêu và số còn thiếu cho từng achievement.
+- [x] Duy trì tương thích cloud-state/achievement cũ và thêm regression tests cho schema, tiến độ và điều kiện đa tiêu chí.
