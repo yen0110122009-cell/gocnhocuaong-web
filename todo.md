@@ -335,3 +335,8 @@
 - [x] Bổ sung khu vực prompt mẫu để Admin yêu cầu AI đề xuất dữ liệu; mọi nội dung AI phải qua duyệt thủ công trước khi thêm vào catalog.
 - [x] Bổ sung regression cho 9 nhóm × 100, 900/400, công khai điều kiện/phần thưởng, tag phụ, prompt AI và trạng thái duyệt.
 - [x] Chạy browser QA responsive cho Catalog, Danh hiệu, Kho/Cửa hàng, Event và Admin content tools.
+
+- [x] Thêm celebration animation khi nhận mảnh ghép và khi mở khóa Danh hiệu.
+- [x] Thêm thanh tiến độ trực quan cho kho mảnh và tiến độ Danh hiệu sau sự kiện nhận thưởng/mở khóa.
+- [x] Thêm tùy chọn bật/tắt animation, tôn trọng prefers-reduced-motion và không ảnh hưởng logic phần thưởng.
+- [x] Viết regression và chạy browser QA responsive cho celebration/progress states.

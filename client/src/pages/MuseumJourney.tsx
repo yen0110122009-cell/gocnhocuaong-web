@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { BookOpen, CheckCircle2, Clock3, Dices, Flame, LockKeyhole, Puzzle, RotateCcw, Sparkles, Target, Trophy } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";import { BookOpen, CheckCircle2, Clock3, Dices, Flame, LockKeyhole, Puzzle, RotateCcw, Sparkles, Target, Trophy } from "lucide-react";
 import { assembleCharacter, collectionTicketQuote, collectionValueBalance, configuredFragmentValue, exchangeCollectionTickets, getCharacterProgress, purchaseCollectionItem, totalCollectionValue, unlockCharacterProfileLevel } from "../../../shared/fragmentSystem";
 import { achievementEvidenceFor, allAchievementsWithProgress } from "../../../shared/study";
 import { OngLearnerAvatar } from "../components/OngLearnerAvatar";
@@ -18,6 +17,35 @@ function getAchievementStory(name: string, description: string, unlocked: boolea
   if (normalized.includes("tập trung") || normalized.includes("pomodoro")) return "Ong đã dành một khoảng thời gian có chủ đích cho việc học, rồi quay lại hoàn thành điều mình đã bắt đầu.";
   if (normalized.includes("chuỗi") || normalized.includes("bền")) return "Câu chuyện này được tạo từ những lần Ong quay lại đều đặn, kể cả những ngày chỉ tiến được một bước nhỏ.";
   return `Ong đã mở khóa “${name}” bằng một hành động học có thật: ${description}`;
+}
+
+type Celebration = { kind: "fragment" | "title"; title: string; detail: string; icon: string };
+
+function CelebrationOverlay({ celebration, enabled, onDismiss }: { celebration: Celebration | null; enabled: boolean; onDismiss: () => void }) {
+  if (!celebration) return null;
+  return <div className={`celebration-overlay ${enabled ? "celebration-overlay--animated" : ""}`} role="status" aria-live="polite">
+    <div className="celebration-card">
+      {enabled && <div className="celebration-confetti" aria-hidden="true">✦　✧　✦　✧　✦</div>}
+      <div className="celebration-icon" aria-hidden="true">{celebration.icon}</div>
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-green-700 dark:text-green-300">Lumi chúc mừng Ong</p>
+      <h2 className="mt-2 font-display text-2xl font-black">{celebration.title}</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{celebration.detail}</p>
+      <button className="primary-button mt-4 px-4 py-2 text-sm" onClick={onDismiss}>Tiếp tục hành trình</button>
+    </div>
+  </div>;
+}
+
+function CollectionProgress({ profile, config, animationsEnabled, onToggleAnimations }: { profile: ProfileState; config: AppConfig; animationsEnabled: boolean; onToggleAnimations: (enabled: boolean) => void }) {
+  const achievements = allAchievementsWithProgress(profile, config);
+  const titles = achievements.filter((item) => Boolean(item.title));
+  const unlockedTitles = titles.filter((item) => Boolean(item.unlockedAt)).length;
+  const totalPieces = Object.values(profile.fragments).reduce((sum, value) => sum + Math.max(0, value), 0);
+  const collectionValue = totalCollectionValue(config, profile);
+  const titlePercent = titles.length ? Math.round((unlockedTitles / titles.length) * 100) : 0;
+  return <section className="panel mt-7 p-6" aria-labelledby="collection-progress-title">
+    <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-green-700 dark:text-green-300">Tín hiệu tiến bộ</p><h2 id="collection-progress-title" className="mt-2 font-display text-2xl font-bold">✨ Mỗi mảnh là một bước tiến</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Thanh tiến độ cập nhật từ dữ liệu thật trong hồ sơ. Không có phần thưởng ẩn và animation không thay đổi số dư hay điều kiện nhận.</p></div><label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-2 text-xs font-bold text-green-800 dark:border-green-400/20 dark:bg-green-500/[.08] dark:text-green-200"><input type="checkbox" checked={animationsEnabled} onChange={(event) => onToggleAnimations(event.target.checked)} /> Hiệu ứng chúc mừng</label></div>
+    <div className="mt-6 grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 dark:border-amber-400/15 dark:bg-amber-500/[.06]"><div className="flex items-center justify-between gap-3"><p className="font-bold">🧩 Mảnh ghép đã thu thập</p><strong className="text-amber-900 dark:text-amber-100">{totalPieces} mảnh</strong></div><div className="progress-track mt-3"><div className="progress-fill progress-fill--amber" style={{ width: `${Math.min(100, totalPieces > 0 ? Math.max(8, Math.min(100, collectionValue / 10)) : 0)}%` }} /></div><p className="mt-2 text-xs font-semibold text-slate-500">Giá trị bộ sưu tập: {collectionValue} điểm mảnh · cấp cao có giá trị cao hơn.</p></div><div className="rounded-2xl border border-green-200 bg-green-50/70 p-4 dark:border-green-400/15 dark:bg-green-500/[.06]"><div className="flex items-center justify-between gap-3"><p className="font-bold">🏅 Danh hiệu đã mở khóa</p><strong className="text-green-900 dark:text-green-100">{unlockedTitles}/{titles.length}</strong></div><div className="progress-track mt-3"><div className="progress-fill progress-fill--green" style={{ width: `${titlePercent}%` }} /></div><p className="mt-2 text-xs font-semibold text-slate-500">{titlePercent}% hành trình Danh hiệu · tiến độ công khai, không ép phải đạt 100%.</p></div></div>
+  </section>;
 }
 
 const fragmentWays: FragmentWay[] = [
@@ -116,8 +144,32 @@ function AchievementMoments({ profile, config, onProfile }: { profile: ProfileSt
 }
 
 export default function MuseumJourney({ account, profile, config, onView, onProfile }: { account: StudyAccount; profile: ProfileState; config: AppConfig; onView: (view: LearningView) => void; onProfile: (profile: ProfileState, message?: string) => void }) {
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const previousSnapshot = useRef<{ pieces: number; titleIds: string[] } | null>(null);
+  const achievements = allAchievementsWithProgress(profile, config);
+  useEffect(() => {
+    try { setAnimationsEnabled(window.localStorage.getItem("study-empire-celebrations") !== "off"); } catch { /* localStorage có thể bị chặn */ }
+  }, []);
+  useEffect(() => {
+    const pieces = Object.values(profile.fragments).reduce((sum, value) => sum + Math.max(0, value), 0);
+    const titleIds = achievements.filter((item) => Boolean(item.title && item.unlockedAt)).map((item) => item.id);
+    const previous = previousSnapshot.current;
+    previousSnapshot.current = { pieces, titleIds };
+    if (!previous) return;
+    const newTitle = achievements.find((item) => Boolean(item.title && item.unlockedAt && !previous.titleIds.includes(item.id)));
+    if (newTitle) {
+      setCelebration({ kind: "title", icon: "🏅", title: `Danh hiệu mới: ${newTitle.title}`, detail: `Ong đã mở khóa “${newTitle.name}”. Hãy xem điều kiện, câu chuyện và ý nghĩa văn hóa của danh hiệu trong Bảo tàng Hành trình.` });
+    } else if (pieces > previous.pieces) {
+      setCelebration({ kind: "fragment", icon: "🧩", title: "Ong vừa thu thập mảnh ghép!", detail: `Kho của Ong tăng thêm ${pieces - previous.pieces} mảnh. Mảnh ghép được dùng để mở khóa và hoàn thiện hồ sơ nhân vật lịch sử, không phải để ghép tranh.` });
+    }
+  }, [profile, achievements]);
+  useEffect(() => { if (!celebration) return; const timer = window.setTimeout(() => setCelebration(null), 5200); return () => window.clearTimeout(timer); }, [celebration]);
+  const toggleAnimations = (enabled: boolean) => { setAnimationsEnabled(enabled); try { window.localStorage.setItem("study-empire-celebrations", enabled ? "on" : "off"); } catch { /* localStorage có thể bị chặn */ } };
   return <>
+    <CelebrationOverlay celebration={celebration} enabled={animationsEnabled} onDismiss={() => setCelebration(null)} />
     <MuseumEnhanced account={account} profile={profile} config={config} />
+    <CollectionProgress profile={profile} config={config} animationsEnabled={animationsEnabled} onToggleAnimations={toggleAnimations} />
     <section className="panel mt-7 p-6" aria-labelledby="fragment-ways-title"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-amber-700 dark:text-amber-300">Tiến trình phần thưởng</p><h2 id="fragment-ways-title" className="mt-2 font-display text-2xl font-bold">🧩 Cách nhận mảnh ghép</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Mỗi mảnh ghép là một dấu vết đáng nhớ trên hành trình học của Ong. Không cần sưu tầm đủ mọi thứ; chỉ cần trân trọng những bước tiến mà Ong đã tạo ra.</p></div><span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-2 text-sm font-bold text-amber-900 dark:bg-amber-500/15 dark:text-amber-100"><Puzzle className="h-4 w-4" />{Object.values(profile.fragments).reduce((sum, value) => sum + Math.max(0, value), 0)} mảnh đang giữ</span></div><div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{getFragmentWays(config).map((way) => <article key={way.title} className="rounded-2xl border border-amber-100 bg-white/70 p-4 dark:border-amber-400/15 dark:bg-white/[.035]"><div className="flex items-start gap-3"><span className="text-2xl" aria-hidden="true">{way.icon}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-display text-base font-bold">{way.title}</h3><span data-config-state={way.status} className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${way.status === "active" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200" : way.status === "configured" ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200" : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300"}`}>{way.status === "active" ? "Đang áp dụng" : way.status === "configured" ? "Theo tiến trình" : "Chờ cấu hình"}</span></div><p className="mt-2 text-sm leading-6 text-slate-500">{way.description}</p><p className="mt-2 text-xs font-bold leading-5 text-amber-800 dark:text-amber-200">Mốc: {way.milestone}</p>{way.view && <button className="secondary-button mt-3 px-3 py-2 text-xs" onClick={() => onView(way.view!)}><CheckCircle2 className="h-3.5 w-3.5" />{way.label}</button>}</div></div></article>)}</div><p className="mt-5 text-xs leading-5 text-slate-500">Mảnh có sáu cấp I–VI và giá trị quy đổi riêng. Chúng được dùng để mở khóa hồ sơ, nâng cấp tư liệu, đổi Vé Sưu Tầm hoặc mua vật phẩm trong Cửa hàng Sưu tầm.</p></section>
     <JourneyAchievementMap profile={profile} config={config} />
     <AchievementMuseum profile={profile} config={config} />

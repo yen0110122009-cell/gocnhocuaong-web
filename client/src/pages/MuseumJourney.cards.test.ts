@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { emptyAppConfig } from "../../../shared/study";
 import { getFragmentWays } from "./MuseumJourney";
 
@@ -14,6 +16,18 @@ describe("MuseumJourney learning challenge cards", () => {
     expect(byTitle("Vòng quay phần thưởng").status).toBe("active");
     expect(byTitle("Vòng quay phần thưởng").milestone).toContain("phần thưởng đang bật");
     expect(byTitle("Thành tích đặc biệt").status).toBe("configured");
+  });
+
+  it("keeps celebration and progress feedback in the MuseumJourney contract", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/pages/MuseumJourney.tsx"), "utf8");
+    const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
+    expect(source).toContain("celebration-overlay");
+    expect(source).toContain("study-empire-celebrations");
+    expect(source).toContain("Mảnh ghép đã thu thập");
+    expect(source).toContain("Danh hiệu đã mở khóa");
+    expect(css).toContain(".progress-track");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).toContain("celebration-card-in");
   });
 
   it("marks the wheel pending when every reward is disabled", () => {

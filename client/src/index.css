@@ -185,6 +185,27 @@ body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%
   .pomodoro-starting, .pomodoro-complete { animation: none !important; }
 }
 
+/* Celebration feedback for fragment collection and title unlocks */
+.celebration-overlay { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 1rem; background: rgba(20, 24, 20, .26); backdrop-filter: blur(4px); }
+.celebration-card { position: relative; width: min(100%, 28rem); overflow: hidden; border: 2px solid rgba(198, 40, 40, .22); border-radius: 1.75rem; padding: 2rem; text-align: center; background: linear-gradient(145deg, #fffaf3, #eff9ef); box-shadow: 0 24px 70px rgba(46, 125, 50, .2), 0 12px 32px rgba(198, 40, 40, .16); }
+.dark .celebration-card { background: linear-gradient(145deg, #25221f, #17251c); border-color: rgba(169, 230, 173, .3); }
+.celebration-icon { position: relative; z-index: 1; display: grid; place-items: center; width: 4.5rem; height: 4.5rem; margin: 0 auto 1rem; border-radius: 1.35rem; background: #fff0cf; font-size: 2.4rem; box-shadow: 0 8px 20px rgba(245, 158, 11, .2); }
+.dark .celebration-icon { background: rgba(245, 158, 11, .16); }
+.celebration-overlay--animated .celebration-card { animation: celebration-card-in 360ms var(--ease-out) both; }
+.celebration-overlay--animated .celebration-icon { animation: celebration-icon-pop 620ms var(--ease-out) both; }
+.celebration-confetti { position: absolute; inset: .75rem 0 auto; color: #e53935; font-size: 1.25rem; letter-spacing: .3rem; white-space: nowrap; animation: celebration-confetti-drift 1.6s var(--ease-out) infinite alternate; }
+.progress-track { height: .8rem; overflow: hidden; border-radius: 999px; background: rgba(148, 163, 184, .25); box-shadow: inset 0 1px 2px rgba(15, 23, 42, .08); }
+.progress-fill { height: 100%; min-width: 0; border-radius: inherit; transition: width 420ms var(--ease-out); }
+.progress-fill--amber { background: linear-gradient(90deg, #f59e0b, #f97316); }
+.progress-fill--green { background: linear-gradient(90deg, #43a047, #15803d); }
+@keyframes celebration-card-in { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes celebration-icon-pop { 0% { transform: scale(.82) rotate(-8deg); } 55% { transform: scale(1.12) rotate(5deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes celebration-confetti-drift { from { transform: translateY(-3px); opacity: .55; } to { transform: translateY(8px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .celebration-overlay--animated .celebration-card, .celebration-overlay--animated .celebration-icon, .celebration-confetti { animation: none !important; }
+  .progress-fill { transition: none !important; }
+}
+
 /* Dark mode contrast guard: giữ nhận diện đỏ/xanh nhưng bảo đảm chữ dễ đọc. */
 .dark body, .dark #root > div.min-h-screen { background: #171b18 !important; color: #f4f7f2 !important; }
 .dark #root > div.min-h-screen > aside, .dark #root > div.min-h-screen header { background: rgba(24, 31, 27, .97) !important; border-color: rgba(157, 214, 160, .24) !important; }
