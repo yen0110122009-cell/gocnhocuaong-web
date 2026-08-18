@@ -277,3 +277,7 @@
 - [x] Bổ sung quản trị/ghi âm giọng nói người dùng cho lời thoại mascot, có bật/tắt và xử lý quyền microphone.
 - [x] Bổ sung card “Thành tích tiếp theo” và “3 thành tích gần nhất” trên dashboard.
 - [x] Bổ sung regression tests và responsive/browser QA cho evidence, speech, recording và achievement cards.
+
+- [x] Tinh chỉnh thông điệp tiến độ thành tích theo hướng ghi nhận số dấu mốc đã mở khóa, không tạo cảm giác phải đạt 100%.
+- [x] Mở rộng Bảo tàng Hành trình theo mốc năm/tháng, hiện vật achievement có câu chuyện và trạng thái rỗng thân thiện.
+- [x] Chạy regression test và browser QA responsive cho trải nghiệm thành tích/Bảo tàng sau thay đổi.

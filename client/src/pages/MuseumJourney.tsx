@@ -64,6 +64,34 @@ function JourneyAchievementMap({ profile, config }: { profile: ProfileState; con
   </section>;
 }
 
+function AchievementMuseum({ profile, config }: { profile: ProfileState; config: AppConfig }) {
+  const achievements = allAchievementsWithProgress(profile, config);
+  const unlocked = achievements.filter((item) => Boolean(item.unlockedAt));
+  const grouped = unlocked.reduce<Record<string, typeof unlocked>>((result, item) => {
+    const date = item.unlockedAt ? new Date(item.unlockedAt) : new Date();
+    const year = String(date.getFullYear());
+    const month = date.toLocaleDateString("vi-VN", { month: "long" });
+    const key = `${year} · ${month}`;
+    (result[key] ??= []).push(item);
+    return result;
+  }, {});
+  const groups = Object.entries(grouped);
+  return <section className="panel mt-7 overflow-hidden p-6" aria-labelledby="achievement-museum-title">
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-700 dark:text-amber-300">Bảo tàng hiện vật học tập</p>
+        <h2 id="achievement-museum-title" className="mt-2 font-display text-2xl font-bold">🏛️ Bảo tàng Hành trình</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Mỗi thành tích đã mở khóa là một hiện vật của riêng Ong. Nhấn vào từng hiện vật để đọc lại câu chuyện, lý do và bước tiến đã tạo nên nó.</p>
+      </div>
+      <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-right dark:border-green-400/20 dark:bg-green-500/[.08]">
+        <p className="text-2xl font-black text-green-800 dark:text-green-200">🌱 {unlocked.length}/{achievements.length}</p>
+        <p className="mt-1 max-w-44 text-xs font-bold leading-5 text-green-800 dark:text-green-200">Ong đã mở khóa {unlocked.length} dấu mốc trong hành trình của mình.</p>
+      </div>
+    </div>
+    {groups.length === 0 ? <div className="mt-6 rounded-3xl border border-dashed border-amber-300 bg-amber-50/60 p-6 text-center dark:border-amber-400/20 dark:bg-amber-500/[.05]"><p className="text-3xl">🌱</p><p className="mt-2 font-display text-lg font-bold">Hiện vật đầu tiên đang chờ Ong tạo ra</p><p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">Không cần mở khóa thật nhiều. Một lần bắt đầu, một lỗi được sửa, hay một phiên học ngắn đều có thể trở thành trang đầu tiên của Bảo tàng.</p></div> : <div className="mt-6 space-y-5">{groups.map(([period, items]) => <section key={period} aria-label={`Hiện vật ${period}`} className="rounded-3xl border border-amber-100 bg-amber-50/45 p-4 dark:border-amber-400/15 dark:bg-amber-500/[.04]"><div className="flex items-center gap-3"><span className="text-2xl" aria-hidden="true">{period.includes("tháng 8") ? "🔥" : "🌱"}</span><div><p className="text-xs font-bold uppercase tracking-[.14em] text-amber-700 dark:text-amber-300">Mốc thời gian</p><h3 className="font-display text-lg font-bold capitalize">{period}</h3></div><span className="ml-auto rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-amber-800 dark:bg-white/10 dark:text-amber-200">{items.length} hiện vật</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{items.map((item) => <details key={item.id} className="group rounded-2xl border border-white/80 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"><summary className="cursor-pointer list-none"><div className="flex items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-green-100 text-lg dark:bg-green-500/15">🏅</span><div className="min-w-0"><p className="font-bold text-slate-900 dark:text-white">{item.name}</p><p className="mt-1 text-xs text-slate-500">Đã mở khóa · {item.unlockedAt ? new Date(item.unlockedAt).toLocaleDateString("vi-VN") : "trong hành trình"}</p></div><span className="ml-auto text-xs text-green-700 transition-transform group-open:rotate-180 dark:text-green-300">⌄</span></div></summary><div className="mt-3 border-t border-green-100 pt-3 text-sm leading-6 dark:border-green-400/15"><p className="text-slate-600 dark:text-slate-300">{item.description}</p><p className="mt-2 font-bold text-green-700 dark:text-green-300">Câu chuyện của hiện vật</p><p className="mt-1 text-slate-600 dark:text-slate-300">{getAchievementStory(item.name, item.description, true)}</p><p className="mt-2 text-xs font-bold text-amber-700 dark:text-amber-300">🔎 {achievementEvidenceFor(profile, item).map((evidence) => `${evidence.label}: ${evidence.value}`).join(" · ")}</p></div></details>)}</div></section>)}</div>}
+  </section>;
+}
+
 function ProgressTree({ profile, config }: { profile: ProfileState; config: AppConfig }) {
   const achievements = allAchievementsWithProgress(profile, config).slice(0, 12);
   const branches = ["Tập trung", "Hiểu sâu", "Bền bỉ"];
@@ -92,6 +120,7 @@ export default function MuseumJourney({ account, profile, config, onView, onProf
     <MuseumEnhanced account={account} profile={profile} config={config} />
     <section className="panel mt-7 p-6" aria-labelledby="fragment-ways-title"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-amber-700 dark:text-amber-300">Tiến trình phần thưởng</p><h2 id="fragment-ways-title" className="mt-2 font-display text-2xl font-bold">🧩 Cách nhận mảnh ghép</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Mỗi mảnh ghép là một dấu vết đáng nhớ trên hành trình học của Ong. Không cần sưu tầm đủ mọi thứ; chỉ cần trân trọng những bước tiến mà Ong đã tạo ra.</p></div><span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-2 text-sm font-bold text-amber-900 dark:bg-amber-500/15 dark:text-amber-100"><Puzzle className="h-4 w-4" />{Object.values(profile.fragments).reduce((sum, value) => sum + Math.max(0, value), 0)} mảnh đang giữ</span></div><div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{getFragmentWays(config).map((way) => <article key={way.title} className="rounded-2xl border border-amber-100 bg-white/70 p-4 dark:border-amber-400/15 dark:bg-white/[.035]"><div className="flex items-start gap-3"><span className="text-2xl" aria-hidden="true">{way.icon}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-display text-base font-bold">{way.title}</h3><span data-config-state={way.status} className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${way.status === "active" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200" : way.status === "configured" ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200" : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300"}`}>{way.status === "active" ? "Đang áp dụng" : way.status === "configured" ? "Theo tiến trình" : "Chờ cấu hình"}</span></div><p className="mt-2 text-sm leading-6 text-slate-500">{way.description}</p><p className="mt-2 text-xs font-bold leading-5 text-amber-800 dark:text-amber-200">Mốc: {way.milestone}</p>{way.view && <button className="secondary-button mt-3 px-3 py-2 text-xs" onClick={() => onView(way.view!)}><CheckCircle2 className="h-3.5 w-3.5" />{way.label}</button>}</div></div></article>)}</div><p className="mt-5 text-xs leading-5 text-slate-500">Mảnh ghép có thể thuộc nhóm thường, hiếm, đặc biệt hoặc sự kiện. Khi nhận được, mảnh sẽ đi vào Bộ sưu tập → Nhân vật → Tiến trình ghép hình.</p></section>
     <JourneyAchievementMap profile={profile} config={config} />
+    <AchievementMuseum profile={profile} config={config} />
     <ProgressTree profile={profile} config={config} />
     <AchievementMoments profile={profile} config={config} onProfile={onProfile} />
     {config.characters.length > 0 && <section className="panel mt-7 p-6" aria-labelledby="fragment-map-title" aria-describedby="fragment-map-status">
