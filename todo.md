@@ -292,3 +292,8 @@
 - [x] Hỗ trợ nhiều điều kiện độc lập trong một achievement và tính trạng thái tổng hợp còn thiếu.
 - [x] Hiển thị progress bar, phần trăm, giá trị hiện tại, mục tiêu và số còn thiếu cho từng achievement.
 - [x] Duy trì tương thích cloud-state/achievement cũ và thêm regression tests cho schema, tiến độ và điều kiện đa tiêu chí.
+
+- [x] Ưu tiên tab/khu vực 400 Danh hiệu trước trong giao diện Thành tích và giữ toàn bộ danh hiệu công khai khi chưa đạt.
+- [x] Bổ sung ý nghĩa, giải thích tên, nguồn cảm hứng và cách diễn đạt thận trọng cho từng danh hiệu; không khẳng định sai nguồn ca dao/tục ngữ.
+- [x] Bổ sung metadata phần thưởng danh hiệu gồm điểm thành tích, mảnh ghép lịch sử, vé đổi vật phẩm và vật phẩm trang trí.
+- [x] Viết regression và browser QA cho thứ tự hiển thị, metadata danh hiệu, điều kiện công khai và phần thưởng responsive.

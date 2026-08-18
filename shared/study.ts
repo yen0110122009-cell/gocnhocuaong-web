@@ -456,6 +456,13 @@ export type Achievement = {
   pieceTier: "I" | "II" | "III" | "IV";
   title: string | null;
   titleMeaning: string | null;
+  titleSignificance?: string | null;
+  titleInspiration?: string | null;
+  titleExplanation?: string | null;
+  titleSourceStatus?: "verified" | "inspired" | "not_applicable";
+  rewardCategories?: Array<"achievement_points" | "history_fragment" | "exchange_ticket" | "cosmetic_item">;
+  cosmeticReward?: string | null;
+  exchangeTicketReward?: number;
   difficulty: "Dễ" | "Bình thường" | "Khó" | "Rất khó" | "Cực khó" | "Huyền thoại";
   badgeLabel: string;
   encouragement: string;
@@ -635,6 +642,15 @@ const titleSeeds = [
 ] as const;
 const titleQualifiers = ["Khởi Sắc", "Bền Chí", "Tiến Hóa", "Tinh Anh", "Cao Quý", "Vô Cực", "Truyền Thuyết", "Huyền Thoại", "Rạng Danh", "Tối Thượng"] as const;
 const titleMeaning = (seed: string, qualifier: string, specialIndex: number) => `Danh hiệu ${qualifier.toLowerCase()} #${specialIndex + 1}, dành cho người mang tinh thần ${seed.toLowerCase()} và biết biến từng lần ôn tập thành một bước tiến riêng.`;
+const titleCulturalContext = (seed: string, qualifier: string, specialIndex: number) => {
+  const references = [
+    { quote: "Có công mài sắt, có ngày nên kim.", explanation: "Lấy cảm hứng từ hình ảnh kiên trì từng chút để đạt thành quả lớn." },
+    { quote: "Nước chảy đá mòn.", explanation: "Lấy cảm hứng từ ý niệm tiến bộ bền bỉ qua những nỗ lực đều đặn." },
+    { quote: "Kiến tha lâu đầy tổ.", explanation: "Lấy cảm hứng từ việc tích lũy từng phần nhỏ thành nền tảng vững chắc." },
+    { quote: `Tinh thần ${seed.toLowerCase()}`, explanation: `Tên được xây dựng như một hình tượng học tập cho nhánh ${qualifier.toLowerCase()}, không khẳng định đây là thành ngữ hay tục ngữ cổ.` },
+  ];
+  return references[specialIndex % references.length];
+};
 
 export function generateAchievements(): Achievement[] {
   const metrics: AchievementMetric[] = ["learnedCards", "completedQuizzes", "xp", "completedSets", "fragments", "pomodoroSessions"];
@@ -674,6 +690,13 @@ export function generateAchievements(): Achievement[] {
         pieceTier: rank >= 8 ? "IV" : rank >= 6 ? "III" : rank >= 3 ? "II" : "I",
         title,
         titleMeaning: title ? index === 899 ? "Danh hiệu tối thượng dành cho người đã đi hết hành trình, giữ lửa học tập và truyền cảm hứng cho những chặng đường tiếp theo." : titleMeaning(titleSeed, qualifier, specialIndex) : null,
+        titleSignificance: title ? `Ghi nhận chặng đường ${qualifier.toLowerCase()} của Ong; giá trị nằm ở tiến bộ bền bỉ chứ không phải so sánh với người khác.` : null,
+        titleInspiration: title ? titleCulturalContext(titleSeed, qualifier, specialIndex).quote : null,
+        titleExplanation: title ? titleCulturalContext(titleSeed, qualifier, specialIndex).explanation : null,
+        titleSourceStatus: title ? "inspired" : "not_applicable",
+        rewardCategories: title ? ["achievement_points", "history_fragment", "exchange_ticket", "cosmetic_item"] : ["achievement_points"],
+        cosmeticReward: title ? `Khung hồ sơ ${qualifier}` : null,
+        exchangeTicketReward: title ? Math.max(1, Math.floor((rank + 1) / 2)) : 0,
         difficulty: difficultyLabel,
         badgeLabel: `${rankName} · Huy hiệu ${withinRank + 1}`,
         encouragement: index === 899 ? "Ong đã đi hết hành trình 900 mốc — không phải vì con đường kết thúc, mà vì bạn đã chứng minh mình có thể đi rất xa." : title ? "Ong đã bay thêm một chặng dài trên hành trình tri thức." : "Mỗi bước học đều làm nền cho bước tiến tiếp theo.",

@@ -49,6 +49,13 @@ describe("achievement progress", () => {
     expect(achievement?.remaining).toBe(0);
   });
 
+  it("exposes cultural explanation and categorized rewards for public titles", () => {
+    const title = generateAchievements().find((item) => item.title);
+    expect(title).toMatchObject({ titleSignificance: expect.any(String), titleInspiration: expect.any(String), titleExplanation: expect.any(String), titleSourceStatus: "inspired", cosmeticReward: expect.any(String) });
+    expect(title?.rewardCategories).toEqual(["achievement_points", "history_fragment", "exchange_ticket", "cosmetic_item"]);
+    expect(title?.exchangeTicketReward).toBeGreaterThan(0);
+  });
+
   it("includes enabled custom achievements with the same progress contract", () => {
     const config = { ...emptyAppConfig(), customAchievements: [{ id: "custom-1", name: "Bền bỉ", description: "Đạt 5 XP", metric: "xp" as const, threshold: 5, rewardXp: 10, rewardFragments: 0, enabled: true }] };
     const achievement = allAchievementsWithProgress({ ...emptyProfile(), xp: 3 }, config).find((item) => item.id === "custom-1");
