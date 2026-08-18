@@ -243,3 +243,9 @@
 - [x] Hoàn thiện mini player trong trang với thu nhỏ/phóng to/đóng/mute và ghim trong web UI, không giả lập always-on-top hệ điều hành.
 - [x] Hoàn thiện nền thở có bật/tắt, reduced-motion và chuyển cảnh sáng/chiều/tối giữ đỏ sáng + xanh lá.
 - [x] Bổ sung regression cho audio center, mixer, mini player, motion và brand palette.
+- [x] Bổ sung Trì hoãn Analytics theo sự kiện bắt đầu, bỏ dở, mở trang chưa học, thời điểm và kích thước nhiệm vụ.
+- [x] Bổ sung nhật ký lý do hôm nay khó học và lời nhận xét Lumi dựa trên dữ liệu đã ghi nhận.
+- [x] Bổ sung gợi ý Lumi tối giản ba lựa chọn để giảm decision fatigue khi Ong đứng lâu ở màn hình chính.
+- [x] Bổ sung Hộp nhiệm vụ ngẫu nhiên với shuffle và nhiệm vụ siêu nhỏ có thể hoàn thành.
+- [x] Bổ sung Combo nhiệm vụ theo chuỗi bước, tiến độ, hoàn thành và phần thưởng nhẹ nhàng.
+- [x] Bổ sung regression tests, responsive QA và build cho hệ thống chống trì hoãn mới.

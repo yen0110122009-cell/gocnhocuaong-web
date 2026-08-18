@@ -309,6 +309,19 @@ export type AiImportRecord = {
   flashcardSetId?: string;
 };
 
+export type AvoidanceReason = "tired" | "phone" | "unclear" | "hard" | "unmotivated" | "noTime" | "other";
+export type ProcrastinationEventKind = "opened_without_start" | "started_small" | "started_focus" | "abandoned_focus" | "completed_focus" | "task_shuffled" | "combo_completed";
+export type ProcrastinationEvent = {
+  id: string;
+  occurredAt: string;
+  kind: ProcrastinationEventKind;
+  hour: number;
+  taskMinutes?: number;
+  reason?: AvoidanceReason;
+};
+export type ComboStep = { id: string; label: string; minutes: number; completed: boolean };
+export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
+
 export type ProfileState = {
   xp: number;
   level: number;
@@ -334,6 +347,9 @@ export type ProfileState = {
   paperQuizSessions?: PaperQuizSession[];
   wrongAnswerReviews: WrongAnswerReview[];
   characterProgress: Record<string, CharacterProgress>;
+  procrastinationEvents?: ProcrastinationEvent[];
+  avoidanceReasons?: Array<{ id: string; occurredAt: string; reason: AvoidanceReason; note?: string }>;
+  taskCombos?: TaskCombo[];
 };
 
 export type PomodoroSession = {
@@ -413,6 +429,9 @@ export const emptyProfile = (): ProfileState => ({
   pomodoroHistory: [],
   wrongAnswerReviews: [],
   characterProgress: {},
+  procrastinationEvents: [],
+  avoidanceReasons: [],
+  taskCombos: [],
 });
 
 export const emptyAppConfig = (): AppConfig => ({

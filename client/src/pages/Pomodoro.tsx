@@ -5,6 +5,8 @@ import { applyStudyActivityRewards, computedAchievements, type AppConfig, type P
 import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_PRESETS, scaledGain, scaledLayerGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing, type SoundEvent } from "../lib/pomodoroAudio";
 import { ExperienceStudio } from "../components/ExperienceStudio";
 import { comboLabel, emotionThemes, type EmotionId } from "../lib/emotionThemes";
+import { AVOIDANCE_REASONS, AVOIDANCE_REASON_LABELS, TASK_COMBOS, chooseMicroTask, comboProgress, createCombo, completeComboStep, procrastinationAnalytics } from "../lib/procrastination";
+import type { AvoidanceReason, ProcrastinationEvent, TaskCombo } from "../../../shared/study";
 
 const KEY = "study_historia_pomodoro_v3";
 type Mode = "focus" | "shortBreak" | "longBreak";
@@ -59,7 +61,11 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const [completionBanner, setCompletionBanner] = useState(false);
   const [twoMinuteMode, setTwoMinuteMode] = useState(false);
   const [randomTask, setRandomTask] = useState("Lumi đang chờ Ong chọn một việc nhỏ.");
+  const [activeTaskCombo, setActiveTaskCombo] = useState<TaskCombo | null>(null);
+  const [showAvoidanceReasons, setShowAvoidanceReasons] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const completionRef = useRef(false);
+  const trackedOpenRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const previewStopRef = useRef<(() => void) | null>(null);
   const backgroundStopRef = useRef<(() => void) | null>(null);
@@ -167,6 +173,16 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   useEffect(() => () => { stopPreview(); stopBackground(); void audioContextRef.current?.close(); }, []);
   useEffect(() => { if (!sound) { stopPreview(); stopBackground(); } }, [sound]);
   useEffect(() => {
+    if (trackedOpenRef.current || running) return;
+    const timer = window.setTimeout(() => {
+      if (trackedOpenRef.current || running) return;
+      trackedOpenRef.current = true;
+      const event: ProcrastinationEvent = { id: crypto.randomUUID(), occurredAt: new Date().toISOString(), kind: "opened_without_start", hour: new Date().getHours() };
+      onProfile({ ...profile, procrastinationEvents: [event, ...(profile.procrastinationEvents ?? [])].slice(0, 200) });
+    }, 90_000);
+    return () => window.clearTimeout(timer);
+  }, [onProfile, profile, running]);
+  useEffect(() => {
     if (running && sound) startBackground();
     else stopBackground();
     return () => stopBackground();
@@ -219,7 +235,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const display = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
   const selectedEmotion = emotionThemes.find((item) => item.id === emotion) ?? emotionThemes[0];
   const selectedSoundscape = SOUNDSCAPE_PRESETS[backgroundSound] ?? SOUNDSCAPE_PRESETS["Mưa nhẹ"];
-  const combo = comboLabel(Math.max(1, cyclePosition + 1));
+  const comboTier = comboLabel(Math.max(1, cyclePosition + 1));
   const criticalMoment = mode === "focus" && running && seconds > 0 && seconds <= 5 * 60;
   const progress = Math.max(0, Math.min(100, (1 - seconds / (activeDuration * 60)) * 100));
   const statusText = running ? (mode === "focus" ? "Đừng bỏ cuộc giữa chừng nhé, Ong." : "Nghỉ một chút rồi quay lại nhé.") : mode === "focus" ? (sessionStartedAt ? "Phiên học đang tạm dừng." : "Bạn đã sẵn sàng học chưa?") : "Khi sẵn sàng, hãy bắt đầu phiên tiếp theo.";
@@ -230,10 +246,17 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const recentDays = useMemo(() => Array.from({ length: 7 }, (_, index) => { const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() - (6 - index)); const key = dayKey(date.toISOString()); return { label: date.toLocaleDateString("vi-VN", { weekday: "short" }), minutes: completedFocus.filter((item) => dayKey(item.endedAt) === key).reduce((sum, item) => sum + item.durationMinutes, 0) }; }), [completedFocus]);
   const maxMinutes = Math.max(1, ...recentDays.map((item) => item.minutes));
   const byActivity = activities.map((entry) => ({ ...entry, minutes: completedFocus.filter((item) => (item.topic || "").toLowerCase().includes(entry.label.toLowerCase()) || (item.subject || "").toLowerCase().includes(entry.label.toLowerCase())).reduce((sum, item) => sum + item.durationMinutes, 0) })).filter((item) => item.minutes > 0).slice(0, 5);
+  const procrastination = procrastinationAnalytics(profile.procrastinationEvents ?? [], profile.avoidanceReasons ?? []);
 
+  function recordEvent(kind: ProcrastinationEvent["kind"], taskMinutes?: number) {
+    const event: ProcrastinationEvent = { id: crypto.randomUUID(), occurredAt: new Date().toISOString(), kind, hour: new Date().getHours(), taskMinutes };
+    onProfile({ ...profile, procrastinationEvents: [event, ...(profile.procrastinationEvents ?? [])].slice(0, 200) });
+  }
   function start() {
     if (mode === "focus" && !subject.trim()) toast.info("Bạn có thể nhập môn học để thống kê chính xác hơn.");
     if (!sessionStartedAt && mode === "focus") setSessionStartedAt(new Date().toISOString());
+    recordEvent(twoMinuteMode || focus <= 5 ? "started_small" : "started_focus", focus);
+    trackedOpenRef.current = true;
     completionRef.current = false; setIntroAnimation(true); setRunning(true); playSequence("start");
     startBackground();
     window.setTimeout(() => setIntroAnimation(false), 2600);
@@ -273,8 +296,27 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   function skipBreak() { setRunning(false); setMode("focus"); setSeconds(focus * 60); completionRef.current = false; toast.info("Đã bỏ qua thời gian nghỉ."); }
   function startTwoMinutes() { setTwoMinuteMode(true); setFocus(2); setMode("focus"); setSeconds(120); setSessionStartedAt(null); setRunning(false); toast.info("Nhiệm vụ 2 phút đã sẵn sàng: mở sách hoặc chọn một thẻ học."); }
   function chooseRandomTask() {
-    const tasks = ["Làm 2 câu Flashcard.", "Ôn lại 1 công thức.", "Đọc lại phần hôm qua.", "Viết 3 dòng tóm tắt.", "Mở sách và đánh dấu 1 ý quan trọng."];
-    setRandomTask(tasks[Math.floor(Math.random() * tasks.length)]);
+    setRandomTask(chooseMicroTask());
+    recordEvent("task_shuffled");
+  }
+  function saveAvoidanceReason(reason: AvoidanceReason) {
+    onProfile({ ...profile, avoidanceReasons: [{ id: crypto.randomUUID(), occurredAt: new Date().toISOString(), reason }, ...(profile.avoidanceReasons ?? [])].slice(0, 100) }, `Lumi đã ghi nhận: ${AVOIDANCE_REASON_LABELS[reason].toLowerCase()}. Không phán xét, chỉ để hiểu Ong hơn.`);
+    setShowAvoidanceReasons(false);
+  }
+  function startCombo(templateId = TASK_COMBOS[0].id) {
+    const template = TASK_COMBOS.find((item) => item.id === templateId) ?? TASK_COMBOS[0];
+    const next = createCombo(template);
+    setActiveTaskCombo(next);
+    onProfile({ ...profile, taskCombos: [next, ...(profile.taskCombos ?? [])].slice(0, 20) }, `Lumi đã chuẩn bị ${next.title}. Mình làm từng bước thôi.`);
+  }
+  function toggleComboStep(stepId: string) {
+    if (!activeTaskCombo) return;
+    const next = completeComboStep(activeTaskCombo, stepId);
+    setActiveTaskCombo(next);
+    if (next.completedAt) {
+      const event: ProcrastinationEvent = { id: crypto.randomUUID(), occurredAt: next.completedAt, kind: "combo_completed", hour: new Date().getHours() };
+      onProfile({ ...profile, taskCombos: [next, ...(profile.taskCombos ?? []).filter((item) => item.id !== next.id)].slice(0, 20), procrastinationEvents: [event, ...(profile.procrastinationEvents ?? [])].slice(0, 200) }, "🔥 COMBO COMPLETE · Ong vừa hoàn thành một chuỗi nhỏ!");
+    }
   }
   function handleMainAction() { if (mode !== "focus" && !running) start(); else if (running) setRunning(false); else start(); }
 
@@ -282,6 +324,15 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     <header className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-red-700 dark:text-red-300">Tiến trình học tập · Góc học tập</p><h1 className="mt-2 font-display text-4xl font-bold">🍅 Pomodoro</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Một nhịp học vừa đủ tập trung, vừa đủ nghỉ. Pomodoro chỉ ghi nhận thời gian học, không phải danh sách công việc.</p></div><button className="secondary-button" onClick={() => onView("progress")}><BarChart3 className="h-4 w-4" />Xem tiến trình</button></header>
     {isComeback ? <section className="rounded-3xl border-2 border-[#2e7d32]/20 bg-[#eff9ef] p-5 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">🌱 COMEBACK</p><h2 className="mt-2 font-display text-2xl font-black text-[#35523a]">Ong quay lại rồi.</h2><p className="mt-1 text-sm font-bold text-[#4d6c53]">Bắt đầu lại không có nghĩa là thất bại. Mình thử 5 phút thật nhẹ nhé.</p></div><button type="button" className="primary-button bg-[#2e7d32]" onClick={() => { setFocus(5); setSeconds(300); setMode("focus"); }}>🍅 Học 5 phút</button></div></section> : null}
     <section className={`pomodoro-journey pomodoro-journey--${timeOfDay} rounded-3xl border border-[#2e7d32]/15 p-4`} aria-label="Start Small và nền học theo thời gian"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#c62828]">🎁 HỘP NHIỆM VỤ NGẪU NHIÊN</p><p className="mt-1 text-sm font-bold text-[#4d352f]">{randomTask}</p></div><div className="flex gap-2"><button type="button" className="secondary-button text-xs" onClick={chooseRandomTask}>✨ Mở nhiệm vụ</button><button type="button" className="secondary-button text-xs" onClick={startTwoMinutes}>⏱ 2 phút</button></div></div><p className="mt-3 text-xs font-bold text-[#4d6c53]">Nền {timeOfDay === "morning" ? "buổi sáng" : timeOfDay === "afternoon" ? "buổi chiều" : "buổi tối"} · chuyển động thở nhẹ · có thể tắt bằng chế độ giảm chuyển động của thiết bị.</p></section>
+    <section className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
+      <div className="rounded-3xl border border-[#c62828]/15 bg-[#fff8f5] p-5 shadow-sm dark:bg-white/5">
+        <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#c62828]">🧩 Lumi giúp Ong bắt đầu</p><h2 className="mt-2 font-display text-xl font-black text-[#6f2424] dark:text-red-200">Chọn một cái thôi</h2><p className="mt-1 text-sm font-bold text-[#7b5048] dark:text-slate-300">Không cần suy nghĩ 20 lựa chọn. Một bước nhỏ cũng được tính.</p></div><button type="button" className="secondary-button text-xs" onClick={() => setShowAvoidanceReasons((value) => !value)}>{showAvoidanceReasons ? "Đóng" : "Vì sao hôm nay khó học?"}</button></div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3"><button type="button" className="rounded-2xl bg-[#c62828] px-3 py-3 text-xs font-black text-white transition hover:scale-[1.02]" onClick={() => { setFocus(5); setSeconds(300); setMode("focus"); }}>🍅 5 phút</button><button type="button" className="rounded-2xl bg-[#2e7d32] px-3 py-3 text-xs font-black text-white transition hover:scale-[1.02]" onClick={() => { setRandomTask("Ôn lại phần hôm qua."); setFocus(5); setSeconds(300); setMode("focus"); }}>📖 Ôn bài cũ</button><button type="button" className="rounded-2xl border-2 border-[#2e7d32]/30 bg-white px-3 py-3 text-xs font-black text-[#2e7d32] dark:bg-slate-900" onClick={chooseRandomTask}>🎲 Lumi chọn</button></div>
+        {showAvoidanceReasons ? <div className="mt-4 rounded-2xl border border-[#2e7d32]/15 bg-[#eff9ef] p-3"><p className="text-xs font-black text-[#2e7d32]">Hôm nay điều gì khiến Ong khó bắt đầu?</p><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{AVOIDANCE_REASONS.map((item) => <button key={item.id} type="button" className="rounded-xl bg-white px-2 py-2 text-left text-xs font-bold text-[#35523a] dark:bg-slate-900 dark:text-slate-200" onClick={() => saveAvoidanceReason(item.id)}>{item.icon} {item.label}</button>)}</div></div> : null}
+      </div>
+      <div className="rounded-3xl border border-[#2e7d32]/15 bg-[#f5fff5] p-5 shadow-sm dark:bg-white/5"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">📊 Trì hoãn analytics</p><h2 className="mt-2 font-display text-xl font-black text-[#35523a] dark:text-green-200">Lumi nhận thấy...</h2></div><button type="button" className="text-xs font-black text-[#c62828] underline" onClick={() => setShowAnalytics((value) => !value)}>{showAnalytics ? "Thu gọn" : "Xem dữ liệu"}</button></div><p className="mt-3 text-sm font-bold leading-6 text-[#4d6c53] dark:text-slate-300">{procrastination.insight}</p>{showAnalytics ? <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-bold text-[#35523a] dark:text-slate-200"><div className="rounded-xl bg-white p-3 dark:bg-slate-900"><b className="block text-lg text-[#c62828]">{procrastination.totalEvents}</b>Sự kiện ghi nhận</div><div className="rounded-xl bg-white p-3 dark:bg-slate-900"><b className="block text-lg text-[#2e7d32]">{procrastination.completedSmallStarts}</b>Lần bắt đầu nhỏ</div><div className="rounded-xl bg-white p-3 dark:bg-slate-900"><b className="block text-lg text-[#c62828]">{procrastination.completionRate}%</b>Tỷ lệ hoàn thành</div><div className="rounded-xl bg-white p-3 dark:bg-slate-900"><b className="block text-lg text-[#2e7d32]">{procrastination.commonHour === null ? "—" : `${String(procrastination.commonHour).padStart(2, "0")}:00`}</b>Khung giờ khó bắt đầu</div></div> : null}</div>
+    </section>
+    <section className="rounded-3xl border border-[#c62828]/15 bg-white p-5 shadow-sm dark:bg-slate-950/60"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#c62828]">🎯 COMBO NHIỆM VỤ</p><h2 className="mt-2 font-display text-xl font-black">Làm theo chuỗi nhỏ</h2><p className="mt-1 text-sm font-bold text-slate-500">Hoàn thành từng bước, không cần làm tất cả cùng lúc.</p></div>{activeTaskCombo ? <span className="rounded-full bg-[#eff9ef] px-3 py-1 text-xs font-black text-[#2e7d32]">{comboProgress(activeTaskCombo.steps)}%</span> : null}</div>{activeTaskCombo ? <div className="mt-4 grid gap-2 sm:grid-cols-3">{activeTaskCombo.steps.map((step) => <button key={step.id} type="button" disabled={step.completed} onClick={() => toggleComboStep(step.id)} className={`rounded-2xl border p-3 text-left text-xs font-black transition ${step.completed ? "border-[#2e7d32] bg-[#eff9ef] text-[#2e7d32] line-through" : "border-[#c62828]/15 bg-[#fff8f5] text-[#6f2424] hover:-translate-y-0.5"}`}>{step.completed ? "✓ " : "○ "}{step.label}<span className="mt-1 block text-[11px] font-bold no-underline opacity-70">{step.minutes} phút</span></button>)}</div> : <div className="mt-4 grid gap-2 sm:grid-cols-2">{TASK_COMBOS.map((item) => <button key={item.id} type="button" className="rounded-2xl border border-[#2e7d32]/15 bg-[#f5fff5] p-3 text-left transition hover:-translate-y-0.5 dark:bg-white/5" onClick={() => startCombo(item.id)}><b className="block text-sm text-[#2e7d32]">{item.title}</b><span className="mt-1 block text-xs font-bold text-slate-500">{item.description}</span></button>)}</div>}</section>
     <ExperienceStudio selected={emotion} onSelect={setEmotion} onStartTwoMinutes={startTwoMinutes} />
     <section className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,.9fr)]">
       <div className={`panel relative overflow-hidden p-5 sm:p-8 transition-colors duration-700 pomodoro-breathing pomodoro-breathing--${timeOfDay} ${introAnimation ? "pomodoro-starting" : ""} ${criticalMoment ? "pomodoro-critical" : ""}`}><div className="absolute right-5 top-5 text-2xl opacity-80" aria-hidden="true">🐝</div><div className="text-center"><p className={`text-xs font-bold uppercase tracking-[.18em] ${mode === "focus" ? "text-red-700 dark:text-red-300" : "text-emerald-700 dark:text-emerald-300"}`}>{modeLabels[mode]}</p><h2 className="mt-2 font-display text-2xl font-bold">{mode === "focus" ? `Phiên ${cyclePosition + 1} / 4` : "Thời gian hồi phục"}</h2><div className="mx-auto mt-6 grid aspect-square w-full max-w-[22rem] place-items-center rounded-full p-3" style={{ background: `conic-gradient(${mode === "focus" ? "#b4232a" : "#18805c"} ${progress}%, rgba(180,35,42,.12) ${progress}% 100%)` }}><div className="grid h-full w-full place-items-center rounded-full bg-[var(--card)] text-center shadow-inner"><span className="font-mono text-[clamp(3.3rem,10vw,5.5rem)] font-bold tracking-tight" aria-live="polite">{display}</span><small className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500">{modeLabels[mode]}</small></div></div><p className="mx-auto mt-4 max-w-md text-sm text-slate-600 dark:text-slate-300">{criticalMoment ? "🔥 5 PHÚT CUỐI — Đừng bỏ cuộc ở đây, Ong." : statusText}</p><div className="mx-auto mt-3 flex max-w-md items-center justify-center gap-2 rounded-full bg-[#fff0eb] px-3 py-2 text-xs font-black text-[#8e1b1b]" role="status"><span aria-hidden="true">{selectedEmotion.mascot === "lumi" ? "🌟" : "🔥"}</span>{selectedEmotion.encouragement}</div><div className="mt-5 flex flex-wrap justify-center gap-2" aria-label="Tiến trình chu kỳ Pomodoro">{[0, 1, 2, 3].map((index) => <span key={index} className={`h-3 w-3 rounded-full border-2 ${index < cyclePosition ? "border-emerald-600 bg-emerald-600" : index === cyclePosition && mode === "focus" ? "border-red-600 bg-red-100" : "border-slate-300 bg-transparent dark:border-white/20"}`} title={`Phiên ${index + 1}`} />)}</div><div className="mt-6 flex flex-wrap justify-center gap-2"><button className="primary-button min-w-44 justify-center px-6 py-3" onClick={handleMainAction}>{running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}{running ? "Tạm dừng" : sessionStartedAt ? "Tiếp tục" : mode === "focus" ? "Bắt đầu tập trung" : `Bắt đầu ${modeLabels[mode].toLowerCase()}`}</button>{mode === "focus" && sessionStartedAt ? <button className="secondary-button px-4 py-3" onClick={endEarly}>🏁 Kết thúc phiên</button> : null}<button className="secondary-button px-4 py-3" onClick={() => reset(true)}><RotateCcw className="h-4 w-4" />Đặt lại</button>{mode !== "focus" && !running ? <button className="secondary-button px-4 py-3" onClick={skipBreak}>⏭ Bỏ qua nghỉ</button> : null}</div></div></div>
