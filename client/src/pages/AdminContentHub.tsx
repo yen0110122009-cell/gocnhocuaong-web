@@ -8,9 +8,9 @@ import { Award, CirclePlus, Download, Filter, Gift, MessageCircle, Mic, Search, 
 import { useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { DEFAULT_LEVEL_DEFINITIONS, type AppConfig, type ContentContext, type ContentImportEnvelope, type ContentKind, type ContentModule, type ContentTone, type CustomAchievement, type CustomContentItem, type Encouragement, type HistoricalCharacter, type MascotStateItem, type StudyAccount, type WheelReward, type CollectionEvent, type CollectionEventTask, type FragmentRewardGrant, type RewardSourceKind } from "../../../shared/study";
+import { DEFAULT_LEVEL_DEFINITIONS, type AppConfig, type ContentContext, type ContentImportEnvelope, type ContentKind, type ContentModule, type ContentTone, type CustomAchievement, type CustomContentItem, type Encouragement, type HistoricalCharacter, type MascotStateItem, type StudyAccount, type ProfileState, type WheelReward, type CollectionEvent, type CollectionEventTask, type FragmentRewardGrant, type RewardSourceKind } from "../../../shared/study";
 
-type Props = { account: StudyAccount; config: AppConfig; onConfig: (config: AppConfig, message?: string) => void };
+type Props = { account: StudyAccount; profile?: ProfileState; config: AppConfig; onConfig: (config: AppConfig, message?: string) => void };
 type AchievementMetric = CustomAchievement["metric"];
 type RewardKind = WheelReward["kind"];
 
@@ -19,7 +19,7 @@ const downloadFile = (filename: string, content: string, type: string) => { cons
 const csvCell = (value: unknown) => `"${String(value ?? "").replaceAll('"', '""')}"`;
 const parseCsvLine = (line: string) => { const values: string[] = []; let current = ""; let quoted = false; for (let index = 0; index < line.length; index += 1) { const char = line[index]; if (char === '"' && line[index + 1] === '"' && quoted) { current += '"'; index += 1; } else if (char === '"') quoted = !quoted; else if (char === ',' && !quoted) { values.push(current); current = ""; } else current += char; } values.push(current); return values; };
 
-export default function AdminContentHub({ account, config, onConfig }: Props) {
+export default function AdminContentHub({ account, profile, config, onConfig }: Props) {
   const [encouragementText, setEncouragementText] = useState("");
   const [encouragementType, setEncouragementType] = useState<Encouragement["type"]>("correct");
   const [contentDraft, setContentDraft] = useState<{ kind: ContentKind; text: string; contexts: ContentContext[]; modules: ContentModule[]; mascot: "lumi" | "lumi-sad" | "lumi-cheer" | "lumi-celebrate" | "ong"; tone: ContentTone }>({ kind: "comfort", text: "", contexts: ["tired"], modules: ["global"], mascot: "lumi", tone: "gentle" });
@@ -218,7 +218,7 @@ export default function AdminContentHub({ account, config, onConfig }: Props) {
         <ConfigRows rows={config.wheelRewards.map((entry) => ({ id: entry.id, title: entry.label, meta: `${entry.kind} · ${entry.value} · trọng số ${entry.probability}`, enabled: true, color: entry.color }))} onDelete={(id) => save({ wheelRewards: config.wheelRewards.filter((entry) => entry.id !== id) }, "Đã xóa phần thưởng vòng quay.")} />
       </EditorCard>
     </section>
-    <SystemIntegrityPanel config={config} />
+    <SystemIntegrityPanel config={config} profile={profile} />
     <AdminTrashPanel config={config} onConfig={onConfig} />
     <AchievementCatalogAdmin config={config} />
     <AdminCommandCenter adminId={account.id} />

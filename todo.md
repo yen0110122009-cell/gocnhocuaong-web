@@ -399,7 +399,7 @@
 - [x] Cho phép người dùng chọn Danh hiệu đã đạt để hiển thị trên hồ sơ và đổi bất kỳ lúc nào.
 - [x] Chặn tuyệt đối việc chọn Danh hiệu chưa đạt hoặc Danh hiệu không còn active.
 - [x] Bổ sung thống kê Admin 900/900, 400/400, lượt đạt, mảnh phát/tiêu, nhân vật mở khóa và Event đã tổ chức.
-- [ ] Bổ sung biểu đồ thống kê aggregate theo thời gian từ audit/ledger thực tế, không mock số liệu người dùng. (Đã có biểu đồ hoạt động nội dung theo timestamps Event/nhân vật.)
+- [x] Bổ sung biểu đồ thống kê aggregate theo thời gian từ audit/ledger thực tế, không mock số liệu người dùng; biểu đồ ledger/audit dùng ProfileState hiện tại và timestamps giao dịch thật.
 - [x] Bổ sung trạng thái soft deleted/restored/permanently deleted và khu vực Thùng rác cho Nhân vật lịch sử/Event; các loại dữ liệu Admin khác còn chờ mở rộng.
 - [x] Bổ sung bộ kiểm tra hệ thống cho invariant Thành tích, Danh hiệu, Mảnh ghép, Nhân vật, Event và AI approval gate.
 - [x] Viết regression và chạy browser QA responsive cho profile title, panel thống kê/invariant, biểu đồ hoạt động nội dung và Thùng rác Nhân vật/Event.
