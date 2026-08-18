@@ -241,6 +241,18 @@ export type ContentKind = "comfort" | "encouragement" | "studyHint" | "antiProcr
 export type ContentTone = "gentle" | "normal" | "positive" | "humorous" | "highEnergy";
 export type ContentContext = "mistake" | "lowScore" | "procrastination" | "start" | "pomodoroComplete" | "tired" | "sad" | "lostStreak" | "comeback" | "achievement" | "confused" | "taskComplete" | "complete" | "unsure" | "blank" | "hardTask" | "studyLittle" | "notStudied" | "browsing" | "tooLarge" | "explainMissing" | "explainPartial" | "explainCorrect" | "errorFound" | "review";
 export type ContentModule = "pomodoro" | "quiz" | "deepStudy" | "achievement" | "journal" | "antiProcrastination" | "global";
+export type MascotStateId = "idle" | "happy" | "studying" | "focus" | "tired" | "sleepy" | "procrastinating" | "encouragement" | "achievement" | "mistake" | "comeback" | "streak" | "level_up" | "deep_focus" | "break" | "almost_done" | "completed";
+export type MascotStateItem = {
+  id: MascotStateId | string;
+  name: string;
+  description: string;
+  condition: string;
+  imageUrl?: string;
+  enabled: boolean;
+  createdAt?: string;
+  deletedAt?: string;
+  updatedAt?: string;
+};
 export type CustomContentItem = {
   id: string;
   kind: ContentKind;
@@ -260,6 +272,7 @@ export type AppConfig = {
   characters: HistoricalCharacter[];
   encouragements: Encouragement[];
   customContent: CustomContentItem[];
+  mascotStates: MascotStateItem[];
   wheelRewards: WheelReward[];
   wheelTicketsPerAchievement: number;
   dailyFragmentCap: number;
@@ -391,6 +404,25 @@ export const emptyAppConfig = (): AppConfig => ({
   characters: [],
   encouragements: [],
   customContent: [],
+  mascotStates: [
+    ["idle", "Bình thường", "Lumi sẵn sàng đồng hành.", "Khi mở dashboard hoặc chưa có sự kiện."],
+    ["happy", "Vui vẻ", "Lumi vui cùng một bước tiến nhỏ.", "Khi có hoạt động tích cực."],
+    ["studying", "Đang học", "Lumi ngồi cạnh và giữ nhịp.", "Khi bắt đầu phiên học."],
+    ["focus", "Tập trung", "Lumi giúp Ong giữ sự chú ý.", "Khi đang trong phiên focus."],
+    ["tired", "Mệt", "Lumi nhắc nghỉ nhẹ nhàng.", "Khi người học báo mệt."],
+    ["sleepy", "Buồn ngủ", "Lumi gợi ý một bước thật nhỏ.", "Khi người học buồn ngủ."],
+    ["procrastinating", "Trì hoãn", "Lumi không trách, chỉ rủ bắt đầu 5 phút.", "Khi chưa muốn bắt đầu."],
+    ["encouragement", "Động viên", "Lumi cổ vũ mà không gây áp lực.", "Khi sắp bỏ cuộc."],
+    ["achievement", "Ăn mừng thành tích", "Lumi vui cùng dấu mốc vừa mở.", "Khi mở khóa thành tích."],
+    ["mistake", "An ủi lỗi sai", "Lumi giúp nhìn lỗi sai như manh mối.", "Khi làm sai hoặc điểm thấp."],
+    ["comeback", "Quay lại", "Lumi chào mừng Ong trở lại.", "Sau nhiều ngày nghỉ."],
+    ["streak", "Giữ chuỗi", "Lumi ghi nhận sự đều đặn.", "Khi duy trì streak."],
+    ["level_up", "Lên cấp", "Lumi chúc mừng cấp độ mới.", "Khi lên level."],
+    ["deep_focus", "Hiểu sâu", "Lumi khuyến khích giải thích tận gốc.", "Khi học sâu."],
+    ["break", "Nghỉ", "Lumi nhắc nghỉ cũng là một phần của học.", "Khi vào thời gian nghỉ."],
+    ["almost_done", "Gần xong", "Lumi ở cạnh trong những phút cuối.", "Khi còn ít thời gian."],
+    ["completed", "Hoàn thành", "Lumi ăn mừng một phiên đã xong.", "Khi hoàn thành Pomodoro hoặc nhiệm vụ."],
+  ].map(([id, name, description, condition]) => ({ id, name, description, condition, enabled: true, createdAt: new Date().toISOString() })),
   wheelRewards: [
     { id: "starter-xp-20", label: "Mẫu khởi đầu · +20 XP", kind: "xp", value: 20, probability: 45, color: "#22d3ee" },
     { id: "starter-fragment-1", label: "Mẫu khởi đầu · 1 mảnh ghép", kind: "fragment", value: 1, probability: 30, color: "#f4b942" },

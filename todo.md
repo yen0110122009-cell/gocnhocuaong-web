@@ -229,3 +229,7 @@
 - [x] Thêm trạng thái bật/tắt; nội dung tắt không được bộ chọn sử dụng.
 - [x] Thêm thùng rác có ngày tạo/xóa, khôi phục, chọn tất cả và xóa vĩnh viễn có xác nhận.
 - [x] Bổ sung regression tests cho chọn lời, module context và luồng trash/restore/permanent delete.
+- [x] Thêm nút THÔI, BẮT ĐẦU NHÉ với hover mascot, animation nhẹ, âm thanh và đếm ngược 3–2–1.
+- [x] Thêm HỌC THỬ 5 PHÚT, Lumi chọn giúp và luồng nhiệm vụ nhỏ nhất không ép buộc.
+- [x] Mở rộng quản trị mascot theo 17 trạng thái, có ảnh/tên/mô tả/điều kiện và sửa/xóa/khôi phục.
+- [x] Bổ sung regression cho countdown, Start Small, random task và mascot lifecycle.
