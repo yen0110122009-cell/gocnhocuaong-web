@@ -5,7 +5,8 @@ describe("emotion theme studio", () => {
   it("cung cấp nhiều trạng thái với lời động viên và mascot mapping", () => {
     expect(emotionThemes.length).toBeGreaterThanOrEqual(8);
     expect(emotionThemes.every((theme) => theme.encouragement.length > 20)).toBe(true);
-    expect(emotionThemes.every((theme) => theme.mascot === "lumi" || theme.mascot === "ong")).toBe(true);
+    expect(emotionThemes.every((theme) => theme.mascot === "lumi")).toBe(true);
+    expect(emotionThemes.every((theme) => /Lumi/i.test(theme.encouragement))).toBe(true);
     expect(emotionThemes.some((theme) => theme.id === "lazy")).toBe(true);
     expect(emotionThemes.some((theme) => theme.id === "stressed")).toBe(true);
   });

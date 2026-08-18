@@ -232,6 +232,8 @@ export type CustomAchievement = {
   rewardFragments: number;
   title?: string;
   titleMeaning?: string;
+  /** Ảnh Lumi bạn đồng hành cho nhiệm vụ/mốc này; để trống sẽ dùng Lumi mặc định. */
+  lumiImageUrl?: string;
   enabled: boolean;
 };
 
