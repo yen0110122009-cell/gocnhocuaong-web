@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_NOTES, SOUNDSCAPE_PRESETS, scaledGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing } from "./pomodoroAudio";
+import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_NOTES, SOUNDSCAPE_PRESETS, scaledGain, scaledLayerGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing } from "./pomodoroAudio";
 
 describe("Pomodoro audio map", () => {
   it("contains distinct sequences for all learning states", () => {
@@ -27,6 +27,13 @@ describe("Pomodoro audio map", () => {
     expect(soundEventSpacing("complete")).toBeGreaterThan(soundEventSpacing("tick"));
     expect(soundEventDuration("complete")).toBe(COMPLETE_ALERT_PROFILE.durationSeconds);
     expect(COMPLETE_ALERT_PROFILE.vibratePattern.length).toBeGreaterThan(3);
+  });
+
+  it("applies each mixer slider to a layer without exceeding its nominal gain", () => {
+    expect(scaledLayerGain(0, 0.9)).toBe(0);
+    expect(scaledLayerGain(50, 0.9)).toBe(0.45);
+    expect(scaledLayerGain(100, 0.9)).toBe(0.9);
+    expect(scaledLayerGain(150, 0.9)).toBe(0.9);
   });
 
   it("provides rich layered presets that can run continuously", () => {

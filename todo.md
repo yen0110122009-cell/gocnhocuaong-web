@@ -238,3 +238,8 @@
 - [x] Tạo khu vực AI đề xuất riêng; chỉ thêm vào kho chính sau thao tác Ong duyệt/thêm vào kho.
 - [x] Bảo vệ nội dung do Ong tạo khỏi tự động sửa/xóa bởi AI.
 - [x] Chuẩn hóa mapping ảnh tham chiếu Lumi/Ong vàng và fallback hiển thị ổn định.
+- [x] Kiểm tra và hoàn thiện Audio Center với đủ nhóm âm thanh thiên nhiên, không gian, thư giãn và tập trung.
+- [x] Hoàn thiện mixer nhiều lớp với thanh âm lượng riêng và lưu không gian học.
+- [x] Hoàn thiện mini player trong trang với thu nhỏ/phóng to/đóng/mute và ghim trong web UI, không giả lập always-on-top hệ điều hành.
+- [x] Hoàn thiện nền thở có bật/tắt, reduced-motion và chuyển cảnh sáng/chiều/tối giữ đỏ sáng + xanh lá.
+- [x] Bổ sung regression cho audio center, mixer, mini player, motion và brand palette.

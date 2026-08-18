@@ -97,6 +97,11 @@ export function scaledGain(volume: number, multiplier: number) {
   return Math.min(1, Math.max(0, volume / 100)) * multiplier;
 }
 
+/** Applies an individual mixer slider to a layer's nominal gain. */
+export function scaledLayerGain(volume: number, baseVolume: number) {
+  return scaledGain(volume, Math.max(0, baseVolume));
+}
+
 export function soundEventDuration(event: SoundEvent) {
   if (event === "complete") return COMPLETE_ALERT_PROFILE.durationSeconds;
   return event === "tick" ? 0.12 : 0.34;
