@@ -65,11 +65,11 @@
 
 - [x] Rà soát `study-quest-standalone.html`: lập bản đồ tính năng, đánh giá khoảng trống ý tưởng/UX và đề xuất roadmap ưu tiên trong `idea-review-report.md`.
 
-- [ ] Tạo tài khoản QA mã `112` theo xác nhận người dùng, kiểm tra browser account không thuộc policy `111`, sau đó xóa sạch tài khoản và dữ liệu liên quan.
+- [x] CANCELLED theo quyết định người dùng: QA tài khoản mã `112` đã đăng nhập Member non-111 và xác nhận Trung tâm 111 bị ẩn; không xóa tài khoản test.
 
-- [ ] Cập nhật tài khoản `102` mã `102` về vai trò Admin theo yêu cầu người dùng, đăng nhập QA và xác nhận không hiển thị Trung tâm 111.
+- [x] DEFERRED theo quyết định người dùng: không đổi vai trò và không QA đăng nhập tài khoản `102 / mã 102` vì chưa có mật khẩu test.
 
-- [ ] Sửa quyền Admin Panel để Founder được xóa Founder khác khi không phải tài khoản hệ thống, giữ bảo vệ tài khoản owner/system và thêm regression test + QA; backend/UI đã sửa, regression đạt 57 tests, TypeScript và production build đạt, còn browser QA xóa thật cần xác nhận đúng tài khoản mục tiêu.
+- [x] DEFERRED theo quyết định người dùng: backend/UI và regression cho Founder xóa Founder khác đã đạt; không chạy browser QA xóa thật để bảo vệ dữ liệu.
 - [x] Điều tra và khắc phục GitHub Pages trả về lỗi không tìm thấy `index.html` khi truy cập URL site; branch `main` đã có `index.html`, Pages build trạng thái `built` và browser xác nhận URL hiển thị frontend.
 - [x] Tạo bản frontend tĩnh cho GitHub Pages và ghi rõ các chức năng backend không thể chạy trên Pages trong `github-pages-qa.md`; Pages hiện publish thành công từ branch `main` theo chế độ legacy.
 - [x] Bật nguồn Pages kiểu GitHub Actions trong Settings và xác minh workflow deploy end-to-end; environment policy đã cho phép branch webdev, workflow `32031056976` build/deploy success và browser xác nhận live page.
@@ -78,7 +78,7 @@
 - [x] Chuyển luồng đăng nhập trực tiếp trên bản GitHub Pages sang Supabase Auth/Data API theo phương án 2B; adapter cloud-state app_state không email, RLS và browser QA form đã hoàn tất; live login thành công với tài khoản thật vẫn cần người dùng xác nhận.
 - [x] Thêm hiệu ứng cuộn trang mượt mà bằng IntersectionObserver, tối ưu responsive mobile, thêm hỗ trợ `prefers-reduced-motion`; code/build/test và contract CSS đã đạt, browser QA trực tiếp vẫn được tách riêng bên dưới.
 - [x] Browser QA trực tiếp scroll reveal trên màn hình Thành tích nhiều section: đã cuộn qua hai viewport, card hiển thị ổn định, không có vùng trắng cố định; console xác nhận smooth scroll và reveal opacity/transform ổn định.
-- [ ] Browser QA `prefers-reduced-motion`, xác nhận animation và smooth scroll được giảm/tắt đúng.
+- [x] DEFERRED theo quyết định người dùng: Browser QA `prefers-reduced-motion` chưa thực hiện; CSS hỗ trợ giảm/tắt animation và smooth scroll cùng regression contract vẫn được giữ.
 - [x] Browser QA mobile cho login và dashboard/auth shell; viewport 390x844 đã xác nhận login public, authenticated BY/111 shell, header/menu và Trung tâm 111.
 - [x] Đối chiếu file mẫu `12.html` và sửa luồng đăng nhập hiện tại theo cách đăng nhập đã được xác minh; live QA đã xác nhận tên `BY`/mật khẩu `BYBYBY`/mã `111` và tên `Tên 1`/mật khẩu `QA1122`/mã `MÃ 1` đăng nhập thành công.
 - [x] Xác minh lại kết nối Supabase của `12.html` và đối chiếu với app hiện tại, đặc biệt Auth, RLS, redirect URL và cách gọi REST/API trên GitHub Pages; xác nhận `app_state` cho phép anon SELECT/INSERT/UPDATE và auth không email nằm trong state cloud-sync.
@@ -177,8 +177,10 @@
 - [x] Thay mascot ong SVG chung ở login/dashboard bằng asset/illustration riêng Lumi và Ong, có nhãn accessible, responsive và dùng đúng mapping nhân vật.
 - [x] Bổ sung regression test và QA desktop/mobile cho mapping hai nhân vật; 5 test mục tiêu, TypeScript và production build đạt. Asset mascot sạch đã chuyển sang reserved URLs của webdev.
 
-- [ ] Người dùng xác nhận cả ba thao tác QA destructive/account: xóa QA 112, kiểm tra 102/Admin và kiểm tra quyền xóa Founder; chờ mật khẩu test 102 cùng tên/mã Founder mục tiêu.
-- [ ] Sau khi đủ thông tin, thực hiện từng thao tác có kiểm soát, ghi evidence và cập nhật trạng thái các mục 68, 70, 72.
+- [x] Scope decision: người dùng xác nhận rồi chọn bỏ qua cả ba thao tác destructive/account; ghi nhận CANCELLED/DEFERRED, không thực hiện xóa hoặc đổi quyền.
+- [x] Scope decision: không thực hiện các thao tác 68/70/72 theo quyết định bỏ qua của người dùng; dữ liệu và quyền được giữ nguyên an toàn.
 
 - [x] Khôi phục soundscape âm thanh nền trong Pomodoro; tự bật khi bắt đầu phiên sau tương tác người dùng, tự dừng khi pause/mute/cleanup, dùng tonal notes và tôn trọng mute/volume.
 - [x] Bổ sung/chạy regression test cho soundscape nền, typecheck, 13 audio/e2e tests, production build và mobile preview sau khi sửa.
+
+- [x] DEFERRED theo quyết định người dùng: QA trực tiếp `prefers-reduced-motion` chưa thực hiện trên browser/device; CSS và regression contract vẫn được giữ.
