@@ -123,6 +123,12 @@ export type CollectionProfileLevel = { id: string; label: string; requiredValue:
 export type CollectionShopItem = { id: string; name: string; description: string; kind: "profileFrame" | "profileBackground" | "icon" | "decorativeBadge" | "mascotAccessory" | "profileEffect" | "historyTheme"; price: number; currency: "collectionTicket" | "fragmentValue"; rarity: "common" | "rare" | "epic" | "legendary"; stock: number | null; enabled: boolean };
 export type RewardSourceKind = "achievement" | "studySession" | "pomodoroMilestone" | "quiz" | "deepReview" | "scoreImprovement" | "streak" | "task" | "event";
 export type FragmentRewardGrant = { tier: FragmentTier; amount: number; label?: string };
+export type LearningMilestone = { id: string; label: string; studySeconds: number; rewards: FragmentRewardGrant[]; achievementPoints?: number; enabled: boolean };
+export type AdminReward = { id: string; name: string; type: "achievement_points" | "piece" | "ticket" | "cosmetic" | "mascot_item" | "profile_item"; value: number; rarity: "common" | "rare" | "epic" | "legendary"; icon: string; description: string; condition: string; active: boolean; createdAt: string; updatedAt: string };
+export type PieceExchangeRule = { id: string; fromTier: FragmentTier; fromAmount: number; toTier: FragmentTier; toAmount: number; enabled: boolean };
+export type PieceTransaction = { id: string; occurredAt: string; source: string; type: "grant" | "spend" | "exchange" | "refund"; tier: FragmentTier; amount: number; value: number; claimKey?: string; description?: string; relatedId?: string };
+export type RewardAuditLog = { id: string; occurredAt: string; actor: string; action: string; entityType: string; entityId: string; summary: string };
+export type RewardSourceExplanation = { sourceId: string; label: string; description: string; dailyCap?: number; claimLimit?: number; rewards: FragmentRewardGrant[] };
 export type FragmentRewardSourceRule = {
   id: string;
   kind: RewardSourceKind;
@@ -155,7 +161,7 @@ export type CollectionEvent = {
   updatedAt: string;
   deletedAt?: string;
 };
-export type CollectionConfig = { tierValues: FragmentTierConfig[]; ticketExchange: { fragmentValue: number; tickets: number; enabled: boolean }; shopItems: CollectionShopItem[]; rewardSources?: FragmentRewardSourceRule[]; events?: CollectionEvent[] };
+export type CollectionConfig = { tierValues: FragmentTierConfig[]; ticketExchange: { fragmentValue: number; tickets: number; enabled: boolean }; shopItems: CollectionShopItem[]; rewardSources?: FragmentRewardSourceRule[]; events?: CollectionEvent[]; learningMilestones?: LearningMilestone[]; adminRewards?: AdminReward[]; pieceExchangeRules?: PieceExchangeRule[]; rewardExplanations?: RewardSourceExplanation[] };
 export type SourceVerificationStatus = "verified" | "unverified" | "missing";
 export type CharacterUnlockStatus = "locked" | "assembling" | "ready" | "unlocked";
 
@@ -445,6 +451,10 @@ export type ProfileState = {
   fragmentRewardClaims?: Record<string, number>;
   eventProgress?: Record<string, Record<string, number>>;
   claimedEventRewards?: Record<string, number>;
+  pieceTransactions?: PieceTransaction[];
+  rewardAuditLogs?: RewardAuditLog[];
+  claimedMilestones?: Record<string, string>;
+  claimedPieceExchanges?: Record<string, number>;
 };
 
 export type PomodoroSession = {

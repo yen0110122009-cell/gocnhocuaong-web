@@ -310,3 +310,12 @@
 - [x] Bổ sung reward rules cho các mốc Pomodoro, streak, cải thiện điểm và Deep Review với điều kiện cấu hình được.
 - [x] Xây dựng module Event CRUD cho Admin gồm tên, mô tả, banner, thời gian, trạng thái, độ khó, mục tiêu, nhiệm vụ, điều kiện tham gia, phần thưởng và giới hạn nhận.
 - [x] Viết regression cho idempotency/ledger, giới hạn nhận, phân quyền Admin và browser QA responsive cho nguồn nhận mảnh/Event.
+
+- [x] Bổ sung các mốc học tập theo tổng thời gian và phần thưởng tương ứng.
+- [x] Xây dựng Admin Reward Catalog CRUD với tên, loại, giá trị, độ hiếm, icon, mô tả, điều kiện và trạng thái Active.
+- [x] Ghi lịch sử giao dịch mảnh bất biến với thời gian, nguồn, loại giao dịch, số lượng, cấp và claim key.
+- [x] Xây dựng Kho Mảnh Ghép hiển thị số dư theo cấp, tổng giá trị, nguồn nhận và lịch sử sử dụng.
+- [x] Bảo đảm giao dịch kiểm tra số dư/điều kiện, không phát sinh mảnh âm và có audit log.
+- [x] Bổ sung Kho Đổi Thưởng, quy đổi mảnh trực tiếp và tỷ lệ cấu hình được bởi Admin.
+- [x] Tạo trang giải thích minh bạch cho Thành tích, Danh hiệu, Mảnh ghép, Event, Cửa hàng và Phần thưởng.
+- [x] Thiết kế database contract cho các bảng achievement, title, character, piece, reward, event, shop, admin transaction và audit log; viết regression/QA tương ứng.

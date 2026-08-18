@@ -7,6 +7,10 @@ import type {
   FragmentPiece,
   FragmentTier,
   FragmentRewardSourceRule,
+  FragmentRewardGrant,
+  LearningMilestone,
+  PieceExchangeRule,
+  PieceTransaction,
   HistoricalCharacter,
   ProfileState,
   SourceVerificationStatus,
@@ -101,6 +105,38 @@ export function purchaseCollectionItem(config: AppConfig, profile: ProfileState,
   if (item.currency === "collectionTicket" && currentTickets < item.price) return { profile, purchased: false, reason: "insufficient_currency" as const };
   if (item.currency === "fragmentValue" && currentValue < item.price) return { profile, purchased: false, reason: "insufficient_currency" as const };
   return { profile: { ...profile, collectionTickets: item.currency === "collectionTicket" ? currentTickets - item.price : currentTickets, collectionValueSpent: item.currency === "fragmentValue" ? Math.max(0, profile.collectionValueSpent ?? 0) + item.price : profile.collectionValueSpent, collectionInventory: [...(profile.collectionInventory ?? []), item.id] }, purchased: true, reason: "ok" as const };
+}
+
+export function appendPieceTransaction(profile: ProfileState, transaction: Omit<PieceTransaction, "id"> & { id?: string }) {
+  const amount = Math.max(0, Math.floor(transaction.amount));
+  if (!amount) return profile;
+  const nextTransaction: PieceTransaction = { ...transaction, id: transaction.id ?? `piece-tx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, amount, value: Math.max(0, Math.floor(transaction.value)) };
+  return { ...profile, pieceTransactions: [...(profile.pieceTransactions ?? []), nextTransaction] };
+}
+
+export function grantLearningMilestone(config: AppConfig, profile: ProfileState, milestone: LearningMilestone, occurredAt = new Date().toISOString()) {
+  if (!milestone.enabled || (profile.claimedMilestones ?? {})[milestone.id]) return { profile, granted: false, reason: "already_claimed" as const, rewards: [] as FragmentRewardGrant[] };
+  const ledger = { ...(profile.fragmentLedger ?? {}) } as Partial<Record<FragmentTier, number>>;
+  const rewards = milestone.rewards.map((reward) => ({ ...reward, amount: Math.max(0, Math.floor(reward.amount)) })).filter((reward) => reward.amount > 0);
+  const next = rewards.reduce((acc, reward) => ({ ...acc, [reward.tier]: Math.max(0, Math.floor(Number(acc[reward.tier]) || 0)) + reward.amount }), ledger);
+  let nextProfile: ProfileState = { ...profile, fragmentLedger: next, claimedMilestones: { ...(profile.claimedMilestones ?? {}), [milestone.id]: occurredAt } };
+  for (const reward of rewards) nextProfile = appendPieceTransaction(nextProfile, { occurredAt, source: "learning_milestone", type: "grant", tier: reward.tier, amount: reward.amount, value: reward.amount * configuredFragmentValue(config, reward.tier), description: milestone.label, relatedId: milestone.id });
+  return { profile: nextProfile, granted: rewards.length > 0, reason: rewards.length ? "ok" as const : "empty" as const, rewards };
+}
+
+export function exchangePieceTier(config: AppConfig, profile: ProfileState, rule: PieceExchangeRule, occurredAt = new Date().toISOString()) {
+  if (!rule.enabled || rule.fromAmount <= 0 || rule.toAmount <= 0) return { profile, exchanged: false, reason: "disabled" as const };
+  const ledger = { ...(profile.fragmentLedger ?? {}) } as Partial<Record<FragmentTier, number>>;
+  const current = Math.max(0, Math.floor(Number(ledger[rule.fromTier]) || 0));
+  if (current < rule.fromAmount) return { profile, exchanged: false, reason: "insufficient_balance" as const };
+  ledger[rule.fromTier] = current - rule.fromAmount;
+  ledger[rule.toTier] = Math.max(0, Math.floor(Number(ledger[rule.toTier]) || 0)) + rule.toAmount;
+  const nextProfile = appendPieceTransaction({ ...profile, fragmentLedger: ledger, claimedPieceExchanges: { ...(profile.claimedPieceExchanges ?? {}), [rule.id]: Math.max(0, (profile.claimedPieceExchanges?.[rule.id] ?? 0) + 1) } }, { occurredAt, source: "piece_exchange", type: "exchange", tier: rule.fromTier, amount: rule.fromAmount, value: rule.fromAmount * configuredFragmentValue(config, rule.fromTier), description: `${rule.fromTier} → ${rule.toTier}`, relatedId: rule.id });
+  return { profile: appendPieceTransaction(nextProfile, { occurredAt, source: "piece_exchange", type: "grant", tier: rule.toTier, amount: rule.toAmount, value: rule.toAmount * configuredFragmentValue(config, rule.toTier), description: `${rule.fromTier} → ${rule.toTier}`, relatedId: rule.id }), exchanged: true, reason: "ok" as const };
+}
+
+export function pieceTransactionHistory(profile: ProfileState) {
+  return [...(profile.pieceTransactions ?? [])].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
 }
 
 export const fragmentFlow = [
