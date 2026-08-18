@@ -28,3 +28,7 @@ The prior artifact had root-relative `/assets` references and produced a blank p
 - `Quên mật khẩu?` opens `Hỗ trợ đăng nhập / Quên mật khẩu` and explains that password reset requires Founder/Admin because the no-email flow has no reset link.
 - `Quên mã thành viên?` opens `Hỗ trợ đăng nhập / Quên mã thành viên` and explains that the code is issued and managed by Founder/Admin.
 - Both dialogs expose a visible `Đã hiểu` action and a close control.
+
+## Plain URL verification after cache-refresh deployment
+
+After commit `9c9a39c`, the plain URL `https://yen0110122009-cell.github.io/gocnhocuaong2/` was opened without a query string. It rendered the branded no-email login form and displayed the updated cloud-state warning, confirming that the refreshed fingerprint is served from the normal URL rather than only from a cache-busting URL.
