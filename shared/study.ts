@@ -283,6 +283,10 @@ export type AiContentSuggestion = Omit<CustomContentItem, "approvalStatus" | "so
   source: "ai";
 };
 
+export type LevelDefinition = { id: string; name: string; icon: string; enabled: boolean; createdAt?: string; updatedAt?: string; deletedAt?: string };
+
+export type DeepLearningEvent = { id: string; occurredAt: string; kind: "correct" | "explained" | "selfFoundError" | "retryWrong" | "alternativeExplanation"; xpEarned: number; sourceId?: string; note?: string };
+
 export type AppConfig = {
   characters: HistoricalCharacter[];
   encouragements: Encouragement[];
@@ -293,6 +297,7 @@ export type AppConfig = {
   dailyFragmentCap: number;
   achievementOverrides: AchievementOverride[];
   customAchievements: CustomAchievement[];
+  levelDefinitions?: LevelDefinition[];
   updatedAt: string;
 };
 
@@ -350,6 +355,7 @@ export type ProfileState = {
   procrastinationEvents?: ProcrastinationEvent[];
   avoidanceReasons?: Array<{ id: string; occurredAt: string; reason: AvoidanceReason; note?: string }>;
   taskCombos?: TaskCombo[];
+  deepLearningEvents?: DeepLearningEvent[];
 };
 
 export type PomodoroSession = {
@@ -432,6 +438,7 @@ export const emptyProfile = (): ProfileState => ({
   procrastinationEvents: [],
   avoidanceReasons: [],
   taskCombos: [],
+  deepLearningEvents: [],
 });
 
 export const emptyAppConfig = (): AppConfig => ({
@@ -465,6 +472,7 @@ export const emptyAppConfig = (): AppConfig => ({
   wheelTicketsPerAchievement: 1,
   dailyFragmentCap: 10,
   achievementOverrides: [],
+  levelDefinitions: DEFAULT_LEVEL_DEFINITIONS,
   customAchievements: [
     { id: "starter-5-pomodoros", name: "Mẫu khởi đầu · Nhịp tập trung", description: "Hoàn thành 5 phiên Pomodoro.", metric: "pomodoroSessions", threshold: 5, rewardXp: 50, rewardFragments: 0, title: "Người giữ nhịp", titleMeaning: "Bền bỉ duy trì từng phiên học.", enabled: true },
     { id: "starter-25-cards", name: "Mẫu khởi đầu · Bộ thẻ đầu tiên", description: "Học thuộc 25 Flashcard.", metric: "learnedCards", threshold: 25, rewardXp: 75, rewardFragments: 1, title: "Người gom kiến thức", titleMeaning: "Tích lũy từng mảnh hiểu biết.", enabled: true },
@@ -473,8 +481,12 @@ export const emptyAppConfig = (): AppConfig => ({
   updatedAt: new Date().toISOString(),
 });
 
-export const levelForXp = (xp: number) => Math.max(1, Math.floor(Math.sqrt(Math.max(0, xp) / 90)) + 1);
-export const xpForNextLevel = (level: number) => Math.max(90, level * level * 90);
+export const XP_PER_LEVEL = 300;
+export const DEFAULT_LEVEL_DEFINITIONS: LevelDefinition[] = [
+  ["🌱", "Bắt đầu"], ["🌿", "Đang lớn"], ["🌳", "Bền bỉ"], ["🐝", "Vào guồng"], ["👑", "Làm chủ"], ["🔥", "Giữ lửa"], ["💡", "Soi sáng"], ["🧠", "Hiểu sâu"], ["🏛️", "Tích lũy"], ["🌟", "Tỏa sáng"], ["🪽", "Bay xa"], ["♾️", "Không giới hạn"],
+].map(([icon, name], index) => ({ id: `level-${index + 1}`, icon, name, enabled: true }));
+export const levelForXp = (xp: number) => Math.max(1, Math.floor(Math.max(0, xp) / XP_PER_LEVEL) + 1);
+export const xpForNextLevel = (level: number) => Math.max(XP_PER_LEVEL, Math.max(1, level) * XP_PER_LEVEL);
 
 export const statsForProfile = (profile: ProfileState) => {
   const learnedCards = profile.flashcardSets.reduce(

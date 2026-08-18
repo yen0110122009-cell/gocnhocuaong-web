@@ -249,3 +249,16 @@
 - [x] Bổ sung Hộp nhiệm vụ ngẫu nhiên với shuffle và nhiệm vụ siêu nhỏ có thể hoàn thành.
 - [x] Bổ sung Combo nhiệm vụ theo chuỗi bước, tiến độ, hoàn thành và phần thưởng nhẹ nhàng.
 - [x] Bổ sung regression tests, responsive QA và build cho hệ thống chống trì hoãn mới.
+- [x] Rà soát và sửa mapping/asset mascot Ong để hiển thị đúng nhân vật người học, không ảnh hưởng Lumi.
+- [ ] Bổ sung module Hiểu tận gốc liên kết dữ liệu học và XP theo các hành vi hiểu sâu.
+- [x] Đảm bảo XP chỉ tăng khi có hành động tích cực, không trừ XP khi không học.
+- [x] Bổ sung level không giới hạn theo ngưỡng 300 XP/cấp và 12 tên cấp mặc định có thể quản trị.
+- [ ] Bổ sung quản trị tên cấp: thêm, sửa, bật/tắt, xóa mềm, khôi phục và xóa vĩnh viễn nếu thuộc dữ liệu người dùng.
+- [ ] Bổ sung tổng kết cuối ngày theo các hành động học thực tế, không bịa dữ liệu.
+- [ ] Tạo checklist QA tách riêng cho 15 module: giao diện, mascot, Pomodoro, Audio Center, Achievement, Khoảnh khắc, Hiểu tận gốc, Làm đề giấy, thùng rác, sửa/xóa/khôi phục, responsive, lưu dữ liệu, animation, popup và trạng thái mascot.
+- [ ] Bổ sung regression tests, browser/mobile QA và build cho các thay đổi mới.
+- [x] Lưu ảnh tham chiếu mascot mới vào asset workspace, giữ nguyên bản gốc và ghi nguồn tệp người dùng.
+- [x] Chuẩn hóa mapping mascot theo ảnh: Ong người, Ong hoodie, Ong chibi; Lumi là bạn đồng hành riêng.
+- [x] Tách hoặc dùng crop/asset phù hợp cho các biến thể mascot, không dùng bee mascot cũ làm default.
+- [x] Bổ sung quản trị variant/trạng thái mascot theo đúng ảnh tham chiếu và có fallback rõ ràng.
+- [x] QA trực quan mascot ở Home, login, Emotion Studio, Pomodoro và mobile sau khi thay asset.
