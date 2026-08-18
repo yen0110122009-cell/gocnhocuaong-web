@@ -270,9 +270,9 @@
 - [x] Dùng riêng asset Ong hoodie trong Achievement, Bản đồ, Cây tiến bộ và Khoảnh khắc; không dùng Ong phong cách người.
 - [x] Bổ sung regression tests và responsive QA cho toàn bộ hệ thống achievement dạng bản đồ.
 - [x] Bổ sung nút “Tại sao Ong nhận được?” với danh sách evidence từ lịch sử học thật và kết luận đủ điều kiện.
-- [ ] Bổ sung achievement không hoàn hảo: quay lại, sửa lỗi, chưa hiểu, học lại, ít năng lượng và không bỏ cuộc.
-- [ ] Bổ sung achievement hiểu sai, không lặp lại lỗi và tiến bộ so với chính mình dựa trên dữ liệu thật.
-- [ ] Bổ sung achievement hồi sinh sau khi mất streak hoặc tiến độ, không coi đó là thất bại vĩnh viễn.
+- [x] Bổ sung achievement không hoàn hảo: quay lại, sửa lỗi, chưa hiểu, học lại, ít năng lượng và không bỏ cuộc.
+- [x] Bổ sung achievement hiểu sai, không lặp lại lỗi và tiến bộ so với chính mình dựa trên dữ liệu thật.
+- [x] Bổ sung achievement hồi sinh sau khi mất streak hoặc tiến độ, không coi đó là thất bại vĩnh viễn.
 - [ ] Bổ sung mascot reaction theo achievement state và speech có context, không random vô nghĩa.
 - [ ] Bổ sung quản trị/ghi âm giọng nói người dùng cho lời thoại mascot, có bật/tắt và xử lý quyền microphone.
 - [x] Bổ sung card “Thành tích tiếp theo” và “3 thành tích gần nhất” trên dashboard.

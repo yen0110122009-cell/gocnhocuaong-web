@@ -650,6 +650,29 @@ export function generateAchievements(): Achievement[] {
   return result;
 }
 
+export function advancedAchievementCards(profile: ProfileState): Achievement[] {
+  const activities = [...profile.studyActivity].sort((a, b) => Date.parse(a.occurredAt) - Date.parse(b.occurredAt));
+  const completed = activities.filter((item) => item.kind === "pomodoro" || item.kind === "quiz");
+  let comebackCount = 0;
+  for (let index = 1; index < activities.length; index += 1) {
+    const gap = Date.parse(activities[index].occurredAt) - Date.parse(activities[index - 1].occurredAt);
+    if (gap >= 3 * 86400000) comebackCount += 1;
+  }
+  const retryCount = profile.deepLearningEvents?.filter((event) => event.kind === "retryWrong").length ?? 0;
+  const fixedErrorCount = new Set((profile.deepLearningEvents ?? []).filter((event) => event.kind === "selfFoundError" || event.kind === "retryWrong").map((event) => event.sourceId).filter(Boolean)).size;
+  const now = Date.now();
+  const weekMs = 7 * 86400000;
+  const recentMinutes = activities.filter((item) => now - Date.parse(item.occurredAt) <= weekMs).reduce((sum, item) => sum + item.durationSeconds, 0);
+  const previousMinutes = activities.filter((item) => { const age = now - Date.parse(item.occurredAt); return age > weekMs && age <= weekMs * 2; }).reduce((sum, item) => sum + item.durationSeconds, 0);
+  const cards = [
+    { id: "advanced-comeback", icon: "🌱", name: "Quay lại sau khi bỏ cuộc", description: "Ong đã quay lại học sau một khoảng nghỉ, không biến việc dừng lại thành thất bại vĩnh viễn.", threshold: 1, currentValue: comebackCount, rewardXp: 20, encouragement: "Bắt đầu lại cũng là một dạng can đảm." },
+    { id: "advanced-error-to-knowledge", icon: "🔧", name: "Biến lỗi thành kiến thức", description: "Ong đã xem lại lỗi và thực hiện hành vi học sâu để sửa nó.", threshold: 5, currentValue: retryCount, rewardXp: 15, encouragement: "Một lỗi được sửa là một mảnh kiến thức được giữ lại." },
+    { id: "advanced-error-recovery", icon: "🛡️", name: "Đã vượt qua lỗi cũ", description: "Ong đã ghi nhận và xử lý lại nhiều lỗi thay vì né tránh chúng.", threshold: 3, currentValue: fixedErrorCount, rewardXp: 25, encouragement: "Ong không cần hoàn hảo, chỉ cần tiến bộ thật." },
+    { id: "advanced-self-improvement", icon: "📈", name: "Tốt hơn chính mình", description: "Thời lượng học tuần này cao hơn tuần trước dựa trên lịch sử học đã lưu.", threshold: 1, currentValue: recentMinutes > previousMinutes && completed.length > 0 ? 1 : 0, rewardXp: 20, encouragement: "Ong đang so sánh với chính mình của ngày hôm qua." },
+  ];
+  return cards.map((card) => ({ ...card, rank: 7, rankName: "Tiến bộ", metric: "xp" as const, rewardFragments: 0, title: null, titleMeaning: null, difficulty: "Khó" as const, badgeLabel: "Thành tích tiến bộ", progress: Math.min(100, Math.round((card.currentValue / card.threshold) * 100)), remaining: Math.max(0, card.threshold - card.currentValue), animation: "glow" as const, unlockedAt: profile.achievementUnlockDates[card.id] ?? null, evidence: [] }));
+}
+
 export function allAchievementsWithProgress(profile: ProfileState, config: AppConfig): Achievement[] {
   const stats = statsForProfile(profile) as Record<AchievementMetric, number>;
   const overrides = new Map(config.achievementOverrides.map((item) => [item.achievementId, item]));
@@ -689,7 +712,7 @@ export function allAchievementsWithProgress(profile: ProfileState, config: AppCo
       evidence: achievementEvidenceFor(profile, { id: item.id, rank: 9, rankName: "Tùy chỉnh", icon: "🏆", name: item.name, description: item.description, metric: item.metric, threshold: item.threshold, rewardXp: item.rewardXp, rewardFragments: item.rewardFragments, title: item.title?.trim() || null, titleMeaning: item.titleMeaning?.trim() || null, difficulty: "Khó", badgeLabel: "Thành tích tùy chỉnh", encouragement: "Một cột mốc riêng đang được mở khóa.", progress: Math.min(100, Math.round((currentValue / Math.max(1, item.threshold)) * 100)), currentValue, remaining: Math.max(0, item.threshold - currentValue), animation: "spark", unlockedAt: profile.achievementUnlockDates[item.id] ?? null } as Achievement),
     };
     });
-  return [...standard, ...customs];
+  return [...standard, ...customs, ...advancedAchievementCards(profile)];
 }
 
 export const achievementEvidenceFor = (profile: ProfileState, achievement: Achievement): AchievementEvidence[] => {
@@ -819,6 +842,12 @@ export function normalizeProfile(value: unknown): ProfileState {
     aiImportHistory: Array.isArray(source.aiImportHistory) ? source.aiImportHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AiImportRecord>) : null; if (!item?.id || !item.title) return []; return [{ id: String(item.id), title: String(item.title), createdAt: String(item.createdAt ?? new Date(0).toISOString()), target: item.target === "quiz" || item.target === "both" || item.target === "practice" ? item.target : "flashcards", questionCount: Math.max(0, Number(item.questionCount) || 0), flashcardCount: Math.max(0, Number(item.flashcardCount) || 0), prompt: String(item.prompt ?? ""), rawData: String(item.rawData ?? ""), quizId: item.quizId ? String(item.quizId) : undefined, flashcardSetId: item.flashcardSetId ? String(item.flashcardSetId) : undefined }]; }) : [],
     wrongAnswerReviews: Array.isArray(source.wrongAnswerReviews) ? source.wrongAnswerReviews.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<WrongAnswerReview>) : null; if (!item?.id || !item.attemptId || !item.questionId) return []; return [{ id: String(item.id), attemptId: String(item.attemptId), questionId: String(item.questionId), question: String(item.question ?? ""), learnerAnswer: String(item.learnerAnswer ?? ""), correctAnswer: String(item.correctAnswer ?? ""), whyWrong: String(item.whyWrong ?? ""), knowledgeGap: String(item.knowledgeGap ?? ""), correctThinking: Array.isArray(item.correctThinking) ? item.correctThinking.map(String) : [], commonMistake: String(item.commonMistake ?? ""), retryQuestion: String(item.retryQuestion ?? ""), retryAnswer: String(item.retryAnswer ?? ""), source: String(item.source ?? "Chưa cung cấp"), needsVerification: item.needsVerification === true, createdAt: String(item.createdAt ?? new Date(0).toISOString()) }]; }) : [],
   };
+  merged.procrastinationEvents = Array.isArray(source.procrastinationEvents) ? source.procrastinationEvents : [];
+  merged.avoidanceReasons = Array.isArray(source.avoidanceReasons) ? source.avoidanceReasons : [];
+  merged.taskCombos = Array.isArray(source.taskCombos) ? source.taskCombos : [];
+  merged.deepLearningEvents = Array.isArray(source.deepLearningEvents) ? source.deepLearningEvents : [];
+  merged.achievementEvidence = source.achievementEvidence && typeof source.achievementEvidence === "object" ? source.achievementEvidence : {};
+  merged.mascotVoiceLines = Array.isArray(source.mascotVoiceLines) ? source.mascotVoiceLines : [];
   merged.level = levelForXp(merged.xp);
   return merged;
 }
