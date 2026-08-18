@@ -148,3 +148,6 @@
 - [x] Sửa phần code tài khoản Tên 1 mã 1 đã được cấp nhưng danh sách thành viên chưa cập nhật: AdminEnhanced trên GitHub Pages nay tải danh sách từ Supabase app_state và refetch ngay sau mutation; TypeScript, 30 test files/89 tests ngoại trừ catalog test bị treo độc lập, build và Pages commit `655d3f0` đạt. Dữ liệu Tên 1/mã 1 vẫn chưa có trong app_state, theo mục đối chiếu bên dưới.
 
 - [ ] Đối chiếu và đồng bộ tài khoản đã cấp ngoài GitHub Pages: Supabase `app_state` hiện có 2 tài khoản nhưng không có bản ghi tên `1` hoặc mã `1`; cần xác nhận nguồn cấp tài khoản là full-stack MySQL hay cloud-state trước khi tạo/migrate dữ liệu.
+
+- [x] Sắp xếp lại Admin để luôn hiển thị khu vực Danh sách thành viên rõ ràng; thêm loading, empty, error, refresh và bảng thông tin thành viên từ cloud-state; build, regression và Pages commit `a44fefe` đạt. QA authenticated sâu vẫn cần phiên Admin/Founder thật.
+- [x] Bổ sung regression tests cho Admin member list và xác minh URL Supabase cùng trạng thái khóa API không bị lộ trong giao diện công khai; contract test kiểm tra loading/error/empty/refresh và API key không được render.

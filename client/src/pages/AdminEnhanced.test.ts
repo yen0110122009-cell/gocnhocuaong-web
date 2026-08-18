@@ -7,6 +7,16 @@ import { Admin } from "./Home";
 import { emptyAppConfig, type StudyAccount } from "../../../shared/study";
 
 describe("Admin character source workflow", () => {
+  it("exposes a complete member list surface with explicit data states", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/pages/AdminEnhanced.tsx"), "utf8");
+    expect(source).toContain("Danh sách thành viên");
+    expect(source).toContain("Làm mới danh sách thành viên");
+    expect(source).toContain("Đang tải danh sách thành viên");
+    expect(source).toContain("Không thể tải danh sách thành viên");
+    expect(source).toContain("Chưa có thành viên nào trong nguồn dữ liệu này");
+    expect(source).toContain("Danh sách đang được cập nhật.");
+  });
+
   it("exposes CRUD, copy, preview and source validation controls", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/AdminEnhanced.tsx"), "utf8");
     expect(source).toContain("function CharacterManager");
