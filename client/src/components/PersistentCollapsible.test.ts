@@ -18,12 +18,21 @@ describe("PersistentCollapsible contract", () => {
 });
 
 
-describe("View-level collapse contract", () => {
-  const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+describe("Item-level collapse scope contract", () => {
+  const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+  const museum = readFileSync(resolve(process.cwd(), "client/src/pages/MuseumJourney.tsx"), "utf8");
+  const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
 
-  it("wraps every routed view with a stable view-specific storage key", () => {
-    expect(source).toContain("storageKey={`view-${view}`}");
-    expect(source).toContain("PersistentCollapsible");
+  it("does not wrap an entire routed View in one collapsible container", () => {
+    expect(home).not.toContain("storageKey={`view-${view}`}");
+    expect(home).not.toContain("<PersistentCollapsible");
+  });
+
+  it("uses separate storage keys for independently collapsible content sections", () => {
+    expect(museum).toContain('storageKey="museum-achievement-museum"');
+    expect(museum).toContain('storageKey="museum-fragment-vault"');
+    expect(museum).toContain('storageKey="museum-characters"');
+    expect(pomodoro).toContain('storageKey="pomodoro-audio-center"');
   });
 });
 

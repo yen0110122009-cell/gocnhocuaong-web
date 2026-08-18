@@ -412,3 +412,9 @@
 - [x] Bổ sung regression cho persistence thu gọn và trạng thái audio nền.
 - [x] Chạy TypeScript, 43 file/145 test, production build và browser QA desktop/mobile cho thu gọn/audio.
 - [x] Lưu checkpoint cho vòng thu gọn toàn giao diện và audio nền.
+
+- [x] Loại bỏ wrapper thu gọn cấp View/trang vì không đúng yêu cầu thu gọn theo từng mục.
+- [x] Áp dụng thu gọn độc lập cho từng mục nội dung có thể thu gọn, với storage key riêng cho từng mục.
+- [x] Bảo đảm trạng thái từng mục không tự mở lại sau tải trang, trừ khi chính người dùng đã mở mục đó.
+- [x] Cập nhật regression và QA desktop/mobile cho cơ chế thu gọn theo từng mục.
+- [x] Lưu checkpoint cho bản sửa phạm vi thu gọn theo từng mục.
