@@ -224,3 +224,8 @@
 - [x] Bổ sung Bảo tàng Hành trình theo năm/tháng và câu chuyện khi mở từng hiện vật.
 - [x] Hoàn thiện nhiệm vụ siêu nhỏ, lời nhắc nhẹ và form ＋ Thêm nội dung với đầy đủ trường yêu cầu.
 - [x] Thay ảnh Ong vàng bằng fallback minh họa ổn định, không phụ thuộc storage URL lỗi.
+- [x] Mở rộng kho nội dung theo module và ngữ cảnh: Pomodoro, Làm đề, Hiểu tận gốc, Thành tích, Nhật ký, Chống trì hoãn.
+- [x] Chọn lời phù hợp theo context với lịch sử gần đây để giảm lặp nội dung.
+- [x] Thêm trạng thái bật/tắt; nội dung tắt không được bộ chọn sử dụng.
+- [x] Thêm thùng rác có ngày tạo/xóa, khôi phục, chọn tất cả và xóa vĩnh viễn có xác nhận.
+- [x] Bổ sung regression tests cho chọn lời, module context và luồng trash/restore/permanent delete.

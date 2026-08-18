@@ -1,18 +1,20 @@
 import React, { useMemo, useState } from "react";
 import { emotionFromCommand, emotionThemes, type EmotionId } from "../lib/emotionThemes";
-import { antiProcrastinationChoices, gentleReminders, randomAntiProcrastinationSpeech, randomMicroTask, speechForEvent, speechGroupLabels, type SpeechGroup } from "../lib/speechLibrary";
+import { activeContentFor, antiProcrastinationChoices, gentleReminders, randomAntiProcrastinationSpeech, randomMicroTask, speechForEvent, speechGroupLabels, type SpeechGroup } from "../lib/speechLibrary";
+import type { AppConfig } from "../../../shared/study";
 import { OngLearnerAvatar } from "./OngLearnerAvatar";
 
-type Props = { selected: EmotionId; onSelect: (id: EmotionId) => void; onStartTwoMinutes?: () => void };
+type Props = { selected: EmotionId; onSelect: (id: EmotionId) => void; onStartTwoMinutes?: () => void; customContent?: AppConfig["customContent"] };
 
 const companionImage = "/manus-storage/lumi-mascot-clean_28a6da68.png";
 
-export function ExperienceStudio({ selected, onSelect, onStartTwoMinutes }: Props) {
+export function ExperienceStudio({ selected, onSelect, onStartTwoMinutes, customContent = [] }: Props) {
   const [command, setCommand] = useState("");
   const [message, setMessage] = useState("");
   const [lazyLevel, setLazyLevel] = useState<"mild" | "very" | "none">("mild");
   const [speechGroup, setSpeechGroup] = useState<SpeechGroup>("comfort");
   const [speech, setSpeech] = useState(() => speechForEvent("procrastination"));
+  const [recentContentIds, setRecentContentIds] = useState<string[]>([]);
   const [microTask, setMicroTask] = useState(() => randomMicroTask());
   const [reminder, setReminder] = useState<string>(() => gentleReminders[0]);
   const theme = emotionThemes.find((item) => item.id === selected) ?? emotionThemes[0];
@@ -29,13 +31,24 @@ export function ExperienceStudio({ selected, onSelect, onStartTwoMinutes }: Prop
 
   function chooseSpeechGroup(group: SpeechGroup) {
     setSpeechGroup(group);
-    setSpeech(speechForEvent(group === "comfort" ? "mistake" : group === "encouragement" ? "start" : group === "understanding" ? "start" : "procrastination", group));
+    const event = group === "comfort" ? "mistake" : group === "encouragement" ? "start" : group === "understanding" ? "start" : "procrastination";
+    const context = event === "mistake" ? "mistake" : event === "start" ? "start" : "procrastination";
+    const custom = activeContentFor({ customContent }, "antiProcrastination", context, recentContentIds);
+    if (custom) {
+      setSpeech({ id: custom.id, group, event, text: custom.text, action: custom.kind === "microTask" ? "Mở nhiệm vụ nhỏ" : undefined });
+      setRecentContentIds((ids) => [...ids.filter((id) => id !== custom.id), custom.id].slice(-5));
+    } else setSpeech(speechForEvent(event, group));
   }
 
   function chooseAntiProcrastination(id: "five" | "review" | "lumi") {
     if (id === "five") onStartTwoMinutes?.();
     if (id === "review") setSpeech({ ...speechForEvent("ineffective", "understanding"), text: "Lumi chọn cho Ong: mở lại một phần bài cũ trong 5 phút thôi nhé." });
-    if (id === "lumi") { setSpeech(randomAntiProcrastinationSpeech()); setMicroTask(randomMicroTask()); setReminder(gentleReminders[Math.floor(Math.random() * gentleReminders.length)] ?? gentleReminders[0]); }
+    if (id === "lumi") {
+      const custom = activeContentFor({ customContent }, "antiProcrastination", "procrastination", recentContentIds);
+      if (custom) { setSpeech({ id: custom.id, group: "antiProcrastination", event: "procrastination", text: custom.text, action: custom.kind === "microTask" ? "Mở nhiệm vụ nhỏ" : undefined }); setRecentContentIds((ids) => [...ids.filter((item) => item !== custom.id), custom.id].slice(-5)); }
+      else setSpeech(randomAntiProcrastinationSpeech());
+      setMicroTask(randomMicroTask()); setReminder(gentleReminders[Math.floor(Math.random() * gentleReminders.length)] ?? gentleReminders[0]);
+    }
     setMessage(id === "five" ? "Lumi ở đây. Mình bắt đầu 5 phút thật nhẹ nhé." : id === "review" ? "Đã chọn ôn bài cũ cùng Lumi." : "Lumi đã chọn một nhiệm vụ nhỏ cho Ong.");
   }
 

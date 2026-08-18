@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 const DEFAULT_IMAGE = "/manus-storage/study-historia-bee-mascot_45260784.png";
 

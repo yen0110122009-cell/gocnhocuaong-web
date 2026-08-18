@@ -1,6 +1,7 @@
+import type { ContentContext, ContentModule, CustomContentItem } from "../../../shared/study";
+
 export type SpeechGroup = "comfort" | "encouragement" | "understanding" | "antiProcrastination";
 export type SpeechEvent = "mistake" | "lowScore" | "todoMissed" | "pomodoroAbandoned" | "streakLost" | "ineffective" | "comeback" | "start" | "complete" | "critical" | "hardTask" | "procrastination";
-
 export type LumiSpeech = { id: string; group: SpeechGroup; event: SpeechEvent; text: string; action?: string };
 
 export const speechGroupLabels: Record<SpeechGroup, string> = {
@@ -33,38 +34,57 @@ export const lumiSpeechLibrary: LumiSpeech[] = [
   { id: "anti-random", group: "antiProcrastination", event: "procrastination", text: "Lumi chọn nhiệm vụ nhẹ cho Ong nhé. Mình không cần quyết định quá nhiều lúc đang mệt.", action: "🎲 Lumi chọn nhiệm vụ" },
 ];
 
-export const microTasks = [
-  "Mở sách.",
-  "Viết ngày hôm nay.",
-  "Đọc một định nghĩa.",
-  "Làm một câu.",
-  "Viết lại một công thức.",
-  "Tự giải thích một khái niệm.",
-  "Kiểm tra một câu sai.",
-] as const;
-
-export const gentleReminders = [
-  "Nếu hôm nay chưa làm được nhiều thì cũng không sao. Mình thử làm một việc nhỏ trước nhé.",
-  "Lumi không ép Ong phải hoàn hảo. Một bước nhỏ cũng là một bước tiến.",
-  "Mình có thể bắt đầu thật nhẹ, rồi quyết định bước tiếp theo sau.",
-] as const;
-
-export function randomMicroTask() {
-  return microTasks[Math.floor(Math.random() * microTasks.length)] ?? microTasks[0];
-}
-
+export const microTasks = ["Mở sách.", "Viết ngày hôm nay.", "Đọc một định nghĩa.", "Làm một câu.", "Viết lại một công thức.", "Tự giải thích một khái niệm.", "Kiểm tra một câu sai."] as const;
+export const gentleReminders = ["Nếu hôm nay chưa làm được nhiều thì cũng không sao. Mình thử làm một việc nhỏ trước nhé.", "Lumi không ép Ong phải hoàn hảo. Một bước nhỏ cũng là một bước tiến.", "Mình có thể bắt đầu thật nhẹ, rồi quyết định bước tiếp theo sau."] as const;
+export function randomMicroTask() { return microTasks[Math.floor(Math.random() * microTasks.length)] ?? microTasks[0]; }
 export const antiProcrastinationChoices = [
   { id: "five", label: "🍅 Học 5 phút", description: "Một phiên ngắn để khởi động lại." },
   { id: "review", label: "📖 Ôn bài cũ", description: "Đọc lại một phần quen thuộc." },
   { id: "lumi", label: "🎲 Lumi chọn nhiệm vụ", description: "Nhận một nhiệm vụ nhỏ ngẫu nhiên." },
 ] as const;
 
+export const contentModuleLabels: Record<ContentModule, string> = {
+  pomodoro: "🍅 Pomodoro",
+  quiz: "📝 Làm đề",
+  deepStudy: "🧠 Hiểu tận gốc",
+  achievement: "🏆 Thành tích",
+  journal: "📔 Nhật ký",
+  antiProcrastination: "🎯 Chống trì hoãn",
+  global: "🌍 Dùng chung",
+};
+
 export function speechForEvent(event: SpeechEvent, group?: SpeechGroup) {
   const candidates = lumiSpeechLibrary.filter((item) => item.event === event && (!group || item.group === group));
-  return candidates[0] ?? lumiSpeechLibrary[0];
+  return candidates[Math.floor(Math.random() * candidates.length)] ?? lumiSpeechLibrary[0];
 }
 
 export function randomAntiProcrastinationSpeech() {
   const items = lumiSpeechLibrary.filter((item) => item.group === "antiProcrastination");
   return items[Math.floor(Math.random() * items.length)] ?? lumiSpeechLibrary[0];
+}
+
+export function activeContentFor(config: { customContent?: CustomContentItem[] }, module: ContentModule, context: ContentContext, recentIds: string[] = []) {
+  const pool = (config.customContent ?? []).filter((item) => {
+    const modules = item.modules?.length ? item.modules : ["global"];
+    return item.enabled && !item.deletedAt && (modules.includes(module) || modules.includes("global")) && item.contexts.includes(context);
+  });
+  if (!pool.length) return undefined;
+  const fresh = pool.filter((item) => !recentIds.includes(item.id));
+  const ranked = (fresh.length ? fresh : pool).slice().sort((a, b) => (a.useCount ?? 0) - (b.useCount ?? 0) || (a.lastUsedAt ?? "").localeCompare(b.lastUsedAt ?? ""));
+  const top = ranked.slice(0, Math.min(3, ranked.length));
+  return top[Math.floor(Math.random() * top.length)] ?? ranked[0];
+}
+
+export function markContentUsed(items: CustomContentItem[], id: string, now = new Date().toISOString()) {
+  return items.map((item) => item.id === id ? { ...item, lastUsedAt: now, useCount: (item.useCount ?? 0) + 1 } : item);
+}
+
+export function moveContentToTrash(items: CustomContentItem[], ids: string[], now = new Date().toISOString()) {
+  const selected = new Set(ids);
+  return items.map((item) => selected.has(item.id) ? { ...item, enabled: false, deletedAt: now } : item);
+}
+
+export function restoreContent(items: CustomContentItem[], ids: string[]) {
+  const selected = new Set(ids);
+  return items.map((item) => selected.has(item.id) ? { ...item, enabled: true, deletedAt: undefined } : item);
 }

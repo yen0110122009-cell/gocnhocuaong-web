@@ -239,15 +239,21 @@ export type CustomAchievement = {
 
 export type ContentKind = "comfort" | "encouragement" | "studyHint" | "antiProcrastination" | "microTask" | "reminder" | "choice" | "other";
 export type ContentTone = "gentle" | "normal" | "positive" | "humorous" | "highEnergy";
-export type ContentContext = "mistake" | "lowScore" | "procrastination" | "start" | "pomodoroComplete" | "tired" | "sad" | "lostStreak" | "comeback" | "achievement" | "confused" | "taskComplete";
+export type ContentContext = "mistake" | "lowScore" | "procrastination" | "start" | "pomodoroComplete" | "tired" | "sad" | "lostStreak" | "comeback" | "achievement" | "confused" | "taskComplete" | "complete" | "unsure" | "blank" | "hardTask" | "studyLittle" | "notStudied" | "browsing" | "tooLarge" | "explainMissing" | "explainPartial" | "explainCorrect" | "errorFound" | "review";
+export type ContentModule = "pomodoro" | "quiz" | "deepStudy" | "achievement" | "journal" | "antiProcrastination" | "global";
 export type CustomContentItem = {
   id: string;
   kind: ContentKind;
   text: string;
   contexts: ContentContext[];
+  modules: ContentModule[];
   mascot: "lumi" | "lumi-sad" | "lumi-cheer" | "lumi-celebrate" | "ong";
   tone: ContentTone;
   enabled: boolean;
+  createdAt?: string;
+  deletedAt?: string;
+  lastUsedAt?: string;
+  useCount?: number;
 };
 
 export type AppConfig = {
