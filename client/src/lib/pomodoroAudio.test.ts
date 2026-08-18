@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_NOTES, scaledGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing } from "./pomodoroAudio";
+import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_NOTES, SOUNDSCAPE_PRESETS, scaledGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing } from "./pomodoroAudio";
 
 describe("Pomodoro audio map", () => {
   it("contains distinct sequences for all learning states", () => {
@@ -27,5 +27,13 @@ describe("Pomodoro audio map", () => {
     expect(soundEventSpacing("complete")).toBeGreaterThan(soundEventSpacing("tick"));
     expect(soundEventDuration("complete")).toBe(COMPLETE_ALERT_PROFILE.durationSeconds);
     expect(COMPLETE_ALERT_PROFILE.vibratePattern.length).toBeGreaterThan(3);
+  });
+
+  it("provides rich layered presets that can run continuously", () => {
+    expect(Object.keys(SOUNDSCAPE_LAYERS).length).toBeGreaterThanOrEqual(20);
+    expect(Object.keys(SOUNDSCAPE_PRESETS).length).toBeGreaterThanOrEqual(10);
+    expect(Object.values(SOUNDSCAPE_PRESETS).every((preset) => preset.layers.every((id) => SOUNDSCAPE_LAYERS[id]?.intervalMs > 0))).toBe(true);
+    expect(SOUNDSCAPE_PRESETS["Mưa"].layers.length).toBeGreaterThan(1);
+    expect(SOUNDSCAPE_PRESETS["Deep focus"].layers).toContain("brown");
   });
 });
