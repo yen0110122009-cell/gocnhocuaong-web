@@ -149,3 +149,25 @@
 @keyframes fragment-complete { from { transform: scale(.99); } to { transform: scale(1); } }
 @keyframes achievement-unlock { from { opacity: .72; transform: translateY(4px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes session-complete { from { opacity: .82; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Emotion Theme Studio: palette đỏ sáng + xanh lá làm trục nhận diện */
+:root {
+  --emotion-red: #c62828;
+  --emotion-red-bright: #e53935;
+  --emotion-green: #2e7d32;
+  --emotion-green-bright: #43a047;
+  --emotion-cream: #fff7f2;
+}
+body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%); }
+#root > div.min-h-screen { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 58%, #fff7f2 100%) !important; }
+#root > div.min-h-screen > aside { background: linear-gradient(180deg, rgba(255,247,242,.98), rgba(245,255,245,.98)) !important; border-right-color: rgba(46,125,50,.22) !important; }
+#root > div.min-h-screen header { background: rgba(255,247,242,.94) !important; border-bottom-color: rgba(198,40,40,.18) !important; }
+.emotion-studio { box-shadow: 0 16px 40px rgba(198,40,40,.09), 0 8px 25px rgba(46,125,50,.08); }
+.pomodoro-starting { animation: pomodoro-enter 680ms var(--ease-out) both; background-image: linear-gradient(135deg, rgba(255,240,235,.96), rgba(239,249,239,.96)); }
+.pomodoro-critical { box-shadow: 0 0 0 2px rgba(198,40,40,.16), 0 18px 44px rgba(198,40,40,.12); }
+.pomodoro-complete { animation: pomodoro-complete-in 520ms var(--ease-out) both; }
+@keyframes pomodoro-enter { 0% { opacity: .72; transform: translateY(6px) scale(.985); } 55% { transform: translateY(0) scale(1.01); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes pomodoro-complete-in { 0% { opacity: .2; transform: translateY(10px) scale(.97); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .pomodoro-starting, .pomodoro-complete { animation: none !important; }
+}

@@ -184,3 +184,21 @@
 - [x] Bổ sung/chạy regression test cho soundscape nền, typecheck, 13 audio/e2e tests, production build và mobile preview sau khi sửa.
 
 - [x] DEFERRED theo quyết định người dùng: QA trực tiếp `prefers-reduced-motion` chưa thực hiện trên browser/device; CSS và regression contract vẫn được giữ.
+
+- [x] Đổi palette giao diện mặc định sang đỏ sáng kết hợp xanh lá chiếm tối thiểu 90% diện tích màu chủ đạo, giữ độ tương phản accessible.
+- [x] Thêm catalog nhiều preset theme theo trạng thái/cảm xúc, có bộ chọn và lưu lựa chọn giao diện.
+- [x] Thêm lời an ủi/động viên riêng cho từng cảm xúc, mascot Lumi/Ong xuất hiện đúng trạng thái.
+- [x] Thêm ô nhập câu lệnh tùy biến theme/cảm xúc, parser an toàn chỉ áp dụng preset/biến màu được cho phép.
+- [x] Bổ sung regression tests, responsive/accessibility QA, build và checkpoint cho hệ thống theme cảm xúc.
+
+- [x] Đổi palette mặc định sang đỏ sáng kết hợp xanh lá chiếm tối thiểu 90%, đồng bộ dashboard/login và Emotion Studio với token đỏ `#c62828` cùng xanh `#2e7d32`.
+- [x] Xây Emotion Theme Studio: catalog preset cảm xúc, bộ chọn theme, mascot Lumi/Ong thật và lời động viên riêng cho từng cảm xúc.
+- [x] Thêm command input an toàn để đổi mood/theme từ catalog cho phép; lệnh không nhận diện sẽ fallback về calm.
+- [x] Thêm animation nhẹ khi bắt đầu Pomodoro: panel `pomodoro-starting`, mascot/status đổi nhịp, đồng hồ và soundscape bắt đầu sau tương tác rồi ổn định.
+- [x] Thêm hiển thị tiến trình chu kỳ Pomodoro và completion flow theo phiên; animation được tiết chế và có prefers-reduced-motion CSS.
+- [x] Thêm Critical Moment khi còn 5 phút: banner `5 PHÚT CUỐI`, lời nhắc mascot và trạng thái panel critical.
+- [x] Thêm completion flow: mascot ăn mừng, ghi nhận phiên và XP, sound alert/reward, nút Nghỉ/Làm tiếp.
+- [x] Thêm Chế độ lười với 3 mức năng lượng và nhiệm vụ thử 2 phút không gây áp lực.
+- [x] Thêm card Boss Trì hoãn HP metaphor và bảng Ong vs Trì hoãn với thông điệp nhẹ nhàng.
+- [x] Completion/reward flow đã có mascot, lời động viên, âm thanh reward và nút tiếp tục; achievement unlock dùng reward system hiện có.
+- [x] Bổ sung `ExperienceStudio.test.ts`, 17 test mục tiêu pass, TypeScript pass, production build pass và mobile preview pass.
