@@ -202,3 +202,6 @@
 - [x] Thêm card Boss Trì hoãn HP metaphor và bảng Ong vs Trì hoãn với thông điệp nhẹ nhàng.
 - [x] Completion/reward flow đã có mascot, lời động viên, âm thanh reward và nút tiếp tục; achievement unlock dùng reward system hiện có.
 - [x] Bổ sung `ExperienceStudio.test.ts`, 17 test mục tiêu pass, TypeScript pass, production build pass và mobile preview pass.
+
+- [x] Tăng âm báo kết thúc Pomodoro: chuỗi nhiều nhịp đủ nổi bật để thu hút người học, gain an toàn, không clipping/chói, vẫn tôn trọng mute/volume/preview.
+- [x] Bổ sung regression test cho alert sequence/gain, chạy typecheck, production build và QA preview sau khi sửa.

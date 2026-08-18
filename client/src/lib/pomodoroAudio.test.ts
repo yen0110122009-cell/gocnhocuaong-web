@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SOUND_EVENTS, SOUNDSCAPE_NOTES, scaledGain, soundEventDuration } from "./pomodoroAudio";
+import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_NOTES, scaledGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing } from "./pomodoroAudio";
 
 describe("Pomodoro audio map", () => {
   it("contains distinct sequences for all learning states", () => {
@@ -19,5 +19,13 @@ describe("Pomodoro audio map", () => {
     expect(scaledGain(50, 0.2)).toBe(0.1);
     expect(scaledGain(200, 0.2)).toBe(0.2);
     expect(soundEventDuration("tick")).toBeLessThan(soundEventDuration("complete"));
+  });
+
+  it("uses a wake-up completion profile instead of a short single chime", () => {
+    expect(SOUND_EVENTS.complete.length).toBeGreaterThanOrEqual(8);
+    expect(soundEventGainMultiplier("complete")).toBeGreaterThan(soundEventGainMultiplier("start"));
+    expect(soundEventSpacing("complete")).toBeGreaterThan(soundEventSpacing("tick"));
+    expect(soundEventDuration("complete")).toBe(COMPLETE_ALERT_PROFILE.durationSeconds);
+    expect(COMPLETE_ALERT_PROFILE.vibratePattern.length).toBeGreaterThan(3);
   });
 });

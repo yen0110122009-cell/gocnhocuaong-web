@@ -2,7 +2,7 @@ import { ArrowRight, BarChart3, BookOpen, Check, CircleHelp, Clock3, Flame, Paus
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { applyStudyActivityRewards, computedAchievements, type AppConfig, type PomodoroSession, type ProfileState } from "../../../shared/study";
-import { SOUND_EVENTS, SOUNDSCAPE_NOTES, scaledGain, soundEventDuration, type SoundEvent } from "../lib/pomodoroAudio";
+import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_NOTES, scaledGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing, type SoundEvent } from "../lib/pomodoroAudio";
 import { ExperienceStudio } from "../components/ExperienceStudio";
 import { comboLabel, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 
@@ -113,14 +113,14 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
       const context = getAudioContext();
       void context.resume();
       const master = context.createGain();
-      master.gain.setValueAtTime(scaledGain(alertVolume, event === "tick" ? 0.055 : 0.13), context.currentTime);
+      master.gain.setValueAtTime(scaledGain(alertVolume, soundEventGainMultiplier(event)), context.currentTime);
       master.connect(context.destination);
       const notes = SOUND_EVENTS[event];
       notes.forEach((frequency, index) => {
-        const startAt = context.currentTime + index * (event === "tick" ? 0.04 : 0.12);
+        const startAt = context.currentTime + index * soundEventSpacing(event);
         const oscillator = context.createOscillator();
         const noteGain = context.createGain();
-        oscillator.type = event === "error" ? "square" : event === "warning" ? "triangle" : "sine";
+        oscillator.type = event === "complete" ? COMPLETE_ALERT_PROFILE.oscillator : event === "error" ? "square" : event === "warning" ? "triangle" : "sine";
         oscillator.frequency.setValueAtTime(frequency, startAt);
         noteGain.gain.setValueAtTime(0.001, startAt);
         noteGain.gain.exponentialRampToValueAtTime(1, startAt + 0.015);
@@ -129,7 +129,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         oscillator.start(startAt);
         oscillator.stop(startAt + (soundEventDuration(event)));
       });
-      window.setTimeout(() => master.disconnect(), notes.length * 140 + 500);
+      window.setTimeout(() => master.disconnect(), notes.length * soundEventSpacing(event) * 1000 + soundEventDuration(event) * 1000 + 500);
     } catch { /* browsers may deny audio without a user gesture */ }
   }
   function playAlert() { playSequence("complete"); }
@@ -231,7 +231,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     onProfile(rewarded.profile, rewarded.newlyUnlocked.length ? `Hoàn thành phiên Pomodoro · +${activityReward.xpEarned} XP · mở khóa ${rewarded.newlyUnlocked.length} thành tích` : `Hoàn thành phiên Pomodoro · +${activityReward.xpEarned} XP`);
     const nextMode: Mode = autoAdvance ? (session.sessionNumber % 4 === 0 ? "longBreak" : "shortBreak") : "focus";
     setRunning(false); setSessionStartedAt(null); setMode(nextMode); setSeconds((nextMode === "longBreak" ? longBreak : nextMode === "shortBreak" ? shortBreak : focus) * 60); completionRef.current = false;
-    if (sound) { try { window.navigator.vibrate?.([100, 80, 100]); } catch { /* optional */ } playAlert(); if (rewarded.newlyUnlocked.length) playSequence("reward"); }
+    if (sound) { try { window.navigator.vibrate?.(COMPLETE_ALERT_PROFILE.vibratePattern); } catch { /* optional */ } playAlert(); if (rewarded.newlyUnlocked.length) playSequence("reward"); }
     setCompletionBanner(true);
     window.setTimeout(() => setCompletionBanner(false), 5200);
     toast.success("Một phiên nữa đã hoàn thành! Thời gian học đã được ghi nhận.");
