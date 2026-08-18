@@ -72,7 +72,7 @@
 - [ ] Sửa quyền Admin Panel để Founder được xóa Founder khác khi không phải tài khoản hệ thống, giữ bảo vệ tài khoản owner/system và thêm regression test + QA; backend/UI đã sửa, regression đạt 57 tests, TypeScript và production build đạt, còn browser QA xóa thật cần xác nhận đúng tài khoản mục tiêu.
 - [x] Điều tra và khắc phục GitHub Pages trả về lỗi không tìm thấy `index.html` khi truy cập URL site; branch `main` đã có `index.html`, Pages build trạng thái `built` và browser xác nhận URL hiển thị frontend.
 - [x] Tạo bản frontend tĩnh cho GitHub Pages và ghi rõ các chức năng backend không thể chạy trên Pages trong `github-pages-qa.md`; Pages hiện publish thành công từ branch `main` theo chế độ legacy.
-- [ ] Bật nguồn Pages kiểu GitHub Actions trong Settings và xác minh workflow deploy chạy end-to-end; hiện quyền API không cho phép đổi cấu hình Pages tự động, còn bản legacy đã hoạt động.
+- [x] Bật nguồn Pages kiểu GitHub Actions trong Settings và xác minh workflow deploy end-to-end; environment policy đã cho phép branch webdev, workflow `32031056976` build/deploy success và browser xác nhận live page.
 - [x] Khắc phục lỗi truy cập `localhost` bị `ERR_CONNECTION_REFUSED` bằng cách restart dev server; preview hiện chạy tại `https://3000-ilh4bqp66udbw8fyp31nf-3b48ee0a.us3.manus.computer/` và browser đã xác nhận tải trang.
 - [x] Khắc phục lỗi bản GitHub Pages phân tích phản hồi HTML `Unexpected token '<'` như JSON khi không có backend API; tắt query backend trên hostname `github.io`, bỏ qua session cũ, hiển thị cảnh báo static-host, sửa base path asset và browser QA đã đạt với commit Pages `bba0f52`.
 - [x] Chuyển luồng đăng nhập trực tiếp trên bản GitHub Pages sang Supabase Auth/Data API theo phương án 2B; adapter cloud-state app_state không email, RLS và browser QA form đã hoàn tất; live login thành công với tài khoản thật vẫn cần người dùng xác nhận.
@@ -160,3 +160,8 @@
 - [x] Chuyển GitHub Pages của `yen0110122009-cell/gocnhocuaong2` từ Legacy sang GitHub Actions; thêm branch `webdev/gocnhocuaong-platform` vào environment policy, rerun toàn bộ để artifact `github-pages` được upload cùng run, deploy thành công và browser xác nhận live page tải đúng giao diện từ `/gocnhocuaong2/assets`.
 
 - [x] Lấy chi tiết job `deploy`: annotation xác định branch policy từ chối branch và lần rerun failed-only thiếu artifact `github-pages`; đã thêm policy branch, rerun toàn bộ workflow, build/deploy đều success. Live QA tại run `32031056976` không còn trắng.
+
+- [ ] Tái hiện lỗi GitHub Pages không tải được danh sách thành viên và không tạo được mã thành viên; kiểm tra quyền Admin/Founder, session cloud-state, app_state response và lỗi network.
+- [ ] Sửa luồng member list/create member trên static host, bổ sung regression test và deploy lại qua GitHub Actions.
+
+- [ ] Tái hiện lỗi với phiên Admin đã xác thực: member list và create member vẫn không hoạt động; ghi nhận HTTP status/body của GET/PATCH `app_state`, kiểm tra session cloud-state và RLS trước khi sửa.

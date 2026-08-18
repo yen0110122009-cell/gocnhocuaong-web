@@ -1,6 +1,9 @@
 import { emptyAppConfig, emptyProfile, normalizeProfile, type AppConfig, type ProfileState, type StudyAccount, type StudySession } from "../../../shared/study";
 
-const SUPABASE_URL = String(import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
+function normalizeSupabaseBaseUrl(value: string) {
+  return value.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/i, "");
+}
+const SUPABASE_URL = normalizeSupabaseBaseUrl(String(import.meta.env.VITE_SUPABASE_URL ?? ""));
 const SUPABASE_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "");
 const REST_URL = `${SUPABASE_URL}/rest/v1/app_state`;
 const CLOUD_SESSION_KEY = "gocnhocuaong_cloud_session_v1";
@@ -127,4 +130,5 @@ export async function cloudLoadProfile(accountId: string): Promise<ProfileState>
 export async function cloudSaveProfile(accountId: string, profile: ProfileState) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.profiles[accountId] = normalizeProfile(profile); payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
 export async function cloudLoadConfig(): Promise<AppConfig> { return parseCloudStatePayload(await loadRow()).config; }
 export async function cloudSaveConfig(config: AppConfig) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.config = config; payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
-export const cloudStateWarning = "GitHub Pages dùng cloud-state demo qua Supabase với quyền anon; không lưu dữ liệu nhạy cảm hoặc mật khẩu quan trọng. Bản cập nhật 220a095.";
+export const cloudStateWarning = "GitHub Pages dùng cloud-state demo qua Supabase với quyền anon; không lưu dữ liệu nhạy cảm hoặc mật khẩu quan trọng. Bản cập nhật member-sync.";
+export { normalizeSupabaseBaseUrl };

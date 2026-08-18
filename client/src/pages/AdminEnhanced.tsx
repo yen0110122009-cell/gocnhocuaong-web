@@ -17,7 +17,7 @@ function tokenFromSession() {
 
 export default function AdminEnhanced({ account, config, onConfig }: Props) {
   const token = tokenFromSession();
-  const staticHost = isGitHubPages;
+  const staticHost = isGitHubPages || (typeof window !== "undefined" && window.location.hostname.endsWith("github.io"));
   const allowed = account.role === "Admin" || account.role === "Founder";
   const [tab, setTab] = useState<"members" | "museum" | "wheel">("members");
   const [form, setForm] = useState({ name: "", code: "", role: "Member" as Role });

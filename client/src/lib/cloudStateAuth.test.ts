@@ -1,8 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { emptyAppConfig } from "../../../shared/study";
-import { cloudCreateAccount, normalizeCloudName, parseCloudStatePayload, readCloudJson } from "./cloudStateAuth";
+import { cloudCreateAccount, normalizeCloudName, normalizeSupabaseBaseUrl, parseCloudStatePayload, readCloudJson } from "./cloudStateAuth";
 
 describe("GitHub Pages cloud-state adapter", () => {
+  it("normalizes project and REST Supabase URLs to one project base", () => {
+    expect(normalizeSupabaseBaseUrl("https://example.supabase.co/")).toBe("https://example.supabase.co");
+    expect(normalizeSupabaseBaseUrl("https://example.supabase.co/rest/v1/")).toBe("https://example.supabase.co");
+  });
+
   afterEach(() => { vi.restoreAllMocks(); });
   it("normalizes Vietnamese names consistently for shared code 111", () => {
     expect(normalizeCloudName("  Lumi   Ong  ")).toBe("lumi ong");
