@@ -49,14 +49,14 @@
 
 - [x] Miễn giới hạn tài khoản cho mã thành viên `111`: login/session bỏ qua trạng thái khóa, Admin không thể khóa mã này; regression test, TypeScript check và production build đã đạt.
 
-- [ ] Tạo menu truy cập nhanh và bảng điều khiển đặc biệt chỉ hiển thị cho tài khoản mã `111` sau đăng nhập; desktop authenticated QA đã đạt, còn cần mobile authenticated QA và browser QA trực tiếp với account không thuộc policy 111.
+- [x] Tạo menu truy cập nhanh và bảng điều khiển đặc biệt chỉ hiển thị cho tài khoản mã `111`; desktop/mobile authenticated QA với BY/111 đạt, và Member non-111 không thấy menu.
 
 - [x] Điều tra lỗi mã thành viên `111` vẫn không đăng nhập được: code/schema local đã sửa để bỏ unique và login theo mã+tên; execution test thật xác nhận hai account khác tên login/session 200, sai mật khẩu bị từ chối; dữ liệu QA đã dọn.
 
-- [ ] Thiết kế và triển khai policy cho nhiều tài khoản dùng mã `111`: local schema/login/create, execution test hai account, Supabase cloud migration `20260817084111`, 55 tests/build và desktop menu QA đã đạt; còn cần mobile authenticated QA và non-111 browser QA.
+- [x] Thiết kế và triển khai policy cho nhiều tài khoản dùng mã `111`: local schema/login/create, execution test hai account, Supabase cloud migration `20260817084111`, tests/build và QA desktop/mobile; non-111 browser QA đã xác nhận menu bị ẩn.
 
 - [x] Tạo hai tài khoản QA tạm thời khác tên dùng chung mã `111`, kiểm thử login độc lập/session và sai mật khẩu, rồi xóa sạch cả hai tài khoản cùng session/profile liên quan.
-- [ ] Chạy browser QA mobile trong phiên đã đăng nhập bằng tài khoản mã `111`, chụp evidence sidebar/dashboard Trung tâm 111 ở authenticated state.
+- [x] Chạy browser QA mobile trong phiên đã đăng nhập bằng tài khoản BY mã `111`, xác nhận sidebar và dashboard Trung tâm 111 ở authenticated state.
 - [x] Chạy browser QA trực tiếp với tài khoản Member `Tên 1 / MÃ 1`, xác nhận sidebar và bảng điều khiển đặc biệt mã `111` không hiển thị trong UI.
 
 - [x] Export phiên bản hiện tại của dự án lên repository GitHub `yen0110122009-cell/gocnhocuaong2`, xác minh branch `webdev/gocnhocuaong-platform` và commit `faeaad5`.
@@ -79,7 +79,7 @@
 - [x] Thêm hiệu ứng cuộn trang mượt mà bằng IntersectionObserver, tối ưu responsive mobile, thêm hỗ trợ `prefers-reduced-motion`; code/build/test và contract CSS đã đạt, browser QA trực tiếp vẫn được tách riêng bên dưới.
 - [x] Browser QA trực tiếp scroll reveal trên màn hình Thành tích nhiều section: đã cuộn qua hai viewport, card hiển thị ổn định, không có vùng trắng cố định; console xác nhận smooth scroll và reveal opacity/transform ổn định.
 - [ ] Browser QA `prefers-reduced-motion`, xác nhận animation và smooth scroll được giảm/tắt đúng.
-- [ ] Browser QA mobile cho login và dashboard/auth shell; login public ở viewport 390x844 đã đạt, còn dashboard/authenticated shell, header/search/menu cần phiên đăng nhập người dùng.
+- [x] Browser QA mobile cho login và dashboard/auth shell; viewport 390x844 đã xác nhận login public, authenticated BY/111 shell, header/menu và Trung tâm 111.
 - [x] Đối chiếu file mẫu `12.html` và sửa luồng đăng nhập hiện tại theo cách đăng nhập đã được xác minh; live QA đã xác nhận tên `BY`/mật khẩu `BYBYBY`/mã `111` và tên `Tên 1`/mật khẩu `QA1122`/mã `MÃ 1` đăng nhập thành công.
 - [x] Xác minh lại kết nối Supabase của `12.html` và đối chiếu với app hiện tại, đặc biệt Auth, RLS, redirect URL và cách gọi REST/API trên GitHub Pages; xác nhận `app_state` cho phép anon SELECT/INSERT/UPDATE và auth không email nằm trong state cloud-sync.
 - [x] Triển khai bản GitHub Pages demo theo mô hình B: login Tên + Mật khẩu + Mã thành viên, đồng bộ state qua Supabase `app_state`, không dùng service-role key; hiển thị cảnh báo dữ liệu không phù hợp cho thông tin nhạy cảm.
@@ -107,7 +107,7 @@
 - [x] Calculate and display current achievement progress percentage, current value, target, and remaining amount
 - [x] Update achievement list UI with progress bars, condition text and actionable next-step text
 - [x] Add achievement progress regression tests
-- [ ] Run browser QA on Achievements screen at desktop and mobile, verifying locked/unlocked states, condition text, progress percentage, current/target and remaining amount
+- [x] Run browser QA on Achievements screen at desktop and mobile, verifying locked/unlocked states, condition text, progress percentage, current/target and remaining amount
 
 - [x] Add clearly labeled starter achievement/reward configuration examples without fabricating user-earned progress
 - [x] Add Admin/Founder controls to create, edit, enable/disable and delete achievement milestones

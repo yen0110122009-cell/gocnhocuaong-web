@@ -33,3 +33,11 @@ Sau khi bấm `Làm mới`, giao diện hiển thị `4 tài khoản` và hàng 
 - Scroll QA trên màn hình Thành tích đã đi qua hai viewport liên tiếp ở phiên Member; các card ở vùng giữa xuất hiện với nội dung điều kiện, tiến độ, số còn thiếu và phần thưởng. Một số card đang chuyển hiệu ứng reveal tại mép viewport nhưng không có card trắng cố định hoặc lỗi layout.
 
 - Console QA live ghi nhận `document.documentElement` có `scrollBehavior: smooth`, có 902 phần tử thuộc nhóm reveal trên màn hình Thành tích và 8 phần tử mẫu đang ở `opacity: 1` cùng transform identity sau khi vào viewport. Phiên hiện tại không bật `prefers-reduced-motion`; kiểm thử emulation của media query cần viewport/devtools có hỗ trợ emulation riêng.
+
+## Achievement viewport QA — 2026-08-18
+
+Live URL: https://yen0110122009-cell.github.io/gocnhocuaong2/?v=qa-achievements-viewports-20260818
+
+Authenticated session: BY / Founder / mã 111. Desktop browser evidence xác nhận màn hình `Thành tích` tải ổn định với `900 thành tích · 9 bậc`, bộ lọc trạng thái/độ khó, progress tổng `0/900`, và các card khóa hiển thị đầy đủ điều kiện, phần thưởng, tiến độ hiện tại/mục tiêu, phần trăm và số đơn vị còn thiếu. Ví dụ card #1 hiển thị `Đạt 10 Flashcard đã nhớ`, `Tiến độ: 0/10`, `0%`, còn `10` đơn vị.
+
+Live desktop screenshot: `/home/ubuntu/screenshots/yen0110122009-cell_g_2026-08-18_14-50-03_1971.webp`. Mobile login/dashboard shell ở viewport 390x844 đã được QA trước đó; mobile-specific Achievement viewport vẫn cần xác nhận riêng bằng emulation trước khi đóng mục TODO tương ứng.
