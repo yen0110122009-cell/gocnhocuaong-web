@@ -319,3 +319,10 @@
 - [x] Bổ sung Kho Đổi Thưởng, quy đổi mảnh trực tiếp và tỷ lệ cấu hình được bởi Admin.
 - [x] Tạo trang giải thích minh bạch cho Thành tích, Danh hiệu, Mảnh ghép, Event, Cửa hàng và Phần thưởng.
 - [x] Thiết kế database contract cho các bảng achievement, title, character, piece, reward, event, shop, admin transaction và audit log; viết regression/QA tương ứng.
+
+- [x] Bổ sung đầy đủ metadata giao dịch mảnh: transaction_id, user_id, piece_type, quantity, source_type, source_id, reason và created_at.
+- [x] Bổ sung reward_claimed/claimed_at và unique claim key để chống nhận lại phần thưởng khi reload hoặc retry.
+- [x] Bảo đảm giao dịch nguyên tử, kiểm tra số dư/điều kiện trước khi ghi và tuyệt đối không phát sinh mảnh âm.
+- [x] Bổ sung audit log cho grant, spend, exchange, admin grant/revoke và reward claim.
+- [x] Tạo checklist tự kiểm tra toàn bộ yêu cầu 900/400, mảnh, nhân vật lịch sử, Event, cửa hàng, phần thưởng và tính minh bạch.
+- [x] Viết regression cho duplicate/concurrent claims, số dư âm, transaction metadata, audit và browser QA checklist.

@@ -126,8 +126,41 @@ export type FragmentRewardGrant = { tier: FragmentTier; amount: number; label?: 
 export type LearningMilestone = { id: string; label: string; studySeconds: number; rewards: FragmentRewardGrant[]; achievementPoints?: number; enabled: boolean };
 export type AdminReward = { id: string; name: string; type: "achievement_points" | "piece" | "ticket" | "cosmetic" | "mascot_item" | "profile_item"; value: number; rarity: "common" | "rare" | "epic" | "legendary"; icon: string; description: string; condition: string; active: boolean; createdAt: string; updatedAt: string };
 export type PieceExchangeRule = { id: string; fromTier: FragmentTier; fromAmount: number; toTier: FragmentTier; toAmount: number; enabled: boolean };
-export type PieceTransaction = { id: string; occurredAt: string; source: string; type: "grant" | "spend" | "exchange" | "refund"; tier: FragmentTier; amount: number; value: number; claimKey?: string; description?: string; relatedId?: string };
-export type RewardAuditLog = { id: string; occurredAt: string; actor: string; action: string; entityType: string; entityId: string; summary: string };
+export type PieceTransaction = {
+  id: string;
+  occurredAt: string;
+  source: string;
+  sourceType: RewardSourceKind | "collectionProfile" | "collectionShop" | "admin";
+  sourceId: string;
+  reason: string;
+  type: "grant" | "spend" | "exchange" | "refund";
+  tier: FragmentTier;
+  amount: number;
+  value: number;
+  claimKey?: string;
+  description?: string;
+  relatedId?: string;
+  userId?: string;
+};
+export type RewardClaimReceipt = {
+  claimKey: string;
+  sourceType: string;
+  sourceId: string;
+  reason: string;
+  claimedAt: string;
+  amount: number;
+  transactionIds: string[];
+};
+export type RewardAuditLog = {
+  id: string;
+  occurredAt: string;
+  actor: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  summary: string;
+  metadata?: Record<string, string | number | boolean | null>;
+};
 export type RewardSourceExplanation = { sourceId: string; label: string; description: string; dailyCap?: number; claimLimit?: number; rewards: FragmentRewardGrant[] };
 export type FragmentRewardSourceRule = {
   id: string;
@@ -455,6 +488,8 @@ export type ProfileState = {
   rewardAuditLogs?: RewardAuditLog[];
   claimedMilestones?: Record<string, string>;
   claimedPieceExchanges?: Record<string, number>;
+  rewardClaims?: Record<string, RewardClaimReceipt>;
+  achievementRewardClaims?: Record<string, RewardClaimReceipt>;
 };
 
 export type PomodoroSession = {
@@ -577,6 +612,12 @@ export const emptyProfile = (): ProfileState => ({
   fragmentRewardClaims: {},
   eventProgress: {},
   claimedEventRewards: {},
+  rewardClaims: {},
+  achievementRewardClaims: {},
+  rewardAuditLogs: [],
+  pieceTransactions: [],
+  claimedMilestones: {},
+  claimedPieceExchanges: {},
   deepLearningEvents: [],
 });
 
