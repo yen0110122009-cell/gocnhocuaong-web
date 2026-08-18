@@ -11,11 +11,11 @@ const quizPersistence = readFileSync(join(process.cwd(), "shared/quizPersistence
 
 describe("Góc học tập end-to-end contracts", () => {
   it("renders the Catalog completion progressbar with 900/400 totals", () => {
-    expect(home).toContain('aria-label="Tiến trình mở khóa thành tích"');
+    expect(home).toContain('aria-label="Tiến bộ trên 900 thành tích"');
     expect(home).toContain('aria-valuemax={100}');
     expect(home).toContain('const list = Array.isArray(raw) ? raw : raw?.cards');
-    expect(home).toContain("earned.length}/{all.length} đã mở");
-    expect(home).toContain("all.filter((a) => a.title).length} danh hiệu có sẵn");
+    expect(home).toContain("Đã mở {earned.length} dấu mốc");
+    expect(home).toContain("titleAchievements.length}/400");
     expect(home).toContain("Điều kiện:");
     expect(home).toContain("a.currentValue.toLocaleString");
     expect(home).toContain("a.remaining.toLocaleString");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allAchievementsWithProgress, emptyAppConfig, emptyProfile } from "./study";
+import { allAchievementsWithProgress, emptyAppConfig, emptyProfile, generateAchievements } from "./study";
 
 describe("achievement progress", () => {
   it("reports current value, percentage and remaining target for locked achievements", () => {
@@ -22,6 +22,15 @@ describe("achievement progress", () => {
     expect(achievement?.threshold).toBeGreaterThan(4);
     expect(achievement?.progress).toBe(Math.round(4 / (achievement?.threshold ?? 1) * 100));
     expect(achievement?.remaining).toBe((achievement?.threshold ?? 0) - 4);
+  });
+
+  it("generates the public 900-achievement catalog with 400 final titles", () => {
+    const catalog = generateAchievements();
+    expect(catalog).toHaveLength(900);
+    expect(new Set(catalog.map((item) => item.rank)).size).toBe(9);
+    expect(catalog.filter((item) => item.title).length).toBe(400);
+    expect(catalog.slice(500).every((item) => Boolean(item.title))).toBe(true);
+    expect(catalog.every((item) => item.isSecret !== true)).toBe(true);
   });
 
   it("includes enabled custom achievements with the same progress contract", () => {

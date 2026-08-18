@@ -281,3 +281,9 @@
 - [x] Tinh chỉnh thông điệp tiến độ thành tích theo hướng ghi nhận số dấu mốc đã mở khóa, không tạo cảm giác phải đạt 100%.
 - [x] Mở rộng Bảo tàng Hành trình theo mốc năm/tháng, hiện vật achievement có câu chuyện và trạng thái rỗng thân thiện.
 - [x] Chạy regression test và browser QA responsive cho trải nghiệm thành tích/Bảo tàng sau thay đổi.
+
+- [x] Mở rộng catalog thành 900 thành tích công khai, chia đều thành 9 nhóm với cấp độ dễ đến rất khó.
+- [x] Chuyển 400 mốc cuối thành 400 danh hiệu công khai, hiển thị tên, ý nghĩa, điều kiện, tiến độ, phần thưởng, độ hiếm và giải thích liên quan.
+- [x] Loại bỏ trạng thái ẩn/bí mật trên toàn bộ giao diện achievement; mục chưa đạt phải hiển thị đầy đủ thông tin và trạng thái 🔒 Chưa đạt.
+- [x] Hoàn thiện hệ thống mảnh ghép: nguồn nhận, số lượng, công dụng, ngưỡng ghép, đã nhận, còn thiếu và thành phẩm.
+- [x] Bổ sung regression, hiệu năng và browser QA cho catalog 900 achievement/400 danh hiệu trên desktop và mobile.
