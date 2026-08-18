@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { emotionFromCommand, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 
 type Props = { selected: EmotionId; onSelect: (id: EmotionId) => void; onStartTwoMinutes?: () => void };

@@ -23,6 +23,9 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("Ong vs Trì hoãn");
     expect(studioSource).toContain("#c62828");
     expect(studioSource).toContain("#2e7d32");
-    expect(studioSource).toContain("mascotImages");
+    expect(studioSource).toContain("companionImage");
+    expect(studioSource).toContain("learnerImage");
+    expect(studioSource).toContain("lumi-mascot-clean_28a6da68.png");
+    expect(studioSource).toContain("study-historia-bee-mascot_45260784.png");
   });
 });

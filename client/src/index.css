@@ -184,3 +184,19 @@ body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%
 @media (prefers-reduced-motion: reduce) {
   .pomodoro-starting, .pomodoro-complete { animation: none !important; }
 }
+
+/* Dark mode contrast guard: giữ nhận diện đỏ/xanh nhưng bảo đảm chữ dễ đọc. */
+.dark body, .dark #root > div.min-h-screen { background: #171b18 !important; color: #f4f7f2 !important; }
+.dark #root > div.min-h-screen > aside, .dark #root > div.min-h-screen header { background: rgba(24, 31, 27, .97) !important; border-color: rgba(157, 214, 160, .24) !important; }
+.dark main, .dark main p, .dark main span, .dark main small, .dark main label, .dark main h1, .dark main h2, .dark main h3, .dark main h4, .dark main b, .dark main strong, .dark main li { color: #edf5ed; }
+.dark .panel, .dark .study-card, .dark article, .dark section, .dark [class*="bg-white"], .dark [class*="bg-[#fff"], .dark [class*="bg-[#eff"], .dark [class*="bg-[#f5fff"] { background-color: #202a23 !important; border-color: rgba(157, 214, 160, .22) !important; }
+.dark [class*="text-[#7f1d1d"], .dark [class*="text-[#8e1b1b"], .dark [class*="text-[#6f2424"], .dark [class*="text-[#6b4a1f"], .dark [class*="text-[#5b1717"] { color: #ffd6d0 !important; }
+.dark [class*="text-[#3f513f"], .dark [class*="text-[#35523a"], .dark [class*="text-[#6f5a53"], .dark [class*="text-slate-500"], .dark [class*="text-slate-600"] { color: #c9d8cb !important; }
+.dark [class*="text-[#2e7d32"], .dark [class*="text-[#237a57"] { color: #a9e6ad !important; }
+.dark input, .dark textarea, .dark select, .dark .field, .dark .input { background-color: #111713 !important; color: #f4f7f2 !important; border-color: rgba(169, 230, 173, .4) !important; }
+.dark input::placeholder, .dark textarea::placeholder { color: #aebdb0 !important; opacity: 1; }
+.dark .emotion-studio, .dark .pomodoro-journey { background: linear-gradient(135deg, #202a23 0%, #242126 100%) !important; }
+.dark .pomodoro-starting { background-image: linear-gradient(135deg, #352424, #203126) !important; }
+.dark .secondary-button, .dark .icon-button { background-color: #26352a !important; color: #e8f5e9 !important; border-color: rgba(169, 230, 173, .35) !important; }
+.dark .secondary-button:hover, .dark .icon-button:hover { background-color: #34513b !important; }
+.dark .achievement-card--locked, .dark .fragment-tile--missing { background: #242b26 !important; color: #cad7cb !important; opacity: 1; }

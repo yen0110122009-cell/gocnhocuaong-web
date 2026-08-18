@@ -210,3 +210,4 @@
 - [x] Khôi phục tiếp Background “thở”, chuyển cảnh theo thời gian, Comeback, trì hoãn analytics và hộp nhiệm vụ ngẫu nhiên theo roadmap.
 - [x] Sửa mapping mascot: Lumi là bạn đồng hành an ủi/động viên theo cảm xúc; Ong vàng là người học/người dùng.
 - [x] Thêm quản trị ảnh Lumi cho từng nhiệm vụ, mốc học tập hoặc phần thưởng; giữ ảnh Ong vàng mặc định cho người học.
+- [x] Sửa độ tương phản dark mode: chữ, card, input, placeholder, tiêu đề và trạng thái phải dễ đọc.
