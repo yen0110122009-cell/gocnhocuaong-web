@@ -15,6 +15,15 @@ describe("Master Build catalog contract", () => {
     expect(validateMasterCatalog(achievements, titles)).toEqual({ valid: true, errors: [] });
   });
 
+  it("keeps nine levels of one hundred and public topic metadata", () => {
+    const achievements = achievementCatalogRows();
+    expect(new Set(achievements.map((item) => item.level))).toEqual(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]));
+    for (let level = 1; level <= 9; level += 1) expect(achievements.filter((item) => item.level === level)).toHaveLength(100);
+    expect(new Set(achievements.map((item) => item.topic)).size).toBe(9);
+    expect(achievements.every((item) => item.tags.length > 0 && item.name && item.description && item.threshold > 0)).toBe(true);
+    expect(achievements.every((item) => !/hidden|secret|mystery|\?\?\?/i.test(`${item.name} ${item.description}`))).toBe(true);
+  });
+
   it("keeps title references one-to-one with special achievements", () => {
     const achievements = achievementCatalogRows();
     const titles = titleCatalogRows();

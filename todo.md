@@ -326,3 +326,12 @@
 - [x] Bổ sung audit log cho grant, spend, exchange, admin grant/revoke và reward claim.
 - [x] Tạo checklist tự kiểm tra toàn bộ yêu cầu 900/400, mảnh, nhân vật lịch sử, Event, cửa hàng, phần thưởng và tính minh bạch.
 - [x] Viết regression cho duplicate/concurrent claims, số dư âm, transaction metadata, audit và browser QA checklist.
+
+- [x] Đối chiếu và chuẩn hóa 900 thành tích theo 9 nhóm chủ đề, mỗi nhóm đúng 100 mục, hiển thị toàn bộ không ẩn.
+- [x] Bảo đảm 400 thành tích đặc biệt cuối catalog hiển thị như 400 danh hiệu, mỗi mục có tên, điều kiện, tiến độ, phần thưởng, ý nghĩa, nguồn/cảm hứng và giải thích.
+- [x] Bổ sung/kiểm tra tag phụ cho thành tích và bộ lọc theo 9 nhóm chủ đề.
+- [x] Bảo đảm mảnh ghép dùng cho hồ sơ hình ảnh nhân vật lịch sử, có giá trị tăng nghiêm ngặt theo độ khó, cửa hàng và quy đổi cấu hình được.
+- [x] Bảo đảm Admin CRUD cho thành tích, danh hiệu, mảnh ghép, nhân vật lịch sử, phần thưởng và Event.
+- [x] Bổ sung khu vực prompt mẫu để Admin yêu cầu AI đề xuất dữ liệu; mọi nội dung AI phải qua duyệt thủ công trước khi thêm vào catalog.
+- [x] Bổ sung regression cho 9 nhóm × 100, 900/400, công khai điều kiện/phần thưởng, tag phụ, prompt AI và trạng thái duyệt.
+- [ ] Chạy browser QA responsive cho Catalog, Danh hiệu, Kho/Cửa hàng, Event và Admin content tools.

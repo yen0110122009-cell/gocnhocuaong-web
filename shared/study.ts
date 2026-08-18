@@ -522,6 +522,19 @@ export type StudySession = {
 
 export type AchievementMetric = "xp" | "learnedCards" | "completedQuizzes" | "completedSets" | "fragments" | "pomodoroSessions";
 export type AchievementConditionType = AchievementMetric | "currentStreak" | "bestStreak" | "studySeconds" | "deepFocusSessions";
+export const achievementTopics = [
+  { id: "study", label: "📚 Học tập" },
+  { id: "pomodoro", label: "🍅 Pomodoro" },
+  { id: "discipline", label: "🔥 Kỷ luật" },
+  { id: "deep-understanding", label: "🧠 Hiểu tận gốc" },
+  { id: "exam", label: "📝 Làm đề" },
+  { id: "journal", label: "📔 Nhật ký" },
+  { id: "anti-procrastination", label: "🫠 Chống trì hoãn" },
+  { id: "journey", label: "🏆 Thành tựu & hành trình" },
+  { id: "collection", label: "🐝 Khám phá & sưu tầm" },
+] as const;
+export type AchievementTopicId = (typeof achievementTopics)[number]["id"];
+export type AchievementTopic = (typeof achievementTopics)[number]["label"];
 export type AchievementCondition = {
   id: string;
   label: string;
@@ -539,7 +552,13 @@ export type Achievement = {
   achievementCode: string;
   rank: number;
   rankName: string;
+  /** Cấp độ catalog 1–9; mỗi cấp độ luôn có đúng 100 mục. */
+  level: number;
+  levelLabel: string;
   group: string;
+  topic: AchievementTopicId;
+  topicLabel: AchievementTopic;
+  tags: string[];
   icon: string;
   name: string;
   description: string;
@@ -789,6 +808,12 @@ export function generateAchievements(): Achievement[] {
     for (let withinRank = 0; withinRank < 100; withinRank += 1) {
       const index = rank * 100 + withinRank;
       const metric = metrics[index % metrics.length];
+      const topic = achievementTopics[index % achievementTopics.length];
+      const topicTags: Record<AchievementTopicId, string[]> = {
+        study: ["kiến thức", "ôn tập"], pomodoro: ["tập trung", "thời gian"], discipline: ["bền bỉ", "thói quen"],
+        "deep-understanding": ["giải thích", "sửa lỗi"], exam: ["đề", "kết quả"], journal: ["phản tư", "ghi chép"],
+        "anti-procrastination": ["bắt đầu", "quay lại"], journey: ["mốc đường", "tiến bộ"], collection: ["mảnh ghép", "lịch sử"],
+      };
       const growth = Math.pow(1.055, withinRank) * Math.pow(rank + 1, 1.55);
       const base = metric === "xp" ? 250 : metric === "learnedCards" ? 10 : metric === "completedQuizzes" ? 3 : metric === "completedSets" ? 2 : metric === "pomodoroSessions" ? 10 : 3;
       const specialIndex = index - 500;
@@ -803,7 +828,12 @@ export function generateAchievements(): Achievement[] {
         achievementCode: `ACH-${String(index + 1).padStart(3, "0")}`,
         rank: rank + 1,
         rankName,
+        level: rank + 1,
+        levelLabel: rankName,
         group: rankName,
+        topic: topic.id,
+        topicLabel: topic.label,
+        tags: [...topicTags[topic.id], difficultyLabel ?? difficulty],
         icon,
         name: `${rankName} ${withinRank + 1}`,
         description: `Đạt ${threshold.toLocaleString("vi-VN")} ${metricLabels[metric]}.`,
@@ -864,7 +894,7 @@ export function advancedAchievementCards(profile: ProfileState): Achievement[] {
     { id: "advanced-error-recovery", icon: "🛡️", name: "Đã vượt qua lỗi cũ", description: "Ong đã ghi nhận và xử lý lại nhiều lỗi thay vì né tránh chúng.", threshold: 3, currentValue: fixedErrorCount, rewardXp: 25, encouragement: "Ong không cần hoàn hảo, chỉ cần tiến bộ thật." },
     { id: "advanced-self-improvement", icon: "📈", name: "Tốt hơn chính mình", description: "Thời lượng học tuần này cao hơn tuần trước dựa trên lịch sử học đã lưu.", threshold: 1, currentValue: recentMinutes > previousMinutes && completed.length > 0 ? 1 : 0, rewardXp: 20, encouragement: "Ong đang so sánh với chính mình của ngày hôm qua." },
   ];
-  return cards.map((card) => { const now = new Date().toISOString(); const progress = Math.min(100, Math.round((card.currentValue / card.threshold) * 100)); return ({ ...card, achievementCode: `ADV-${card.id.toUpperCase()}`, rank: 7, rankName: "Tiến bộ", group: "Tiến bộ", metric: "xp" as const, conditionType: "xp" as const, conditionParameters: { target: card.threshold }, conditions: [], rewardFragments: 0, rewardType: "xp" as const, rewardAmount: card.rewardXp, pieceReward: 0, pieceTier: "I" as const, title: null, titleMeaning: null, difficulty: "Khó" as const, badgeLabel: "Thành tích tiến bộ", progress, currentValue: card.currentValue, remaining: Math.max(0, card.threshold - card.currentValue), animation: "glow" as const, unlockedAt: profile.achievementUnlockDates[card.id] ?? null, createdAt: now, updatedAt: now, evidence: [] }); });
+  return cards.map((card) => { const now = new Date().toISOString(); const progress = Math.min(100, Math.round((card.currentValue / card.threshold) * 100)); return ({ ...card, achievementCode: `ADV-${card.id.toUpperCase()}`, rank: 7, rankName: "Tiến bộ", level: 7, levelLabel: "Vô Cực", group: "Tiến bộ", topic: "journey" as const, topicLabel: "🏆 Thành tựu & hành trình" as const, tags: ["tiến bộ", "phản tư"], metric: "xp" as const, conditionType: "xp" as const, conditionParameters: { target: card.threshold }, conditions: [], rewardFragments: 0, rewardType: "xp" as const, rewardAmount: card.rewardXp, pieceReward: 0, pieceTier: "I" as const, title: null, titleMeaning: null, difficulty: "Khó" as const, badgeLabel: "Thành tích tiến bộ", progress, currentValue: card.currentValue, remaining: Math.max(0, card.threshold - card.currentValue), animation: "glow" as const, unlockedAt: profile.achievementUnlockDates[card.id] ?? null, createdAt: now, updatedAt: now, evidence: [] }); });
 }
 
 const conditionLabels: Record<AchievementConditionType, string> = {
@@ -925,7 +955,12 @@ export function allAchievementsWithProgress(profile: ProfileState, config: AppCo
       achievementCode: `CUSTOM-${item.id.toUpperCase()}`,
       rank: 9,
       rankName: "Tùy chỉnh",
+      level: 9,
+      levelLabel: "Huyền Thoại",
       group: "Tùy chỉnh",
+      topic: "journey",
+      topicLabel: "🏆 Thành tựu & hành trình",
+      tags: ["admin", "tùy chỉnh"],
       icon: "🏆",
       name: item.name,
       description: item.description,
