@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assembleCharacter, collectNextCharacterPiece, getCharacterProgress, validateHistoricalCharacterDraft } from "./fragmentSystem";
+import { assembleCharacter, collectionValueBalance, collectNextCharacterPiece, exchangeCollectionTickets, getCharacterProgress, purchaseCollectionItem, unlockCharacterProfileLevel, validateHistoricalCharacterDraft } from "./fragmentSystem";
 import { emptyProfile } from "./study";
 
 const character = {
@@ -36,6 +36,24 @@ describe("fragment character lifecycle", () => {
     expect(assembled.progress.status).toBe("unlocked");
     expect(assembled.progress.usedPieceIds).toHaveLength(3);
     expect(assembleCharacter(assembled.profile, character).assembled).toBe(false);
+  });
+
+  it("uses configured tier values and spends the same ledger for profile upgrades, tickets, and shop items", () => {
+    const configuredCharacter = { ...character, profileLevels: [{ id: "bio", label: "Tiểu sử mở rộng", requiredValue: 3, description: "Mở phần tiểu sử có nguồn." }] };
+    const config = { characters: [configuredCharacter], collectionConfig: { tierValues: [{ tier: "I", label: "Phổ thông", value: 2, rarity: "common", enabled: true }, { tier: "III", label: "Hiếm", value: 8, rarity: "rare", enabled: true }], ticketExchange: { fragmentValue: 4, tickets: 1, enabled: true }, shopItems: [{ id: "frame", name: "Khung lịch sử", description: "Khung hồ sơ", kind: "profileFrame", price: 1, currency: "collectionTicket", rarity: "common", stock: 2, enabled: true }] } } as any;
+    let profile = emptyProfile();
+    for (let index = 0; index < 3; index += 1) profile = collectNextCharacterPiece(profile, configuredCharacter).profile;
+    expect(collectionValueBalance(config, profile)).toBe(12);
+    profile = { ...assembleCharacter(profile, configuredCharacter).profile };
+    const upgraded = unlockCharacterProfileLevel(config, profile, configuredCharacter, "bio");
+    expect(upgraded.unlocked).toBe(true);
+    expect(collectionValueBalance(config, upgraded.profile)).toBe(9);
+    const exchanged = exchangeCollectionTickets(config, upgraded.profile, 4);
+    expect(exchanged.exchanged).toBe(true);
+    expect(exchanged.profile.collectionTickets).toBe(1);
+    const purchased = purchaseCollectionItem(config, exchanged.profile, config.collectionConfig.shopItems[0]);
+    expect(purchased.purchased).toBe(true);
+    expect(purchased.profile.collectionInventory).toContain("frame");
   });
 
   it("keeps an existing member's progress isolated and validates source completeness", () => {

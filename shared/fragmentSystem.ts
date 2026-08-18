@@ -3,11 +3,75 @@ import type {
   CharacterProgress,
   CharacterSource,
   CharacterUnlockStatus,
+  CollectionShopItem,
   FragmentPiece,
+  FragmentTier,
   HistoricalCharacter,
   ProfileState,
   SourceVerificationStatus,
 } from "./study";
+
+export const fragmentTierValues: Record<FragmentTier, number> = { I: 1, II: 3, III: 8, IV: 20, V: 50, VI: 120 };
+
+export function configuredFragmentValue(config: AppConfig, tier: FragmentTier = "I") {
+  return Math.max(1, Number(config.collectionConfig?.tierValues?.find((item) => item.tier === tier)?.value ?? fragmentTierValues[tier]));
+}
+
+export function characterCollectionValue(config: AppConfig, character: HistoricalCharacter, profile: ProfileState) {
+  const progress = getCharacterProgress(profile, character);
+  const pieces = piecesForCharacter(character);
+  return progress.collectedPieceIds.reduce((sum, pieceId) => {
+    const piece = pieces.find((item) => item.id === pieceId);
+    const tier: FragmentTier = piece?.rarity === "legendary" ? "VI" : piece?.rarity === "special" ? "IV" : piece?.rarity === "rare" ? "III" : "I";
+    return sum + configuredFragmentValue(config, tier);
+  }, 0);
+}
+
+export function totalCollectionValue(config: AppConfig, profile: ProfileState, characters = visibleCharacters(config)) {
+  return characters.reduce((sum, character) => sum + characterCollectionValue(config, character, profile), 0);
+}
+
+export function collectionTicketQuote(config: AppConfig, value: number) {
+  const quote = config.collectionConfig?.ticketExchange;
+  if (!quote?.enabled || quote.fragmentValue <= 0 || quote.tickets <= 0) return { tickets: 0, remainingValue: Math.max(0, value) };
+  const bundles = Math.floor(Math.max(0, value) / quote.fragmentValue);
+  return { tickets: bundles * quote.tickets, remainingValue: Math.max(0, value - bundles * quote.fragmentValue) };
+}
+
+export function collectionValueBalance(config: AppConfig, profile: ProfileState) {
+  return Math.max(0, totalCollectionValue(config, profile) - Math.max(0, profile.collectionValueSpent ?? 0));
+}
+
+export function profileLevelState(profile: ProfileState, character: HistoricalCharacter) {
+  const progress = getCharacterProgress(profile, character);
+  return new Set(progress.unlockedProfileLevelIds ?? []);
+}
+
+export function unlockCharacterProfileLevel(config: AppConfig, profile: ProfileState, character: HistoricalCharacter, levelId: string) {
+  const level = character.profileLevels?.find((item) => item.id === levelId);
+  const progress = getCharacterProgress(profile, character);
+  if (!level || progress.status !== "unlocked" || profileLevelState(profile, character).has(levelId)) return { profile, unlocked: false, reason: "not_available" as const };
+  const available = collectionValueBalance(config, profile);
+  if (available < level.requiredValue) return { profile, unlocked: false, reason: "insufficient_value" as const };
+  const nextProgress = { ...progress, unlockedProfileLevelIds: [...(progress.unlockedProfileLevelIds ?? []), levelId] };
+  return { profile: { ...profile, collectionValueSpent: Math.max(0, profile.collectionValueSpent ?? 0) + level.requiredValue, characterProgress: { ...profile.characterProgress, [character.id]: nextProgress } }, unlocked: true, reason: "ok" as const };
+}
+
+export function exchangeCollectionTickets(config: AppConfig, profile: ProfileState, value: number) {
+  const quote = collectionTicketQuote(config, value);
+  const available = collectionValueBalance(config, profile);
+  if (!quote.tickets || value <= 0 || available < value) return { profile, exchanged: false, tickets: 0, reason: "insufficient_value" as const };
+  return { profile: { ...profile, collectionTickets: Math.max(0, profile.collectionTickets ?? 0) + quote.tickets, collectionValueSpent: Math.max(0, profile.collectionValueSpent ?? 0) + value }, exchanged: true, tickets: quote.tickets, reason: "ok" as const };
+}
+
+export function purchaseCollectionItem(config: AppConfig, profile: ProfileState, item: CollectionShopItem) {
+  if (!item.enabled || (item.stock !== null && item.stock <= 0) || (profile.collectionInventory ?? []).includes(item.id)) return { profile, purchased: false, reason: "unavailable" as const };
+  const currentTickets = Math.max(0, profile.collectionTickets ?? 0);
+  const currentValue = collectionValueBalance(config, profile);
+  if (item.currency === "collectionTicket" && currentTickets < item.price) return { profile, purchased: false, reason: "insufficient_currency" as const };
+  if (item.currency === "fragmentValue" && currentValue < item.price) return { profile, purchased: false, reason: "insufficient_currency" as const };
+  return { profile: { ...profile, collectionTickets: item.currency === "collectionTicket" ? currentTickets - item.price : currentTickets, collectionValueSpent: item.currency === "fragmentValue" ? Math.max(0, profile.collectionValueSpent ?? 0) + item.price : profile.collectionValueSpent, collectionInventory: [...(profile.collectionInventory ?? []), item.id] }, purchased: true, reason: "ok" as const };
+}
 
 export const fragmentFlow = [
   "study",

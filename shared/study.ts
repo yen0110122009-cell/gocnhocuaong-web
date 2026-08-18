@@ -115,6 +115,11 @@ export type StudyActivity = {
 };
 
 export type FragmentRarity = "common" | "rare" | "special" | "legendary";
+export type FragmentTier = "I" | "II" | "III" | "IV" | "V" | "VI";
+export type FragmentTierConfig = { tier: FragmentTier; label: string; value: number; rarity: FragmentRarity; enabled: boolean };
+export type CollectionProfileLevel = { id: string; label: string; requiredValue: number; description: string; unlocked: boolean };
+export type CollectionShopItem = { id: string; name: string; description: string; kind: "profileFrame" | "profileBackground" | "icon" | "decorativeBadge" | "mascotAccessory" | "profileEffect" | "historyTheme"; price: number; currency: "collectionTicket" | "fragmentValue"; rarity: "common" | "rare" | "epic" | "legendary"; stock: number | null; enabled: boolean };
+export type CollectionConfig = { tierValues: FragmentTierConfig[]; ticketExchange: { fragmentValue: number; tickets: number; enabled: boolean }; shopItems: CollectionShopItem[] };
 export type SourceVerificationStatus = "verified" | "unverified" | "missing";
 export type CharacterUnlockStatus = "locked" | "assembling" | "ready" | "unlocked";
 
@@ -166,6 +171,7 @@ export type CharacterProgress = {
   status: CharacterUnlockStatus;
   assembledAt: string | null;
   unlockedAt: string | null;
+  unlockedProfileLevelIds?: string[];
 };
 
 export type HistoricalCharacter = {
@@ -184,6 +190,11 @@ export type HistoricalCharacter = {
   imageUrl: string;
   imageSource: string;
   fragmentTotal: number;
+  fragmentCost?: number;
+  period?: string;
+  dynasty?: string;
+  field?: string;
+  profileLevels?: CollectionProfileLevel[];
   timeline: CharacterTimeline[];
   updatedAt: string;
   coverImage?: string;
@@ -326,6 +337,7 @@ export type AppConfig = {
   wheelRewards: WheelReward[];
   wheelTicketsPerAchievement: number;
   dailyFragmentCap: number;
+  collectionConfig?: CollectionConfig;
   achievementOverrides: AchievementOverride[];
   customAchievements: CustomAchievement[];
   levelDefinitions?: LevelDefinition[];
@@ -370,7 +382,10 @@ export type ProfileState = {
   ownedBadges: string[];
   activeTitle: string | null;
   wheelTickets: number;
+  collectionTickets?: number;
   inventory: string[];
+  collectionInventory?: string[];
+  collectionValueSpent?: number;
   achievementUnlockDates: Record<string, string>;
   soundEnabled: boolean;
   theme: "light" | "dark";
@@ -542,6 +557,18 @@ export const emptyAppConfig = (): AppConfig => ({
   ],
   wheelTicketsPerAchievement: 1,
   dailyFragmentCap: 10,
+  collectionConfig: {
+    tierValues: [
+      { tier: "I", label: "Cấp I · Phổ thông", value: 1, rarity: "common", enabled: true },
+      { tier: "II", label: "Cấp II · Thường", value: 3, rarity: "common", enabled: true },
+      { tier: "III", label: "Cấp III · Hiếm", value: 8, rarity: "rare", enabled: true },
+      { tier: "IV", label: "Cấp IV · Quý", value: 20, rarity: "special", enabled: true },
+      { tier: "V", label: "Cấp V · Sử thi", value: 50, rarity: "special", enabled: true },
+      { tier: "VI", label: "Cấp VI · Huyền thoại", value: 120, rarity: "legendary", enabled: true },
+    ],
+    ticketExchange: { fragmentValue: 10, tickets: 1, enabled: true },
+    shopItems: [],
+  },
   achievementOverrides: [],
   levelDefinitions: DEFAULT_LEVEL_DEFINITIONS,
   customAchievements: [

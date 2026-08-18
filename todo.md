@@ -297,3 +297,10 @@
 - [x] Bổ sung ý nghĩa, giải thích tên, nguồn cảm hứng và cách diễn đạt thận trọng cho từng danh hiệu; không khẳng định sai nguồn ca dao/tục ngữ.
 - [x] Bổ sung metadata phần thưởng danh hiệu gồm điểm thành tích, mảnh ghép lịch sử, vé đổi vật phẩm và vật phẩm trang trí.
 - [x] Viết regression và browser QA cho thứ tự hiển thị, metadata danh hiệu, điều kiện công khai và phần thưởng responsive.
+
+- [x] Chuyển mô hình mảnh ghép từ ghép tranh sang mở khóa và hoàn thiện hồ sơ nhân vật lịch sử.
+- [x] Lưu bảng giá trị quy đổi cho sáu cấp mảnh trong dữ liệu cấu hình/database, bảo đảm cấp cao luôn có giá trị lớn hơn.
+- [x] Bổ sung các lớp mở khóa hồ sơ nhân vật: cơ bản, tiểu sử mở rộng, dòng thời gian, sự kiện, thành tựu, câu nói có nguồn và tư liệu học tập.
+- [x] Bổ sung quy đổi mảnh thành Vé Sưu Tầm theo tỷ lệ cấu hình trong Admin.
+- [x] Xây dựng Cửa hàng Sưu tầm với vật phẩm, giá, loại tiền, độ hiếm, số lượng và trạng thái.
+- [x] Viết kiểm thử ledger/kinh tế, kiểm tra dữ liệu lịch sử có nguồn và browser QA responsive cho Kho/Cửa hàng.
