@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Award, CirclePlus, Download, Filter, Gift, MessageCircle, Mic, Search, Square, Trash2, Upload } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 import { DEFAULT_LEVEL_DEFINITIONS, type AppConfig, type ContentContext, type ContentImportEnvelope, type ContentKind, type ContentModule, type ContentTone, type CustomAchievement, type CustomContentItem, type Encouragement, type HistoricalCharacter, type MascotStateItem, type StudyAccount, type WheelReward } from "../../../shared/study";
 
 type Props = { account: StudyAccount; config: AppConfig; onConfig: (config: AppConfig, message?: string) => void };
@@ -31,6 +32,10 @@ export default function AdminContentHub({ account, config, onConfig }: Props) {
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [voicePreviewUrl, setVoicePreviewUrl] = useState("");
   const [voiceFileName, setVoiceFileName] = useState("lumi-voice-line.webm");
+  const [voiceState, setVoiceState] = useState("achievement_unlocked");
+  const voiceUpload = trpc.study.admin.uploadVoiceLine.useMutation({
+    onError: (error) => toast.error(error.message || "Không thể lưu bản ghi âm."),
+  });
   const voiceRecorderRef = useRef<MediaRecorder | null>(null);
   const voiceChunksRef = useRef<Blob[]>([]);
   const allowed = account.role === "Admin" || account.role === "Founder";
@@ -54,6 +59,24 @@ export default function AdminContentHub({ account, config, onConfig }: Props) {
   };
   const stopVoiceRecording = () => { voiceRecorderRef.current?.stop(); voiceRecorderRef.current = null; setIsRecordingVoice(false); };
   const downloadVoiceRecording = () => { if (!voicePreviewUrl) return; const link = document.createElement("a"); link.href = voicePreviewUrl; link.download = voiceFileName.trim() || "mascot-voice-line.webm"; link.click(); };
+  const uploadVoiceRecording = async () => {
+    if (!voicePreviewUrl || voiceUpload.isPending) return;
+    const token = sessionStorage.getItem("study_token");
+    if (!token) return toast.error("Phiên đăng nhập đã hết. Hãy đăng nhập lại trước khi lưu giọng nói.");
+    const response = await fetch(voicePreviewUrl);
+    const blob = await response.blob();
+    const contentType = (blob.type || "audio/webm") as "audio/webm" | "audio/ogg" | "audio/wav" | "audio/mpeg";
+    if (!["audio/webm", "audio/ogg", "audio/wav", "audio/mpeg"].includes(contentType)) return toast.error("Định dạng ghi âm không được hỗ trợ.");
+    if (blob.size > 8 * 1024 * 1024) return toast.error("Bản ghi âm tối đa 8 MB.");
+    const buffer = await blob.arrayBuffer();
+    let binary = "";
+    new Uint8Array(buffer).forEach((byte) => { binary += String.fromCharCode(byte); });
+    const dataUrl = `data:${contentType};base64,${btoa(binary)}`;
+    const uploaded = await voiceUpload.mutateAsync({ token, fileName: voiceFileName.trim() || `mascot-${voiceState}.webm`, contentType, dataUrl, state: voiceState });
+    const nextLine = { id: uid(), state: voiceState, text: `Bản ghi giọng nói cho ${voiceState}`, audioUrl: uploaded.url, enabled: true, createdAt: new Date().toISOString() };
+    save({ mascotVoiceLines: [...(config.mascotVoiceLines ?? []), nextLine] }, "Đã tải giọng nói mascot lên kho cloud.");
+    toast.success("Đã lưu voice line vào cloud-state.");
+  };
 
   if (!allowed) return <AdminEnhanced account={account} config={config} onConfig={onConfig} />;
 
@@ -141,9 +164,9 @@ export default function AdminContentHub({ account, config, onConfig }: Props) {
   return <>
     <AdminEnhanced account={account} config={config} onConfig={onConfig} />
     <section className="panel mt-7 p-5" aria-labelledby="voice-recording-title">
-      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Lời thoại bằng giọng của Ong</p><h2 id="voice-recording-title" className="mt-1 font-display text-xl font-bold">🎙️ Ghi âm mascot</h2><p className="mt-1 max-w-2xl text-sm text-slate-500">Ghi âm để nghe lại hoặc tải xuống. Bản ghi hiện là bản nháp cục bộ; không lưu bytes âm thanh vào cloud-state.</p></div><span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800 dark:bg-green-500/15 dark:text-green-200">Mic tùy chọn</span></div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end"><label className="text-sm font-bold">Tên file<input className="input mt-1" value={voiceFileName} onChange={(event) => setVoiceFileName(event.target.value)} /></label>{!isRecordingVoice ? <button type="button" className="primary-button" onClick={startVoiceRecording}><Mic className="h-4 w-4" />Bắt đầu ghi</button> : <button type="button" className="secondary-button border-red-300 text-red-700" onClick={stopVoiceRecording}><Square className="h-4 w-4" />Dừng ghi</button>}{voicePreviewUrl && <button type="button" className="secondary-button" onClick={downloadVoiceRecording}><Download className="h-4 w-4" />Tải bản ghi</button>}</div>
-      {voicePreviewUrl && <div className="mt-3 rounded-2xl bg-green-50 p-3 dark:bg-green-500/10"><audio controls src={voicePreviewUrl} className="w-full" aria-label="Nghe lại bản ghi mascot" /><p className="mt-2 text-xs text-slate-500">Sau khi tải file lên storage, dán URL vào voice line tương ứng để dùng lâu dài.</p></div>}
+      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Lời thoại bằng giọng của Ong</p><h2 id="voice-recording-title" className="mt-1 font-display text-xl font-bold">🎙️ Ghi âm mascot</h2><p className="mt-1 max-w-2xl text-sm text-slate-500">Ghi âm để nghe lại, tải xuống hoặc lưu URL vào cloud-state. Hệ thống không lưu bytes âm thanh trong hồ sơ người dùng.</p></div><span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800 dark:bg-green-500/15 dark:text-green-200">Mic tùy chọn</span></div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_220px_auto_auto] sm:items-end"><label className="text-sm font-bold">Tên file<input className="input mt-1" value={voiceFileName} onChange={(event) => setVoiceFileName(event.target.value)} /></label><label className="text-sm font-bold">Trạng thái mascot<select className="input mt-1" value={voiceState} onChange={(event) => setVoiceState(event.target.value)}><option value="achievement_unlocked">Mở khóa thành tích</option><option value="almost_unlocked">Gần mở khóa</option><option value="failed">Cần động viên</option><option value="streak_recovered">Hồi sinh streak</option><option value="comeback">Quay lại học</option></select></label>{!isRecordingVoice ? <button type="button" className="primary-button" onClick={startVoiceRecording}><Mic className="h-4 w-4" />Bắt đầu ghi</button> : <button type="button" className="secondary-button border-red-300 text-red-700" onClick={stopVoiceRecording}><Square className="h-4 w-4" />Dừng ghi</button>}{voicePreviewUrl && <><button type="button" className="secondary-button" onClick={downloadVoiceRecording}><Download className="h-4 w-4" />Tải bản ghi</button><button type="button" className="primary-button" onClick={uploadVoiceRecording} disabled={voiceUpload.isPending}><Upload className="h-4 w-4" />{voiceUpload.isPending ? "Đang lưu cloud…" : "Lưu vào cloud"}</button></>}</div>
+      {voicePreviewUrl && <div className="mt-3 rounded-2xl bg-green-50 p-3 dark:bg-green-500/10"><audio controls src={voicePreviewUrl} className="w-full" aria-label="Nghe lại bản ghi mascot" /><p className="mt-2 text-xs text-slate-500">Bản ghi được kiểm tra MIME/kích thước, tải lên storage và chỉ lưu URL cùng metadata vào cloud-state; không lưu bytes âm thanh.</p></div>}
     </section>
     <LevelAdminPanel config={config} save={save} />
     <section className="mt-7 grid gap-5 xl:grid-cols-4" aria-label="Quản lý động cơ học tập">

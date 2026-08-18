@@ -274,6 +274,6 @@
 - [x] Bổ sung achievement hiểu sai, không lặp lại lỗi và tiến bộ so với chính mình dựa trên dữ liệu thật.
 - [x] Bổ sung achievement hồi sinh sau khi mất streak hoặc tiến độ, không coi đó là thất bại vĩnh viễn.
 - [x] Bổ sung mascot reaction theo achievement state và speech có context, không random vô nghĩa.
-- [ ] Bổ sung quản trị/ghi âm giọng nói người dùng cho lời thoại mascot, có bật/tắt và xử lý quyền microphone.
+- [x] Bổ sung quản trị/ghi âm giọng nói người dùng cho lời thoại mascot, có bật/tắt và xử lý quyền microphone.
 - [x] Bổ sung card “Thành tích tiếp theo” và “3 thành tích gần nhất” trên dashboard.
 - [x] Bổ sung regression tests và responsive/browser QA cho evidence, speech, recording và achievement cards.

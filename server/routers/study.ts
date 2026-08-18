@@ -137,5 +137,18 @@ export const studyRouter = router({
         return { url, key };
       } catch (error) { return asTrpcError(error); }
     }),
+    uploadVoiceLine: publicProcedure.input(tokenInput.extend({ fileName: z.string().min(1).max(160), contentType: z.enum(["audio/webm", "audio/ogg", "audio/wav", "audio/mpeg"]), dataUrl: z.string().min(32).max(11_500_000), state: z.string().min(1).max(80) })).mutation(async ({ input }) => {
+      try {
+        const { account } = await getStudySession(input.token);
+        if (account.role !== "Admin" && account.role !== "Founder") throw new Error("Chỉ Admin hoặc Founder được lưu lời thoại mascot.");
+        const match = input.dataUrl.match(/^data:(audio\/(?:webm|ogg|wav|mpeg));base64,([A-Za-z0-9+/=]+)$/);
+        if (!match) throw new Error("Dữ liệu ghi âm không hợp lệ.");
+        const bytes = Buffer.from(match[2], "base64");
+        if (bytes.length > 8 * 1024 * 1024) throw new Error("Bản ghi âm tối đa 8 MB.");
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+        const { url, key } = await storagePut(`study-historia/voice/${account.id}/${Date.now()}-${safeName}`, bytes, match[1]);
+        return { url, key, contentType: match[1], state: input.state };
+      } catch (error) { return asTrpcError(error); }
+    }),
   }),
 });

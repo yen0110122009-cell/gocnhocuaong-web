@@ -322,6 +322,7 @@ export type AppConfig = {
   encouragements: Encouragement[];
   customContent: CustomContentItem[];
   mascotStates: MascotStateItem[];
+  mascotVoiceLines?: MascotVoiceLine[];
   wheelRewards: WheelReward[];
   wheelTicketsPerAchievement: number;
   dailyFragmentCap: number;
@@ -502,6 +503,7 @@ export const emptyAppConfig = (): AppConfig => ({
     ["almost_done", "Gần xong", "Lumi ở cạnh trong những phút cuối.", "Khi còn ít thời gian."],
     ["completed", "Hoàn thành", "Lumi ăn mừng một phiên đã xong.", "Khi hoàn thành Pomodoro hoặc nhiệm vụ."],
   ].map(([id, name, description, condition]) => ({ id, name, description, condition, enabled: true, createdAt: new Date().toISOString() })),
+  mascotVoiceLines: [],
   wheelRewards: [
     { id: "starter-xp-20", label: "Mẫu khởi đầu · +20 XP", kind: "xp", value: 20, probability: 45, color: "#22d3ee" },
     { id: "starter-fragment-1", label: "Mẫu khởi đầu · 1 mảnh ghép", kind: "fragment", value: 1, probability: 30, color: "#f4b942" },
