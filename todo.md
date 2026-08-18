@@ -376,3 +376,13 @@
 - [x] Bổ sung Admin grant mảnh/điểm/vật phẩm/vé/Danh hiệu với admin_id, recipient_user_id, reward_type, reward_value, reason, created_at và audit.
 - [x] Bổ sung form Admin tạo Thành tích thường/Danh hiệu và prompt AI tạo bản nháp cho Event, Thành tích, Danh hiệu.
 - [x] Viết regression cho Event claim limit/idempotency, Admin grant audit và quy tắc AI không tự xuất bản.
+
+- [x] Bổ sung bảng Admin quản lý 900 Thành tích với tìm kiếm, lọc cấp/nhóm/trạng thái, chỉnh sửa và xem chi tiết.
+- [x] Bổ sung bảng Admin riêng cho 400 Danh hiệu với xem, sửa, thêm, xóa mềm, khôi phục và xóa vĩnh viễn.
+- [x] Bổ sung tổng quan trang người dùng Thành tích: số đã mở khóa/tổng, tiến độ 900 và tiến độ 400 Danh hiệu.
+- [x] Bổ sung bộ lọc trang Thành tích theo trạng thái, cấp độ, nhóm và loại Thành tích/Danh hiệu.
+- [x] Bổ sung trang chi tiết Danh hiệu công khai đầy đủ điều kiện, tiến độ, ý nghĩa, nguồn, giải thích và phần thưởng.
+- [x] Bổ sung Bộ sưu tập Mảnh ghép theo cấp với giá trị, công dụng, cách nhận, cách đổi và nội dung có thể mở khóa.
+- [x] Bổ sung lịch sử Mảnh ghép hiển thị ngày, loại, số lượng, nguồn và hành động.
+- [x] Viết regression và chạy browser QA responsive cho các bảng, bộ lọc, chi tiết và lịch sử mới.
+- [x] Cập nhật checkpoint sau khi toàn bộ mục mở rộng đạt kiểm thử.
