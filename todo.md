@@ -404,3 +404,11 @@
 - [x] Bổ sung bộ kiểm tra hệ thống cho invariant Thành tích, Danh hiệu, Mảnh ghép, Nhân vật, Event và AI approval gate.
 - [x] Viết regression và chạy browser QA responsive cho profile title, panel thống kê/invariant, biểu đồ hoạt động nội dung và Thùng rác Nhân vật/Event.
 - [x] Lưu checkpoint cho vòng hồ sơ, thống kê, kiểm tra toàn vẹn và soft delete.
+
+- [x] Rà soát toàn bộ khu vực giao diện và bổ sung nút thu gọn/mở rộng nhất quán; các section chính MuseumJourney/Pomodoro và toàn bộ View đã có control.
+- [x] Lưu trạng thái thu gọn theo từng khu vực vào persistence để tải lại trang vẫn giữ trạng thái đã chọn.
+- [x] Đảm bảo mặc định các khu vực có thể thu gọn ở trạng thái thu gọn và chỉ mở khi người dùng nhấn lại.
+- [x] Rà soát audio nền, autoplay policy, nút bật/tắt, volume và resume sau tương tác người dùng; chỉ phát sau user gesture để tuân thủ trình duyệt.
+- [x] Bổ sung regression cho persistence thu gọn và trạng thái audio nền.
+- [x] Chạy TypeScript, 43 file/145 test, production build và browser QA desktop/mobile cho thu gọn/audio.
+- [x] Lưu checkpoint cho vòng thu gọn toàn giao diện và audio nền.
