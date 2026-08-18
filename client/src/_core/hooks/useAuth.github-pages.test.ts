@@ -9,6 +9,13 @@ describe("useAuth GitHub Pages guard", () => {
     expect(source).toMatch(/trpc\.auth\.me\.useQuery\(undefined,\s*\{[\s\S]*enabled:\s*!isGitHubPages/);
     expect(source).toContain("loading: (!isGitHubPages && meQuery.isLoading)");
   });
+
+  it("blocks relative tRPC requests on the static host with JSON instead of index.html", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/main.tsx"), "utf8");
+    expect(source).toContain('import { isGitHubPages } from "@/lib/runtime";');
+    expect(source).toContain('if (isGitHubPages && typeof input === "string" && input.includes("/api/trpc"))');
+    expect(source).toContain('headers: { "content-type": "application/json" }');
+  });
 });
 
 // This contract prevents a relative /api/trpc request from being sent to GitHub Pages,

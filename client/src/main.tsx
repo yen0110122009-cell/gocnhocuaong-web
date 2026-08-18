@@ -5,6 +5,7 @@ import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
+import { isGitHubPages } from "@/lib/runtime";
 import { startLogin } from "./const";
 import "./index.css";
 
@@ -63,6 +64,12 @@ const trpcClient = trpc.createClient({
         return {};
       },
       fetch(input, init) {
+        if (isGitHubPages && typeof input === "string" && input.includes("/api/trpc")) {
+          return Promise.resolve(new Response(JSON.stringify({ error: { message: "Bản GitHub Pages dùng cloud-state Supabase; không gọi tRPC backend." } }), {
+            status: 503,
+            headers: { "content-type": "application/json" },
+          }));
+        }
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",

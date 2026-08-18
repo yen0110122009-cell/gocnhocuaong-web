@@ -32,3 +32,7 @@ The prior artifact had root-relative `/assets` references and produced a blank p
 ## Plain URL verification after cache-refresh deployment
 
 After commit `9c9a39c`, the plain URL `https://yen0110122009-cell.github.io/gocnhocuaong2/` was opened without a query string. It rendered the branded no-email login form and displayed the updated cloud-state warning, confirming that the refreshed fingerprint is served from the normal URL rather than only from a cache-busting URL.
+
+## JSON guard regression QA
+
+Commit `1c53da5` was opened at the cache-busted GitHub Pages URL. A QA login with an unknown code completed the loading state and displayed `Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.` The browser output contained no `Unexpected token '<'` error. The deployed index referenced `/gocnhocuaong2/assets/index-TJIvYv7x.js`.
