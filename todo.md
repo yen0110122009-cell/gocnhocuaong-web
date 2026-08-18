@@ -136,3 +136,5 @@
 - [x] Reproduce the recurring HTML-as-JSON error from the user's current device report after the previous deployed fix
 - [x] Audit every JSON response parser and runtime endpoint fallback, including non-cloud-state requests; the remaining path was `useAuth` calling relative tRPC `auth.me` on github.io
 - [x] Add regression test for remaining HTML response path and redeploy corrected Pages artifacts on `main` commits `fad88a5` and `220a095`; browser verification is recorded in `github-pages-base-qa.md`
+
+- [x] Điều tra lỗi GitHub Pages vẫn còn hiển thị như cũ: xác nhận CDN trước đó phục vụ bundle `index-CVazIDuF.js`, tạo fingerprint mới `index-Cq-o8AH1.js`, push commit `9c9a39c`, và browser xác nhận live page tải đúng base path; cần người dùng hard refresh nếu thiết bị còn giữ cache cũ.

@@ -22,3 +22,9 @@ Authenticated dashboard, achievement progress, Founder/Admin controls, and the s
 ## Deployment note
 
 The prior artifact had root-relative `/assets` references and produced a blank page because the repository is served at `/gocnhocuaong2/`. Rebuilding with `GITHUB_ACTIONS=1` and pushing the generated static artifact corrected this at commit `220a095`.
+
+## Public support-popup QA
+
+- `Quên mật khẩu?` opens `Hỗ trợ đăng nhập / Quên mật khẩu` and explains that password reset requires Founder/Admin because the no-email flow has no reset link.
+- `Quên mã thành viên?` opens `Hỗ trợ đăng nhập / Quên mã thành viên` and explains that the code is issued and managed by Founder/Admin.
+- Both dialogs expose a visible `Đã hiểu` action and a close control.

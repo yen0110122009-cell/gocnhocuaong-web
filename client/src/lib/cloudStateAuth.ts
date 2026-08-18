@@ -100,4 +100,4 @@ export async function cloudLoadProfile(accountId: string): Promise<ProfileState>
 export async function cloudSaveProfile(accountId: string, profile: ProfileState) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.profiles[accountId] = normalizeProfile(profile); payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
 export async function cloudLoadConfig(): Promise<AppConfig> { return parseCloudStatePayload(await loadRow()).config; }
 export async function cloudSaveConfig(config: AppConfig) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.config = config; payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
-export const cloudStateWarning = "GitHub Pages dùng cloud-state demo qua Supabase với quyền anon; không lưu dữ liệu nhạy cảm hoặc mật khẩu quan trọng.";
+export const cloudStateWarning = "GitHub Pages dùng cloud-state demo qua Supabase với quyền anon; không lưu dữ liệu nhạy cảm hoặc mật khẩu quan trọng. Bản cập nhật 220a095.";
