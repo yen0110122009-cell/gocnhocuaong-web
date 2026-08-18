@@ -284,6 +284,25 @@ export type AiContentSuggestion = Omit<CustomContentItem, "approvalStatus" | "so
 };
 
 export type LevelDefinition = { id: string; name: string; icon: string; enabled: boolean; createdAt?: string; updatedAt?: string; deletedAt?: string };
+export type AchievementEvidence = {
+  id: string;
+  achievementId: string;
+  label: string;
+  value: number;
+  source: "profile" | "studyActivity" | "deepLearning" | "streak" | "comparison";
+  occurredAt?: string;
+};
+
+export type MascotVoiceLine = {
+  id: string;
+  state: MascotStateId | string;
+  text: string;
+  audioUrl?: string;
+  enabled: boolean;
+  createdAt?: string;
+  deletedAt?: string;
+};
+
 export type AchievementMoment = {
   id: string;
   achievementId: string;
@@ -368,6 +387,8 @@ export type ProfileState = {
   taskCombos?: TaskCombo[];
   deepLearningEvents?: DeepLearningEvent[];
   achievementMoments?: AchievementMoment[];
+  achievementEvidence?: Record<string, AchievementEvidence[]>;
+  mascotVoiceLines?: MascotVoiceLine[];
 };
 
 export type PomodoroSession = {
@@ -421,6 +442,8 @@ export type Achievement = {
   remaining: number;
   animation: "spark" | "glow" | "legendary";
   unlockedAt: string | null;
+  evidence?: AchievementEvidence[];
+  isSecret?: boolean;
 };
 
 export const emptyProfile = (): ProfileState => ({
@@ -451,6 +474,8 @@ export const emptyProfile = (): ProfileState => ({
   avoidanceReasons: [],
   taskCombos: [],
   achievementMoments: [],
+  achievementEvidence: {},
+  mascotVoiceLines: [],
   deepLearningEvents: [],
 });
 
@@ -632,7 +657,8 @@ export function allAchievementsWithProgress(profile: ProfileState, config: AppCo
     .map((achievement) => {
       const merged = { ...achievement, ...overrides.get(achievement.id) };
       const currentValue = Math.max(0, stats[merged.metric] ?? 0);
-      return { ...merged, progress: Math.min(100, Math.round((currentValue / Math.max(1, merged.threshold)) * 100)), currentValue, remaining: Math.max(0, merged.threshold - currentValue), unlockedAt: profile.achievementUnlockDates[merged.id] ?? null };
+      const progress = Math.min(100, Math.round((currentValue / Math.max(1, merged.threshold)) * 100));
+      return { ...merged, progress, currentValue, remaining: Math.max(0, merged.threshold - currentValue), unlockedAt: profile.achievementUnlockDates[merged.id] ?? null, evidence: achievementEvidenceFor(profile, { ...merged, progress, currentValue, remaining: Math.max(0, merged.threshold - currentValue), unlockedAt: profile.achievementUnlockDates[merged.id] ?? null } as Achievement) };
     })
     .filter((achievement) => achievement.enabled !== false);
   const customs: Achievement[] = config.customAchievements
@@ -660,10 +686,29 @@ export function allAchievementsWithProgress(profile: ProfileState, config: AppCo
       remaining: Math.max(0, item.threshold - currentValue),
       animation: "spark",
       unlockedAt: profile.achievementUnlockDates[item.id] ?? null,
+      evidence: achievementEvidenceFor(profile, { id: item.id, rank: 9, rankName: "Tùy chỉnh", icon: "🏆", name: item.name, description: item.description, metric: item.metric, threshold: item.threshold, rewardXp: item.rewardXp, rewardFragments: item.rewardFragments, title: item.title?.trim() || null, titleMeaning: item.titleMeaning?.trim() || null, difficulty: "Khó", badgeLabel: "Thành tích tùy chỉnh", encouragement: "Một cột mốc riêng đang được mở khóa.", progress: Math.min(100, Math.round((currentValue / Math.max(1, item.threshold)) * 100)), currentValue, remaining: Math.max(0, item.threshold - currentValue), animation: "spark", unlockedAt: profile.achievementUnlockDates[item.id] ?? null } as Achievement),
     };
     });
   return [...standard, ...customs];
 }
+
+export const achievementEvidenceFor = (profile: ProfileState, achievement: Achievement): AchievementEvidence[] => {
+  const stored = profile.achievementEvidence?.[achievement.id] ?? [];
+  if (stored.length) return stored;
+  const stats = statsForProfile(profile) as Record<AchievementMetric, number>;
+  const evidence: AchievementEvidence[] = [{ id: `${achievement.id}-metric`, achievementId: achievement.id, label: `${metricLabels[achievement.metric]} đã ghi nhận`, value: Math.max(0, stats[achievement.metric] ?? 0), source: "profile" }];
+  const completedPomodoros = profile.pomodoroHistory.filter((session) => session.status === "completed").length;
+  if (achievement.metric === "pomodoroSessions") evidence.push({ id: `${achievement.id}-pomodoro`, achievementId: achievement.id, label: "Pomodoro đã hoàn thành", value: completedPomodoros, source: "studyActivity" });
+  const deepCount = profile.deepLearningEvents?.length ?? 0;
+  if (deepCount > 0) evidence.push({ id: `${achievement.id}-deep`, achievementId: achievement.id, label: "Lần học hiểu sâu", value: deepCount, source: "deepLearning" });
+  if (profile.bestStreak > 0) evidence.push({ id: `${achievement.id}-streak`, achievementId: achievement.id, label: "Chuỗi học tốt nhất", value: profile.bestStreak, source: "streak" });
+  return evidence;
+};
+
+export const nearestAchievements = (profile: ProfileState, config: AppConfig, limit = 3): Achievement[] => allAchievementsWithProgress(profile, config)
+  .filter((achievement) => achievement.currentValue < achievement.threshold)
+  .sort((a, b) => (b.progress - a.progress) || (a.remaining - b.remaining))
+  .slice(0, Math.max(1, limit));
 
 export function computedAchievements(profile: ProfileState, config: AppConfig): Achievement[] {
   return allAchievementsWithProgress(profile, config).filter((achievement) => achievement.currentValue >= achievement.threshold);
