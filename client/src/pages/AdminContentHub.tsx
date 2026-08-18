@@ -1,6 +1,7 @@
 import AdminEnhanced from "./AdminEnhanced";
 import AchievementCatalogAdmin from "@/components/AchievementCatalogAdmin";
 import AdminCommandCenter from "@/components/AdminCommandCenter";
+import SystemIntegrityPanel from "@/components/SystemIntegrityPanel";
 import { cn } from "@/lib/utils";
 import { Award, CirclePlus, Download, Filter, Gift, MessageCircle, Mic, Search, Square, Trash2, Upload } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
@@ -216,6 +217,7 @@ export default function AdminContentHub({ account, config, onConfig }: Props) {
         <ConfigRows rows={config.wheelRewards.map((entry) => ({ id: entry.id, title: entry.label, meta: `${entry.kind} · ${entry.value} · trọng số ${entry.probability}`, enabled: true, color: entry.color }))} onDelete={(id) => save({ wheelRewards: config.wheelRewards.filter((entry) => entry.id !== id) }, "Đã xóa phần thưởng vòng quay.")} />
       </EditorCard>
     </section>
+    <SystemIntegrityPanel config={config} />
     <AchievementCatalogAdmin config={config} />
     <AdminCommandCenter adminId={account.id} />
     <AdminInlineEditors config={config} onConfig={onConfig} />

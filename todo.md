@@ -395,3 +395,12 @@
 - [x] Viết regression cho tính nguyên tử, không âm số dư, idempotency, mở khóa nhân vật và approval gate của AI.
 - [x] Chạy TypeScript, Vitest, production build và browser QA cho các luồng mới.
 - [x] Lưu checkpoint cho vòng mở rộng đổi mảnh, nhân vật, cấu hình và AI Command Center.
+
+- [x] Cho phép người dùng chọn Danh hiệu đã đạt để hiển thị trên hồ sơ và đổi bất kỳ lúc nào.
+- [x] Chặn tuyệt đối việc chọn Danh hiệu chưa đạt hoặc Danh hiệu không còn active.
+- [x] Bổ sung thống kê Admin 900/900, 400/400, lượt đạt, mảnh phát/tiêu, nhân vật mở khóa và Event đã tổ chức.
+- [ ] Bổ sung biểu đồ thống kê theo thời gian với dữ liệu audit/ledger thực tế, không mock số liệu người dùng.
+- [ ] Bổ sung trạng thái active/inactive/soft deleted/restored/permanently deleted và khu vực Thùng rác cho dữ liệu Admin.
+- [x] Bổ sung bộ kiểm tra hệ thống cho invariant Thành tích, Danh hiệu, Mảnh ghép, Nhân vật, Event và AI approval gate.
+- [x] Viết regression và chạy browser QA responsive cho profile title và panel thống kê/invariant; biểu đồ audit và Thùng rác còn chờ triển khai.
+- [x] Lưu checkpoint cho vòng hồ sơ, thống kê, kiểm tra toàn vẹn và soft delete.

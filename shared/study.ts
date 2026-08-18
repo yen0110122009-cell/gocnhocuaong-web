@@ -1054,6 +1054,13 @@ export function computedAchievements(profile: ProfileState, config: AppConfig): 
   return allAchievementsWithProgress(profile, config).filter((achievement) => achievement.currentValue >= achievement.threshold);
 }
 
+export function selectEarnedTitle(profile: ProfileState, config: AppConfig, achievementId: string) {
+  const achievement = allAchievementsWithProgress(profile, config).find((item) => item.id === achievementId);
+  const isEarned = Boolean(achievement?.title && achievement.enabled !== false && profile.unlockedAchievementIds.includes(achievement.id));
+  if (!achievement || !isEarned) return { profile, selected: null as Achievement | null };
+  return { profile: { ...profile, activeTitle: achievement.id }, selected: achievement };
+}
+
 
 export type GeneratedValidation = { valid: boolean; errors: string[]; warnings: string[] };
 
