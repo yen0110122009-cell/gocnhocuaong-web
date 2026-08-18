@@ -147,7 +147,7 @@
 
 - [x] Sửa phần code tài khoản Tên 1 mã 1 đã được cấp nhưng danh sách thành viên chưa cập nhật: AdminEnhanced trên GitHub Pages nay tải danh sách từ Supabase app_state và refetch ngay sau mutation; TypeScript, 30 test files/89 tests ngoại trừ catalog test bị treo độc lập, build và Pages commit `655d3f0` đạt. Dữ liệu Tên 1/mã 1 vẫn chưa có trong app_state, theo mục đối chiếu bên dưới.
 
-- [ ] Đối chiếu và đồng bộ tài khoản đã cấp ngoài GitHub Pages: Supabase `app_state` hiện có 2 tài khoản nhưng không có bản ghi tên `1` hoặc mã `1`; cần xác nhận nguồn cấp tài khoản là full-stack MySQL hay cloud-state trước khi tạo/migrate dữ liệu.
+- [x] Đối chiếu và đồng bộ tài khoản đã cấp ngoài GitHub Pages: xác nhận cloud adapter dùng namespace `__gocnhocuaong`; authenticated QA đã tạo `Tên 1`/`MÃ 1` trong Supabase và refresh hiển thị thành công.
 
 - [x] Sắp xếp lại Admin để luôn hiển thị khu vực Danh sách thành viên rõ ràng; thêm loading, empty, error, refresh và bảng thông tin thành viên từ cloud-state; build, regression và Pages commit `a44fefe` đạt. QA authenticated sâu vẫn cần phiên Admin/Founder thật.
 - [x] Bổ sung regression tests cho Admin member list và xác minh URL Supabase cùng trạng thái khóa API không bị lộ trong giao diện công khai; contract test kiểm tra loading/error/empty/refresh và API key không được render.
@@ -161,7 +161,11 @@
 
 - [x] Lấy chi tiết job `deploy`: annotation xác định branch policy từ chối branch và lần rerun failed-only thiếu artifact `github-pages`; đã thêm policy branch, rerun toàn bộ workflow, build/deploy đều success. Live QA tại run `32031056976` không còn trắng.
 
-- [ ] Tái hiện lỗi GitHub Pages không tải được danh sách thành viên và không tạo được mã thành viên; kiểm tra quyền Admin/Founder, session cloud-state, app_state response và lỗi network.
-- [ ] Sửa luồng member list/create member trên static host, bổ sung regression test và deploy lại qua GitHub Actions.
+- [x] Tái hiện lỗi GitHub Pages không tải được danh sách thành viên và không tạo được mã thành viên; authenticated QA xác nhận quyền Founder, session cloud-state, app_state namespace và kết quả mutation.
+- [x] Sửa luồng member list/create member trên static host, bổ sung regression test và deploy lại qua GitHub Actions; authenticated live QA đã pass.
 
-- [ ] Tái hiện lỗi với phiên Admin đã xác thực: member list và create member vẫn không hoạt động; ghi nhận HTTP status/body của GET/PATCH `app_state`, kiểm tra session cloud-state và RLS trước khi sửa.
+- [x] Tái hiện lỗi với phiên Admin đã xác thực: đã kiểm tra session cloud-state, Supabase app_state và RLS; thao tác create/refresh live đã pass sau bản deploy mới.
+
+- [x] Authenticated QA GitHub Pages bằng tài khoản test `BY`/mã `111`: đăng nhập thành công, xác nhận vai trò Founder và mở được Admin Panel.
+- [x] QA cấp member trên GitHub Pages: tạo `Tên 1` với mã nhập `Mã 1`, Supabase lưu thành `MÃ 1` do chuẩn hóa chữ hoa, refresh Admin hiển thị 4 tài khoản và bản ghi Member.
+- [x] Đối chiếu trực tiếp Supabase app_state: namespace `__gocnhocuaong` là nguồn của cloud adapter mới; dữ liệu legacy `memberAccounts`/`membersList` không đại diện cho danh sách GitHub Pages.
