@@ -15,6 +15,8 @@ describe("useAuth GitHub Pages guard", () => {
     expect(source).toContain('import { isGitHubPages } from "@/lib/runtime";');
     expect(source).toContain('if (isGitHubPages && typeof input === "string" && input.includes("/api/trpc"))');
     expect(source).toContain('headers: { "content-type": "application/json" }');
+    expect(source).toContain('code: -32099');
+    expect(source).toContain('data: { code: "FORBIDDEN", httpStatus: 503, path: "static" }');
   });
 });
 

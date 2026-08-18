@@ -139,4 +139,6 @@
 
 - [x] Điều tra lỗi GitHub Pages vẫn còn hiển thị như cũ: xác nhận CDN trước đó phục vụ bundle `index-CVazIDuF.js`, tạo fingerprint mới `index-Cq-o8AH1.js`, push commit `9c9a39c`, và browser xác nhận live page tải đúng base path; cần người dùng hard refresh nếu thiết bị còn giữ cache cũ.
 
-- [ ] Điều tra lại lỗi người dùng xác nhận vẫn còn `Unexpected token '<', "<html> <he..." is not valid JSON`; lập bản đồ mọi request JSON trên static host, tái hiện request trả HTML và sửa guard triệt để trước khi deploy lại.
+- [x] Điều tra lại lỗi người dùng xác nhận vẫn còn `Unexpected token '<', "<html> <he..." is not valid JSON`; audit toàn bộ parser/request, thêm guard chặn tRPC trên static host bằng JSON 503, deploy commit `1c53da5`, và browser QA mã 999 không còn raw HTML-as-JSON.
+
+- [x] Điều tra lỗi mới `Unable to transform response from server` trên GitHub Pages; sửa guard tRPC static thành batch error envelope hợp lệ cho tRPC 11, bổ sung regression assertions, chạy 31 file/89 test, build asset `index-DASLnU1m.js`, push commit `fbd8d48` và browser QA mã 999 đạt.

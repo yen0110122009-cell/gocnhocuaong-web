@@ -36,3 +36,7 @@ After commit `9c9a39c`, the plain URL `https://yen0110122009-cell.github.io/gocn
 ## JSON guard regression QA
 
 Commit `1c53da5` was opened at the cache-busted GitHub Pages URL. A QA login with an unknown code completed the loading state and displayed `Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.` The browser output contained no `Unexpected token '<'` error. The deployed index referenced `/gocnhocuaong2/assets/index-TJIvYv7x.js`.
+
+## tRPC transform-envelope QA
+
+Commit `fbd8d48` was opened at `https://yen0110122009-cell.github.io/gocnhocuaong2/?v=fbd8d48-transformfix`. The page loaded the new static bundle and a QA login with code `999` completed with the clear message `Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.` The browser session did not expose `Unable to transform response from server`.
