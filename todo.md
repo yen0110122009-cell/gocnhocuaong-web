@@ -172,3 +172,7 @@
 
 - [x] Khôi phục mascot Lumi hiển thị rõ trên trang đăng nhập, dashboard và giao diện mobile; component SVG accessible có biến thể hero/compact/sidebar.
 - [x] QA mascot Lumi trên desktop/mobile, thêm `Home.mascot.test.ts`; TypeScript, 5 test mục tiêu và production build đạt. Artifact live GitHub Pages cần phát hành sau checkpoint.
+
+- [x] Tách đúng nhận diện nhân vật theo ảnh tham chiếu: Lumi = nữ đeo kính, tóc nâu, kẹp sao vàng; Ong = nữ áo đỏ, kẹp lửa đỏ-xanh.
+- [x] Thay mascot ong SVG chung ở login/dashboard bằng asset/illustration riêng Lumi và Ong, có nhãn accessible, responsive và dùng đúng mapping nhân vật.
+- [x] Bổ sung regression test và QA desktop/mobile cho mapping hai nhân vật; 5 test mục tiêu, TypeScript và production build đạt. Asset mascot sạch đã chuyển sang reserved URLs của webdev.

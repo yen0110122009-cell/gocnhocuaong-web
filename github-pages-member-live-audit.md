@@ -41,3 +41,11 @@ Live URL: https://yen0110122009-cell.github.io/gocnhocuaong2/?v=qa-achievements-
 Authenticated session: BY / Founder / mã 111. Desktop browser evidence xác nhận màn hình `Thành tích` tải ổn định với `900 thành tích · 9 bậc`, bộ lọc trạng thái/độ khó, progress tổng `0/900`, và các card khóa hiển thị đầy đủ điều kiện, phần thưởng, tiến độ hiện tại/mục tiêu, phần trăm và số đơn vị còn thiếu. Ví dụ card #1 hiển thị `Đạt 10 Flashcard đã nhớ`, `Tiến độ: 0/10`, `0%`, còn `10` đơn vị.
 
 Live desktop screenshot: `/home/ubuntu/screenshots/yen0110122009-cell_g_2026-08-18_14-50-03_1971.webp`. Mobile login/dashboard shell ở viewport 390x844 đã được QA trước đó; mobile-specific Achievement viewport vẫn cần xác nhận riêng bằng emulation trước khi đóng mục TODO tương ứng.
+
+## QA mascot Lumi/Ong — 2026-08-18
+
+Đã xác nhận mapping theo ảnh người dùng: Lumi là nhân vật nữ đeo kính, tóc nâu, kẹp sao vàng; Ong là nhân vật nữ mặc áo đỏ với kẹp tóc hình ngọn lửa đỏ-xanh. Home.tsx hiện render hai component riêng `LumiMascot` và `OngMascot` ở hero desktop và header mobile, có alt text/aria-label và kích thước responsive.
+
+Đã thay crop có nguy cơ dính chữ bằng hai asset mascot sạch qua reserved webdev URLs: `/manus-storage/lumi-mascot-clean_28a6da68.png` và `/manus-storage/ong-mascot-clean_079128db.png`. QA mobile 390x844 xác nhận cả hai nhãn Lumi/Ong xuất hiện cạnh brand và không làm tràn form. TypeScript, 2 regression files/5 tests mục tiêu và production build đều đạt.
+
+Ghi chú: asset generated mới được hệ thống thay thế tự động từ placeholder khi hoàn tất generation; chưa tự publish GitHub Pages trong bước này.

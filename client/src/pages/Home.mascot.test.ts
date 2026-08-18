@@ -7,7 +7,10 @@ describe("Lumi mascot contract", () => {
 
   it("defines an accessible Lumi mascot component with responsive variants", () => {
     expect(source).toContain("function LumiMascot");
-    expect(source).toContain("aria-label=\"Lumi, mascot của GÓC HỌC TẬP CỦA ONG\"");
+    expect(source).toContain("aria-label=\"Lumi, bạn đồng hành của Ong\"");
+    expect(source).toContain('/manus-storage/lumi-mascot-clean_28a6da68.png');
+    expect(source).toContain('/manus-storage/ong-mascot-clean_079128db.png');
+    expect(source).toContain('OngMascot');
     expect(source).toContain('size?: "hero" | "compact" | "sidebar"');
   });
 
