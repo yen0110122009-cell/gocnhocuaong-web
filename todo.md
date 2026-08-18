@@ -340,3 +340,7 @@
 - [x] Thêm thanh tiến độ trực quan cho kho mảnh và tiến độ Danh hiệu sau sự kiện nhận thưởng/mở khóa.
 - [x] Thêm tùy chọn bật/tắt animation, tôn trọng prefers-reduced-motion và không ảnh hưởng logic phần thưởng.
 - [x] Viết regression và chạy browser QA responsive cho celebration/progress states.
+
+- [x] Chuẩn hóa Ong mặc hoodie làm mascot cố định cho khu vực Achievement và Khoảnh khắc.
+- [x] Hiển thị Ong hoodie trong celebration overlay khi mở khóa Danh hiệu hoặc nhận mảnh ghép.
+- [x] Bổ sung regression contract và browser QA responsive cho mapping mascot hoodie.

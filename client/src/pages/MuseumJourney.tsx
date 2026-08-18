@@ -26,7 +26,10 @@ function CelebrationOverlay({ celebration, enabled, onDismiss }: { celebration: 
   return <div className={`celebration-overlay ${enabled ? "celebration-overlay--animated" : ""}`} role="status" aria-live="polite">
     <div className="celebration-card">
       {enabled && <div className="celebration-confetti" aria-hidden="true">✦　✧　✦　✧　✦</div>}
-      <div className="celebration-icon" aria-hidden="true">{celebration.icon}</div>
+      <div className="flex items-center justify-center gap-3">
+        <OngLearnerAvatar variant="hoodie" size="sm" />
+        <div className="celebration-icon" aria-hidden="true">{celebration.icon}</div>
+      </div>
       <p className="text-xs font-bold uppercase tracking-[.16em] text-green-700 dark:text-green-300">Lumi chúc mừng Ong</p>
       <h2 className="mt-2 font-display text-2xl font-black">{celebration.title}</h2>
       <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{celebration.detail}</p>
@@ -111,9 +114,12 @@ function AchievementMuseum({ profile, config }: { profile: ProfileState; config:
         <h2 id="achievement-museum-title" className="mt-2 font-display text-2xl font-bold">🏛️ Bảo tàng Hành trình</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Mỗi thành tích đã mở khóa là một hiện vật của riêng Ong. Nhấn vào từng hiện vật để đọc lại câu chuyện, lý do và bước tiến đã tạo nên nó.</p>
       </div>
-      <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-right dark:border-green-400/20 dark:bg-green-500/[.08]">
-        <p className="text-2xl font-black text-green-800 dark:text-green-200">🌱 {unlocked.length}/{achievements.length}</p>
-        <p className="mt-1 max-w-44 text-xs font-bold leading-5 text-green-800 dark:text-green-200">Ong đã mở khóa {unlocked.length} dấu mốc trong hành trình của mình.</p>
+      <div className="flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-right dark:border-green-400/20 dark:bg-green-500/[.08]">
+        <OngLearnerAvatar variant="hoodie" size="sm" />
+        <div>
+          <p className="text-2xl font-black text-green-800 dark:text-green-200">🌱 {unlocked.length}/{achievements.length}</p>
+          <p className="mt-1 max-w-44 text-xs font-bold leading-5 text-green-800 dark:text-green-200">Ong đã mở khóa {unlocked.length} dấu mốc trong hành trình của mình.</p>
+        </div>
       </div>
     </div>
     {groups.length === 0 ? <div className="mt-6 rounded-3xl border border-dashed border-amber-300 bg-amber-50/60 p-6 text-center dark:border-amber-400/20 dark:bg-amber-500/[.05]"><p className="text-3xl">🌱</p><p className="mt-2 font-display text-lg font-bold">Hiện vật đầu tiên đang chờ Ong tạo ra</p><p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">Không cần mở khóa thật nhiều. Một lần bắt đầu, một lỗi được sửa, hay một phiên học ngắn đều có thể trở thành trang đầu tiên của Bảo tàng.</p></div> : <div className="mt-6 space-y-5">{groups.map(([period, items]) => <section key={period} aria-label={`Hiện vật ${period}`} className="rounded-3xl border border-amber-100 bg-amber-50/45 p-4 dark:border-amber-400/15 dark:bg-amber-500/[.04]"><div className="flex items-center gap-3"><span className="text-2xl" aria-hidden="true">{period.includes("tháng 8") ? "🔥" : "🌱"}</span><div><p className="text-xs font-bold uppercase tracking-[.14em] text-amber-700 dark:text-amber-300">Mốc thời gian</p><h3 className="font-display text-lg font-bold capitalize">{period}</h3></div><span className="ml-auto rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-amber-800 dark:bg-white/10 dark:text-amber-200">{items.length} hiện vật</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{items.map((item) => <details key={item.id} className="group rounded-2xl border border-white/80 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"><summary className="cursor-pointer list-none"><div className="flex items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-green-100 text-lg dark:bg-green-500/15">🏅</span><div className="min-w-0"><p className="font-bold text-slate-900 dark:text-white">{item.name}</p><p className="mt-1 text-xs text-slate-500">Đã mở khóa · {item.unlockedAt ? new Date(item.unlockedAt).toLocaleDateString("vi-VN") : "trong hành trình"}</p></div><span className="ml-auto text-xs text-green-700 transition-transform group-open:rotate-180 dark:text-green-300">⌄</span></div></summary><div className="mt-3 border-t border-green-100 pt-3 text-sm leading-6 dark:border-green-400/15"><p className="text-slate-600 dark:text-slate-300">{item.description}</p><p className="mt-2 font-bold text-green-700 dark:text-green-300">Câu chuyện của hiện vật</p><p className="mt-1 text-slate-600 dark:text-slate-300">{getAchievementStory(item.name, item.description, true)}</p><p className="mt-2 text-xs font-bold text-amber-700 dark:text-amber-300">🔎 {achievementEvidenceFor(profile, item).map((evidence) => `${evidence.label}: ${evidence.value}`).join(" · ")}</p></div></details>)}</div></section>)}</div>}

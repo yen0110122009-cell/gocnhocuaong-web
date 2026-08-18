@@ -22,6 +22,7 @@ describe("MuseumJourney learning challenge cards", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/MuseumJourney.tsx"), "utf8");
     const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
     expect(source).toContain("celebration-overlay");
+    expect(source).toContain('OngLearnerAvatar variant="hoodie"');
     expect(source).toContain("study-empire-celebrations");
     expect(source).toContain("Mảnh ghép đã thu thập");
     expect(source).toContain("Danh hiệu đã mở khóa");
