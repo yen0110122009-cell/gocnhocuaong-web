@@ -151,3 +151,6 @@
 
 - [x] Sắp xếp lại Admin để luôn hiển thị khu vực Danh sách thành viên rõ ràng; thêm loading, empty, error, refresh và bảng thông tin thành viên từ cloud-state; build, regression và Pages commit `a44fefe` đạt. QA authenticated sâu vẫn cần phiên Admin/Founder thật.
 - [x] Bổ sung regression tests cho Admin member list và xác minh URL Supabase cùng trạng thái khóa API không bị lộ trong giao diện công khai; contract test kiểm tra loading/error/empty/refresh và API key không được render.
+
+- [ ] Thay âm thanh nhiễu hiện tại bằng bộ âm thanh nhiều trạng thái: bắt đầu phiên, tick nhẹ, hoàn thành, cảnh báo, phần thưởng và lỗi; giữ volume, mute, preview và hỗ trợ reduced motion/thiết bị không có AudioContext.
+- [ ] Bổ sung regression tests cho audio event mapping, volume scaling và cleanup oscillator/gain node; build và cập nhật GitHub Pages.

@@ -2,6 +2,7 @@ import { ArrowRight, BarChart3, BookOpen, Check, CircleHelp, Clock3, Flame, Paus
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { applyStudyActivityRewards, computedAchievements, type AppConfig, type PomodoroSession, type ProfileState } from "../../../shared/study";
+import { SOUND_EVENTS, SOUNDSCAPE_NOTES, scaledGain, soundEventDuration, type SoundEvent } from "../lib/pomodoroAudio";
 
 const KEY = "study_historia_pomodoro_v3";
 type Mode = "focus" | "shortBreak" | "longBreak";
@@ -59,25 +60,33 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     previewStopRef.current?.();
     previewStopRef.current = null;
   }
-  function playAlert() {
+  function playSequence(event: SoundEvent) {
     if (!sound || alertVolume <= 0) return;
     try {
       const context = getAudioContext();
       void context.resume();
-      const gain = context.createGain();
-      gain.gain.setValueAtTime(Math.min(1, alertVolume / 100) * 0.18, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.45);
-      gain.connect(context.destination);
-      [660, 880].forEach((frequency, index) => {
+      const master = context.createGain();
+      master.gain.setValueAtTime(scaledGain(alertVolume, event === "tick" ? 0.055 : 0.13), context.currentTime);
+      master.connect(context.destination);
+      const notes = SOUND_EVENTS[event];
+      notes.forEach((frequency, index) => {
+        const startAt = context.currentTime + index * (event === "tick" ? 0.04 : 0.12);
         const oscillator = context.createOscillator();
-        oscillator.type = "sine";
-        oscillator.frequency.value = frequency;
-        oscillator.connect(gain);
-        oscillator.start(context.currentTime + index * 0.12);
-        oscillator.stop(context.currentTime + 0.45 + index * 0.12);
+        const noteGain = context.createGain();
+        oscillator.type = event === "error" ? "square" : event === "warning" ? "triangle" : "sine";
+        oscillator.frequency.setValueAtTime(frequency, startAt);
+        noteGain.gain.setValueAtTime(0.001, startAt);
+        noteGain.gain.exponentialRampToValueAtTime(1, startAt + 0.015);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, startAt + (soundEventDuration(event) - 0.01));
+        oscillator.connect(noteGain).connect(master);
+        oscillator.start(startAt);
+        oscillator.stop(startAt + (soundEventDuration(event)));
       });
+      window.setTimeout(() => master.disconnect(), notes.length * 140 + 500);
     } catch { /* browsers may deny audio without a user gesture */ }
   }
+  function playAlert() { playSequence("complete"); }
+  function previewEvent(event: SoundEvent) { playSequence(event); toast.success(`Đã thử âm báo: ${event}`); }
   function previewBackground() {
     stopPreview();
     if (!sound || backgroundVolume <= 0 || backgroundSound === "Không âm thanh") {
@@ -87,19 +96,33 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     try {
       const context = getAudioContext();
       void context.resume();
-      const gain = context.createGain();
-      gain.gain.value = Math.min(1, backgroundVolume / 100) * 0.12;
-      gain.connect(context.destination);
-      const source = context.createBufferSource();
-      const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let index = 0; index < data.length; index += 1) data[index] = (Math.random() * 2 - 1) * (backgroundSound.includes("noise") ? 0.55 : 0.22);
-      source.buffer = buffer;
-      source.loop = true;
-      source.connect(gain);
-      source.start();
-      previewStopRef.current = () => { try { source.stop(); } catch { /* already stopped */ } gain.disconnect(); };
-      window.setTimeout(() => { if (previewStopRef.current) stopPreview(); }, 3000);
+      const master = context.createGain();
+      master.gain.setValueAtTime(0.001, context.currentTime);
+      master.gain.exponentialRampToValueAtTime(Math.min(1, backgroundVolume / 100) * 0.09, context.currentTime + 0.25);
+      master.connect(context.destination);
+      const oscillators = SOUNDSCAPE_NOTES[backgroundSound].map((frequency, index) => {
+        const oscillator = context.createOscillator();
+        oscillator.type = backgroundSound === "Thư viện" ? "sine" : "triangle";
+        oscillator.frequency.value = frequency;
+        oscillator.detune.value = index % 2 ? -7 : 7;
+        oscillator.connect(master);
+        oscillator.start();
+        return oscillator;
+      });
+      let noteIndex = 0;
+      const interval = window.setInterval(() => {
+        const oscillator = oscillators[noteIndex % oscillators.length];
+        oscillator.frequency.setTargetAtTime(SOUNDSCAPE_NOTES[backgroundSound][noteIndex % SOUNDSCAPE_NOTES[backgroundSound].length], context.currentTime, 0.18);
+        noteIndex += 1;
+      }, 520);
+      previewStopRef.current = () => {
+        window.clearInterval(interval);
+        master.gain.cancelScheduledValues(context.currentTime);
+        master.gain.setTargetAtTime(0.001, context.currentTime, 0.12);
+        window.setTimeout(() => oscillators.forEach((oscillator) => { try { oscillator.stop(); } catch { /* already stopped */ } }), 500);
+        window.setTimeout(() => master.disconnect(), 650);
+      };
+      window.setTimeout(() => { if (previewStopRef.current) stopPreview(); }, 5000);
       toast.success(`Đang nghe thử: ${backgroundSound}`);
     } catch { toast.error("Trình duyệt không cho phép phát âm thanh."); }
   }
@@ -128,6 +151,11 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     return () => window.clearInterval(timer);
   }, [running]);
   useEffect(() => {
+    if (!running || seconds <= 0 || seconds % 60 !== 0) return;
+    if (seconds === 60) playSequence("warning");
+    else playSequence("tick");
+  }, [running, seconds]);
+  useEffect(() => {
     if (seconds !== 0 || completionRef.current) return;
     completionRef.current = true;
     if (mode === "focus") completeFocus();
@@ -154,7 +182,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   function start() {
     if (mode === "focus" && !subject.trim()) toast.info("Bạn có thể nhập môn học để thống kê chính xác hơn.");
     if (!sessionStartedAt && mode === "focus") setSessionStartedAt(new Date().toISOString());
-    completionRef.current = false; setRunning(true);
+    completionRef.current = false; setRunning(true); playSequence("start");
   }
   function reset(record = false) {
     if (record && running && mode === "focus" && sessionStartedAt) {
@@ -174,7 +202,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     onProfile(rewarded.profile, rewarded.newlyUnlocked.length ? `Hoàn thành phiên Pomodoro · +${activityReward.xpEarned} XP · mở khóa ${rewarded.newlyUnlocked.length} thành tích` : `Hoàn thành phiên Pomodoro · +${activityReward.xpEarned} XP`);
     const nextMode: Mode = autoAdvance ? (session.sessionNumber % 4 === 0 ? "longBreak" : "shortBreak") : "focus";
     setRunning(false); setSessionStartedAt(null); setMode(nextMode); setSeconds((nextMode === "longBreak" ? longBreak : nextMode === "shortBreak" ? shortBreak : focus) * 60); completionRef.current = false;
-    if (sound) { try { window.navigator.vibrate?.([100, 80, 100]); } catch { /* optional */ } playAlert(); }
+    if (sound) { try { window.navigator.vibrate?.([100, 80, 100]); } catch { /* optional */ } playAlert(); if (rewarded.newlyUnlocked.length) playSequence("reward"); }
     toast.success("Một phiên nữa đã hoàn thành! Thời gian học đã được ghi nhận.");
   }
   function endEarly() {
@@ -193,7 +221,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     <header className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-red-700 dark:text-red-300">Tiến trình học tập · Góc học tập</p><h1 className="mt-2 font-display text-4xl font-bold">🍅 Pomodoro</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Một nhịp học vừa đủ tập trung, vừa đủ nghỉ. Pomodoro chỉ ghi nhận thời gian học, không phải danh sách công việc.</p></div><button className="secondary-button" onClick={() => onView("progress")}><BarChart3 className="h-4 w-4" />Xem tiến trình</button></header>
     <section className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,.9fr)]">
       <div className="panel relative overflow-hidden p-5 sm:p-8"><div className="absolute right-5 top-5 text-2xl opacity-80" aria-hidden="true">🐝</div><div className="text-center"><p className={`text-xs font-bold uppercase tracking-[.18em] ${mode === "focus" ? "text-red-700 dark:text-red-300" : "text-emerald-700 dark:text-emerald-300"}`}>{modeLabels[mode]}</p><h2 className="mt-2 font-display text-2xl font-bold">{mode === "focus" ? `Phiên ${cyclePosition + 1} / 4` : "Thời gian hồi phục"}</h2><div className="mx-auto mt-6 grid aspect-square w-full max-w-[22rem] place-items-center rounded-full p-3" style={{ background: `conic-gradient(${mode === "focus" ? "#b4232a" : "#18805c"} ${progress}%, rgba(180,35,42,.12) ${progress}% 100%)` }}><div className="grid h-full w-full place-items-center rounded-full bg-[var(--card)] text-center shadow-inner"><span className="font-mono text-[clamp(3.3rem,10vw,5.5rem)] font-bold tracking-tight" aria-live="polite">{display}</span><small className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500">{modeLabels[mode]}</small></div></div><p className="mx-auto mt-4 max-w-md text-sm text-slate-600 dark:text-slate-300">{statusText}</p><div className="mt-5 flex flex-wrap justify-center gap-2" aria-label="Tiến trình chu kỳ Pomodoro">{[0, 1, 2, 3].map((index) => <span key={index} className={`h-3 w-3 rounded-full border-2 ${index < cyclePosition ? "border-emerald-600 bg-emerald-600" : index === cyclePosition && mode === "focus" ? "border-red-600 bg-red-100" : "border-slate-300 bg-transparent dark:border-white/20"}`} title={`Phiên ${index + 1}`} />)}</div><div className="mt-6 flex flex-wrap justify-center gap-2"><button className="primary-button min-w-44 justify-center px-6 py-3" onClick={handleMainAction}>{running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}{running ? "Tạm dừng" : sessionStartedAt ? "Tiếp tục" : mode === "focus" ? "Bắt đầu tập trung" : `Bắt đầu ${modeLabels[mode].toLowerCase()}`}</button>{mode === "focus" && sessionStartedAt ? <button className="secondary-button px-4 py-3" onClick={endEarly}>🏁 Kết thúc phiên</button> : null}<button className="secondary-button px-4 py-3" onClick={() => reset(true)}><RotateCcw className="h-4 w-4" />Đặt lại</button>{mode !== "focus" && !running ? <button className="secondary-button px-4 py-3" onClick={skipBreak}>⏭ Bỏ qua nghỉ</button> : null}</div></div></div>
-      <div className="space-y-5"><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Trước khi bắt đầu</p><h2 className="mt-2 font-display text-2xl font-bold">Bạn đang học gì?</h2></div><Settings2 className="h-5 w-5 text-red-700" /></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">{activities.map((item) => <button key={item.id} type="button" className={`rounded-xl border p-3 text-left text-xs font-bold transition ${activity === item.id ? "border-red-600 bg-red-50 text-red-800 dark:bg-red-400/10 dark:text-red-200" : "border-slate-200 dark:border-white/10"}`} onClick={() => setActivity(item.id)}><span className="mr-1 text-base">{item.icon}</span>{item.label}</button>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Môn học<input className="field mt-2" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ví dụ: Lịch sử Việt Nam" /></label><label className="text-sm font-bold">Nội dung<input className="field mt-2" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Ví dụ: Nhà Trần" /></label></div><div className="mt-4 flex flex-wrap gap-2"><button className="secondary-button" onClick={() => onView("flashcards")}><BookOpen className="h-4 w-4" />Mở Flashcard</button><button className="secondary-button" onClick={() => onView("quizzes")}><CircleHelp className="h-4 w-4" />Mở Đề kiểm tra</button></div></section><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Chọn nhịp học</p><h2 className="mt-2 font-display text-xl font-bold">Preset nhanh</h2></div><button className="text-sm font-bold text-red-700 underline-offset-4 hover:underline" onClick={() => setShowSettings((value) => !value)}>{showSettings ? "Ẩn tùy chỉnh" : "Tùy chỉnh"}</button></div><div className="mt-4 grid gap-2 sm:grid-cols-2">{presets.map((preset) => <button key={preset.label} type="button" className={`rounded-xl border p-3 text-left ${focus === preset.focus && shortBreak === preset.short && longBreak === preset.long ? "border-red-600 bg-red-50 dark:bg-red-400/10" : "border-slate-200 dark:border-white/10"}`} onClick={() => choosePreset(preset)}><b className="block text-sm">{preset.label}</b><span className="mt-1 block text-xs text-slate-500">{preset.note}</span></button>)}</div>{showSettings ? <div className="mt-4 rounded-2xl border border-dashed border-red-200 p-4 dark:border-red-400/20"><div className="grid gap-3 sm:grid-cols-3"><label className="text-xs font-bold">Tập trung<input className="field mt-1" type="number" min="1" max="120" value={focus} onChange={(e) => { const value = clamp(Number(e.target.value) || 1, 1, 120); setFocus(value); if (!running && mode === "focus") setSeconds(value * 60); }} /></label><label className="text-xs font-bold">Nghỉ ngắn<input className="field mt-1" type="number" min="1" max="30" value={shortBreak} onChange={(e) => setShortBreak(clamp(Number(e.target.value) || 1, 1, 30))} /></label><label className="text-xs font-bold">Nghỉ dài<input className="field mt-1" type="number" min="1" max="45" value={longBreak} onChange={(e) => setLongBreak(clamp(Number(e.target.value) || 1, 1, 45))} /></label></div><label className="mt-3 flex items-center justify-between rounded-xl bg-slate-50 p-3 text-sm dark:bg-white/5"><span>Tự động chuyển sang nghỉ</span><input type="checkbox" checked={autoAdvance} onChange={(e) => setAutoAdvance(e.target.checked)} /></label></div> : null}</section><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Audio Center</p><h2 className="mt-2 font-display text-xl font-bold">Âm thanh tập trung</h2></div><button className="secondary-button" onClick={() => setSound((value) => !value)}>{sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}{sound ? "Đang bật" : "Đang tắt"}</button></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Âm thanh nền<select className="field mt-2" value={backgroundSound} onChange={(e) => setBackgroundSound(e.target.value)}><option>Mưa</option><option>Mưa nhẹ</option><option>Rừng</option><option>Thư viện</option><option>White noise</option><option>Brown noise</option><option>Không âm thanh</option></select></label><button className="secondary-button self-end" onClick={previewBackground}>▶ Nghe thử</button></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Âm lượng nền · {backgroundVolume}%<input type="range" min="0" max="100" value={backgroundVolume} onChange={(e) => setBackgroundVolume(Number(e.target.value))} /></label><label className="text-xs font-bold">Âm báo · {alertVolume}%<input type="range" min="0" max="100" value={alertVolume} onChange={(e) => setAlertVolume(Number(e.target.value))} /></label></div></section></div>
+      <div className="space-y-5"><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Trước khi bắt đầu</p><h2 className="mt-2 font-display text-2xl font-bold">Bạn đang học gì?</h2></div><Settings2 className="h-5 w-5 text-red-700" /></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">{activities.map((item) => <button key={item.id} type="button" className={`rounded-xl border p-3 text-left text-xs font-bold transition ${activity === item.id ? "border-red-600 bg-red-50 text-red-800 dark:bg-red-400/10 dark:text-red-200" : "border-slate-200 dark:border-white/10"}`} onClick={() => setActivity(item.id)}><span className="mr-1 text-base">{item.icon}</span>{item.label}</button>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Môn học<input className="field mt-2" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ví dụ: Lịch sử Việt Nam" /></label><label className="text-sm font-bold">Nội dung<input className="field mt-2" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Ví dụ: Nhà Trần" /></label></div><div className="mt-4 flex flex-wrap gap-2"><button className="secondary-button" onClick={() => onView("flashcards")}><BookOpen className="h-4 w-4" />Mở Flashcard</button><button className="secondary-button" onClick={() => onView("quizzes")}><CircleHelp className="h-4 w-4" />Mở Đề kiểm tra</button></div></section><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Chọn nhịp học</p><h2 className="mt-2 font-display text-xl font-bold">Preset nhanh</h2></div><button className="text-sm font-bold text-red-700 underline-offset-4 hover:underline" onClick={() => setShowSettings((value) => !value)}>{showSettings ? "Ẩn tùy chỉnh" : "Tùy chỉnh"}</button></div><div className="mt-4 grid gap-2 sm:grid-cols-2">{presets.map((preset) => <button key={preset.label} type="button" className={`rounded-xl border p-3 text-left ${focus === preset.focus && shortBreak === preset.short && longBreak === preset.long ? "border-red-600 bg-red-50 dark:bg-red-400/10" : "border-slate-200 dark:border-white/10"}`} onClick={() => choosePreset(preset)}><b className="block text-sm">{preset.label}</b><span className="mt-1 block text-xs text-slate-500">{preset.note}</span></button>)}</div>{showSettings ? <div className="mt-4 rounded-2xl border border-dashed border-red-200 p-4 dark:border-red-400/20"><div className="grid gap-3 sm:grid-cols-3"><label className="text-xs font-bold">Tập trung<input className="field mt-1" type="number" min="1" max="120" value={focus} onChange={(e) => { const value = clamp(Number(e.target.value) || 1, 1, 120); setFocus(value); if (!running && mode === "focus") setSeconds(value * 60); }} /></label><label className="text-xs font-bold">Nghỉ ngắn<input className="field mt-1" type="number" min="1" max="30" value={shortBreak} onChange={(e) => setShortBreak(clamp(Number(e.target.value) || 1, 1, 30))} /></label><label className="text-xs font-bold">Nghỉ dài<input className="field mt-1" type="number" min="1" max="45" value={longBreak} onChange={(e) => setLongBreak(clamp(Number(e.target.value) || 1, 1, 45))} /></label></div><label className="mt-3 flex items-center justify-between rounded-xl bg-slate-50 p-3 text-sm dark:bg-white/5"><span>Tự động chuyển sang nghỉ</span><input type="checkbox" checked={autoAdvance} onChange={(e) => setAutoAdvance(e.target.checked)} /></label></div> : null}</section><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Audio Center</p><h2 className="mt-2 font-display text-xl font-bold">Âm thanh tập trung</h2></div><button className="secondary-button" onClick={() => setSound((value) => !value)}>{sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}{sound ? "Đang bật" : "Đang tắt"}</button></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Âm thanh nền<select className="field mt-2" value={backgroundSound} onChange={(e) => setBackgroundSound(e.target.value)}><option>Mưa</option><option>Mưa nhẹ</option><option>Rừng</option><option>Thư viện</option><option>White noise</option><option>Brown noise</option><option>Không âm thanh</option></select></label><button className="secondary-button self-end" onClick={previewBackground}>▶ Nghe thử</button></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Âm lượng nền · {backgroundVolume}%<input type="range" min="0" max="100" value={backgroundVolume} onChange={(e) => setBackgroundVolume(Number(e.target.value))} /></label><label className="text-xs font-bold">Âm báo · {alertVolume}%<input type="range" min="0" max="100" value={alertVolume} onChange={(e) => setAlertVolume(Number(e.target.value))} /></label></div><div className="mt-4 rounded-2xl bg-slate-50 p-3 dark:bg-white/5"><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Thử âm báo từng trạng thái</p><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3"><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("start")}>▶ Bắt đầu</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("tick")}>▶ Tick nhẹ</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("complete")}>▶ Hoàn thành</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("warning")}>▶ Cảnh báo</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("reward")}>▶ Phần thưởng</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("error")}>▶ Lỗi</button></div></div></section></div>
     </section>
     <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]"><section className="panel p-5 sm:p-6"><div className="flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">7 ngày gần đây</p><h2 className="mt-2 font-display text-2xl font-bold">Phút tập trung theo ngày</h2></div><BarChart3 className="h-5 w-5 text-emerald-700" /></div><div className="mt-7 grid h-48 grid-cols-7 items-end gap-2" role="img" aria-label="Biểu đồ phút Pomodoro trong bảy ngày gần đây">{recentDays.map((day) => <div className="flex h-full min-w-0 flex-col justify-end" key={day.label}><div className="rounded-t-xl bg-gradient-to-t from-emerald-600 to-lime-300" style={{ height: `${Math.max(day.minutes ? 12 : 3, day.minutes / maxMinutes * 100)}%` }} title={`${day.label}: ${day.minutes} phút`} /><span className="mt-2 truncate text-center text-[11px] font-bold text-slate-500">{day.label}</span></div>)}</div></section><section className="panel p-5 sm:p-6"><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Theo hoạt động học</p><h2 className="mt-2 font-display text-2xl font-bold">Thời gian đã đầu tư</h2><div className="mt-5 space-y-3">{byActivity.length ? byActivity.map((item) => <div key={item.id}><div className="flex justify-between gap-3 text-sm"><b className="truncate">{item.icon} {item.label}</b><span className="text-slate-500">{item.minutes} phút</span></div><div className="mt-1 h-2 rounded-full bg-red-100 dark:bg-red-400/10"><div className="h-full rounded-full bg-red-600" style={{ width: `${Math.min(100, item.minutes / Math.max(1, byActivity[0].minutes) * 100)}%` }} /></div></div>) : <p className="text-sm text-slate-500">Chọn hoạt động học trước khi bắt đầu để xem phân bổ.</p>}</div></section></section>
     <section className="grid gap-3 sm:grid-cols-3"><Metric icon={Clock3} label="Tổng phiên hoàn thành" value={completedFocus.length} detail={`${completedToday} hôm nay`} /><Metric icon={Flame} label="Tổng thời gian học" value={`${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}p`} detail={`Trung bình ${average} phút/phiên`} /><Metric icon={Trophy} label="Mốc Pomodoro" value={computedAchievements(profile, config).filter((item) => item.metric === "pomodoroSessions").length || "—"} detail={`${profile.xp.toLocaleString("vi-VN")} XP`} /></section>
