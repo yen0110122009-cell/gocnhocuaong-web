@@ -214,3 +214,6 @@
 - [x] Khôi phục palette đỏ sáng + xanh lá chiếm tối thiểu 90% giao diện và rà dark-mode không làm lệch nhận diện.
 - [x] Mở rộng Emotion Theme Studio với nhiều preset, câu lệnh riêng, lời an ủi và Lumi xuất hiện cho từng cảm xúc.
 - [x] Sửa hiển thị asset Ong vàng để người học nhìn thấy rõ ở Home, login và khu vực cảm xúc.
+- [x] Xây dựng Kho lời nói & ý tưởng gồm 4 nhóm: an ủi, động viên, gợi ý hiểu bài và chống trì hoãn.
+- [x] Nối lời nhắn theo sự kiện: sai bài, điểm thấp, bỏ dở, mất streak, bắt đầu, hoàn thành, critical moment và quay lại.
+- [x] Bổ sung lựa chọn chống trì hoãn: Học 5 phút, Ôn bài cũ và Lumi chọn nhiệm vụ.
