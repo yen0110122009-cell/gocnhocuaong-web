@@ -436,3 +436,10 @@
 - [x] Giảm cảnh báo bundle >500kB bằng code-splitting các trang nặng
 - [x] Bổ sung Vitest regression cho shop cosmetic, theme persistence, audio alert và soft-delete
 - [x] Chạy typecheck, test, build và browser QA responsive cho vòng mở rộng này
+
+
+## Yêu cầu cập nhật AI Command Center
+- [x] Bổ sung giải thích chi tiết mục đích, đầu vào, đầu ra và cách kiểm duyệt cho từng prompt mẫu
+- [x] Hỗ trợ nhập prompt tùy chỉnh trong một ô chung và giữ cảnh báo AI chỉ tạo bản nháp
+- [x] Thêm regression test cho prompt explanation, custom prompt và approval gate
+- [x] Chạy typecheck, Vitest, build và QA giao diện Admin Command Center
