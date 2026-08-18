@@ -237,9 +237,23 @@ export type CustomAchievement = {
   enabled: boolean;
 };
 
+export type ContentKind = "comfort" | "encouragement" | "studyHint" | "antiProcrastination" | "microTask" | "reminder" | "choice" | "other";
+export type ContentTone = "gentle" | "normal" | "positive" | "humorous" | "highEnergy";
+export type ContentContext = "mistake" | "lowScore" | "procrastination" | "start" | "pomodoroComplete" | "tired" | "sad" | "lostStreak" | "comeback" | "achievement" | "confused" | "taskComplete";
+export type CustomContentItem = {
+  id: string;
+  kind: ContentKind;
+  text: string;
+  contexts: ContentContext[];
+  mascot: "lumi" | "lumi-sad" | "lumi-cheer" | "lumi-celebrate" | "ong";
+  tone: ContentTone;
+  enabled: boolean;
+};
+
 export type AppConfig = {
   characters: HistoricalCharacter[];
   encouragements: Encouragement[];
+  customContent: CustomContentItem[];
   wheelRewards: WheelReward[];
   wheelTicketsPerAchievement: number;
   dailyFragmentCap: number;
@@ -370,6 +384,7 @@ export const emptyProfile = (): ProfileState => ({
 export const emptyAppConfig = (): AppConfig => ({
   characters: [],
   encouragements: [],
+  customContent: [],
   wheelRewards: [
     { id: "starter-xp-20", label: "Mẫu khởi đầu · +20 XP", kind: "xp", value: 20, probability: 45, color: "#22d3ee" },
     { id: "starter-fragment-1", label: "Mẫu khởi đầu · 1 mảnh ghép", kind: "fragment", value: 1, probability: 30, color: "#f4b942" },

@@ -217,3 +217,10 @@
 - [x] Xây dựng Kho lời nói & ý tưởng gồm 4 nhóm: an ủi, động viên, gợi ý hiểu bài và chống trì hoãn.
 - [x] Nối lời nhắn theo sự kiện: sai bài, điểm thấp, bỏ dở, mất streak, bắt đầu, hoàn thành, critical moment và quay lại.
 - [x] Bổ sung lựa chọn chống trì hoãn: Học 5 phút, Ôn bài cũ và Lumi chọn nhiệm vụ.
+- [x] Bổ sung thư viện nhiệm vụ siêu nhỏ và lời nhắc nhẹ, có chọn ngẫu nhiên.
+- [x] Thêm form ＋ Thêm nội dung với loại, nội dung, nhiều ngữ cảnh, mascot và mức độ.
+- [x] Sửa fallback/hiển thị ảnh Ong vàng để không còn ô ảnh trống và có trạng thái dễ hiểu khi asset lỗi.
+- [x] Sửa thông điệp tiến độ thành tích theo hướng khích lệ, không nhấn vào số còn thiếu.
+- [x] Bổ sung Bảo tàng Hành trình theo năm/tháng và câu chuyện khi mở từng hiện vật.
+- [x] Hoàn thiện nhiệm vụ siêu nhỏ, lời nhắc nhẹ và form ＋ Thêm nội dung với đầy đủ trường yêu cầu.
+- [x] Thay ảnh Ong vàng bằng fallback minh họa ổn định, không phụ thuộc storage URL lỗi.

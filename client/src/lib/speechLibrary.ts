@@ -33,6 +33,26 @@ export const lumiSpeechLibrary: LumiSpeech[] = [
   { id: "anti-random", group: "antiProcrastination", event: "procrastination", text: "Lumi chọn nhiệm vụ nhẹ cho Ong nhé. Mình không cần quyết định quá nhiều lúc đang mệt.", action: "🎲 Lumi chọn nhiệm vụ" },
 ];
 
+export const microTasks = [
+  "Mở sách.",
+  "Viết ngày hôm nay.",
+  "Đọc một định nghĩa.",
+  "Làm một câu.",
+  "Viết lại một công thức.",
+  "Tự giải thích một khái niệm.",
+  "Kiểm tra một câu sai.",
+] as const;
+
+export const gentleReminders = [
+  "Nếu hôm nay chưa làm được nhiều thì cũng không sao. Mình thử làm một việc nhỏ trước nhé.",
+  "Lumi không ép Ong phải hoàn hảo. Một bước nhỏ cũng là một bước tiến.",
+  "Mình có thể bắt đầu thật nhẹ, rồi quyết định bước tiếp theo sau.",
+] as const;
+
+export function randomMicroTask() {
+  return microTasks[Math.floor(Math.random() * microTasks.length)] ?? microTasks[0];
+}
+
 export const antiProcrastinationChoices = [
   { id: "five", label: "🍅 Học 5 phút", description: "Một phiên ngắn để khởi động lại." },
   { id: "review", label: "📖 Ôn bài cũ", description: "Đọc lại một phần quen thuộc." },
