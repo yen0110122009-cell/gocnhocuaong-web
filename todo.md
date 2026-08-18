@@ -154,3 +154,5 @@
 
 - [ ] Thay âm thanh nhiễu hiện tại bằng bộ âm thanh nhiều trạng thái: bắt đầu phiên, tick nhẹ, hoàn thành, cảnh báo, phần thưởng và lỗi; giữ volume, mute, preview và hỗ trợ reduced motion/thiết bị không có AudioContext.
 - [ ] Bổ sung regression tests cho audio event mapping, volume scaling và cleanup oscillator/gain node; build và cập nhật GitHub Pages.
+
+- [ ] Hoàn tất phát hành audio lên GitHub Pages sau khi Pages legacy/CDN ngừng phục vụ index cũ `/assets`; local build đã đúng `/gocnhocuaong2/assets`, nhưng API trigger Pages trả 403 và live URL vẫn trắng. Cần đợi Pages rebuild hoặc đổi Source sang GitHub Actions trong Settings.
