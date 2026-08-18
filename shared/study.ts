@@ -284,7 +284,16 @@ export type AiContentSuggestion = Omit<CustomContentItem, "approvalStatus" | "so
 };
 
 export type LevelDefinition = { id: string; name: string; icon: string; enabled: boolean; createdAt?: string; updatedAt?: string; deletedAt?: string };
-export type AchievementMoment = { id: string; achievementId: string; createdAt: string; note: string; feeling: string; mascotVariant: "hoodie" };
+export type AchievementMoment = {
+  id: string;
+  achievementId: string;
+  createdAt: string;
+  note: string;
+  feeling: string;
+  mascotVariant: "hoodie";
+  photoUrl?: string;
+  deletedAt?: string;
+};
 
 
 export type DeepLearningEvent = { id: string; occurredAt: string; kind: "correct" | "explained" | "selfFoundError" | "retryWrong" | "alternativeExplanation"; xpEarned: number; sourceId?: string; note?: string };

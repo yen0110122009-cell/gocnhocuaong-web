@@ -265,7 +265,7 @@
 - [x] Xây dựng Bản đồ Hành trình dạng nhánh thay cho achievement chỉ là danh sách.
 - [x] Bổ sung Cây tiến bộ theo nhóm kỹ năng/kiến thức với node, quan hệ nhánh và trạng thái.
 - [x] Bổ sung Bản đồ chưa khám phá với achievement bí mật ẩn tên/điều kiện cho tới khi mở khóa.
-- [ ] Bổ sung câu chuyện riêng cho achievement đã mở khóa, dựa trên điều kiện và lịch sử thật.
-- [ ] Bổ sung Khoảnh khắc mở khóa: ảnh, ghi chú, cảm xúc, mascot và lưu/xóa/khôi phục theo dữ liệu người dùng.
+- [x] Bổ sung câu chuyện riêng cho achievement đã mở khóa, dựa trên điều kiện và lịch sử thật.
+- [x] Bổ sung Khoảnh khắc mở khóa: ảnh, ghi chú, cảm xúc, mascot và lưu/xóa/khôi phục theo dữ liệu người dùng.
 - [x] Dùng riêng asset Ong hoodie trong Achievement, Bản đồ, Cây tiến bộ và Khoảnh khắc; không dùng Ong phong cách người.
 - [x] Bổ sung regression tests và responsive QA cho toàn bộ hệ thống achievement dạng bản đồ.
