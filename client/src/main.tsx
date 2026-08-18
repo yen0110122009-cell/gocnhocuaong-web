@@ -65,8 +65,8 @@ const trpcClient = trpc.createClient({
       },
       fetch(input, init) {
         if (isGitHubPages && typeof input === "string" && input.includes("/api/trpc")) {
-          return Promise.resolve(new Response(JSON.stringify([{ error: { json: { message: "Bản GitHub Pages dùng cloud-state Supabase; không gọi tRPC backend.", code: -32099, data: { code: "FORBIDDEN", httpStatus: 503, path: "static" } } } }]), {
-            status: 503,
+          return Promise.resolve(new Response(JSON.stringify([{ result: { data: { json: null } } }]), {
+            status: 200,
             headers: { "content-type": "application/json" },
           }));
         }

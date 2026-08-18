@@ -40,3 +40,9 @@ Commit `1c53da5` was opened at the cache-busted GitHub Pages URL. A QA login wit
 ## tRPC transform-envelope QA
 
 Commit `fbd8d48` was opened at `https://yen0110122009-cell.github.io/gocnhocuaong2/?v=fbd8d48-transformfix`. The page loaded the new static bundle and a QA login with code `999` completed with the clear message `Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.` The browser session did not expose `Unable to transform response from server`.
+
+## Empty tRPC fallback QA
+
+Commit `e7aa6d2` was opened at `https://yen0110122009-cell.github.io/gocnhocuaong2/?v=e7aa6d2-emptyfix`. The page loaded the new bundle `index-B-7JnR8L.js`; submitting QA code `999` entered the normal `Đang xử lý…` state without showing either `Unable to transform response from server` or the old static-host error message during the browser observation.
+
+The follow-up browser view confirmed the loading state exited and showed the red account-code error. No `Unable to transform response from server` text and no `Bản GitHub Pages dùng cloud-state...` error text appeared.

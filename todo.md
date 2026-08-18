@@ -142,3 +142,5 @@
 - [x] Điều tra lại lỗi người dùng xác nhận vẫn còn `Unexpected token '<', "<html> <he..." is not valid JSON`; audit toàn bộ parser/request, thêm guard chặn tRPC trên static host bằng JSON 503, deploy commit `1c53da5`, và browser QA mã 999 không còn raw HTML-as-JSON.
 
 - [x] Điều tra lỗi mới `Unable to transform response from server` trên GitHub Pages; sửa guard tRPC static thành batch error envelope hợp lệ cho tRPC 11, bổ sung regression assertions, chạy 31 file/89 test, build asset `index-DASLnU1m.js`, push commit `fbd8d48` và browser QA mã 999 đạt.
+
+- [x] Sửa lỗi transform kép: guard `/api/trpc` trên GitHub Pages đổi từ error envelope sang response thành công rỗng; 31 file/89 test đạt, deploy commit `e7aa6d2`, browser QA mã 999 thoát loading và hiển thị lỗi tài khoản rõ ràng, không còn hai thông báo transform/static-host.
