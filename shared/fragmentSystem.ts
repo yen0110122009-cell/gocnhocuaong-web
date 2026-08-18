@@ -1,9 +1,11 @@
 import type {
+  AdminReward,
   AppConfig,
   CharacterProgress,
   CharacterSource,
   CharacterUnlockStatus,
   CollectionShopItem,
+  CollectionEvent,
   FragmentPiece,
   FragmentTier,
   FragmentRewardSourceRule,
@@ -73,6 +75,70 @@ export function grantFragmentSourceReward(config: AppConfig, profile: ProfileSta
   const receipt: RewardClaimReceipt = { claimKey: key, sourceType: rule.kind, sourceId: rule.id, reason: rule.description, claimedAt: occurredAt, amount, transactionIds };
   nextProfile = { ...nextProfile, fragmentLedger: ledger, fragmentRewardClaims: { ...(nextProfile.fragmentRewardClaims ?? {}), [key]: amount }, rewardClaims: { ...(nextProfile.rewardClaims ?? {}), [key]: receipt } };
   return { profile: appendRewardAudit(nextProfile, { occurredAt, actor: "system", action: "grant", entityType: "fragment_reward", entityId: rule.id, summary: `${rule.label}: +${amount} mảnh`, metadata: { claimKey: key, sourceType: rule.kind, sourceId: rule.id, amount } }), granted: true, reason: "ok" as const, amount };
+}
+
+export function claimCollectionEventReward(config: AppConfig, profile: ProfileState, event: CollectionEvent, occurredAt = new Date().toISOString()) {
+  const now = new Date(occurredAt).getTime();
+  const startsAt = new Date(event.startsAt).getTime();
+  const endsAt = new Date(event.endsAt).getTime();
+  if (event.deletedAt || event.status === "draft" || event.status === "archived" || !Number.isFinite(startsAt) || !Number.isFinite(endsAt) || now < startsAt || now > endsAt || (event.status !== "active" && event.status !== "scheduled")) {
+    return { profile, claimed: false, reason: "inactive" as const, amount: 0, missingConditions: [] as string[] };
+  }
+  const progress = profile.eventProgress?.[event.id] ?? {};
+  const missingConditions = event.participationConditions.filter((condition) => Math.max(0, Number(progress[condition.metric] ?? 0)) < Math.max(0, condition.target)).map((condition) => condition.label);
+  if (missingConditions.length) return { profile, claimed: false, reason: "conditions_not_met" as const, amount: 0, missingConditions };
+  const claimKey = `event:${event.id}`;
+  const previousReceipt = profile.eventRewardClaims?.[claimKey] ?? profile.rewardClaims?.[claimKey];
+  if (previousReceipt) return { profile, claimed: false, reason: "already_claimed" as const, amount: 0, missingConditions: [] as string[] };
+  const previousClaims = Math.max(0, Math.floor(Number(profile.claimedEventRewards?.[event.id] ?? 0)));
+  const claimLimit = Math.max(0, Math.floor(Number(event.claimLimit)));
+  if (claimLimit > 0 && previousClaims >= claimLimit) return { profile, claimed: false, reason: "limit_reached" as const, amount: 0, missingConditions: [] as string[] };
+  const rewards = event.fragmentRewards.map((reward) => ({ ...reward, amount: Math.max(0, Math.floor(reward.amount)) })).filter((reward) => reward.amount > 0);
+  if (!rewards.length) return { profile, claimed: false, reason: "empty_reward" as const, amount: 0, missingConditions: [] as string[] };
+  const ledger = { ...(profile.fragmentLedger ?? {}) } as Partial<Record<FragmentTier, number>>;
+  let nextProfile: ProfileState = { ...profile, fragmentLedger: ledger, claimedEventRewards: { ...(profile.claimedEventRewards ?? {}), [event.id]: previousClaims + 1 } };
+  const transactionIds: string[] = [];
+  let amount = 0;
+  for (const reward of rewards) {
+    ledger[reward.tier] = Math.max(0, Math.floor(Number(ledger[reward.tier]) || 0)) + reward.amount;
+    amount += reward.amount;
+    const transactionId = `piece-tx-${claimKey}-${reward.tier}`;
+    transactionIds.push(transactionId);
+    nextProfile = appendPieceTransaction(nextProfile, { id: transactionId, occurredAt, source: "event", sourceType: "event", sourceId: event.id, reason: event.description, claimKey, type: "grant", tier: reward.tier, amount: reward.amount, value: reward.amount * configuredFragmentValue(config, reward.tier), description: reward.label ?? event.name, relatedId: event.id });
+  }
+  const receipt: RewardClaimReceipt = { claimKey, sourceType: "event", sourceId: event.id, reason: event.description, claimedAt: occurredAt, amount, transactionIds };
+  nextProfile = { ...nextProfile, eventRewardClaims: { ...(nextProfile.eventRewardClaims ?? {}), [claimKey]: receipt }, rewardClaims: { ...(nextProfile.rewardClaims ?? {}), [claimKey]: receipt } };
+  return { profile: appendRewardAudit(nextProfile, { occurredAt, actor: "system", action: "grant", entityType: "event_reward", entityId: event.id, summary: `${event.name}: +${amount} mảnh`, metadata: { claimKey, sourceType: "event", sourceId: event.id, amount, claimLimit } }), claimed: true, reason: "ok" as const, amount, missingConditions: [] as string[], rewards };
+}
+
+export function grantAdminReward(config: AppConfig, profile: ProfileState, reward: AdminReward, adminId: string, occurredAt = new Date().toISOString()) {
+  const claimKey = `admin:${reward.id}:${reward.recipientUserId ?? "profile"}`;
+  const auditId = reward.auditId ?? claimKey;
+  if (reward.approvalStatus !== "approved" || !reward.active) return { profile, granted: false, reason: "not_approved" as const };
+  if (!reward.recipientUserId || !reward.grantReason?.trim()) return { profile, granted: false, reason: "missing_recipient_or_reason" as const };
+  if ((profile.rewardClaims ?? {})[claimKey] || (profile.rewardAuditLogs ?? []).some((item) => item.id === auditId)) return { profile, granted: false, reason: "already_granted" as const };
+  const value = Math.max(0, Math.floor(Number(reward.value) || 0));
+  if (!value) return { profile, granted: false, reason: "empty_reward" as const };
+  let nextProfile: ProfileState = profile;
+  const transactionIds: string[] = [];
+  if (reward.type === "piece") {
+    const tier = (reward.condition.match(/tier[:=]?(VI|IV|V|I{1,3})/i)?.[1] ?? "I") as FragmentTier;
+    const ledger = { ...(profile.fragmentLedger ?? {}) } as Partial<Record<FragmentTier, number>>;
+    ledger[tier] = Math.max(0, Math.floor(Number(ledger[tier]) || 0)) + value;
+    const transactionId = `piece-tx-${claimKey}-${tier}`;
+    transactionIds.push(transactionId);
+    nextProfile = appendPieceTransaction({ ...profile, fragmentLedger: ledger }, { id: transactionId, occurredAt, source: "admin", sourceType: "admin", sourceId: reward.id, reason: reward.grantReason, claimKey, type: "grant", tier, amount: value, value: value * configuredFragmentValue(config, tier), description: reward.name, relatedId: reward.id, userId: reward.recipientUserId });
+  } else if (reward.type === "ticket") {
+    nextProfile = { ...profile, collectionTickets: Math.max(0, profile.collectionTickets ?? 0) + value };
+  } else if (reward.type === "achievement_points") {
+    nextProfile = { ...profile, xp: Math.max(0, profile.xp) + value };
+  } else {
+    nextProfile = { ...profile, inventory: Array.from(new Set([...(profile.inventory ?? []), ...Array.from({ length: value }, () => reward.id)])) };
+  }
+  const receipt: RewardClaimReceipt = { claimKey, sourceType: "admin", sourceId: reward.id, reason: reward.grantReason, claimedAt: occurredAt, amount: value, transactionIds };
+  nextProfile = { ...nextProfile, rewardClaims: { ...(nextProfile.rewardClaims ?? {}), [claimKey]: receipt } };
+  nextProfile = appendRewardAudit(nextProfile, { occurredAt, actor: adminId, action: "admin_grant", entityType: "admin_reward", entityId: reward.id, summary: `${reward.name}: cấp ${value} cho ${reward.recipientUserId}`, metadata: { adminId, recipientUserId: reward.recipientUserId, rewardType: reward.type, rewardValue: value, reason: reward.grantReason, auditId } });
+  return { profile: nextProfile, granted: true, reason: "ok" as const, claimKey, receipt };
 }
 
 export function collectionTicketQuote(config: AppConfig, value: number) {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { emptyAppConfig, emptyProfile } from "./study";
 import {
+  claimCollectionEventReward,
+  grantAdminReward,
   exchangePieceTier,
   grantFragmentSourceReward,
   grantLearningMilestone,
@@ -74,5 +76,111 @@ describe("fragment reward integrity", () => {
     expect(Object.values(result.profile.fragmentLedger ?? {}).every((value) => Number(value) >= 0)).toBe(true);
     expect(history).toHaveLength(2);
     expect(history.every((transaction) => transaction.sourceType === "admin" && transaction.sourceId === "i-to-ii" && transaction.reason)).toBe(true);
+  });
+});
+
+
+  it("auto-claims an eligible event once with traceable receipt and audit", () => {
+    const config = emptyAppConfig();
+    const event = {
+      id: "event-study-week",
+      name: "Tuần Lễ Chăm Chỉ",
+      description: "Hoàn thành mục tiêu học tập trong tuần.",
+      startsAt: "2026-08-19T00:00:00.000Z",
+      endsAt: "2026-08-26T00:00:00.000Z",
+      status: "active" as const,
+      difficulty: "Bình thường" as const,
+      objective: "Đạt 5 Pomodoro",
+      tasks: [],
+      rewards: [],
+      fragmentRewards: [{ tier: "II" as const, amount: 3, label: "3 mảnh Cấp II" }],
+      participationConditions: [{ id: "pomodoro", label: "Pomodoro: 5/5", metric: "pomodoro", target: 5 }],
+      claimLimit: 1,
+      createdAt: "2026-08-18T00:00:00.000Z",
+      updatedAt: "2026-08-18T00:00:00.000Z",
+    };
+    const eligible = { ...emptyProfile(), eventProgress: { [event.id]: { pomodoro: 5 } } };
+    const first = claimCollectionEventReward(config, eligible, event, "2026-08-20T08:00:00.000Z");
+    const second = claimCollectionEventReward(config, first.profile, event, "2026-08-20T08:01:00.000Z");
+
+    expect(first.claimed).toBe(true);
+    expect(first.profile.fragmentLedger?.II).toBe(3);
+    expect(first.profile.eventRewardClaims?.["event:event-study-week"]).toMatchObject({ sourceType: "event", sourceId: event.id, amount: 3 });
+    expect(first.profile.pieceTransactions?.[0]).toMatchObject({ sourceType: "event", sourceId: event.id, claimKey: "event:event-study-week" });
+    expect(first.profile.rewardAuditLogs?.[0]).toMatchObject({ entityType: "event_reward", entityId: event.id });
+    expect(second.claimed).toBe(false);
+    expect(second.reason).toBe("already_claimed");
+    expect(first.profile.pieceTransactions).toHaveLength(1);
+  });
+
+  it("does not claim an event before conditions are met", () => {
+    const config = emptyAppConfig();
+    const event = {
+      id: "event-condition",
+      name: "Điều kiện kiểm tra",
+      description: "Cần đạt mục tiêu.",
+      startsAt: "2026-08-19T00:00:00.000Z",
+      endsAt: "2026-08-26T00:00:00.000Z",
+      status: "active" as const,
+      difficulty: "Dễ" as const,
+      objective: "Đạt mục tiêu",
+      tasks: [],
+      rewards: [],
+      fragmentRewards: [{ tier: "I" as const, amount: 1 }],
+      participationConditions: [{ id: "study", label: "Học: 10/10", metric: "study", target: 10 }],
+      claimLimit: 1,
+      createdAt: "2026-08-18T00:00:00.000Z",
+      updatedAt: "2026-08-18T00:00:00.000Z",
+    };
+    const result = claimCollectionEventReward(config, emptyProfile(), event, "2026-08-20T08:00:00.000Z");
+    expect(result.claimed).toBe(false);
+    expect(result.reason).toBe("conditions_not_met");
+    expect(result.missingConditions).toEqual(["Học: 10/10"]);
+    expect(result.profile.fragmentLedger ?? {}).toEqual({});
+  });
+
+describe("Admin reward grants", () => {
+  it("requires approval, recipient and reason, then grants idempotently with audit", () => {
+    const config = emptyAppConfig();
+    const profile = emptyProfile();
+    const baseReward = {
+      id: "admin-grant-001",
+      name: "Grant mảnh kiểm duyệt",
+      type: "piece" as const,
+      value: 3,
+      condition: "tier=IV",
+      active: true,
+      approvalStatus: "approved" as const,
+      recipientUserId: "user-001",
+      grantReason: "Bù thưởng theo biên bản hỗ trợ #001",
+    };
+
+    const first = grantAdminReward(config, profile, baseReward, "admin-001", "2026-08-19T00:00:00.000Z");
+    expect(first.granted).toBe(true);
+    expect(first.profile.fragmentLedger?.IV).toBe(3);
+    expect(first.profile.pieceTransactions?.[0]).toMatchObject({
+      sourceType: "admin",
+      sourceId: baseReward.id,
+      reason: baseReward.grantReason,
+      claimKey: "admin:admin-grant-001:user-001",
+    });
+    expect(first.profile.rewardAuditLogs?.at(-1)).toMatchObject({
+      actor: "admin-001",
+      action: "admin_grant",
+      entityId: baseReward.id,
+    });
+
+    const retry = grantAdminReward(config, first.profile, baseReward, "admin-001", "2026-08-19T00:01:00.000Z");
+    expect(retry.granted).toBe(false);
+    expect(retry.reason).toBe("already_granted");
+    expect(retry.profile.fragmentLedger?.IV).toBe(3);
+
+    const pending = grantAdminReward(config, profile, { ...baseReward, approvalStatus: "draft" }, "admin-001");
+    expect(pending.granted).toBe(false);
+    expect(pending.reason).toBe("not_approved");
+
+    const missingReason = grantAdminReward(config, profile, { ...baseReward, grantReason: "" }, "admin-001");
+    expect(missingReason.granted).toBe(false);
+    expect(missingReason.reason).toBe("missing_recipient_or_reason");
   });
 });

@@ -124,7 +124,7 @@ export type CollectionShopItem = { id: string; name: string; description: string
 export type RewardSourceKind = "achievement" | "studySession" | "pomodoroMilestone" | "quiz" | "deepReview" | "scoreImprovement" | "streak" | "task" | "event";
 export type FragmentRewardGrant = { tier: FragmentTier; amount: number; label?: string };
 export type LearningMilestone = { id: string; label: string; studySeconds: number; rewards: FragmentRewardGrant[]; achievementPoints?: number; enabled: boolean };
-export type AdminReward = { id: string; name: string; type: "achievement_points" | "piece" | "ticket" | "cosmetic" | "mascot_item" | "profile_item"; value: number; rarity: "common" | "rare" | "epic" | "legendary"; icon: string; description: string; condition: string; active: boolean; createdAt: string; updatedAt: string };
+export type AdminReward = { id: string; name: string; type: "achievement_points" | "piece" | "ticket" | "cosmetic" | "mascot_item" | "profile_item"; value: number; rarity: "common" | "rare" | "epic" | "legendary"; icon: string; description: string; condition: string; active: boolean; createdAt: string; updatedAt: string; recipientUserId?: string; grantReason?: string; auditId?: string; approvalStatus?: "draft" | "approved" | "revoked" };
 export type PieceExchangeRule = { id: string; fromTier: FragmentTier; fromAmount: number; toTier: FragmentTier; toAmount: number; enabled: boolean };
 export type PieceTransaction = {
   id: string;
@@ -190,6 +190,9 @@ export type CollectionEvent = {
   fragmentRewards: FragmentRewardGrant[];
   participationConditions: Array<{ id: string; label: string; metric: string; target: number }>;
   claimLimit: number;
+  maxParticipants?: number;
+  approvalStatus?: "draft" | "approved";
+  aiDraft?: boolean;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -497,6 +500,7 @@ export type ProfileState = {
   fragmentRewardClaims?: Record<string, number>;
   eventProgress?: Record<string, Record<string, number>>;
   claimedEventRewards?: Record<string, number>;
+  eventRewardClaims?: Record<string, RewardClaimReceipt>;
   pieceTransactions?: PieceTransaction[];
   rewardAuditLogs?: RewardAuditLog[];
   claimedMilestones?: Record<string, string>;
@@ -649,6 +653,7 @@ export const emptyProfile = (): ProfileState => ({
   fragmentRewardClaims: {},
   eventProgress: {},
   claimedEventRewards: {},
+  eventRewardClaims: {},
   rewardClaims: {},
   achievementRewardClaims: {},
   rewardAuditLogs: [],

@@ -370,3 +370,9 @@
 - [x] Thêm form nguồn tư liệu và prompt AI tạo bản nháp nhân vật; không tự xuất bản khi chưa duyệt.
 - [x] Viết regression cho mảnh ghép, source metadata, image status, trash/restore và quy trình draft approval.
 - [x] Chạy QA responsive cho Bộ sưu tập Nhân vật Lịch sử và Admin content hub.
+
+- [x] Chuẩn hóa Event dữ liệu thật với thời gian, điều kiện, nhiệm vụ, phần thưởng, loại/số lượng mảnh, giới hạn nhận và số lần tham gia.
+- [x] Bổ sung auto-reward Event theo luồng kiểm tra điều kiện → reward record → ledger → thông báo, chống claim trùng.
+- [x] Bổ sung Admin grant mảnh/điểm/vật phẩm/vé/Danh hiệu với admin_id, recipient_user_id, reward_type, reward_value, reason, created_at và audit.
+- [x] Bổ sung form Admin tạo Thành tích thường/Danh hiệu và prompt AI tạo bản nháp cho Event, Thành tích, Danh hiệu.
+- [x] Viết regression cho Event claim limit/idempotency, Admin grant audit và quy tắc AI không tự xuất bản.
