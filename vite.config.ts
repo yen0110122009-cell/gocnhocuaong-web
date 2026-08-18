@@ -169,6 +169,20 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("/node_modules/")) {
+            const matches = Array.from(id.matchAll(/node_modules\/([^/]+)/g), (match) => match[1]);
+            const packageName = matches.at(-1)?.replace(/^@/, "").replace(/[^a-zA-Z0-9_-]/g, "-") || "misc";
+            return `vendor-${packageName}`;
+          }
+          if (id.includes("/shared/")) return "shared-contracts";
+          if (id.includes("/client/src/components/ui/")) return "ui-components";
+          return undefined;
+        },
+      },
+    },
   },
   server: {
     host: true,

@@ -418,3 +418,21 @@
 - [x] Bảo đảm trạng thái từng mục không tự mở lại sau tải trang, trừ khi chính người dùng đã mở mục đó.
 - [x] Cập nhật regression và QA desktop/mobile cho cơ chế thu gọn theo từng mục.
 - [x] Lưu checkpoint cho bản sửa phạm vi thu gọn theo từng mục.
+
+- [x] Bổ sung catalog cửa hàng cho theme màu và nền animation với giá, loại tiền, độ hiếm, trạng thái sở hữu/trang bị.
+- [x] Thực hiện giao dịch mua/trang bị theme và nền bằng tiền tệ hệ thống qua ledger, kiểm tra số dư và chống mua trùng.
+- [x] Lưu theme/nền đang chọn và khôi phục sau khi tải lại trang, có hỗ trợ prefers-reduced-motion.
+- [x] Tăng âm báo Pomodoro về độ to/độ vang, giữ giới hạn âm lượng và cho phép nghe thử/bật tắt rõ ràng.
+- [x] Viết regression cho giao dịch shop, persistence theme/nền và cấu hình âm báo Pomodoro.
+- [x] Chạy TypeScript, Vitest, production build và browser/audio QA desktop/mobile.
+- [x] Lưu checkpoint cho vòng shop theme/nền động và audio Pomodoro.
+
+
+## Vòng mở rộng kế tiếp
+- [x] Mở rộng catalog Cửa hàng bằng item theme màu và nền animation, dùng currency/ledger hiện có
+- [x] Thêm state sở hữu/trang bị theme và nền, lưu bền vững qua cloud-state/localStorage và áp dụng toàn app
+- [x] Nâng cấp âm thanh hoàn tất Pomodoro: lớn hơn, vang hơn, có reverb/echo nhưng tôn trọng user gesture
+- [x] Mở rộng soft-delete/thùng rác cho Achievements, Titles, Rewards và Shop items
+- [x] Giảm cảnh báo bundle >500kB bằng code-splitting các trang nặng
+- [x] Bổ sung Vitest regression cho shop cosmetic, theme persistence, audio alert và soft-delete
+- [x] Chạy typecheck, test, build và browser QA responsive cho vòng mở rộng này

@@ -107,6 +107,23 @@
   .animate-spin { animation: none !important; }
 }
 
+/* Cosmetic shop: theme and animated background are data-driven and applied on <html>. */
+:root[data-cosmetic-theme="ong-red"] { --cosmetic-accent: #c62828; --cosmetic-accent-soft: #fff1ef; }
+:root[data-cosmetic-theme="forest-green"] { --cosmetic-accent: #2e7d32; --cosmetic-accent-soft: #effcf1; }
+:root[data-cosmetic-theme="sunset-amber"] { --cosmetic-accent: #b45309; --cosmetic-accent-soft: #fff7df; }
+:root[data-cosmetic-theme="ocean-blue"] { --cosmetic-accent: #1769aa; --cosmetic-accent-soft: #edf7ff; }
+.cosmetic-card { border: 1px solid color-mix(in srgb, var(--cosmetic-accent) 22%, transparent); border-radius: 1.5rem; padding: 1rem; background: color-mix(in srgb, var(--cosmetic-accent-soft) 78%, white); transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
+.cosmetic-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px color-mix(in srgb, var(--cosmetic-accent) 16%, transparent); }
+.cosmetic-card--active { box-shadow: 0 0 0 2px color-mix(in srgb, var(--cosmetic-accent) 55%, transparent); }
+:root[data-cosmetic-background="paper-grid"] body { background-image: linear-gradient(rgba(148,163,184,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.08) 1px, transparent 1px); background-size: 28px 28px; }
+:root[data-cosmetic-background="leaf-drift"] body { background-image: radial-gradient(circle at 12% 22%, rgba(34,197,94,.14) 0 2px, transparent 3px), radial-gradient(circle at 82% 64%, rgba(34,197,94,.12) 0 3px, transparent 4px); background-size: 180px 160px, 240px 220px; animation: cosmetic-leaf-drift 18s linear infinite; }
+:root[data-cosmetic-background="sunrise-glow"] body { background-image: radial-gradient(circle at 80% 0%, rgba(251,191,36,.22), transparent 38%), radial-gradient(circle at 10% 90%, rgba(239,68,68,.11), transparent 34%); background-size: 120% 120%; animation: cosmetic-sunrise 16s ease-in-out infinite alternate; }
+:root[data-cosmetic-background="night-stars"] body { background-color: #161b2b; background-image: radial-gradient(circle at 18% 24%, rgba(255,255,255,.45) 0 1px, transparent 2px), radial-gradient(circle at 72% 66%, rgba(147,197,253,.45) 0 1px, transparent 2px); background-size: 120px 140px, 190px 170px; animation: cosmetic-stars 22s linear infinite; }
+@keyframes cosmetic-leaf-drift { to { background-position: 180px 160px, -240px 220px; } }
+@keyframes cosmetic-sunrise { to { background-position: 100% 25%, 0% 70%; } }
+@keyframes cosmetic-stars { to { background-position: 120px 0, -190px 170px; } }
+@media (prefers-reduced-motion: reduce) { :root[data-cosmetic-background] body { animation: none; } .cosmetic-card { transition: none; } }
+
 @media (forced-colors: active) {
   button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid CanvasText; outline-offset: 3px; }
 }

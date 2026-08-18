@@ -152,24 +152,41 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     try {
       const context = getAudioContext();
       void context.resume();
+      const now = context.currentTime;
       const master = context.createGain();
-      master.gain.setValueAtTime(scaledGain(alertVolume, soundEventGainMultiplier(event)), context.currentTime);
+      const isCompletion = event === "complete";
+      const volume = Math.min(1, scaledGain(alertVolume, soundEventGainMultiplier(event)) * (isCompletion ? 1.35 : 1));
+      master.gain.setValueAtTime(Math.max(0.001, volume), now);
       master.connect(context.destination);
+      const reverb = isCompletion ? context.createConvolver() : null;
+      const echo = isCompletion ? context.createDelay(1.2) : null;
+      if (reverb && echo) {
+        const impulse = context.createBuffer(2, context.sampleRate * 1.1, context.sampleRate);
+        for (let channel = 0; channel < impulse.numberOfChannels; channel += 1) { const data = impulse.getChannelData(channel); for (let i = 0; i < data.length; i += 1) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2.4); }
+        reverb.buffer = impulse;
+        const wet = context.createGain(); wet.gain.value = 0.32;
+        const echoGain = context.createGain(); echoGain.gain.value = 0.18;
+        reverb.connect(wet).connect(master);
+        echo.delayTime.value = 0.24;
+        echo.connect(echoGain).connect(master);
+      }
       const notes = SOUND_EVENTS[event];
       notes.forEach((frequency, index) => {
-        const startAt = context.currentTime + index * soundEventSpacing(event);
+        const startAt = now + index * soundEventSpacing(event);
         const oscillator = context.createOscillator();
         const noteGain = context.createGain();
-        oscillator.type = event === "complete" ? COMPLETE_ALERT_PROFILE.oscillator : event === "error" ? "square" : event === "warning" ? "triangle" : "sine";
+        oscillator.type = isCompletion ? COMPLETE_ALERT_PROFILE.oscillator : event === "error" ? "square" : event === "warning" ? "triangle" : "sine";
         oscillator.frequency.setValueAtTime(frequency, startAt);
         noteGain.gain.setValueAtTime(0.001, startAt);
-        noteGain.gain.exponentialRampToValueAtTime(1, startAt + 0.015);
-        noteGain.gain.exponentialRampToValueAtTime(0.001, startAt + (soundEventDuration(event) - 0.01));
+        noteGain.gain.exponentialRampToValueAtTime(isCompletion ? 1.18 : 1, startAt + 0.015);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, startAt + soundEventDuration(event) - 0.01);
         oscillator.connect(noteGain).connect(master);
+        if (reverb) noteGain.connect(reverb);
+        if (echo) noteGain.connect(echo);
         oscillator.start(startAt);
-        oscillator.stop(startAt + (soundEventDuration(event)));
+        oscillator.stop(startAt + soundEventDuration(event));
       });
-      window.setTimeout(() => master.disconnect(), notes.length * soundEventSpacing(event) * 1000 + soundEventDuration(event) * 1000 + 500);
+      window.setTimeout(() => { master.disconnect(); reverb?.disconnect(); echo?.disconnect(); }, notes.length * soundEventSpacing(event) * 1000 + soundEventDuration(event) * 1000 + (isCompletion ? 1600 : 500));
     } catch { /* browsers may deny audio without a user gesture */ }
   }
   function playAlert() { playSequence("complete"); }

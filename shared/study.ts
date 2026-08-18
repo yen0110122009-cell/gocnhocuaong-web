@@ -120,11 +120,13 @@ export type FragmentRarity = "common" | "rare" | "special" | "legendary";
 export type FragmentTier = "I" | "II" | "III" | "IV" | "V" | "VI";
 export type FragmentTierConfig = { tier: FragmentTier; label: string; value: number; rarity: FragmentRarity; enabled: boolean };
 export type CollectionProfileLevel = { id: string; label: string; requiredValue: number; description: string; unlocked: boolean };
-export type CollectionShopItem = { id: string; name: string; description: string; kind: "profileFrame" | "profileBackground" | "icon" | "decorativeBadge" | "mascotAccessory" | "profileEffect" | "historyTheme"; price: number; currency: "collectionTicket" | "fragmentValue"; rarity: "common" | "rare" | "epic" | "legendary"; stock: number | null; enabled: boolean };
+export type CosmeticThemeId = "ong-red" | "forest-green" | "sunset-amber" | "ocean-blue";
+export type CosmeticBackgroundId = "paper-grid" | "leaf-drift" | "sunrise-glow" | "night-stars";
+export type CollectionShopItem = { id: string; name: string; description: string; kind: "profileFrame" | "profileBackground" | "icon" | "decorativeBadge" | "mascotAccessory" | "profileEffect" | "historyTheme" | "colorTheme" | "animatedBackground"; price: number; currency: "collectionTicket" | "fragmentValue"; rarity: "common" | "rare" | "epic" | "legendary"; stock: number | null; enabled: boolean; cosmeticType?: "theme" | "background"; cosmeticId?: CosmeticThemeId | CosmeticBackgroundId; previewClass?: string; deletedAt?: string; };
 export type RewardSourceKind = "achievement" | "studySession" | "pomodoroMilestone" | "quiz" | "deepReview" | "scoreImprovement" | "streak" | "task" | "event";
 export type FragmentRewardGrant = { tier: FragmentTier; amount: number; label?: string };
 export type LearningMilestone = { id: string; label: string; studySeconds: number; rewards: FragmentRewardGrant[]; achievementPoints?: number; enabled: boolean };
-export type AdminReward = { id: string; name: string; type: "achievement_points" | "piece" | "ticket" | "cosmetic" | "mascot_item" | "profile_item"; value: number; rarity: "common" | "rare" | "epic" | "legendary"; icon: string; description: string; condition: string; active: boolean; createdAt: string; updatedAt: string; recipientUserId?: string; grantReason?: string; auditId?: string; approvalStatus?: "draft" | "approved" | "revoked" };
+export type AdminReward = { id: string; name: string; type: "achievement_points" | "piece" | "ticket" | "cosmetic" | "mascot_item" | "profile_item"; value: number; rarity: "common" | "rare" | "epic" | "legendary"; icon: string; description: string; condition: string; active: boolean; createdAt: string; updatedAt: string; recipientUserId?: string; grantReason?: string; auditId?: string; approvalStatus?: "draft" | "approved" | "revoked"; deletedAt?: string };
 export type PieceExchangeRule = { id: string; fromTier: FragmentTier; fromAmount: number; toTier: FragmentTier; toAmount: number; enabled: boolean; extraInputs?: Array<{ kind: "tier" | "ticket" | "item"; code: string; amount: number }> };
 export type DynamicFragmentType = { id: string; code: string; name: string; rarity: FragmentRarity; value: number; description: string; uses: string[]; earnMethods: string[]; exchangeMethods: string[]; icon: string; enabled: boolean; createdAt: string; updatedAt: string };
 export type PieceExchangeFormula = { id: string; name: string; inputs: Array<{ kind: "tier" | "ticket" | "item"; code: string; amount: number }>; outputs: Array<{ kind: "tier" | "ticket" | "item"; code: string; amount: number }>; enabled: boolean; startsAt?: string; endsAt?: string; createdAt: string; updatedAt: string };
@@ -339,6 +341,7 @@ export type CustomAchievement = {
   /** Ảnh Lumi bạn đồng hành cho nhiệm vụ/mốc này; để trống sẽ dùng Lumi mặc định. */
   lumiImageUrl?: string;
   enabled: boolean;
+  deletedAt?: string;
 };
 
 export type ContentKind = "comfort" | "encouragement" | "studyHint" | "antiProcrastination" | "microTask" | "reminder" | "choice" | "other";
@@ -433,6 +436,10 @@ export type AppConfig = {
   collectionConfig?: CollectionConfig;
   achievementOverrides: AchievementOverride[];
   customAchievements: CustomAchievement[];
+  deletedAchievementIds?: string[];
+  deletedTitleIds?: string[];
+  deletedRewardIds?: string[];
+  deletedShopItemIds?: string[];
   levelDefinitions?: LevelDefinition[];
   updatedAt: string;
 };
@@ -480,6 +487,8 @@ export type ProfileState = {
   inventory: string[];
   collectionInventory?: string[];
   collectionValueSpent?: number;
+  activeCosmeticTheme?: CosmeticThemeId;
+  activeCosmeticBackground?: CosmeticBackgroundId;
   achievementUnlockDates: Record<string, string>;
   soundEnabled: boolean;
   theme: "light" | "dark";
@@ -706,7 +715,16 @@ export const emptyAppConfig = (): AppConfig => ({
       { tier: "VI", label: "Cấp VI · Huyền thoại", value: 120, rarity: "legendary", enabled: true },
     ],
     ticketExchange: { fragmentValue: 10, tickets: 1, enabled: true },
-    shopItems: [],
+    shopItems: [
+      { id: "theme-ong-red", name: "Ong Đỏ Rực", description: "Giao diện đỏ–kem chủ đạo của GÓC HỌC TẬP CỦA ONG.", kind: "colorTheme", price: 0, currency: "fragmentValue", rarity: "common", stock: null, enabled: true, cosmeticType: "theme", cosmeticId: "ong-red", previewClass: "cosmetic-theme-ong-red" },
+      { id: "theme-forest-green", name: "Rừng Tri Thức", description: "Xanh lá dịu mắt cho những nhịp học bền bỉ.", kind: "colorTheme", price: 12, currency: "collectionTicket", rarity: "rare", stock: null, enabled: true, cosmeticType: "theme", cosmeticId: "forest-green", previewClass: "cosmetic-theme-forest-green" },
+      { id: "theme-sunset-amber", name: "Hoàng Hôn Di Sản", description: "Cam hổ phách gợi không khí bảo tàng và lịch sử.", kind: "colorTheme", price: 18, currency: "collectionTicket", rarity: "epic", stock: null, enabled: true, cosmeticType: "theme", cosmeticId: "sunset-amber", previewClass: "cosmetic-theme-sunset-amber" },
+      { id: "theme-ocean-blue", name: "Biển Sâu Tập Trung", description: "Xanh lam trầm cho các phiên Deep Focus.", kind: "colorTheme", price: 24, currency: "collectionTicket", rarity: "epic", stock: null, enabled: true, cosmeticType: "theme", cosmeticId: "ocean-blue", previewClass: "cosmetic-theme-ocean-blue" },
+      { id: "background-paper-grid", name: "Giấy Ôn Bài", description: "Nền lưới giấy chuyển động rất nhẹ, không che nội dung.", kind: "animatedBackground", price: 0, currency: "fragmentValue", rarity: "common", stock: null, enabled: true, cosmeticType: "background", cosmeticId: "paper-grid", previewClass: "cosmetic-bg-paper-grid" },
+      { id: "background-leaf-drift", name: "Lá Bay Nhẹ", description: "Nền lá trôi chậm, tắt chuyển động khi người dùng giảm motion.", kind: "animatedBackground", price: 8, currency: "collectionTicket", rarity: "rare", stock: null, enabled: true, cosmeticType: "background", cosmeticId: "leaf-drift", previewClass: "cosmetic-bg-leaf-drift" },
+      { id: "background-sunrise-glow", name: "Bình Minh", description: "Quầng sáng ấm thay đổi nhẹ theo nhịp học.", kind: "animatedBackground", price: 15, currency: "collectionTicket", rarity: "epic", stock: null, enabled: true, cosmeticType: "background", cosmeticId: "sunrise-glow", previewClass: "cosmetic-bg-sunrise-glow" },
+      { id: "background-night-stars", name: "Sao Đêm", description: "Nền sao dịu cho phiên học buổi tối, không dùng âm thanh tự động.", kind: "animatedBackground", price: 20, currency: "collectionTicket", rarity: "legendary", stock: null, enabled: true, cosmeticType: "background", cosmeticId: "night-stars", previewClass: "cosmetic-bg-night-stars" },
+    ],
     rewardSources: [
       { id: "source-study-session", kind: "studySession", label: "Phiên học hoàn thành", description: "Nhận mảnh khi hoàn thành phiên học; bị giới hạn theo ngày.", enabled: true, dailyCap: 3, rewards: [{ tier: "I", amount: 1 }] },
       { id: "source-pomodoro-10", kind: "pomodoroMilestone", label: "Mốc 10 Pomodoro", description: "Thưởng một lần khi tổng số Pomodoro hoàn thành chạm mốc.", enabled: true, claimLimit: 1, milestone: 10, rewards: [{ tier: "II", amount: 1 }] },
