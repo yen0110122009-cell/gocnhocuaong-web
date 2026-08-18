@@ -262,3 +262,10 @@
 - [x] Tách hoặc dùng crop/asset phù hợp cho các biến thể mascot, không dùng bee mascot cũ làm default.
 - [x] Bổ sung quản trị variant/trạng thái mascot theo đúng ảnh tham chiếu và có fallback rõ ràng.
 - [x] QA trực quan mascot ở Home, login, Emotion Studio, Pomodoro và mobile sau khi thay asset.
+- [x] Xây dựng Bản đồ Hành trình dạng nhánh thay cho achievement chỉ là danh sách.
+- [ ] Bổ sung Cây tiến bộ theo nhóm kỹ năng/kiến thức với node, quan hệ nhánh và trạng thái.
+- [ ] Bổ sung Bản đồ chưa khám phá với achievement bí mật ẩn tên/điều kiện cho tới khi mở khóa.
+- [ ] Bổ sung câu chuyện riêng cho achievement đã mở khóa, dựa trên điều kiện và lịch sử thật.
+- [ ] Bổ sung Khoảnh khắc mở khóa: ảnh, ghi chú, cảm xúc, mascot và lưu/xóa/khôi phục theo dữ liệu người dùng.
+- [x] Dùng riêng asset Ong hoodie trong Achievement, Bản đồ, Cây tiến bộ và Khoảnh khắc; không dùng Ong phong cách người.
+- [ ] Bổ sung regression tests và responsive QA cho toàn bộ hệ thống achievement dạng bản đồ.
