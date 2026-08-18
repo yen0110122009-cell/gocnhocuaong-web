@@ -233,3 +233,8 @@
 - [x] Thêm HỌC THỬ 5 PHÚT, Lumi chọn giúp và luồng nhiệm vụ nhỏ nhất không ép buộc.
 - [x] Mở rộng quản trị mascot theo 17 trạng thái, có ảnh/tên/mô tả/điều kiện và sửa/xóa/khôi phục.
 - [x] Bổ sung regression cho countdown, Start Small, random task và mascot lifecycle.
+- [x] Thêm tìm kiếm và bộ lọc kho nội dung theo loại, module, ngữ cảnh, mascot, ngày tạo và trạng thái.
+- [x] Thêm xuất/nhập kho nội dung JSON/CSV với kiểm tra dữ liệu và không làm mất kho hiện tại khi nhập lỗi.
+- [x] Tạo khu vực AI đề xuất riêng; chỉ thêm vào kho chính sau thao tác Ong duyệt/thêm vào kho.
+- [x] Bảo vệ nội dung do Ong tạo khỏi tự động sửa/xóa bởi AI.
+- [x] Chuẩn hóa mapping ảnh tham chiếu Lumi/Ong vàng và fallback hiển thị ổn định.

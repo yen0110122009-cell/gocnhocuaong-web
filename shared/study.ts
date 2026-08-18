@@ -253,6 +253,7 @@ export type MascotStateItem = {
   deletedAt?: string;
   updatedAt?: string;
 };
+export type ContentApprovalStatus = "approved" | "ai_suggestion";
 export type CustomContentItem = {
   id: string;
   kind: ContentKind;
@@ -262,10 +263,24 @@ export type CustomContentItem = {
   mascot: "lumi" | "lumi-sad" | "lumi-cheer" | "lumi-celebrate" | "ong";
   tone: ContentTone;
   enabled: boolean;
+  approvalStatus?: ContentApprovalStatus;
+  source?: "ong" | "ai" | "import";
   createdAt?: string;
   deletedAt?: string;
   lastUsedAt?: string;
   useCount?: number;
+};
+
+export type ContentImportEnvelope = {
+  version: 1;
+  exportedAt: string;
+  app: "gocnhocuaong";
+  items: CustomContentItem[];
+};
+
+export type AiContentSuggestion = Omit<CustomContentItem, "approvalStatus" | "source" | "deletedAt" | "lastUsedAt" | "useCount"> & {
+  approvalStatus: "ai_suggestion";
+  source: "ai";
 };
 
 export type AppConfig = {
