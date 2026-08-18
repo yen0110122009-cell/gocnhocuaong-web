@@ -169,3 +169,6 @@
 - [x] Authenticated QA GitHub Pages bằng tài khoản test `BY`/mã `111`: đăng nhập thành công, xác nhận vai trò Founder và mở được Admin Panel.
 - [x] QA cấp member trên GitHub Pages: tạo `Tên 1` với mã nhập `Mã 1`, Supabase lưu thành `MÃ 1` do chuẩn hóa chữ hoa, refresh Admin hiển thị 4 tài khoản và bản ghi Member.
 - [x] Đối chiếu trực tiếp Supabase app_state: namespace `__gocnhocuaong` là nguồn của cloud adapter mới; dữ liệu legacy `memberAccounts`/`membersList` không đại diện cho danh sách GitHub Pages.
+
+- [x] Khôi phục mascot Lumi hiển thị rõ trên trang đăng nhập, dashboard và giao diện mobile; component SVG accessible có biến thể hero/compact/sidebar.
+- [x] QA mascot Lumi trên desktop/mobile, thêm `Home.mascot.test.ts`; TypeScript, 5 test mục tiêu và production build đạt. Artifact live GitHub Pages cần phát hành sau checkpoint.
