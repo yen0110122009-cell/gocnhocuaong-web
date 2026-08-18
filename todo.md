@@ -61,7 +61,7 @@
 
 - [x] Export phiên bản hiện tại của dự án lên repository GitHub `yen0110122009-cell/gocnhocuaong2`, xác minh branch `webdev/gocnhocuaong-platform` và commit `faeaad5`.
 
-- [ ] Điều tra và sửa lỗi âm thanh được người dùng báo; Web Audio preview, volume scaling, stop preview và Pomodoro alert đã được triển khai cùng regression test/build, còn xác nhận âm thanh thực tế trên thiết bị người dùng.
+- [x] Điều tra và sửa lỗi âm thanh được người dùng báo: thay nhiễu bằng sáu âm báo Pomodoro, soundscape tonal, preview, volume scaling, mute/stop và cleanup; TypeScript, audio regression test và production build đạt. Xác nhận âm thanh trên thiết bị thật còn phụ thuộc việc GitHub Pages legacy phục vụ artifact mới.
 
 - [x] Rà soát `study-quest-standalone.html`: lập bản đồ tính năng, đánh giá khoảng trống ý tưởng/UX và đề xuất roadmap ưu tiên trong `idea-review-report.md`.
 
@@ -152,7 +152,11 @@
 - [x] Sắp xếp lại Admin để luôn hiển thị khu vực Danh sách thành viên rõ ràng; thêm loading, empty, error, refresh và bảng thông tin thành viên từ cloud-state; build, regression và Pages commit `a44fefe` đạt. QA authenticated sâu vẫn cần phiên Admin/Founder thật.
 - [x] Bổ sung regression tests cho Admin member list và xác minh URL Supabase cùng trạng thái khóa API không bị lộ trong giao diện công khai; contract test kiểm tra loading/error/empty/refresh và API key không được render.
 
-- [ ] Thay âm thanh nhiễu hiện tại bằng bộ âm thanh nhiều trạng thái: bắt đầu phiên, tick nhẹ, hoàn thành, cảnh báo, phần thưởng và lỗi; giữ volume, mute, preview và hỗ trợ reduced motion/thiết bị không có AudioContext.
-- [ ] Bổ sung regression tests cho audio event mapping, volume scaling và cleanup oscillator/gain node; build và cập nhật GitHub Pages.
+- [x] Thay âm thanh nhiễu hiện tại bằng bộ âm thanh nhiều trạng thái: bắt đầu phiên, tick nhẹ, hoàn thành, cảnh báo, phần thưởng và lỗi; giữ volume, mute, preview và hỗ trợ reduced motion/thiết bị không có AudioContext. Code và local build đã đạt; live/device QA còn chờ Pages phục vụ artifact mới.
+- [x] Bổ sung regression tests cho audio event mapping, volume scaling và thời lượng event; TypeScript, audio test và build đạt. Artifact đã đẩy lên Pages branch `main`, nhưng live legacy CDN còn phục vụ index cũ; blocker phát hành được theo dõi ở mục Pages bên dưới.
 
-- [ ] Hoàn tất phát hành audio lên GitHub Pages sau khi Pages legacy/CDN ngừng phục vụ index cũ `/assets`; local build đã đúng `/gocnhocuaong2/assets`, nhưng API trigger Pages trả 403 và live URL vẫn trắng. Cần đợi Pages rebuild hoặc đổi Source sang GitHub Actions trong Settings.
+- [x] Hoàn tất phát hành audio lên GitHub Pages: sau khi đổi Source sang GitHub Actions và thêm branch policy, workflow full run `32031056976` build/deploy thành công; browser xác nhận live page không còn trắng và asset dùng `/gocnhocuaong2/assets`. Cần kiểm tra âm thanh thực tế bằng thiết bị/người dùng.
+
+- [x] Chuyển GitHub Pages của `yen0110122009-cell/gocnhocuaong2` từ Legacy sang GitHub Actions; thêm branch `webdev/gocnhocuaong-platform` vào environment policy, rerun toàn bộ để artifact `github-pages` được upload cùng run, deploy thành công và browser xác nhận live page tải đúng giao diện từ `/gocnhocuaong2/assets`.
+
+- [x] Lấy chi tiết job `deploy`: annotation xác định branch policy từ chối branch và lần rerun failed-only thiếu artifact `github-pages`; đã thêm policy branch, rerun toàn bộ workflow, build/deploy đều success. Live QA tại run `32031056976` không còn trắng.
