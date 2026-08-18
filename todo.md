@@ -211,3 +211,6 @@
 - [x] Sửa mapping mascot: Lumi là bạn đồng hành an ủi/động viên theo cảm xúc; Ong vàng là người học/người dùng.
 - [x] Thêm quản trị ảnh Lumi cho từng nhiệm vụ, mốc học tập hoặc phần thưởng; giữ ảnh Ong vàng mặc định cho người học.
 - [x] Sửa độ tương phản dark mode: chữ, card, input, placeholder, tiêu đề và trạng thái phải dễ đọc.
+- [x] Khôi phục palette đỏ sáng + xanh lá chiếm tối thiểu 90% giao diện và rà dark-mode không làm lệch nhận diện.
+- [x] Mở rộng Emotion Theme Studio với nhiều preset, câu lệnh riêng, lời an ủi và Lumi xuất hiện cho từng cảm xúc.
+- [x] Sửa hiển thị asset Ong vàng để người học nhìn thấy rõ ở Home, login và khu vực cảm xúc.

@@ -200,3 +200,23 @@ body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%
 .dark .secondary-button, .dark .icon-button { background-color: #26352a !important; color: #e8f5e9 !important; border-color: rgba(169, 230, 173, .35) !important; }
 .dark .secondary-button:hover, .dark .icon-button:hover { background-color: #34513b !important; }
 .dark .achievement-card--locked, .dark .fragment-tile--missing { background: #242b26 !important; color: #cad7cb !important; opacity: 1; }
+
+/* Brand lock: đỏ sáng + xanh lá là 90% trục thị giác, emotion chỉ thay sắc độ. */
+body, #root > div.min-h-screen { background: linear-gradient(135deg, #fff5f2 0%, #f0faf0 50%, #fff7f4 100%) !important; }
+#root > div.min-h-screen > aside { background: linear-gradient(180deg, #fff3ef 0%, #eff9ef 100%) !important; border-right-color: rgba(46, 125, 50, .28) !important; }
+#root > div.min-h-screen header { background: rgba(255, 247, 244, .96) !important; border-bottom-color: rgba(198, 40, 40, .25) !important; }
+.panel, .study-card, .emotion-studio { border-color: rgba(198, 40, 40, .18) !important; box-shadow: 0 12px 30px rgba(198, 40, 40, .07), 0 8px 22px rgba(46, 125, 50, .06); }
+.primary-button, button[class*="bg-red"], button[class*="bg-[#c62828"] { background: linear-gradient(135deg, #c62828, #e53935) !important; color: #fff !important; }
+button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { background-color: #2e7d32 !important; color: #fff !important; }
+[class*="text-sky-"], [class*="text-cyan-"], [class*="text-blue-"], [class*="text-violet-"] { color: #2e7d32 !important; }
+[class*="border-sky-"], [class*="border-cyan-"], [class*="border-blue-"], [class*="border-violet-"] { border-color: rgba(46, 125, 50, .28) !important; }
+[class*="bg-sky-"], [class*="bg-cyan-"], [class*="bg-blue-"], [class*="bg-violet-"] { background-color: #eff9ef !important; }
+.emotion-studio [class*="bg-[#fff"], .emotion-studio [class*="bg-[#eff"], .emotion-studio [class*="bg-[#f5fff"] { border: 1px solid rgba(46, 125, 50, .16); }
+.learner-mascot { display: inline-flex; align-items: center; gap: .5rem; border: 2px solid #2e7d32; background: #eff9ef; border-radius: 999px; padding: .35rem .6rem .35rem .35rem; color: #1b5e20; font-weight: 800; }
+.learner-mascot img { width: 2.75rem; height: 2.75rem; object-fit: cover; object-position: center top; border-radius: 999px; border: 2px solid #c62828; background: #fff; }
+.dark body, .dark #root > div.min-h-screen { background: #171b18 !important; }
+.dark #root > div.min-h-screen > aside { background: linear-gradient(180deg, #30201f, #182a1c) !important; }
+.dark #root > div.min-h-screen header { background: #1d2820 !important; }
+.dark .panel, .dark .study-card, .dark .emotion-studio { border-color: rgba(169, 230, 173, .28) !important; }
+.dark [class*="bg-sky-"], .dark [class*="bg-cyan-"], .dark [class*="bg-blue-"], .dark [class*="bg-violet-"] { background-color: #203c27 !important; }
+.dark .learner-mascot { background: #1d3d26; color: #b9efbc; border-color: #67bd6c; }
