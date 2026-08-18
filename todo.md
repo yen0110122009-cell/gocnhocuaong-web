@@ -359,3 +359,6 @@
 - [x] Bổ sung Admin CRUD cho nhóm Danh hiệu và metadata nguồn của thành tích tùy chỉnh.
 - [x] Viết regression cho 900/400, 8 nhóm × 50, nguồn bắt buộc và phần thưởng tăng dần.
 - [x] QA giao diện catalog/Admin và sửa copy mảnh ghép theo hướng mở khóa hồ sơ nhân vật lịch sử.
+
+- [x] Sửa nhãn/avatar “Ong · người học” đang hiển thị biến thể người sang Ong mặc hoodie.
+- [x] Rà soát các điểm render avatar người học liên quan, thêm regression và QA responsive.
