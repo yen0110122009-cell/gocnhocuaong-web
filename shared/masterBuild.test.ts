@@ -32,6 +32,20 @@ describe("Master Build catalog contract", () => {
     expect(new Set(titles.map((item) => item.achievementId)).size).toBe(400);
     expect(titles.every((item) => special.some((achievement) => achievement.id === item.achievementId))).toBe(true);
   });
+
+  it("keeps eight public title groups of fifty with traceable sources and scaling rewards", () => {
+    const achievements = achievementCatalogRows().filter((item) => item.titleId);
+    const titles = titleCatalogRows();
+    expect(new Set(titles.map((item) => item.titleGroup))).toEqual(new Set([1, 2, 3, 4, 5, 6, 7, 8]));
+    for (let group = 1; group <= 8; group += 1) expect(titles.filter((item) => item.titleGroup === group)).toHaveLength(50);
+    expect(titles.every((item) => item.name && item.meaning && item.titleGroupLabel && item.source_type && item.source_text && item.source_note && item.enabled)).toBe(true);
+    for (let group = 2; group <= 8; group += 1) {
+      const current = achievements.filter((item) => item.titleGroup === group);
+      const previous = achievements.filter((item) => item.titleGroup === group - 1);
+      expect(Math.min(...current.map((item) => item.rewardXp))).toBeGreaterThan(Math.min(...previous.map((item) => item.rewardXp)));
+      expect(Math.min(...current.map((item) => item.rewardFragments))).toBeGreaterThan(Math.min(...previous.map((item) => item.rewardFragments)));
+    }
+  });
 });
 
 describe("Piece ledger invariants", () => {

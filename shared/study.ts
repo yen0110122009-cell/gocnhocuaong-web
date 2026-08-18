@@ -318,6 +318,10 @@ export type CustomAchievement = {
   rewardFragments: number;
   title?: string;
   titleMeaning?: string;
+  titleGroup?: number;
+  source_type?: "verified" | "inspired";
+  source_text?: string;
+  source_note?: string;
   /** Ảnh Lumi bạn đồng hành cho nhiệm vụ/mốc này; để trống sẽ dùng Lumi mặc định. */
   lumiImageUrl?: string;
   enabled: boolean;
@@ -579,6 +583,11 @@ export type Achievement = {
   titleInspiration?: string | null;
   titleExplanation?: string | null;
   titleSourceStatus?: "verified" | "inspired" | "not_applicable";
+  titleGroup?: number | null;
+  titleGroupLabel?: string | null;
+  source_type?: "verified" | "inspired" | "not_applicable";
+  source_text?: string | null;
+  source_note?: string | null;
   rewardCategories?: Array<"achievement_points" | "history_fragment" | "exchange_ticket" | "cosmetic_item">;
   cosmeticReward?: string | null;
   exchangeTicketReward?: number;
@@ -790,7 +799,8 @@ const titleSeeds = [
   "Người Dệt Mạng Hiểu Biết", "Kẻ Thuần Hóa Thử Thách", "Người Chạm Chân Trời", "Bậc Thầy Tích Lũy", "Người Gọi Bình Minh",
 ] as const;
 const titleQualifiers = ["Khởi Sắc", "Bền Chí", "Tiến Hóa", "Tinh Anh", "Cao Quý", "Vô Cực", "Truyền Thuyết", "Huyền Thoại", "Rạng Danh", "Tối Thượng"] as const;
-const titleMeaning = (seed: string, qualifier: string, specialIndex: number) => `Danh hiệu ${qualifier.toLowerCase()} #${specialIndex + 1}, dành cho người mang tinh thần ${seed.toLowerCase()} và biết biến từng lần ôn tập thành một bước tiến riêng.`;
+  const titleMeaning = (seed: string, qualifier: string, specialIndex: number) => `Danh hiệu ${qualifier.toLowerCase()} #${specialIndex + 1}, dành cho người mang tinh thần ${seed.toLowerCase()} và biết biến từng lần ôn tập thành một bước tiến riêng.`;
+  const titleGroupLabels = ["Khó", "Khó hơn", "Rất khó", "Cực khó", "Hiếm", "Rất hiếm", "Tối hiếm", "Đỉnh cao"] as const;
 const titleCulturalContext = (seed: string, qualifier: string, specialIndex: number) => {
   const references = [
     { quote: "Có công mài sắt, có ngày nên kim.", explanation: "Lấy cảm hứng từ hình ảnh kiên trì từng chút để đạt thành quả lớn." },
@@ -822,7 +832,10 @@ export function generateAchievements(): Achievement[] {
       const titleSeed = titleSeeds[specialIndex % titleSeeds.length];
       const qualifier = titleQualifiers[Math.floor(specialIndex / titleSeeds.length) % titleQualifiers.length];
       const title = index === 899 ? "Người Giữ Ngọn Lửa Tri Thức" : index >= 500 ? `${titleSeed} · ${qualifier}` : null;
-      const difficultyLabel = rank === 8 ? "Huyền thoại" : difficulty;
+      const titleGroup = title ? Math.floor(specialIndex / 50) + 1 : null;
+      const titleGroupLabel = title ? titleGroupLabels[Math.min(7, (titleGroup ?? 1) - 1)] : null;
+      const titleContext = title ? titleCulturalContext(titleSeed, qualifier, specialIndex) : null;
+      const difficultyLabel = title ? titleGroupLabel : rank === 8 ? "Huyền thoại" : difficulty;
       result.push({
         id: `rank-${rank + 1}-${withinRank + 1}`,
         achievementCode: `ACH-${String(index + 1).padStart(3, "0")}`,
@@ -842,22 +855,27 @@ export function generateAchievements(): Achievement[] {
         conditionParameters: { target: threshold },
         conditions: [],
         threshold,
-        rewardXp: 20 + rank * 25 + Math.floor(withinRank / 10) * 5,
-        rewardFragments: withinRank % 20 === 19 ? 1 : 0,
+        rewardXp: title ? 100 + (titleGroup ?? 1) * 75 + Math.floor(specialIndex / 10) * 10 : 20 + rank * 25 + Math.floor(withinRank / 10) * 5,
+        rewardFragments: title ? (titleGroup ?? 1) + 1 : withinRank % 20 === 19 ? 1 : 0,
         rewardType: title ? "mixed" : withinRank % 20 === 19 ? "fragment" : "xp",
         rewardAmount: 20 + rank * 25 + Math.floor(withinRank / 10) * 5,
-        pieceReward: withinRank % 20 === 19 ? 1 : 0,
-        pieceTier: rank >= 8 ? "IV" : rank >= 6 ? "III" : rank >= 3 ? "II" : "I",
+        pieceReward: title ? (titleGroup ?? 1) + 1 : withinRank % 20 === 19 ? 1 : 0,
+        pieceTier: title ? ((titleGroup ?? 1) >= 7 ? "IV" : (titleGroup ?? 1) >= 5 ? "III" : (titleGroup ?? 1) >= 3 ? "II" : "I") : rank >= 8 ? "IV" : rank >= 6 ? "III" : rank >= 3 ? "II" : "I",
         title,
         titleMeaning: title ? index === 899 ? "Danh hiệu tối thượng dành cho người đã đi hết hành trình, giữ lửa học tập và truyền cảm hứng cho những chặng đường tiếp theo." : titleMeaning(titleSeed, qualifier, specialIndex) : null,
         titleSignificance: title ? `Ghi nhận chặng đường ${qualifier.toLowerCase()} của Ong; giá trị nằm ở tiến bộ bền bỉ chứ không phải so sánh với người khác.` : null,
         titleInspiration: title ? titleCulturalContext(titleSeed, qualifier, specialIndex).quote : null,
         titleExplanation: title ? titleCulturalContext(titleSeed, qualifier, specialIndex).explanation : null,
         titleSourceStatus: title ? "inspired" : "not_applicable",
+        titleGroup,
+        titleGroupLabel,
+        source_type: title ? "inspired" : "not_applicable",
+        source_text: titleContext?.quote ?? null,
+        source_note: titleContext?.explanation ?? null,
         rewardCategories: title ? ["achievement_points", "history_fragment", "exchange_ticket", "cosmetic_item"] : ["achievement_points"],
         cosmeticReward: title ? `Khung hồ sơ ${qualifier}` : null,
-        exchangeTicketReward: title ? Math.max(1, Math.floor((rank + 1) / 2)) : 0,
-        difficulty: difficultyLabel,
+        exchangeTicketReward: title ? Math.max(1, Math.floor((titleGroup ?? 1) / 2)) : 0,
+        difficulty: title ? ((titleGroup ?? 1) >= 7 ? "Huyền thoại" : (titleGroup ?? 1) >= 5 ? "Cực khó" : (titleGroup ?? 1) >= 3 ? "Rất khó" : "Khó") : rank === 8 ? "Huyền thoại" : difficulty,
         badgeLabel: `${rankName} · Huy hiệu ${withinRank + 1}`,
         encouragement: index === 899 ? "Ong đã đi hết hành trình 900 mốc — không phải vì con đường kết thúc, mà vì bạn đã chứng minh mình có thể đi rất xa." : title ? "Ong đã bay thêm một chặng dài trên hành trình tri thức." : "Mỗi bước học đều làm nền cho bước tiến tiếp theo.",
         progress: 0,
@@ -977,6 +995,11 @@ export function allAchievementsWithProgress(profile: ProfileState, config: AppCo
       pieceTier: "I",
       title: item.title?.trim() || null,
       titleMeaning: item.titleMeaning?.trim() || null,
+      titleGroup: item.title?.trim() ? Math.min(8, Math.max(1, item.titleGroup ?? 1)) : null,
+      titleGroupLabel: item.title?.trim() ? titleGroupLabels[Math.min(7, Math.max(0, (item.titleGroup ?? 1) - 1))] : null,
+      source_type: item.title?.trim() ? item.source_type ?? "inspired" : "not_applicable",
+      source_text: item.title?.trim() ? item.source_text?.trim() || item.titleMeaning?.trim() || null : null,
+      source_note: item.title?.trim() ? item.source_note?.trim() || "Lấy cảm hứng từ mô tả do Admin cung cấp; chưa khẳng định là nguồn nguyên văn." : null,
       difficulty: "Khó",
       badgeLabel: "Thành tích tùy chỉnh",
       encouragement: "Một cột mốc riêng đang được mở khóa.",

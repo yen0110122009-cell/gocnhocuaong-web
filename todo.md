@@ -344,3 +344,18 @@
 - [x] Chuẩn hóa Ong mặc hoodie làm mascot cố định cho khu vực Achievement và Khoảnh khắc.
 - [x] Hiển thị Ong hoodie trong celebration overlay khi mở khóa Danh hiệu hoặc nhận mảnh ghép.
 - [x] Bổ sung regression contract và browser QA responsive cho mapping mascot hoodie.
+
+- [ ] Xác nhận 400 Danh hiệu là 400 thành tích cuối trong tổng đúng 900, không tạo thêm catalog ngoài 900.
+- [ ] Phân chia 400 Danh hiệu thành 8 nhóm × 50, tăng dần độ khó và hiển thị nhóm/cấp rõ ràng.
+- [ ] Bổ sung hoặc xác nhận metadata nguồn văn hóa: source_type, source_text, source_note; dùng nhãn “Lấy cảm hứng từ…” khi chưa xác minh nguồn.
+- [ ] Bảo đảm mỗi Danh hiệu công khai tên, điều kiện, tiến độ, ý nghĩa, nguồn/cảm hứng, giải thích và phần thưởng chi tiết.
+- [ ] Bảo đảm phần thưởng theo độ khó tăng dần và lấy từ config/database, không hard-code trong UI.
+- [ ] Viết regression và chạy browser QA cho các invariant Danh hiệu mới.
+
+- [x] Chuẩn hóa 400 Danh hiệu là 400 thành tích cuối trong tổng 900, không tạo thêm catalog ngoài 900.
+- [x] Phân bổ 400 Danh hiệu thành 8 nhóm × 50, tăng dần độ khó.
+- [x] Bổ sung source_type, source_text, source_note và hiển thị công khai nguồn/cảm hứng.
+- [x] Bảo đảm phần thưởng XP/mảnh tăng nghiêm ngặt theo nhóm Danh hiệu và giữ cấu hình ở generator/config.
+- [x] Bổ sung Admin CRUD cho nhóm Danh hiệu và metadata nguồn của thành tích tùy chỉnh.
+- [x] Viết regression cho 900/400, 8 nhóm × 50, nguồn bắt buộc và phần thưởng tăng dần.
+- [x] QA giao diện catalog/Admin và sửa copy mảnh ghép theo hướng mở khóa hồ sơ nhân vật lịch sử.

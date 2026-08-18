@@ -21,6 +21,11 @@ export type AchievementCatalogRow = {
   titleMeaning: string | null;
   titleInspiration: string | null;
   titleExplanation: string | null;
+  titleGroup: number | null;
+  titleGroupLabel: string | null;
+  source_type: Achievement["source_type"];
+  source_text: string | null;
+  source_note: string | null;
   difficulty: Achievement["difficulty"];
   badgeLabel: string;
   encouragement: string;
@@ -33,6 +38,11 @@ export type TitleCatalogRow = {
   achievementId: string;
   name: string;
   meaning: string;
+  titleGroup: number;
+  titleGroupLabel: string;
+  source_type: "verified" | "inspired";
+  source_text: string;
+  source_note: string;
   enabled: boolean;
 };
 
@@ -68,6 +78,11 @@ export function achievementCatalogRows(): AchievementCatalogRow[] {
     titleMeaning: achievement.titleMeaning,
     titleInspiration: achievement.titleInspiration ?? null,
     titleExplanation: achievement.titleExplanation ?? null,
+    titleGroup: achievement.titleGroup ?? null,
+    titleGroupLabel: achievement.titleGroupLabel ?? null,
+    source_type: achievement.source_type ?? "not_applicable",
+    source_text: achievement.source_text ?? null,
+    source_note: achievement.source_note ?? null,
     difficulty: achievement.difficulty,
     badgeLabel: achievement.badgeLabel,
     encouragement: achievement.encouragement,
@@ -87,6 +102,11 @@ export function titleCatalogRows(): TitleCatalogRow[] {
       achievementId: achievement.id,
       name: source.title,
       meaning: achievement.titleMeaning,
+      titleGroup: source.titleGroup ?? 1,
+      titleGroupLabel: source.titleGroupLabel ?? "Khó",
+      source_type: source.source_type === "verified" ? "verified" : "inspired",
+      source_text: source.source_text ?? source.titleInspiration ?? "",
+      source_note: source.source_note ?? source.titleExplanation ?? "",
       enabled: true,
     }];
   });
@@ -98,6 +118,10 @@ export function validateMasterCatalog(achievements = achievementCatalogRows(), t
   const titleIds = new Set(titles.map((item) => item.id));
   if (achievements.length !== 900) errors.push(`Expected 900 achievements, received ${achievements.length}.`);
   if (titles.length !== 400) errors.push(`Expected 400 titles, received ${titles.length}.`);
+  for (let titleGroup = 1; titleGroup <= 8; titleGroup += 1) {
+    const count = titles.filter((item) => item.titleGroup === titleGroup).length;
+    if (count !== 50) errors.push(`Title group ${titleGroup} must contain 50 titles, received ${count}.`);
+  }
   if (achievementIds.size !== achievements.length) errors.push("Achievement IDs must be unique.");
   if (titleIds.size !== titles.length) errors.push("Title IDs must be unique.");
   for (let level = 1; level <= 9; level += 1) {
@@ -113,7 +137,8 @@ export function validateMasterCatalog(achievements = achievementCatalogRows(), t
   for (const achievement of achievements) {
     if (achievement.titleId && !titleIds.has(achievement.titleId)) errors.push(`Achievement ${achievement.id} references a missing title.`);
     if (!achievement.name || !achievement.description || achievement.threshold < 1 || achievement.tags.length === 0) errors.push(`Achievement ${achievement.id} is missing public catalog data.`);
-    if (achievement.titleId && (!achievement.titleMeaning || !achievement.titleInspiration || !achievement.titleExplanation)) errors.push(`Title achievement ${achievement.id} is missing cultural explanation.`);
+    if (achievement.titleId && (!achievement.titleMeaning || !achievement.titleInspiration || !achievement.titleExplanation || !achievement.titleGroup || !achievement.titleGroupLabel || !achievement.source_type || !achievement.source_text || !achievement.source_note)) errors.push(`Title achievement ${achievement.id} is missing public cultural/source metadata.`);
+    if (achievement.titleId && achievement.rewardXp <= 0) errors.push(`Title achievement ${achievement.id} must have an explicit positive XP reward.`);
   }
   return { valid: errors.length === 0, errors };
 }
