@@ -362,3 +362,11 @@
 
 - [x] Sửa nhãn/avatar “Ong · người học” đang hiển thị biến thể người sang Ong mặc hoodie.
 - [x] Rà soát các điểm render avatar người học liên quan, thêm regression và QA responsive.
+
+- [x] Bổ sung mục giải thích công dụng thực tế của từng cấp mảnh ghép và liên kết với hồ sơ nhân vật lịch sử.
+- [x] Chuẩn hóa model historical character: metadata lịch sử, rarity, unlock cost, image status, nguồn, ghi chú và timestamps.
+- [x] Bảo đảm ảnh nhân vật chỉ hiển thị khi có URL Storage hợp lệ; thiếu ảnh phải hiển thị trạng thái rõ ràng, không bịa ảnh.
+- [x] Hoàn thiện Admin CRUD nhân vật: tạo, sửa, xóa mềm, khôi phục và xóa vĩnh viễn.
+- [x] Thêm form nguồn tư liệu và prompt AI tạo bản nháp nhân vật; không tự xuất bản khi chưa duyệt.
+- [x] Viết regression cho mảnh ghép, source metadata, image status, trash/restore và quy trình draft approval.
+- [x] Chạy QA responsive cho Bộ sưu tập Nhân vật Lịch sử và Admin content hub.

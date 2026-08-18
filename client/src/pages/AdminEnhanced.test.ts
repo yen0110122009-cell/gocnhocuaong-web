@@ -67,3 +67,20 @@ describe("learning configuration render access", () => {
     expect(admin).toContain("Vòng quay");
   });
 });
+
+describe("historical character collection admin workflow", () => {
+  it("exposes verified-source metadata, truthful image states and trash controls", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/pages/AdminContentHub.tsx"), "utf8");
+    expect(source).toContain("historicalPeriod");
+    expect(source).toContain("sourceText");
+    expect(source).toContain("imageStatus");
+    expect(source).toContain("Chưa có ảnh");
+    expect(source).toContain("Ảnh đang cập nhật");
+    expect(source).toContain("softDeleteCharacter");
+    expect(source).toContain("restoreCharacter");
+    expect(source).toContain("permanentlyDeleteCharacter");
+    expect(source).toContain("Đưa vào thùng rác");
+    expect(source).toContain("Khôi phục");
+    expect(source).toContain("Xóa vĩnh viễn");
+  });
+});
