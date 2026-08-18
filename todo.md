@@ -144,3 +144,7 @@
 - [x] Điều tra lỗi mới `Unable to transform response from server` trên GitHub Pages; sửa guard tRPC static thành batch error envelope hợp lệ cho tRPC 11, bổ sung regression assertions, chạy 31 file/89 test, build asset `index-DASLnU1m.js`, push commit `fbd8d48` và browser QA mã 999 đạt.
 
 - [x] Sửa lỗi transform kép: guard `/api/trpc` trên GitHub Pages đổi từ error envelope sang response thành công rỗng; 31 file/89 test đạt, deploy commit `e7aa6d2`, browser QA mã 999 thoát loading và hiển thị lỗi tài khoản rõ ràng, không còn hai thông báo transform/static-host.
+
+- [x] Sửa phần code tài khoản Tên 1 mã 1 đã được cấp nhưng danh sách thành viên chưa cập nhật: AdminEnhanced trên GitHub Pages nay tải danh sách từ Supabase app_state và refetch ngay sau mutation; TypeScript, 30 test files/89 tests ngoại trừ catalog test bị treo độc lập, build và Pages commit `655d3f0` đạt. Dữ liệu Tên 1/mã 1 vẫn chưa có trong app_state, theo mục đối chiếu bên dưới.
+
+- [ ] Đối chiếu và đồng bộ tài khoản đã cấp ngoài GitHub Pages: Supabase `app_state` hiện có 2 tài khoản nhưng không có bản ghi tên `1` hoặc mã `1`; cần xác nhận nguồn cấp tài khoản là full-stack MySQL hay cloud-state trước khi tạo/migrate dữ liệu.
