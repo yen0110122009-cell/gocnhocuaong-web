@@ -1,0 +1,24 @@
+# GitHub Pages base-path QA
+
+Date: 2026-08-18
+URL: https://yen0110122009-cell.github.io/gocnhocuaong2/?v=220a095-basefix
+Artifact commit: `220a095`
+
+## Results
+
+- Page title: `GÓC HỌC TẬP CỦA ONG`.
+- Login form rendered correctly with Name + Password + Member Code and no email field.
+- Browser-visible JavaScript and CSS paths use `/gocnhocuaong2/assets/...` rather than root `/assets/...`.
+- Submit with QA-only invalid values (`QA Base Fix`, `wrong-password`, `999999`) entered loading state `Đang xử lý…`, then returned to the idle button.
+- The clear red error shown was: `Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.`
+- No `Unexpected token '<'` message appeared.
+
+No real credentials were stored in this evidence file.
+
+## Still pending
+
+Authenticated dashboard, achievement progress, Founder/Admin controls, and the special code-111 dashboard require a user-provided test account or an explicitly authorized disposable account. Mobile authenticated QA and physical-device Pomodoro sound testing remain pending.
+
+## Deployment note
+
+The prior artifact had root-relative `/assets` references and produced a blank page because the repository is served at `/gocnhocuaong2/`. Rebuilding with `GITHUB_ACTIONS=1` and pushing the generated static artifact corrected this at commit `220a095`.

@@ -130,5 +130,9 @@
 - [x] Add regression coverage for the repaired request path, push the repaired artifact to Pages legacy branch `main` at commit `535d89c`, and verify browser now serves `assets/index-CVazIDuF.js` with the no-email cloud-state form
 
 - [x] Reproduce and diagnose the reported deployed GitHub Pages error at https://yen0110122009-cell.github.io/gocnhocuaong2/
-- [x] Verify the deployed HTML and JavaScript asset hashes match the repaired cloud-state parser
-- [x] Re-publish and browser-verify the repaired artifact; exact URL now shows `Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.` instead of `Unexpected token '<'`
+- [x] Verify the deployed HTML and JavaScript asset hashes match the repaired cloud-state parser after base-path correction commit `220a095`; evidence is in `github-pages-base-qa.md`
+- [x] Browser-verify corrected base-path artifact commit `220a095`; login renders and invalid QA submit returns a clear red account-code error without HTML-as-JSON failure
+
+- [x] Reproduce the recurring HTML-as-JSON error from the user's current device report after the previous deployed fix
+- [x] Audit every JSON response parser and runtime endpoint fallback, including non-cloud-state requests; the remaining path was `useAuth` calling relative tRPC `auth.me` on github.io
+- [x] Add regression test for remaining HTML response path and redeploy corrected Pages artifacts on `main` commits `fad88a5` and `220a095`; browser verification is recorded in `github-pages-base-qa.md`
