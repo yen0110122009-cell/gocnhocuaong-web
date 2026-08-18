@@ -2,6 +2,7 @@ import AdminEnhanced from "./AdminEnhanced";
 import AchievementCatalogAdmin from "@/components/AchievementCatalogAdmin";
 import AdminCommandCenter from "@/components/AdminCommandCenter";
 import SystemIntegrityPanel from "@/components/SystemIntegrityPanel";
+import AdminTrashPanel from "@/components/AdminTrashPanel";
 import { cn } from "@/lib/utils";
 import { Award, CirclePlus, Download, Filter, Gift, MessageCircle, Mic, Search, Square, Trash2, Upload } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
@@ -218,6 +219,7 @@ export default function AdminContentHub({ account, config, onConfig }: Props) {
       </EditorCard>
     </section>
     <SystemIntegrityPanel config={config} />
+    <AdminTrashPanel config={config} onConfig={onConfig} />
     <AchievementCatalogAdmin config={config} />
     <AdminCommandCenter adminId={account.id} />
     <AdminInlineEditors config={config} onConfig={onConfig} />
