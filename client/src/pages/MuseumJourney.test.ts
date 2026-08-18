@@ -28,6 +28,18 @@ describe("Museum fragment accessibility effects", () => {
     expect(source).toContain('view: "wheel"');
   });
 
+  it("renders the journey map, progress tree, hidden nodes and hoodie moments separately", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/pages/MuseumJourney.tsx"), "utf8");
+    expect(source).toContain("Bản đồ Hành trình");
+    expect(source).toContain("Cây tiến bộ");
+    expect(source).toContain("Chưa khám phá");
+    expect(source).toContain("Câu chuyện:");
+    expect(source).toContain("Khoảnh khắc khi đạt");
+    expect(source).toContain('mascotVariant: "hoodie"');
+    expect(source).toContain('<OngLearnerAvatar variant="hoodie"');
+    expect(source).toContain("Lưu khoảnh khắc này");
+  });
+
   it("defines reduced-motion-safe unlock and completion effects", () => {
     const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
     expect(css).toContain("@media (prefers-reduced-motion: no-preference)");

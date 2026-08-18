@@ -284,6 +284,8 @@ export type AiContentSuggestion = Omit<CustomContentItem, "approvalStatus" | "so
 };
 
 export type LevelDefinition = { id: string; name: string; icon: string; enabled: boolean; createdAt?: string; updatedAt?: string; deletedAt?: string };
+export type AchievementMoment = { id: string; achievementId: string; createdAt: string; note: string; feeling: string; mascotVariant: "hoodie" };
+
 
 export type DeepLearningEvent = { id: string; occurredAt: string; kind: "correct" | "explained" | "selfFoundError" | "retryWrong" | "alternativeExplanation"; xpEarned: number; sourceId?: string; note?: string };
 
@@ -356,6 +358,7 @@ export type ProfileState = {
   avoidanceReasons?: Array<{ id: string; occurredAt: string; reason: AvoidanceReason; note?: string }>;
   taskCombos?: TaskCombo[];
   deepLearningEvents?: DeepLearningEvent[];
+  achievementMoments?: AchievementMoment[];
 };
 
 export type PomodoroSession = {
@@ -438,6 +441,7 @@ export const emptyProfile = (): ProfileState => ({
   procrastinationEvents: [],
   avoidanceReasons: [],
   taskCombos: [],
+  achievementMoments: [],
   deepLearningEvents: [],
 });
 
@@ -755,6 +759,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     currentStreak: Math.max(0, Number(source.currentStreak) || 0),
     bestStreak: Math.max(0, Number(source.bestStreak) || 0),
     streakShields: Math.max(0, Math.min(3, Number(source.streakShields) || 0)),
+    achievementMoments: Array.isArray(source.achievementMoments) ? source.achievementMoments.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AchievementMoment>) : null; if (!item?.id || !item.achievementId) return []; return [{ id: String(item.id), achievementId: String(item.achievementId), createdAt: String(item.createdAt ?? new Date(0).toISOString()), note: String(item.note ?? ""), feeling: String(item.feeling ?? "Tự hào"), mascotVariant: "hoodie" as const }]; }) : [],
     characterProgress: source.characterProgress && typeof source.characterProgress === "object" ? Object.fromEntries(Object.entries(source.characterProgress).flatMap(([characterId, value]) => { const item = value && typeof value === "object" ? (value as Partial<CharacterProgress>) : {}; if (!characterId) return []; const collected = Array.isArray(item.collectedPieceIds) ? item.collectedPieceIds.map(String) : []; const used = Array.isArray(item.usedPieceIds) ? item.usedPieceIds.map(String) : []; const status: CharacterUnlockStatus = item.status === "unlocked" || item.status === "ready" || item.status === "assembling" ? item.status : collected.length ? "assembling" : "locked"; return [[characterId, { characterId, collectedPieceIds: Array.from(new Set(collected)), usedPieceIds: Array.from(new Set(used)), status, assembledAt: item.assembledAt ? String(item.assembledAt) : null, unlockedAt: item.unlockedAt ? String(item.unlockedAt) : null } as CharacterProgress]]; })) : {},
     pomodoroHistory: Array.isArray(source.pomodoroHistory) ? source.pomodoroHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<PomodoroSession>) : null; if (!item?.id) return []; return [{ id: String(item.id), startedAt: String(item.startedAt ?? new Date(0).toISOString()), endedAt: String(item.endedAt ?? new Date(0).toISOString()), durationMinutes: Math.max(1, Number(item.durationMinutes) || 1), subject: String(item.subject ?? ""), topic: String(item.topic ?? ""), sessionNumber: Math.max(1, Number(item.sessionNumber) || 1), totalSessions: Math.max(1, Number(item.totalSessions) || 1), mode: item.mode === "shortBreak" || item.mode === "longBreak" ? item.mode : "focus", status: item.status === "abandoned" || item.status === "skipped" ? item.status : "completed" }]; }) : [],
     aiImportHistory: Array.isArray(source.aiImportHistory) ? source.aiImportHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AiImportRecord>) : null; if (!item?.id || !item.title) return []; return [{ id: String(item.id), title: String(item.title), createdAt: String(item.createdAt ?? new Date(0).toISOString()), target: item.target === "quiz" || item.target === "both" || item.target === "practice" ? item.target : "flashcards", questionCount: Math.max(0, Number(item.questionCount) || 0), flashcardCount: Math.max(0, Number(item.flashcardCount) || 0), prompt: String(item.prompt ?? ""), rawData: String(item.rawData ?? ""), quizId: item.quizId ? String(item.quizId) : undefined, flashcardSetId: item.flashcardSetId ? String(item.flashcardSetId) : undefined }]; }) : [],
