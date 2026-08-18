@@ -1,4 +1,4 @@
-import type { ContentContext, ContentModule, CustomContentItem } from "../../../shared/study";
+import type { ContentContext, ContentModule, CustomContentItem, MascotVoiceLine } from "../../../shared/study";
 
 export type SpeechGroup = "comfort" | "encouragement" | "understanding" | "antiProcrastination";
 export type SpeechEvent = "mistake" | "lowScore" | "todoMissed" | "pomodoroAbandoned" | "streakLost" | "ineffective" | "comeback" | "start" | "complete" | "critical" | "hardTask" | "procrastination";
@@ -56,6 +56,18 @@ export const contentModuleLabels: Record<ContentModule, string> = {
 export function speechForEvent(event: SpeechEvent, group?: SpeechGroup) {
   const candidates = lumiSpeechLibrary.filter((item) => item.event === event && (!group || item.group === group));
   return candidates[Math.floor(Math.random() * candidates.length)] ?? lumiSpeechLibrary[0];
+}
+
+export function mascotVoiceForState(lines: MascotVoiceLine[] = [], state: string) {
+  const candidates = lines
+    .filter((line) => line.state === state && line.enabled && !line.deletedAt && line.text.trim())
+    .slice()
+    .sort((a, b) => (a.createdAt ?? "").localeCompare(b.createdAt ?? "") || a.id.localeCompare(b.id));
+  return candidates[0];
+}
+
+export function mascotReactionForAchievement(lines: MascotVoiceLine[] = [], state: "achievement" | "almost_unlocked" | "streak_recovered" | "mistake" = "achievement") {
+  return mascotVoiceForState(lines, state) ?? mascotVoiceForState(lines, "achievement");
 }
 
 export function randomAntiProcrastinationSpeech() {
