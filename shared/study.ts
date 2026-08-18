@@ -488,6 +488,30 @@ export const DEFAULT_LEVEL_DEFINITIONS: LevelDefinition[] = [
 export const levelForXp = (xp: number) => Math.max(1, Math.floor(Math.max(0, xp) / XP_PER_LEVEL) + 1);
 export const xpForNextLevel = (level: number) => Math.max(XP_PER_LEVEL, Math.max(1, level) * XP_PER_LEVEL);
 
+export const deepLearningXpForAttempt = (attempt: QuizAttempt, quiz: Quiz, thoughts: Record<string, string> = {}) => {
+  const questionById = new Map(quiz.questions.map((question) => [question.id, question]));
+  let xp = 0;
+  for (const question of quiz.questions) {
+    const thought = (thoughts[question.id] ?? "").trim();
+    const answer = attempt.answers?.find((item: any) => item?.questionId === question.id || item?.id === question.id) as any;
+    const isCorrect = answer?.isCorrect === true || answer?.correct === true;
+    if (isCorrect) xp += 1;
+    if (thought.length >= 24) xp += 3;
+    if (thought.length >= 70) xp += 5;
+    if (attempt.certainty?.[question.id] === "wrong" && isCorrect) xp += 3;
+    if (attempt.certainty?.[question.id] === "unsure" && thought.length >= 24) xp += 4;
+    void questionById;
+  }
+  return xp;
+};
+
+export const dailyLearningSummary = (profile: ProfileState, date = new Date()) => {
+  const key = date.toISOString().slice(0, 10);
+  const activities = profile.studyActivity.filter((item) => item.occurredAt.slice(0, 10) === key);
+  const deepEvents = (profile.deepLearningEvents ?? []).filter((item) => item.occurredAt.slice(0, 10) === key);
+  return { started: activities.length > 0, activityCount: activities.length, deepCount: deepEvents.length, xpEarned: activities.reduce((sum, item) => sum + Math.max(0, item.xpEarned), 0), pomodoros: activities.filter((item) => item.kind === "pomodoro").length, correctedMistakes: deepEvents.filter((item) => item.kind === "selfFoundError" || item.kind === "retryWrong").length };
+};
+
 export const statsForProfile = (profile: ProfileState) => {
   const learnedCards = profile.flashcardSets.reduce(
     (sum, set) => sum + set.cards.filter((card) => card.status === "known").length,

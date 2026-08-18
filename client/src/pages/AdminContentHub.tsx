@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Award, CirclePlus, Download, Filter, Gift, MessageCircle, Search, Trash2, Upload } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import type { AppConfig, ContentContext, ContentImportEnvelope, ContentKind, ContentModule, ContentTone, CustomAchievement, CustomContentItem, Encouragement, HistoricalCharacter, MascotStateItem, StudyAccount, WheelReward } from "../../../shared/study";
+import { DEFAULT_LEVEL_DEFINITIONS, type AppConfig, type ContentContext, type ContentImportEnvelope, type ContentKind, type ContentModule, type ContentTone, type CustomAchievement, type CustomContentItem, type Encouragement, type HistoricalCharacter, type MascotStateItem, type StudyAccount, type WheelReward } from "../../../shared/study";
 
 type Props = { account: StudyAccount; config: AppConfig; onConfig: (config: AppConfig, message?: string) => void };
 type AchievementMetric = CustomAchievement["metric"];
@@ -116,6 +116,7 @@ export default function AdminContentHub({ account, config, onConfig }: Props) {
 
   return <>
     <AdminEnhanced account={account} config={config} onConfig={onConfig} />
+    <LevelAdminPanel config={config} save={save} />
     <section className="mt-7 grid gap-5 xl:grid-cols-4" aria-label="Quản lý động cơ học tập">
       <EditorCard icon={MessageCircle} eyebrow="Phản hồi học tập" title="Lời động viên" text="Dùng cho kết quả đúng hoặc chưa đúng; chỉ nội dung được quản trị mới xuất hiện cho người học.">
         <div className="space-y-3"><select aria-label="Loại lời động viên" value={encouragementType} onChange={(event) => setEncouragementType(event.target.value as Encouragement["type"])} className="input"><option value="correct">Khi trả lời đúng</option><option value="incorrect">Khi trả lời chưa đúng</option></select><textarea aria-label="Nội dung lời động viên" value={encouragementText} onChange={(event) => setEncouragementText(event.target.value)} className="input min-h-20" placeholder="Viết lời khích lệ ngắn, cụ thể và tôn trọng người học." /><button className="primary-button w-full" onClick={addEncouragement}><CirclePlus className="h-4 w-4" />Thêm lời động viên</button></div>
@@ -139,6 +140,17 @@ export default function AdminContentHub({ account, config, onConfig }: Props) {
     </section>
     <AdminInlineEditors config={config} onConfig={onConfig} />
   </>;
+}
+
+function LevelAdminPanel({ config, save }: { config: AppConfig; save: (patch: Partial<AppConfig>, message: string) => void }) {
+  const definitions = config.levelDefinitions ?? DEFAULT_LEVEL_DEFINITIONS;
+  const [draft, setDraft] = useState({ icon: "🌱", name: "" });
+  const update = (id: string, patch: Partial<(typeof definitions)[number]>) => save({ levelDefinitions: definitions.map((item) => item.id === id ? { ...item, ...patch } : item) }, "Đã cập nhật tên cấp.");
+  const softDelete = (id: string) => save({ levelDefinitions: definitions.map((item) => item.id === id ? { ...item, enabled: false, deletedAt: new Date().toISOString() } : item) }, "Đã chuyển cấp vào thùng rác.");
+  const restore = (id: string) => save({ levelDefinitions: definitions.map((item) => item.id === id ? { ...item, enabled: true, deletedAt: undefined } : item) }, "Đã khôi phục cấp.");
+  const permanent = (id: string) => { if (!window.confirm("Xóa vĩnh viễn cấp này?")) return; save({ levelDefinitions: definitions.filter((item) => item.id !== id) }, "Đã xóa vĩnh viễn cấp."); };
+  const add = () => { const name = draft.name.trim(); if (!name) return toast.error("Nhập tên cấp."); save({ levelDefinitions: [...definitions, { id: uid(), icon: draft.icon || "🌱", name, enabled: true }] }, "Đã thêm cấp mới."); setDraft({ icon: "🌱", name: "" }); };
+  return <section className="panel mt-7 p-5" aria-label="Quản trị tên cấp độ"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#c62828]">Cấu hình level · 300 XP mỗi cấp</p><h2 className="mt-1 font-display text-xl font-bold">Tên cấp của hành trình</h2><p className="mt-2 text-sm text-slate-500">XP chỉ tăng khi Ong làm được điều gì đó. Cấp có thể mở rộng không giới hạn.</p></div><div className="flex gap-2"><input aria-label="Biểu tượng cấp mới" value={draft.icon} onChange={(e) => setDraft({ ...draft, icon: e.target.value })} className="input mt-0 w-20" /><input aria-label="Tên cấp mới" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className="input mt-0" placeholder="Tên cấp mới" /><button className="primary-button" onClick={add}>＋ Thêm cấp</button></div></div><div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-3">{definitions.map((item, index) => <div key={item.id} className={`flex items-center gap-3 rounded-xl border p-3 ${item.deletedAt ? "opacity-60" : ""}`}><span className="text-2xl">{item.icon}</span><div className="min-w-0 flex-1"><p className="text-xs font-bold text-slate-400">Cấp {index + 1} · từ {index * 300} XP</p><input aria-label={`Tên cấp ${index + 1}`} value={item.name} onChange={(e) => update(item.id, { name: e.target.value })} className="input mt-1" /><p className="text-xs text-slate-500">{item.deletedAt ? "Trong thùng rác" : item.enabled ? "Đang dùng" : "Tạm ẩn"}</p></div>{item.deletedAt ? <button className="secondary-button px-2" onClick={() => restore(item.id)}>Khôi phục</button> : <><button className="secondary-button px-2" onClick={() => update(item.id, { enabled: !item.enabled })}>{item.enabled ? "Tắt" : "Bật"}</button><button className="secondary-button px-2 text-rose-700" onClick={() => softDelete(item.id)}>Thùng rác</button></>}{item.deletedAt && <button className="secondary-button px-2 text-rose-700" onClick={() => permanent(item.id)}>Xóa vĩnh viễn</button>}</div>)}</div></section>;
 }
 
 function EditorCard({ icon: Icon, eyebrow, title, text, children }: { icon: typeof Award; eyebrow: string; title: string; text: string; children: React.ReactNode }) {

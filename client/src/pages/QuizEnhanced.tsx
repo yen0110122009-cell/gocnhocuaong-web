@@ -1,7 +1,7 @@
 import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Flag, BrainCircuit, FileText, Target, Pause, Play, RotateCcw } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { applyStudyActivityRewards, type AppConfig, type FlashcardSet, type PaperQuizSession, type ProfileState, type Quiz, type QuizQuestion } from "../../../shared/study";
+import { applyStudyActivityRewards, deepLearningXpForAttempt, type AppConfig, type FlashcardSet, type PaperQuizSession, type ProfileState, type Quiz, type QuizQuestion } from "../../../shared/study";
 import { buildWrongAnswerDeepPrompt, parseWrongAnswerDeepData } from "../../../shared/aiDataImport";
 import type { WrongAnswerReview } from "../../../shared/study";
 import { buildQuizAttempt, normalizeQuizAnswer } from "../../../shared/quizPersistence";
@@ -62,9 +62,10 @@ export default function QuizEnhanced({ profile, config, onProfile }: Props) {
     const durationSeconds = active.durationMinutes * 60 - seconds;
     const attempt = buildQuizAttempt({ quiz: active, answers, flagged: flags, durationSeconds, id: crypto.randomUUID() });
     const enriched = { ...attempt, mode, thoughts };
-    const xp = 20 + attempt.correct * 8;
+    const deepBonus = mode === "deep" ? deepLearningXpForAttempt(enriched, active, thoughts) : 0;
+    const xp = 20 + attempt.correct * 8 + deepBonus;
     const reward = applyStudyActivityRewards({ ...profile, attempts: [enriched, ...profile.attempts] }, { id: `quiz-${attempt.id}`, occurredAt: attempt.completedAt, kind: "quiz", quantity: attempt.total, durationSeconds, xpEarned: xp, correct: attempt.correct, total: attempt.total }, config);
-    setLastAttemptId(attempt.id); setResult(attempt.correct); onProfile(reward.profile, `Đã lưu kết quả · +${xp} XP${reward.newlyUnlocked.length ? ` · Mở khóa ${reward.newlyUnlocked.length} thành tích` : ""}.`);
+    setLastAttemptId(attempt.id); setResult(attempt.correct); onProfile({ ...reward.profile, deepLearningEvents: mode === "deep" ? [...(reward.profile.deepLearningEvents ?? []), { id: crypto.randomUUID(), occurredAt: attempt.completedAt, kind: "explained", xpEarned: deepBonus, sourceId: attempt.id }] : reward.profile.deepLearningEvents }, `Đã lưu kết quả · +${xp} XP${deepBonus ? ` · Hiểu sâu +${deepBonus}` : ""}${reward.newlyUnlocked.length ? ` · Mở khóa ${reward.newlyUnlocked.length} thành tích` : ""}.`);
   };
 
   const finishPaper = () => {

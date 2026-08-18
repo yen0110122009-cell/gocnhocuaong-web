@@ -52,7 +52,7 @@ export function parseCloudStatePayload(row: AppStateRow | null): CloudPayload {
   return {
     accounts: Array.isArray(scoped.accounts) ? scoped.accounts as CloudAccount[] : [],
     profiles: scoped.profiles && typeof scoped.profiles === "object" ? scoped.profiles as Record<string, ProfileState> : {},
-    config: scoped.config && typeof scoped.config === "object" ? scoped.config as AppConfig : emptyAppConfig(),
+    config: scoped.config && typeof scoped.config === "object" ? { ...emptyAppConfig(), ...(scoped.config as Partial<AppConfig>) } : emptyAppConfig(),
     updatedAt: typeof scoped.updatedAt === "string" ? scoped.updatedAt : new Date().toISOString(),
   };
 }

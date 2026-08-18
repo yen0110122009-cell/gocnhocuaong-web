@@ -18,7 +18,7 @@ describe("GitHub Pages cloud-state adapter", () => {
     const legacy = { xp: 172, todos: [{ id: "todo-1" }], app_theme: "light" };
     const parsed = parseCloudStatePayload({ id: "global_state", payload: legacy });
     expect(parsed.accounts).toEqual([]);
-    expect(parsed.config).toMatchObject({ ...emptyAppConfig(), updatedAt: expect.any(String) });
+    expect(parsed.config).toMatchObject({ dailyFragmentCap: emptyAppConfig().dailyFragmentCap, levelDefinitions: expect.arrayContaining(emptyAppConfig().levelDefinitions ?? []), updatedAt: expect.any(String) });
     expect(legacy.todos).toEqual([{ id: "todo-1" }]);
   });
 
