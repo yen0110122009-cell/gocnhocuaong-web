@@ -3,7 +3,7 @@ import { ADMIN_AI_COMMANDS, approveAdminAiDraft, canPublishAdminDraft, createAdm
 
 describe("Admin AI Command Center prompt guidance", () => {
   it("provides detailed purpose, input, output, and approval guidance for every command", () => {
-    expect(ADMIN_AI_COMMANDS).toHaveLength(8);
+    expect(ADMIN_AI_COMMANDS).toHaveLength(9);
     for (const command of ADMIN_AI_COMMANDS) {
       expect(command.purpose.length).toBeGreaterThan(20);
       expect(command.inputGuide.length).toBeGreaterThan(20);
@@ -31,5 +31,16 @@ describe("Admin AI Command Center prompt guidance", () => {
     const approved = approveAdminAiDraft(draft, "admin-1", "Đã kiểm tra");
     expect(approved.approved).toBe(true);
     expect(canPublishAdminDraft(approved.draft)).toBe(true);
+  });
+
+  it("provides a dedicated, approval-gated command for comforting and encouraging content", () => {
+    const command = ADMIN_AI_COMMANDS.find((item) => item.value === "CREATE_ENCOURAGEMENT");
+    expect(command?.label).toContain("an ủi/động viên");
+    expect(command?.inputGuide).toContain("cần tránh");
+    expect(command?.approvalGuide).toContain("Admin");
+
+    const draft = createAdminAiDraft("CREATE_ENCOURAGEMENT", { title: "Lời động viên khi quá tải", emotion: "overwhelmed" });
+    expect(draft.status).toBe("ai_suggestion");
+    expect(canPublishAdminDraft(draft)).toBe(false);
   });
 });

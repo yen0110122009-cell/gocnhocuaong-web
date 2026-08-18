@@ -448,3 +448,10 @@
 - [x] Cho menu điều hướng cuộn được toàn bộ mục trên màn hình nhỏ và desktop có chiều cao hạn chế
 - [x] Cho phép bỏ chọn/tắt Chế độ lười sau khi đã chọn một micro-task
 - [x] Thêm regression và QA responsive cho menu cuộn cùng thao tác bỏ chọn
+
+## Cảm xúc và lời động viên
+- [x] Phân tích 12.html và trích xuất các tương tác theme cảm xúc phù hợp để áp dụng an toàn
+- [x] Bỏ các nhãn “Bật” thừa trong lựa chọn cảm xúc và làm rõ trạng thái đang chọn
+- [x] Áp dụng theme màu toàn giao diện cùng câu động viên khi người dùng chọn cảm xúc
+- [x] Bổ sung lệnh AI quản trị có hướng dẫn chi tiết để tạo lời an ủi và động viên dưới dạng bản nháp
+- [x] Thêm regression, TypeScript, Vitest, build và QA responsive cho vòng cập nhật cảm xúc

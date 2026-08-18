@@ -8,7 +8,8 @@ export type AdminAiCommand =
   | "CREATE_PIECE"
   | "CREATE_SHOP_ITEM"
   | "CREATE_REWARD"
-  | "CREATE_CONTENT";
+  | "CREATE_CONTENT"
+  | "CREATE_ENCOURAGEMENT";
 
 export type AdminDraftStatus = "ai_suggestion" | "admin_review" | "approved" | "rejected";
 
@@ -40,6 +41,7 @@ export const ADMIN_AI_COMMANDS: AdminAiCommandGuide[] = [
   { value: "CREATE_SHOP_ITEM", label: "Tạo vật phẩm cửa hàng", description: "Tạo bản nháp vật phẩm và giá cấu hình được.", purpose: "Dùng để đề xuất theme, nền animation hoặc vật phẩm sưu tầm bán bằng currency hiện có.", inputGuide: "Nhập loại vật phẩm, mã cosmetic, giá, currency, độ hiếm, công dụng và trạng thái.", outputGuide: "AI phải trả về tên, mô tả công dụng, loại, giá, currency, độ hiếm, preview và điều kiện sử dụng.", approvalGuide: "Admin kiểm tra giá, mô tả, asset thật và khả năng giao dịch qua ledger trước khi duyệt." },
   { value: "CREATE_REWARD", label: "Tạo phần thưởng", description: "Tạo bản nháp reward, không thực hiện cấp thưởng.", purpose: "Dùng để chuẩn hóa phần thưởng cho thành tích, Event hoặc thao tác quản trị.", inputGuide: "Nhập tên, loại, giá trị, độ hiếm, icon, mô tả và điều kiện.", outputGuide: "AI phải trả về reward đầy đủ trường và ghi rõ không có phần thưởng ẩn.", approvalGuide: "Admin kiểm tra giá trị, điều kiện, nguồn cấp và audit metadata; AI không được tự cấp." },
   { value: "CREATE_CONTENT", label: "Tạo nội dung Lumi", description: "Tạo bản nháp nội dung hỗ trợ học tập chờ Admin duyệt.", purpose: "Dùng cho lời khích lệ, an ủi, nhắc học hoặc micro-task phù hợp ngữ cảnh.", inputGuide: "Nhập ngữ cảnh, giọng điệu, độ dài, đối tượng và điều cần tránh.", outputGuide: "AI phải trả về nội dung, ngữ cảnh, tone, mascot và các điểm cần kiểm duyệt.", approvalGuide: "Admin đọc từng câu, loại nội dung gây áp lực hoặc sai ngữ cảnh rồi mới duyệt." },
+  { value: "CREATE_ENCOURAGEMENT", label: "Tạo lời an ủi/động viên", description: "Tạo bản nháp lời Lumi hỗ trợ người học theo cảm xúc và tình huống cụ thể.", purpose: "Dùng khi Admin cần bổ sung kho lời an ủi, động viên hoặc nhắc nhẹ cho các trạng thái như mệt, buồn, quá tải, trì hoãn hay vừa hoàn thành một bước nhỏ.", inputGuide: "Nhập cảm xúc/tình huống, đối tượng, giọng điệu, độ dài, hành động nhỏ có thể gợi ý và các câu cần tránh. Không yêu cầu AI chẩn đoán, hứa hẹn kết quả hay gây áp lực học tập.", outputGuide: "AI phải trả về lời nói ngắn, nhóm nội dung, ngữ cảnh hiển thị, tone, lời kêu gọi hành động nhẹ nhàng và điểm cần Admin kiểm tra.", approvalGuide: "Admin đọc từng câu, kiểm tra ngữ cảnh, loại nội dung phán xét hoặc thay thế tư vấn chuyên môn; chỉ bản đã duyệt mới được đưa vào kho Lumi." },
 ];
 
 export function createAdminAiDraft(command: AdminAiCommand, payload: Record<string, unknown>, now = new Date().toISOString()): AdminAiDraft {

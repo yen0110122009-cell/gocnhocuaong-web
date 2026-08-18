@@ -16,4 +16,10 @@ describe("emotion theme studio", () => {
     expect(emotionFromCommand("tôi đang rất lười").id).toBe("lazy");
     expect(emotionFromCommand("câu lệnh không hợp lệ").id).toBe("calm");
   });
+
+  it("dùng nhãn cảm xúc trực tiếp, không hiển thị chữ bật thừa", () => {
+    expect(emotionThemes).toHaveLength(16);
+    expect(emotionThemes.every((theme) => !theme.command.toLocaleLowerCase("vi-VN").includes("bật"))).toBe(true);
+    expect(emotionFromCommand("cần đồng hành").id).toBe("lonely");
+  });
 });

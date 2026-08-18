@@ -180,6 +180,17 @@ body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%
 #root > div.min-h-screen > aside { background: linear-gradient(180deg, rgba(255,247,242,.98), rgba(245,255,245,.98)) !important; border-right-color: rgba(46,125,50,.22) !important; }
 #root > div.min-h-screen header { background: rgba(255,247,242,.94) !important; border-bottom-color: rgba(198,40,40,.18) !important; }
 .emotion-studio { box-shadow: 0 16px 40px rgba(198,40,40,.09), 0 8px 25px rgba(46,125,50,.08); }
+
+/* Cảm xúc đang chọn thay bảng màu ở lớp ứng dụng, không chỉ riêng card lựa chọn. */
+:root[data-emotion] body { background: radial-gradient(circle at 14% 8%, color-mix(in srgb, var(--emotion-glow) 58%, transparent), transparent 34%), linear-gradient(135deg, var(--emotion-soft), #fff 58%, var(--emotion-soft)) !important; }
+:root[data-emotion] #root > div.min-h-screen { background: linear-gradient(135deg, color-mix(in srgb, var(--emotion-soft) 92%, white), #fff 56%, color-mix(in srgb, var(--emotion-glow) 20%, white)) !important; }
+:root[data-emotion] #root > div.min-h-screen > aside { background: linear-gradient(180deg, color-mix(in srgb, var(--emotion-soft) 94%, white), color-mix(in srgb, var(--emotion-glow) 16%, white)) !important; border-right-color: color-mix(in srgb, var(--emotion-secondary) 28%, transparent) !important; }
+:root[data-emotion] #root > div.min-h-screen header { background: color-mix(in srgb, var(--emotion-soft) 88%, white) !important; border-bottom-color: color-mix(in srgb, var(--emotion-primary) 22%, transparent) !important; }
+:root[data-emotion] .panel, :root[data-emotion] .study-card { border-color: color-mix(in srgb, var(--emotion-primary) 18%, #ead8c4) !important; }
+:root[data-emotion] .primary-button { background: var(--emotion-primary); box-shadow: 0 10px 22px color-mix(in srgb, var(--emotion-primary) 24%, transparent); }
+:root[data-emotion] .primary-button:hover { background: var(--emotion-ink); }
+:root[data-emotion] .nav-item.active { background: color-mix(in srgb, var(--emotion-soft) 76%, white); color: var(--emotion-ink); ring-color: var(--emotion-primary); }
+@media (prefers-reduced-motion: no-preference) { :root[data-emotion] #root > div.min-h-screen, :root[data-emotion] #root > div.min-h-screen > aside, :root[data-emotion] #root > div.min-h-screen header { transition: background-color 240ms var(--ease-out), background-image 240ms var(--ease-out), border-color 240ms var(--ease-out); } }
 .pomodoro-starting { animation: pomodoro-enter 680ms var(--ease-out) both; background-image: linear-gradient(135deg, rgba(255,240,235,.96), rgba(239,249,239,.96)); }
 	.pomodoro-critical { box-shadow: 0 0 0 2px rgba(198,40,40,.16), 0 18px 44px rgba(198,40,40,.12); }
 	.pomodoro-breathing { position: relative; isolation: isolate; }
