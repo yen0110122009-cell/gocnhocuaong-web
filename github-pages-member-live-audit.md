@@ -21,3 +21,15 @@ Phiên trình duyệt đang ở vai trò `Ong` / `Founder` và mở đúng Admin
 Phiên test đã đăng nhập thành công bằng tài khoản `BY`, mật khẩu test do người dùng cung cấp và mã `111`; dashboard xác nhận vai trò Founder. Trong Admin Panel, danh sách ban đầu có 3 tài khoản. Thao tác cấp tài khoản với tên `Tên 1`, mã nhập `Mã 1`, vai trò `Member` đã ghi thành công vào namespace `__gocnhocuaong` của Supabase app_state. Adapter chuẩn hóa mã thành chữ hoa nên bản ghi cloud là `MÃ 1`.
 
 Sau khi bấm `Làm mới`, giao diện hiển thị `4 tài khoản` và hàng `Tên 1 — MÃ 1 — Member`. Truy vấn read-only trực tiếp Supabase cũng xác nhận bản ghi có id `5b89aef9-72c7-4948-b177-b2849e842404`, role `Member`, locked `false`, không có passwordHash ban đầu. Kết luận: luồng đăng nhập mã 111, cấp member và đồng bộ danh sách trên GitHub Pages đã pass; dữ liệu legacy `memberAccounts`/`membersList` không phải namespace mà cloud adapter mới sử dụng.
+
+## QA bổ sung — 2026-08-18
+
+- Phiên `BY / BYBYBY / 111` đã mở `Trung tâm 111`; giao diện hiển thị nhãn `Khu vực đặc biệt · Mã 111`, trạng thái `Mã 111 · Không giới hạn`, các lối tắt Ôn tập thông minh, Pomodoro, AI Studio và Thành tích.
+- Sau khi đăng xuất, phiên Member `Tên 1 / QA1122 / MÃ 1` đăng nhập thành công; sidebar không hiển thị mục `Trung tâm 111` và màn hình tài khoản xác nhận vai trò `Member`.
+- Màn hình Thành tích trong phiên Member hiển thị `0/900 đã mở`, bộ lọc trạng thái/độ khó, điều kiện từng mốc, tiến độ hiện tại/mục tiêu, số lượng còn thiếu và phần thưởng. Ví dụ mốc Khởi Đầu 1 hiển thị điều kiện 10 Flashcard, tiến độ 0/10, còn 10 đơn vị và phần thưởng 20 XP.
+- QA mobile public login tại viewport 390x844: form Tên thành viên, Mật khẩu, Mã thành viên, liên kết trợ giúp và nút đăng nhập hiển thị vừa khung, không tràn ngang.
+- Lưu ý: phiên browser hiện tại dùng viewport desktop; mobile authenticated dashboard và mobile authenticated Thành tích vẫn cần một phiên/thiết bị có khả năng thay đổi viewport để đóng mục QA tương ứng.
+
+- Scroll QA trên màn hình Thành tích đã đi qua hai viewport liên tiếp ở phiên Member; các card ở vùng giữa xuất hiện với nội dung điều kiện, tiến độ, số còn thiếu và phần thưởng. Một số card đang chuyển hiệu ứng reveal tại mép viewport nhưng không có card trắng cố định hoặc lỗi layout.
+
+- Console QA live ghi nhận `document.documentElement` có `scrollBehavior: smooth`, có 902 phần tử thuộc nhóm reveal trên màn hình Thành tích và 8 phần tử mẫu đang ở `opacity: 1` cùng transform identity sau khi vào viewport. Phiên hiện tại không bật `prefers-reduced-motion`; kiểm thử emulation của media query cần viewport/devtools có hỗ trợ emulation riêng.
