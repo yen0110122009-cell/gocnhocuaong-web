@@ -1,4 +1,4 @@
-import { CircleHelp, Sparkles, X } from "lucide-react";
+import { ArrowRight, CircleHelp, Search, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 
 type MenuHelpItem = {
@@ -30,9 +30,21 @@ const menuHelpItems: MenuHelpItem[] = [
   { id: "admin", title: "Admin Panel", purpose: "Khu vực quản trị để kiểm soát nội dung, Event, phần thưởng, dữ liệu AI và kiểm tra module.", firstStep: "Tạo hoặc chỉnh sửa dữ liệu theo form, kiểm tra bản nháp AI và tự duyệt trước khi công bố.", audience: "admin" },
 ];
 
-export function MenuHelpGuide({ currentView, isAdmin, isUnlimitedAccount }: { currentView: string; isAdmin: boolean; isUnlimitedAccount: boolean }) {
+export function MenuHelpGuide({ currentView, isAdmin, isUnlimitedAccount, onNavigate }: { currentView: string; isAdmin: boolean; isUnlimitedAccount: boolean; onNavigate?: (view: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const visibleItems = menuHelpItems.filter((item) => (!item.audience || item.audience === "admin" ? isAdmin : isUnlimitedAccount));
+  const normalizedQuery = query.trim().toLocaleLowerCase("vi-VN");
+  const matchingItems = normalizedQuery
+    ? visibleItems.filter((item) => [item.title, item.purpose, item.firstStep].some((text) => text.toLocaleLowerCase("vi-VN").includes(normalizedQuery)))
+    : visibleItems;
+
+  const handleNavigate = (view: string, title: string) => {
+    if (onNavigate) onNavigate(view);
+    else Array.from(document.querySelectorAll<HTMLButtonElement>("aside nav button")).find((button) => button.getAttribute("aria-label") === title)?.click();
+    setOpen(false);
+    setQuery("");
+  };
 
   return (
     <>
@@ -55,15 +67,33 @@ export function MenuHelpGuide({ currentView, isAdmin, isUnlimitedAccount }: { cu
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Chạm vào dấu hỏi này ở bất kỳ màn hình nào để xem chức năng và cách bắt đầu ngắn gọn của từng khu vực.</p>
             <button type="button" onClick={() => setOpen(false)} aria-label="Đóng hướng dẫn menu" className="absolute right-4 top-4 rounded-full p-2 text-slate-500 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] dark:text-slate-300 dark:hover:bg-white/10"><X className="h-5 w-5" /></button>
           </header>
-          <div className="flex-1 space-y-3 overflow-y-auto p-5 sm:p-6">
-            {visibleItems.map((item) => {
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+            <label className="relative mb-5 block">
+              <span className="sr-only">Tìm chức năng trong hướng dẫn</span>
+              <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" aria-hidden="true" />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label="Tìm chức năng trong hướng dẫn"
+                placeholder="Tìm Pomodoro, Thành tích, Flashcard…"
+                className="h-10 w-full rounded-xl border border-[#eadfd2] bg-white pl-9 pr-3 text-sm text-slate-800 outline-none transition focus:border-[#c62828] focus:ring-2 focus:ring-[#c62828]/20 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
+              />
+            </label>
+            <div className="space-y-3">
+            {matchingItems.map((item) => {
               const isCurrent = item.id === currentView;
               return <article key={item.id} className={`rounded-2xl border p-4 ${isCurrent ? "border-[#c62828]/45 bg-[#fff4e7] shadow-sm dark:border-amber-300/40 dark:bg-[#3a2a1d]" : "border-[#eadfd2] bg-white/80 dark:border-white/10 dark:bg-white/5"}`}>
                 <div className="flex items-start justify-between gap-3"><h3 className="font-semibold text-[#8e1b1b] dark:text-amber-100">{item.title}</h3>{isCurrent && <span className="shrink-0 rounded-full bg-[#c62828] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Đang mở</span>}</div>
                 <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">{item.purpose}</p>
                 <p className="mt-3 rounded-xl bg-[#f5f7f2] px-3 py-2 text-xs leading-5 text-[#2e7d32] dark:bg-[#253526] dark:text-green-200"><strong>Bắt đầu:</strong> {item.firstStep}</p>
+                <button type="button" onClick={() => handleNavigate(item.id, item.title)} className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-[#c62828]/30 px-3 py-2 text-xs font-bold text-[#a31f1f] transition hover:bg-[#fff0e5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] active:scale-[.98] dark:border-amber-300/35 dark:text-amber-100 dark:hover:bg-white/10">
+                  Đi tới phần này <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
               </article>;
             })}
+            </div>
+            {matchingItems.length === 0 && <p className="rounded-2xl border border-dashed border-[#eadfd2] bg-white/60 p-5 text-center text-sm leading-6 text-slate-600 dark:border-white/15 dark:bg-white/5 dark:text-slate-300">Không tìm thấy chức năng phù hợp. Hãy thử tên menu hoặc một từ trong phần công dụng.</p>}
           </div>
         </section>
       </div>}

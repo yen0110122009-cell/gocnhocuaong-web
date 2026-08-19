@@ -477,3 +477,8 @@
 - [x] Thêm nút trợ giúp dấu hỏi cố định, có thể mở/đóng thuận tiện ở desktop và mobile
 - [x] Hiển thị mục đích, thao tác chính và gợi ý bắt đầu cho từng menu trong bảng trợ giúp
 - [x] Thêm regression, TypeScript, build và QA responsive cho hệ thống trợ giúp
+
+## Tìm kiếm và điều hướng từ bảng trợ giúp
+- [x] Thêm thanh tìm kiếm lọc theo tên, công dụng và bước bắt đầu của từng mục hướng dẫn
+- [x] Thêm nút "Đi tới phần này" để chuyển đến menu tương ứng và tự đóng bảng trợ giúp
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho hai thao tác mới

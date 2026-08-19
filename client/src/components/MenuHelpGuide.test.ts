@@ -28,4 +28,15 @@ describe("MenuHelpGuide", () => {
     expect(source).toContain('audience: "special111"');
     expect(source).toContain('item.audience === "admin" ? isAdmin : isUnlimitedAccount');
   });
+
+  it("cho phép tra cứu nhanh và đi thẳng đến từng phần từ hướng dẫn", () => {
+    expect(source).toContain('aria-label="Tìm chức năng trong hướng dẫn"');
+    expect(source).toContain("const matchingItems");
+    expect(source).toContain("item.title, item.purpose, item.firstStep");
+    expect(source).toContain("Không tìm thấy chức năng phù hợp");
+    expect(source).toContain("Đi tới phần này");
+    expect(source).toContain("if (onNavigate) onNavigate(view)");
+    expect(source).toContain('document.querySelectorAll<HTMLButtonElement>("aside nav button")');
+    expect(source).toContain("setOpen(false)");
+  });
 });
