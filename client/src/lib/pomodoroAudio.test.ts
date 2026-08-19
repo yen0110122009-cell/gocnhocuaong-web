@@ -29,11 +29,11 @@ describe("Pomodoro audio map", () => {
     expect(COMPLETE_ALERT_PROFILE.vibratePattern.length).toBeGreaterThan(3);
   });
 
-  it("applies each mixer slider to a layer without exceeding its nominal gain", () => {
+  it("boosts each mixer layer enough to remain audible while preserving slider control", () => {
     expect(scaledLayerGain(0, 0.9)).toBe(0);
-    expect(scaledLayerGain(50, 0.9)).toBe(0.45);
-    expect(scaledLayerGain(100, 0.9)).toBe(0.9);
-    expect(scaledLayerGain(150, 0.9)).toBe(0.9);
+    expect(scaledLayerGain(50, 0.9)).toBe(0.5625);
+    expect(scaledLayerGain(100, 0.9)).toBe(1.125);
+    expect(scaledLayerGain(150, 0.9)).toBe(1.125);
   });
 
   it("provides rich layered presets that can run continuously", () => {

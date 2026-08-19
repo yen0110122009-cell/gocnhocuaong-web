@@ -482,3 +482,17 @@
 - [x] Thêm thanh tìm kiếm lọc theo tên, công dụng và bước bắt đầu của từng mục hướng dẫn
 - [x] Thêm nút "Đi tới phần này" để chuyển đến menu tương ứng và tự đóng bảng trợ giúp
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho hai thao tác mới
+
+## Cải tổ trải nghiệm cảm xúc, âm thanh và Lumi
+- [x] Gỡ Cửa hàng giao diện và toàn bộ luồng mua/trang bị giao diện; chỉ giữ đổi màu theo cảm xúc
+- [x] Khôi phục và làm rõ cơ chế thu gọn theo từng mục, mặc định đóng và lưu trạng thái giữa các lần tải
+- [x] Hiển thị tên cấp học đi kèm số cấp trong sidebar và các vị trí cấp hiện tại
+- [x] Mở rộng trợ giúp dấu hỏi từ mô tả menu thành hướng dẫn chi tiết về công dụng, thao tác và trạng thái của từng phần
+- [x] Thay ý tưởng ghi âm mascot bằng thẻ lời an ủi/động viên Lumi có ảnh và nút phát giọng nói trực tiếp
+- [x] Bổ sung phương án Admin quản lý ảnh và bản thu giọng nói Lumi theo ngữ cảnh/cảm xúc
+- [x] Sửa Audio Center để âm thanh tập trung thực sự phát sau thao tác người dùng, có trạng thái phát/dừng/âm lượng rõ ràng
+- [x] Tăng độ lớn, độ vang và khả năng nghe rõ của chuông hoàn thành Pomodoro sau thao tác người dùng
+- [x] Thay nền Pomodoro bằng hiệu ứng được nhìn thấy rõ và không gây giật; bổ sung cảnh nền theo cảm xúc, mùa và thời tiết
+- [x] Thêm nút điều khiển âm thanh môi trường tại khu điều khiển cảm xúc, gồm các ngữ cảnh sáng/mưa/tuyết/lá rơi/sấm chớp
+- [x] Giữ các tuỳ chọn animation, popup và âm thanh độc lập, có tôn trọng giảm chuyển động
+- [x] Bổ sung regression, TypeScript, build và QA responsive/audio cho toàn bộ vòng cải tổ

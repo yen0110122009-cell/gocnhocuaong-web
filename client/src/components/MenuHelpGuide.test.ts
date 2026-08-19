@@ -16,7 +16,7 @@ describe("MenuHelpGuide", () => {
     [
       "Trang chủ", "Ôn tập thông minh", "Nhập dữ liệu AI", "Pomodoro", "Bản đồ kiến thức", "Lịch sử học",
       "Tôi sắp kiểm tra", "Tiến trình", "AI Studio", "Flashcard", "Đề kiểm tra", "Thành tích",
-      "Bảo tàng hành trình", "Cửa hàng giao diện", "Vòng quay tri thức", "Tài khoản",
+      "Bảo tàng hành trình", "Vòng quay tri thức", "Tài khoản",
     ].forEach((menuLabel) => expect(source).toContain(`title: "${menuLabel}"`));
     expect(source).toContain("purpose:");
     expect(source).toContain("firstStep:");

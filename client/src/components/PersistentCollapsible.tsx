@@ -49,7 +49,7 @@ export function PersistentCollapsible({
           {eyebrow ? <span className="block text-xs font-bold uppercase tracking-[.16em] text-[#2e7d32] dark:text-[#9bd59d]">{eyebrow}</span> : null}
           <span className="mt-1 block truncate font-display text-xl font-bold sm:text-2xl">{title}</span>
         </span>
-        <ChevronDown className={`h-5 w-5 shrink-0 text-[#2e7d32] transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+        <span className="flex shrink-0 items-center gap-2 text-[#2e7d32] dark:text-[#9bd59d]"><span className="hidden rounded-full bg-[#eaf5ea] px-2 py-1 text-[10px] font-bold uppercase tracking-wide sm:inline dark:bg-[#2e7d32]/20">{open ? "Thu gọn" : "Mở mục"}</span><ChevronDown className={`h-5 w-5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden="true" /></span>
       </button>
       {open ? <div className="border-t border-black/5 p-5 sm:p-6 dark:border-white/10">{children}</div> : null}
     </section>

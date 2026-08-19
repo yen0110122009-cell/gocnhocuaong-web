@@ -24,19 +24,38 @@ const menuHelpItems: MenuHelpItem[] = [
   { id: "quizzes", title: "Đề kiểm tra", purpose: "Làm bài kiểm tra, xem kết quả và lưu lịch sử để biết phần nào cần học lại.", firstStep: "Chọn đề phù hợp, làm bài độc lập rồi đọc phần giải thích sau khi nộp." },
   { id: "achievements", title: "Thành tích", purpose: "Theo dõi toàn bộ 900 Thành tích và 400 Danh hiệu công khai cùng điều kiện, tiến độ và phần thưởng rõ ràng.", firstStep: "Lọc theo nhóm hoặc cấp độ, rồi xem mục còn thiếu để biết cách chinh phục." },
   { id: "museum", title: "Bảo tàng hành trình", purpose: "Sưu tầm mảnh ghép, mở khóa nhân vật lịch sử và xem nguồn tư liệu của từng nhân vật.", firstStep: "Mở phần Bộ sưu tập mảnh ghép để xem mảnh đang có thể dùng vào đâu." },
-  { id: "shop", title: "Cửa hàng giao diện", purpose: "Đổi mảnh ghép hoặc vé lấy bảng màu và nền chuyển động để cá nhân hóa không gian học.", firstStep: "Xem rõ giá và số dư trước, rồi mua hoặc trang bị vật phẩm bạn đã sở hữu." },
   { id: "wheel", title: "Vòng quay tri thức", purpose: "Tham gia hoạt động quay thưởng theo các cấu hình công khai của hệ thống.", firstStep: "Đọc phần thưởng và điều kiện hiển thị trước khi thực hiện lượt quay." },
   { id: "account", title: "Tài khoản", purpose: "Quản lý thông tin hồ sơ, danh hiệu hiển thị, trạng thái cảm xúc và các tùy chọn tập trung cá nhân.", firstStep: "Chọn một danh hiệu đã đạt hoặc điều chỉnh cài đặt phù hợp với cách học của bạn." },
   { id: "admin", title: "Admin Panel", purpose: "Khu vực quản trị để kiểm soát nội dung, Event, phần thưởng, dữ liệu AI và kiểm tra module.", firstStep: "Tạo hoặc chỉnh sửa dữ liệu theo form, kiểm tra bản nháp AI và tự duyệt trước khi công bố.", audience: "admin" },
 ];
 
-export function MenuHelpGuide({ currentView, isAdmin, isUnlimitedAccount, onNavigate }: { currentView: string; isAdmin: boolean; isUnlimitedAccount: boolean; onNavigate?: (view: string) => void }) {
+const menuDetails: Record<string, string[]> = {
+  dashboard: ["Cấp độ và XP cho biết nhịp tiến bộ hiện tại.", "Thẻ gợi ý giúp chọn một việc vừa sức thay vì mở quá nhiều mục cùng lúc."],
+  special111: ["Chỉ hiện với mã thành viên 111.", "Các lối tắt tại đây không thay đổi quyền của những tài khoản khác."],
+  focus: ["Dùng khi chưa biết bắt đầu từ đâu hoặc đang mất tập trung.", "Chọn một gợi ý ngắn, hoàn thành xong rồi mới chuyển sang việc tiếp theo."],
+  "ai-import": ["AI chỉ tạo bản nháp từ dữ liệu bạn đưa vào.", "Hãy rà soát nội dung, đáp án và nguồn trước khi lưu vào dữ liệu chính thức."],
+  pomodoro: ["Bộ đếm lưu thời lượng học và có chuông khi kết thúc.", "Âm nền chỉ phát sau khi bạn nhấn nút phát; cảnh nền, animation và âm thanh có thể tắt riêng."],
+  knowledge: ["Mỗi nhánh giúp nhìn thấy điều đã học và khoảng kiến thức còn trống.", "Mở nhánh để xem nội dung liên quan trước khi tạo thêm ghi chú."],
+  history: ["Lịch sử giữ các phiên học đã hoàn thành theo thời gian.", "Dùng số liệu này để điều chỉnh kế hoạch, không phải để tự tạo áp lực."],
+  exam: ["Kế hoạch được chia thành các việc nhỏ theo kỳ kiểm tra.", "Đặt ngày, ưu tiên và hoàn thành từng việc để theo dõi tiến độ rõ ràng."],
+  progress: ["Tổng hợp XP, số phiên, streak và các mốc bạn đang theo đuổi.", "Đọc phần chênh lệch mục tiêu để chọn hoạt động tiếp theo."],
+  studio: ["Đây là nơi tạo học liệu có hỗ trợ AI, không tự xuất bản dữ liệu.", "Luôn xem trước, chỉnh sửa và xác nhận nội dung trước khi dùng."],
+  flashcards: ["Mỗi thẻ có mặt hỏi–đáp và trạng thái ôn lại.", "Đánh dấu thẻ chưa chắc để hệ thống ưu tiên ở lần học sau."],
+  quizzes: ["Kết quả và ghi chú của đề được lưu riêng theo từng lần làm.", "Sau khi nộp, xem lời giải để hiểu lỗi thay vì chỉ xem điểm."],
+  achievements: ["Tất cả 900 Thành tích và 400 Danh hiệu đều công khai điều kiện, tiến độ và phần thưởng.", "Bộ lọc giúp xem mốc đang gần đạt; không có thành tích bí mật."],
+  museum: ["Mảnh ghép được ghi lịch sử nhận/dùng và dùng để mở khóa tư liệu nhân vật lịch sử.", "Mỗi khu vực trong Bảo tàng có mũi tên thu gọn riêng; nhấn lại đúng khu vực để mở."],
+  wheel: ["Phần thưởng, xác suất và điều kiện được công khai trước khi quay.", "Số lượt và phần thưởng được ghi vào lịch sử theo cấu hình hiện hành."],
+  account: ["Bạn có thể đổi danh hiệu đã đạt, chọn cảm xúc và quản lý cài đặt tập trung.", "Cảm xúc thay màu toàn ứng dụng; hình ảnh, lời động viên và nút nghe của Lumi xuất hiện trong khu Cảm xúc."],
+  admin: ["Admin quản lý nội dung, Event, phần thưởng, ảnh và lời thoại Lumi; mọi bản nháp AI đều cần duyệt.", "Dữ liệu cần xóa sẽ vào Thùng rác để khôi phục hoặc xóa vĩnh viễn khi phù hợp."],
+};
+
+export function MenuHelpGuide({ currentView, isAdmin, isUnlimitedAccount, onNavigate }: { currentView: string; isAdmin: boolean; isUnlimitedAccount: boolean; onNavigate?: (view: any) => void }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const visibleItems = menuHelpItems.filter((item) => (!item.audience || item.audience === "admin" ? isAdmin : isUnlimitedAccount));
   const normalizedQuery = query.trim().toLocaleLowerCase("vi-VN");
   const matchingItems = normalizedQuery
-    ? visibleItems.filter((item) => [item.title, item.purpose, item.firstStep].some((text) => text.toLocaleLowerCase("vi-VN").includes(normalizedQuery)))
+    ? visibleItems.filter((item) => [item.title, item.purpose, item.firstStep, ...(menuDetails[item.id] ?? [])].some((text) => text.toLocaleLowerCase("vi-VN").includes(normalizedQuery)))
     : visibleItems;
 
   const handleNavigate = (view: string, title: string) => {
@@ -86,6 +105,7 @@ export function MenuHelpGuide({ currentView, isAdmin, isUnlimitedAccount, onNavi
               return <article key={item.id} className={`rounded-2xl border p-4 ${isCurrent ? "border-[#c62828]/45 bg-[#fff4e7] shadow-sm dark:border-amber-300/40 dark:bg-[#3a2a1d]" : "border-[#eadfd2] bg-white/80 dark:border-white/10 dark:bg-white/5"}`}>
                 <div className="flex items-start justify-between gap-3"><h3 className="font-semibold text-[#8e1b1b] dark:text-amber-100">{item.title}</h3>{isCurrent && <span className="shrink-0 rounded-full bg-[#c62828] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Đang mở</span>}</div>
                 <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">{item.purpose}</p>
+                <div className="mt-3 rounded-xl border border-[#e6eadf] bg-[#fbfdf8] px-3 py-2.5 text-xs leading-5 text-slate-700 dark:border-white/10 dark:bg-white/[.03] dark:text-slate-200"><p className="font-bold text-[#2e7d32] dark:text-green-200">Trong phần này có gì?</p><ul className="mt-1.5 list-disc space-y-1 pl-4">{(menuDetails[item.id] ?? ["Xem nội dung và thao tác theo hướng dẫn của khu vực này."]).map((detail) => <li key={detail}>{detail}</li>)}</ul></div>
                 <p className="mt-3 rounded-xl bg-[#f5f7f2] px-3 py-2 text-xs leading-5 text-[#2e7d32] dark:bg-[#253526] dark:text-green-200"><strong>Bắt đầu:</strong> {item.firstStep}</p>
                 <button type="button" onClick={() => handleNavigate(item.id, item.title)} className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-[#c62828]/30 px-3 py-2 text-xs font-bold text-[#a31f1f] transition hover:bg-[#fff0e5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c62828] active:scale-[.98] dark:border-amber-300/35 dark:text-amber-100 dark:hover:bg-white/10">
                   Đi tới phần này <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

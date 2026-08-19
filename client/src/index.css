@@ -115,23 +115,6 @@ html[data-animations="off"] *, html[data-animations="off"] *::before, html[data-
 
 html[data-popups="off"] [data-sonner-toaster] { display: none !important; }
 
-/* Cosmetic shop: theme and animated background are data-driven and applied on <html>. */
-:root[data-cosmetic-theme="ong-red"] { --cosmetic-accent: #c62828; --cosmetic-accent-soft: #fff1ef; }
-:root[data-cosmetic-theme="forest-green"] { --cosmetic-accent: #2e7d32; --cosmetic-accent-soft: #effcf1; }
-:root[data-cosmetic-theme="sunset-amber"] { --cosmetic-accent: #b45309; --cosmetic-accent-soft: #fff7df; }
-:root[data-cosmetic-theme="ocean-blue"] { --cosmetic-accent: #1769aa; --cosmetic-accent-soft: #edf7ff; }
-.cosmetic-card { border: 1px solid color-mix(in srgb, var(--cosmetic-accent) 22%, transparent); border-radius: 1.5rem; padding: 1rem; background: color-mix(in srgb, var(--cosmetic-accent-soft) 78%, white); transition: transform 180ms ease-out, box-shadow 180ms ease-out; }
-.cosmetic-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px color-mix(in srgb, var(--cosmetic-accent) 16%, transparent); }
-.cosmetic-card--active { box-shadow: 0 0 0 2px color-mix(in srgb, var(--cosmetic-accent) 55%, transparent); }
-:root[data-cosmetic-background="paper-grid"] body { background-image: linear-gradient(rgba(148,163,184,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.08) 1px, transparent 1px); background-size: 28px 28px; }
-:root[data-cosmetic-background="leaf-drift"] body { background-image: radial-gradient(circle at 12% 22%, rgba(34,197,94,.14) 0 2px, transparent 3px), radial-gradient(circle at 82% 64%, rgba(34,197,94,.12) 0 3px, transparent 4px); background-size: 180px 160px, 240px 220px; animation: cosmetic-leaf-drift 18s linear infinite; }
-:root[data-cosmetic-background="sunrise-glow"] body { background-image: radial-gradient(circle at 80% 0%, rgba(251,191,36,.22), transparent 38%), radial-gradient(circle at 10% 90%, rgba(239,68,68,.11), transparent 34%); background-size: 120% 120%; animation: cosmetic-sunrise 16s ease-in-out infinite alternate; }
-:root[data-cosmetic-background="night-stars"] body { background-color: #161b2b; background-image: radial-gradient(circle at 18% 24%, rgba(255,255,255,.45) 0 1px, transparent 2px), radial-gradient(circle at 72% 66%, rgba(147,197,253,.45) 0 1px, transparent 2px); background-size: 120px 140px, 190px 170px; animation: cosmetic-stars 22s linear infinite; }
-@keyframes cosmetic-leaf-drift { to { background-position: 180px 160px, -240px 220px; } }
-@keyframes cosmetic-sunrise { to { background-position: 100% 25%, 0% 70%; } }
-@keyframes cosmetic-stars { to { background-position: 120px 0, -190px 170px; } }
-@media (prefers-reduced-motion: reduce) { :root[data-cosmetic-background] body { animation: none; } .cosmetic-card { transition: none; } }
-
 @media (forced-colors: active) {
   button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid CanvasText; outline-offset: 3px; }
 }
@@ -206,20 +189,49 @@ body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%
 	.pomodoro-breathing--morning::before { background: radial-gradient(circle, rgba(255,193,7,.28), rgba(46,125,50,.14) 52%, transparent 72%); }
 	.pomodoro-breathing--afternoon::before { background: radial-gradient(circle, rgba(46,125,50,.26), rgba(198,40,40,.12) 54%, transparent 72%); }
 	.pomodoro-breathing--night::before { background: radial-gradient(circle, rgba(46,125,50,.22), rgba(198,40,40,.14) 54%, transparent 72%); }
-	.pomodoro-journey { background: linear-gradient(120deg, rgba(255,247,242,.94), rgba(245,255,245,.94)); }
-	.pomodoro-journey--morning { box-shadow: 0 12px 28px rgba(255,193,7,.09); }
-	.pomodoro-journey--afternoon { box-shadow: 0 12px 28px rgba(46,125,50,.1); }
-	.pomodoro-journey--night { background: linear-gradient(120deg, rgba(255,247,242,.88), rgba(239,249,239,.9)); box-shadow: 0 12px 28px rgba(46,125,50,.12); }
-	@media (prefers-reduced-motion: no-preference) {
-	  .pomodoro-breathing::before { animation: pomodoro-breathe 8s ease-in-out infinite; }
-	}
+		.pomodoro-journey { background: linear-gradient(120deg, rgba(255,247,242,.94), rgba(245,255,245,.94)); }
+		.pomodoro-journey { position: relative; isolation: isolate; overflow: hidden; min-height: 8.75rem; }
+		.pomodoro-journey > * { position: relative; z-index: 1; }
+		.pomodoro-journey::before, .pomodoro-journey::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+		.pomodoro-journey--morning { background: linear-gradient(120deg, #fff7d8, #f3fff2 62%, #e9f7ff); box-shadow: 0 12px 28px rgba(255,193,7,.16); }
+		.pomodoro-journey--morning::before { background: radial-gradient(circle at 89% 19%, rgba(255,194,45,.78) 0 1.7rem, rgba(255,223,105,.25) 1.8rem 3.4rem, transparent 3.5rem), linear-gradient(155deg, transparent 0 55%, rgba(46,125,50,.08) 55.2% 59%, transparent 59.2%); }
+		.pomodoro-journey--morning::after { opacity: .42; background-image: radial-gradient(ellipse at 10% 23%, rgba(46,125,50,.52) 0 .22rem, transparent .25rem), radial-gradient(ellipse at 22% 30%, rgba(46,125,50,.42) 0 .17rem, transparent .2rem), radial-gradient(ellipse at 35% 20%, rgba(46,125,50,.42) 0 .14rem, transparent .18rem); background-size: 9rem 5rem, 11rem 6rem, 13rem 5rem; }
+		.pomodoro-journey--afternoon { background: linear-gradient(120deg, #effff2, #fff5ed 62%, #fffadd); box-shadow: 0 12px 28px rgba(46,125,50,.16); }
+		.pomodoro-journey--afternoon::before { background: radial-gradient(circle at 88% 16%, rgba(255,183,65,.6), transparent 2.8rem), linear-gradient(165deg, transparent 0 54%, rgba(46,125,50,.12) 54.2% 60%, transparent 60.2%); }
+		.pomodoro-journey--afternoon::after { opacity: .33; background-image: radial-gradient(circle, rgba(198,40,40,.55) 0 .14rem, transparent .17rem), radial-gradient(circle, rgba(46,125,50,.55) 0 .18rem, transparent .21rem); background-size: 6rem 4rem, 8rem 5rem; }
+		.pomodoro-journey--night { background: linear-gradient(120deg, #172c27, #24372e 62%, #322b35); color: #eef9ef; box-shadow: 0 12px 28px rgba(25,64,55,.28); }
+		.pomodoro-journey--night p { color: #e8f5e9 !important; }
+		.pomodoro-journey--night::before { background: radial-gradient(circle at 86% 18%, rgba(255,248,201,.86) 0 1.05rem, rgba(255,248,201,.12) 1.1rem 2.1rem, transparent 2.2rem); }
+		.pomodoro-journey--night::after { opacity: .55; background-image: radial-gradient(circle, rgba(255,255,255,.9) 0 .06rem, transparent .09rem), radial-gradient(circle, rgba(197,229,201,.72) 0 .08rem, transparent .11rem); background-size: 4.5rem 4.2rem, 7rem 6rem; }
+		.ambient-scene { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; opacity: .8; }
+		.ambient-scene i { position: absolute; display: block; width: .65rem; height: .65rem; border-radius: 999px; }
+		.ambient-scene-rain i { top: -12%; width: 2px; height: 2rem; border-radius: 999px; background: linear-gradient(transparent, rgba(71,139,180,.72)); transform: rotate(16deg); animation: weather-rain 1.1s linear infinite; }
+		.ambient-scene-rain i:nth-child(2n) { left: 25%; animation-delay: -.35s; } .ambient-scene-rain i:nth-child(3n) { left: 55%; animation-delay: -.7s; } .ambient-scene-rain i:nth-child(4n) { left: 82%; animation-delay: -.18s; }
+		.ambient-scene-snow i { top: -1rem; background: rgba(255,255,255,.95); box-shadow: 0 0 8px rgba(255,255,255,.78); animation: weather-snow 4s linear infinite; }
+		.ambient-scene-snow i:nth-child(2n) { left: 25%; animation-delay: -1.2s; } .ambient-scene-snow i:nth-child(3n) { left: 55%; animation-delay: -2.2s; } .ambient-scene-snow i:nth-child(4n) { left: 82%; animation-delay: -3.1s; }
+		.ambient-scene-leaves i { top: -1rem; width: .85rem; height: .48rem; border-radius: 80% 0 80% 0; background: #e58137; animation: weather-leaves 5s ease-in infinite; }
+		.ambient-scene-leaves i:nth-child(2n) { left: 28%; background: #d14336; animation-delay: -1.4s; } .ambient-scene-leaves i:nth-child(3n) { left: 58%; background: #e8ad2b; animation-delay: -2.5s; } .ambient-scene-leaves i:nth-child(4n) { left: 84%; animation-delay: -3.6s; }
+		.ambient-scene-morning i { top: 18%; width: .42rem; height: .42rem; background: rgba(255,205,63,.72); box-shadow: 0 0 14px rgba(255,193,7,.55); animation: weather-glow 2.6s ease-in-out infinite alternate; }
+		.ambient-scene-morning i:nth-child(2n) { left: 25%; animation-delay: -.7s; } .ambient-scene-morning i:nth-child(3n) { left: 55%; animation-delay: -1.2s; } .ambient-scene-morning i:nth-child(4n) { left: 82%; animation-delay: -1.8s; }
+		.ambient-scene-storm { background: radial-gradient(circle at 82% 14%, rgba(255,255,255,.7), transparent 1.8rem), linear-gradient(115deg, transparent 48%, rgba(236,244,255,.72) 49% 50%, transparent 51%) 75% 15% / 6rem 7rem no-repeat; animation: weather-lightning 4.8s step-end infinite; }
+		@keyframes weather-rain { from { transform: translate3d(0, -1rem, 0) rotate(16deg); } to { transform: translate3d(-2.2rem, 17rem, 0) rotate(16deg); } }
+		@keyframes weather-snow { from { transform: translate3d(0, -1rem, 0); } to { transform: translate3d(2.5rem, 16rem, 0); } }
+		@keyframes weather-leaves { from { transform: translate3d(0, -1rem, 0) rotate(0); } to { transform: translate3d(5rem, 15rem, 0) rotate(390deg); } }
+		@keyframes weather-glow { from { transform: translateY(-.2rem) scale(.9); opacity: .45; } to { transform: translateY(.4rem) scale(1.2); opacity: .9; } }
+		@keyframes weather-lightning { 0%, 88%, 100% { opacity: .45; } 90%, 92% { opacity: 1; } }
+		@media (prefers-reduced-motion: no-preference) {
+		  .pomodoro-breathing::before { animation: pomodoro-breathe 8s ease-in-out infinite; }
+		  .pomodoro-journey--morning::after { animation: weather-drift 12s linear infinite; }
+		  .pomodoro-journey--afternoon::after { animation: weather-drift 16s linear infinite reverse; }
+		}
+		@keyframes weather-drift { to { background-position: 9rem 5rem, -11rem 6rem, 13rem 5rem; } }
 	@keyframes pomodoro-breathe { 0%, 100% { transform: scale(.96); opacity: .18; } 50% { transform: scale(1.04); opacity: .34; } }
 .pomodoro-complete { animation: pomodoro-complete-in 520ms var(--ease-out) both; }
 @keyframes pomodoro-enter { 0% { opacity: .72; transform: translateY(6px) scale(.985); } 55% { transform: translateY(0) scale(1.01); } 100% { opacity: 1; transform: scale(1); } }
 @keyframes pomodoro-complete-in { 0% { opacity: .2; transform: translateY(10px) scale(.97); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
-@media (prefers-reduced-motion: reduce) {
-  .pomodoro-starting, .pomodoro-complete { animation: none !important; }
-}
+	@media (prefers-reduced-motion: reduce) {
+	  .pomodoro-starting, .pomodoro-complete, .ambient-scene *, .pomodoro-journey::after { animation: none !important; }
+	}
 
 /* Celebration feedback for fragment collection and title unlocks */
 .celebration-overlay { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 1rem; background: rgba(20, 24, 20, .26); backdrop-filter: blur(4px); }

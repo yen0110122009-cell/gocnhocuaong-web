@@ -722,16 +722,7 @@ export const emptyAppConfig = (): AppConfig => ({
       { tier: "VI", label: "Cấp VI · Huyền thoại", value: 120, rarity: "legendary", enabled: true },
     ],
     ticketExchange: { fragmentValue: 10, tickets: 1, enabled: true },
-    shopItems: [
-      { id: "theme-ong-red", name: "Ong Đỏ Rực", description: "Giao diện đỏ–kem chủ đạo của GÓC HỌC TẬP CỦA ONG.", kind: "colorTheme", price: 0, currency: "fragmentValue", rarity: "common", stock: null, enabled: true, cosmeticType: "theme", cosmeticId: "ong-red", previewClass: "cosmetic-theme-ong-red" },
-      { id: "theme-forest-green", name: "Rừng Tri Thức", description: "Xanh lá dịu mắt cho những nhịp học bền bỉ.", kind: "colorTheme", price: 12, currency: "collectionTicket", rarity: "rare", stock: null, enabled: true, cosmeticType: "theme", cosmeticId: "forest-green", previewClass: "cosmetic-theme-forest-green" },
-      { id: "theme-sunset-amber", name: "Hoàng Hôn Di Sản", description: "Cam hổ phách gợi không khí bảo tàng và lịch sử.", kind: "colorTheme", price: 18, currency: "collectionTicket", rarity: "epic", stock: null, enabled: true, cosmeticType: "theme", cosmeticId: "sunset-amber", previewClass: "cosmetic-theme-sunset-amber" },
-      { id: "theme-ocean-blue", name: "Biển Sâu Tập Trung", description: "Xanh lam trầm cho các phiên Deep Focus.", kind: "colorTheme", price: 24, currency: "collectionTicket", rarity: "epic", stock: null, enabled: true, cosmeticType: "theme", cosmeticId: "ocean-blue", previewClass: "cosmetic-theme-ocean-blue" },
-      { id: "background-paper-grid", name: "Giấy Ôn Bài", description: "Nền lưới giấy chuyển động rất nhẹ, không che nội dung.", kind: "animatedBackground", price: 0, currency: "fragmentValue", rarity: "common", stock: null, enabled: true, cosmeticType: "background", cosmeticId: "paper-grid", previewClass: "cosmetic-bg-paper-grid" },
-      { id: "background-leaf-drift", name: "Lá Bay Nhẹ", description: "Nền lá trôi chậm, tắt chuyển động khi người dùng giảm motion.", kind: "animatedBackground", price: 8, currency: "collectionTicket", rarity: "rare", stock: null, enabled: true, cosmeticType: "background", cosmeticId: "leaf-drift", previewClass: "cosmetic-bg-leaf-drift" },
-      { id: "background-sunrise-glow", name: "Bình Minh", description: "Quầng sáng ấm thay đổi nhẹ theo nhịp học.", kind: "animatedBackground", price: 15, currency: "collectionTicket", rarity: "epic", stock: null, enabled: true, cosmeticType: "background", cosmeticId: "sunrise-glow", previewClass: "cosmetic-bg-sunrise-glow" },
-      { id: "background-night-stars", name: "Sao Đêm", description: "Nền sao dịu cho phiên học buổi tối, không dùng âm thanh tự động.", kind: "animatedBackground", price: 20, currency: "collectionTicket", rarity: "legendary", stock: null, enabled: true, cosmeticType: "background", cosmeticId: "night-stars", previewClass: "cosmetic-bg-night-stars" },
-    ],
+    shopItems: [],
     rewardSources: [
       { id: "source-study-session", kind: "studySession", label: "Phiên học hoàn thành", description: "Nhận mảnh khi hoàn thành phiên học; bị giới hạn theo ngày.", enabled: true, dailyCap: 3, rewards: [{ tier: "I", amount: 1 }] },
       { id: "source-pomodoro-10", kind: "pomodoroMilestone", label: "Mốc 10 Pomodoro", description: "Thưởng một lần khi tổng số Pomodoro hoàn thành chạm mốc.", enabled: true, claimLimit: 1, milestone: 10, rewards: [{ tier: "II", amount: 1 }] },

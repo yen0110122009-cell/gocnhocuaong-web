@@ -45,4 +45,18 @@ describe("Experience Studio requirements", () => {
     expect(cssSource).not.toContain("background-image 240ms");
     expect(cssSource).toContain("transition: border-color 160ms");
   });
+
+  it("shows Lumi as a companion with an image, a direct listen control and environmental scenes", () => {
+    expect(studioSource).toContain("Lumi đang ở đây");
+    expect(studioSource).toContain("Nghe lời thoại Lumi");
+    expect(studioSource).toContain("configuredLumiImage");
+    expect(studioSource).toContain("ambientScene");
+    expect(studioSource).toContain("Âm thanh và cảnh nền");
+    expect(studioSource).toContain("typeof window !== \"undefined\"");
+  });
+
+  it("does not retain purchasable cosmetic theme selectors after switching to emotion-based colors", () => {
+    expect(cssSource).not.toContain("data-cosmetic-theme");
+    expect(cssSource).not.toContain("data-cosmetic-background");
+  });
 });

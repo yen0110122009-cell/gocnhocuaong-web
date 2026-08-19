@@ -102,7 +102,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
       const context = getAudioContext();
       const preset = SOUNDSCAPE_PRESETS[backgroundSound] ?? SOUNDSCAPE_PRESETS["Mưa nhẹ"];
       const master = context.createGain();
-      const targetMaster = Math.min(1, backgroundVolume / 100) * 0.12;
+      const targetMaster = Math.min(1, backgroundVolume / 100) * 0.3;
       master.gain.setValueAtTime(0.001, context.currentTime);
       master.gain.exponentialRampToValueAtTime(Math.max(0.001, targetMaster), context.currentTime + 1.2);
       master.connect(context.destination);
@@ -155,7 +155,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
       const now = context.currentTime;
       const master = context.createGain();
       const isCompletion = event === "complete";
-      const volume = Math.min(1, scaledGain(alertVolume, soundEventGainMultiplier(event)) * (isCompletion ? 1.35 : 1));
+      const volume = Math.min(1, scaledGain(alertVolume, soundEventGainMultiplier(event)) * (isCompletion ? 1.55 : 1));
       master.gain.setValueAtTime(Math.max(0.001, volume), now);
       master.connect(context.destination);
       const reverb = isCompletion ? context.createConvolver() : null;
@@ -178,7 +178,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         oscillator.type = isCompletion ? COMPLETE_ALERT_PROFILE.oscillator : event === "error" ? "square" : event === "warning" ? "triangle" : "sine";
         oscillator.frequency.setValueAtTime(frequency, startAt);
         noteGain.gain.setValueAtTime(0.001, startAt);
-        noteGain.gain.exponentialRampToValueAtTime(isCompletion ? 1.18 : 1, startAt + 0.015);
+        noteGain.gain.exponentialRampToValueAtTime(isCompletion ? 1.42 : 1, startAt + 0.015);
         noteGain.gain.exponentialRampToValueAtTime(0.001, startAt + soundEventDuration(event) - 0.01);
         oscillator.connect(noteGain).connect(master);
         if (reverb) noteGain.connect(reverb);

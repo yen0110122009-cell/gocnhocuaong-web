@@ -11,17 +11,17 @@ export const SOUND_EVENTS: Record<SoundEvent, number[]> = {
 
 /** The completion alert is intentionally a longer, rising multi-note phrase. */
 export const COMPLETE_ALERT_PROFILE = {
-  gainMultiplier: 0.2,
-  spacingSeconds: 0.18,
-  durationSeconds: 0.44,
+  gainMultiplier: 0.58,
+  spacingSeconds: 0.16,
+  durationSeconds: 0.56,
   oscillator: "triangle" as OscillatorType,
-  vibratePattern: [180, 90, 180, 90, 320],
+  vibratePattern: [220, 80, 220, 80, 420],
 };
 
 export function soundEventGainMultiplier(event: SoundEvent) {
   if (event === "tick") return 0.055;
   if (event === "complete") return COMPLETE_ALERT_PROFILE.gainMultiplier;
-  return 0.13;
+  return 0.2;
 }
 
 export function soundEventSpacing(event: SoundEvent) {
@@ -81,12 +81,14 @@ export const SOUNDSCAPE_LAYERS: Record<string, SoundscapeLayer> = {
 export const SOUNDSCAPE_PRESETS: Record<string, { label: string; description: string; layers: string[] }> = {
   "Mưa": { label: "Mưa trong rừng", description: "Mưa nhẹ, rừng và gió xa.", layers: ["rainLight", "forest", "wind"] },
   "Mưa nhẹ": { label: "Mưa nhẹ", description: "Một lớp mưa êm cho phiên đầu tiên.", layers: ["rainLight"] },
+  "Mưa giông": { label: "Mưa giông", description: "Mưa lớn, gió và tiếng sấm xa cho những phiên cần tách khỏi ồn ào.", layers: ["rainHeavy", "wind", "distantThunder"] },
   "Rừng": { label: "Rừng xanh", description: "Rừng, suối và gió chuyển động chậm.", layers: ["forest", "stream", "wind"] },
   "Thư viện": { label: "Thư viện yên", description: "Không gian thư viện với tiếng lật sách rất nhẹ.", layers: ["library", "pages"] },
   "Không gian quán cà phê": { label: "Quán cà phê", description: "Nền ấm, piano thưa và nhịp quán nhẹ.", layers: ["cafe", "piano"] },
   "Biển đêm": { label: "Biển đêm", description: "Sóng nền trầm, ambient và gió biển.", layers: ["sea", "ambient", "wind"] },
   "Phòng học": { label: "Phòng học", description: "Phòng học, bút và bàn phím rất tiết chế.", layers: ["classroom", "pencil", "keyboard"] },
   "Đêm ambient": { label: "Đêm ambient", description: "Một lớp đêm yên cho học sâu.", layers: ["night", "ambient", "deepFocus"] },
+  "Sáng trong": { label: "Sáng trong", description: "Rừng nhẹ, suối và lớp âm sáng để mở đầu ngày học.", layers: ["forest", "stream", "piano"] },
   "Deep focus": { label: "Deep focus", description: "Brown noise, deep focus và ticking nhẹ.", layers: ["brown", "deepFocus", "ticking"] },
   "White noise": { label: "White noise", description: "Nền đều, ít giai điệu, che tiếng ồn.", layers: ["white"] },
   "Brown noise": { label: "Brown noise", description: "Nền trầm ổn định cho người dễ phân tâm.", layers: ["brown"] },
@@ -99,7 +101,7 @@ export function scaledGain(volume: number, multiplier: number) {
 
 /** Applies an individual mixer slider to a layer's nominal gain. */
 export function scaledLayerGain(volume: number, baseVolume: number) {
-  return scaledGain(volume, Math.max(0, baseVolume));
+  return scaledGain(volume, Math.max(0, baseVolume * 1.25));
 }
 
 export function soundEventDuration(event: SoundEvent) {
