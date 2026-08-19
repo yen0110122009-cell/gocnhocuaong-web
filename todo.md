@@ -496,3 +496,10 @@
 - [x] Thêm nút điều khiển âm thanh môi trường tại khu điều khiển cảm xúc, gồm các ngữ cảnh sáng/mưa/tuyết/lá rơi/sấm chớp
 - [x] Giữ các tuỳ chọn animation, popup và âm thanh độc lập, có tôn trọng giảm chuyển động
 - [x] Bổ sung regression, TypeScript, build và QA responsive/audio cho toàn bộ vòng cải tổ
+
+## Sửa theme trực quan và cá nhân hóa âm thanh
+- [x] Chẩn đoán và sửa việc chọn cảm xúc/cảnh nền chưa làm thay đổi màu sắc hoặc nền hiển thị thực tế
+- [x] Cho người dùng chọn cảnh nền yêu thích và lưu làm mặc định giữa các lần mở web
+- [x] Tạo mixer âm lượng độc lập cho từng lớp âm thanh môi trường và chuông Pomodoro
+- [x] Tạo thư viện lời thoại Lumi theo ngày trong tuần, tự chọn nội dung phù hợp ngày học
+- [x] Bổ sung regression, kiểm tra âm thanh sau user gesture và QA trực quan desktop/mobile

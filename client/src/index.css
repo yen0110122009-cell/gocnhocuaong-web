@@ -299,3 +299,93 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
   padding-right: .25rem;
   padding-bottom: 1rem;
 }
+
+/* Theme cảm xúc phải thắng Brand lock: mỗi lựa chọn đổi rõ nền, sidebar, header và card. */
+:root[data-emotion="calm"] { --mood-page: #eef8ef; --mood-page-alt: #fff1ea; --mood-side: #dff0e1; --mood-header: #fffaf7; --mood-card: #fafffb; --mood-border: #79a97e; --mood-accent: #2e7d32; --mood-glow: rgba(76, 175, 80, .24); }
+:root[data-emotion="happy"], :root[data-emotion="excited"], :root[data-emotion="proud"] { --mood-page: #fff2b7; --mood-page-alt: #ffd9a0; --mood-side: #ffe29a; --mood-header: #fff7dd; --mood-card: #fffdf4; --mood-border: #e89b1d; --mood-accent: #ca6a00; --mood-glow: rgba(255, 166, 0, .32); }
+:root[data-emotion="tired"], :root[data-emotion="sleepy"] { --mood-page: #dbe4f3; --mood-page-alt: #eef0ff; --mood-side: #ccd9ec; --mood-header: #f4f7ff; --mood-card: #fbfcff; --mood-border: #778fbb; --mood-accent: #445f97; --mood-glow: rgba(103, 126, 184, .28); }
+:root[data-emotion="sad"], :root[data-emotion="lonely"] { --mood-page: #d5eaf0; --mood-page-alt: #e8f3f1; --mood-side: #c3e0e8; --mood-header: #f4fbfc; --mood-card: #fbfefe; --mood-border: #4f9baa; --mood-accent: #247586; --mood-glow: rgba(66, 150, 169, .28); }
+:root[data-emotion="stressed"], :root[data-emotion="overwhelmed"] { --mood-page: #f8dede; --mood-page-alt: #ffe9dc; --mood-side: #f3c5c7; --mood-header: #fff8f5; --mood-card: #fffdfc; --mood-border: #c96a6e; --mood-accent: #a63e48; --mood-glow: rgba(201, 76, 85, .28); }
+:root[data-emotion="lazy"] { --mood-page: #f5e6c7; --mood-page-alt: #fff3da; --mood-side: #ecd09c; --mood-header: #fffaf1; --mood-card: #fffdf8; --mood-border: #b88b3c; --mood-accent: #85621e; --mood-glow: rgba(187, 137, 49, .3); }
+:root[data-emotion="focused"], :root[data-emotion="confident"] { --mood-page: #d9eddf; --mood-page-alt: #e2f1ed; --mood-side: #bfe0c9; --mood-header: #f6fffa; --mood-card: #fbfffc; --mood-border: #448f64; --mood-accent: #176d45; --mood-glow: rgba(43, 139, 87, .3); }
+:root[data-emotion="hopeful"], :root[data-emotion="curious"], :root[data-emotion="comeback"] { --mood-page: #e7e2fb; --mood-page-alt: #dff3e9; --mood-side: #d2caf3; --mood-header: #fbfaff; --mood-card: #fefeff; --mood-border: #8270bb; --mood-accent: #5f4aa6; --mood-glow: rgba(120, 96, 192, .28); }
+
+:root[data-emotion] body,
+:root[data-emotion] #root > div.min-h-screen {
+  background: radial-gradient(circle at 82% 12%, var(--mood-glow), transparent 29%), linear-gradient(135deg, var(--mood-page) 0%, var(--mood-page-alt) 100%) !important;
+  color: var(--emotion-ink) !important;
+}
+:root[data-emotion] #root > div.min-h-screen > aside { background: linear-gradient(180deg, var(--mood-side), var(--mood-page)) !important; border-right-color: var(--mood-border) !important; }
+:root[data-emotion] #root > div.min-h-screen header { background: color-mix(in srgb, var(--mood-header) 92%, transparent) !important; border-bottom-color: var(--mood-border) !important; }
+:root[data-emotion] .panel,
+:root[data-emotion] .study-card,
+:root[data-emotion] .emotion-studio,
+:root[data-emotion] .pomodoro-journey { background-color: color-mix(in srgb, var(--mood-card) 91%, white) !important; border-color: color-mix(in srgb, var(--mood-border) 42%, transparent) !important; box-shadow: 0 18px 42px var(--mood-glow) !important; }
+:root[data-emotion] .emotion-studio { background: linear-gradient(135deg, var(--mood-card), color-mix(in srgb, var(--mood-page-alt) 65%, white)) !important; }
+:root[data-emotion][data-ambient-scene="morning"] .emotion-studio { background-image: radial-gradient(circle at 78% 18%, rgba(255, 215, 94, .58), transparent 18%), linear-gradient(135deg, var(--mood-card), var(--mood-page-alt)) !important; }
+:root[data-emotion][data-ambient-scene="rain"] .emotion-studio { background-image: repeating-linear-gradient(112deg, transparent 0 31px, rgba(68, 134, 176, .22) 32px 34px, transparent 35px 64px), linear-gradient(135deg, #d9e8ef, var(--mood-page-alt)) !important; }
+:root[data-emotion][data-ambient-scene="snow"] .emotion-studio { background-image: radial-gradient(circle at 22% 20%, rgba(255,255,255,.92) 0 2px, transparent 3px), radial-gradient(circle at 73% 38%, rgba(255,255,255,.8) 0 3px, transparent 4px), linear-gradient(135deg, #dcecff, var(--mood-page-alt)) !important; }
+:root[data-emotion][data-ambient-scene="leaves"] .emotion-studio { background-image: radial-gradient(ellipse at 23% 21%, rgba(215, 128, 37, .38) 0 5px, transparent 6px), radial-gradient(ellipse at 79% 33%, rgba(178, 81, 40, .3) 0 5px, transparent 6px), linear-gradient(135deg, #fff0cd, var(--mood-page-alt)) !important; }
+:root[data-emotion][data-ambient-scene="storm"] .emotion-studio { background-image: linear-gradient(115deg, transparent 0 45%, rgba(253, 240, 127, .75) 46% 48%, transparent 49%), linear-gradient(135deg, #b8c5da, #dbe1ee) !important; }
+@media (prefers-reduced-motion: reduce) { :root[data-emotion] .emotion-studio { background-image: linear-gradient(135deg, var(--mood-card), var(--mood-page-alt)) !important; } }
+
+/* Theme cảm xúc áp dụng cả các thành phần từng dùng màu thương hiệu cố định. */
+:root[data-emotion] .primary-button,
+:root[data-emotion] button[class*="bg-red"],
+:root[data-emotion] button[class*="bg-[#c62828"] {
+  background: linear-gradient(135deg, var(--mood-accent), var(--emotion-primary)) !important;
+  color: #fff !important;
+}
+:root[data-emotion] .primary-button:hover { filter: brightness(.9); }
+:root[data-emotion] .nav-item.active,
+:root[data-emotion] #root > div.min-h-screen aside nav button[aria-current="page"] {
+  background: var(--mood-accent) !important;
+  color: #fff !important;
+}
+:root[data-emotion] .semantic-positive,
+:root[data-emotion] button[class*="bg-emerald"],
+:root[data-emotion] button[class*="bg-green"] {
+  background-color: var(--emotion-secondary) !important;
+  color: #fff !important;
+}
+
+/* Một lớp cảnh nền độc lập phủ nhẹ toàn app; không chặn thao tác và tôn trọng cài đặt giảm chuyển động. */
+#root > div.min-h-screen { isolation: isolate; }
+:root[data-ambient-scene] #root > div.min-h-screen::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: .24;
+  mix-blend-mode: multiply;
+}
+:root[data-ambient-scene="morning"] #root > div.min-h-screen::after {
+  background: radial-gradient(circle at 84% 13%, rgba(255, 203, 70, .7) 0 2.4rem, rgba(255, 225, 132, .28) 2.5rem 5rem, transparent 5.1rem), radial-gradient(circle at 21% 26%, rgba(255, 239, 161, .5) 0 .22rem, transparent .25rem);
+}
+:root[data-ambient-scene="rain"] #root > div.min-h-screen::after {
+  background-image: repeating-linear-gradient(112deg, transparent 0 33px, rgba(42, 107, 155, .42) 34px 36px, transparent 37px 68px);
+  animation: global-rain 1.15s linear infinite;
+}
+:root[data-ambient-scene="snow"] #root > div.min-h-screen::after {
+  background-image: radial-gradient(circle, rgba(255,255,255,.95) 0 2px, transparent 3px), radial-gradient(circle, rgba(255,255,255,.75) 0 1px, transparent 2px);
+  background-size: 58px 65px, 83px 92px;
+  animation: global-snow 6s linear infinite;
+}
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::after {
+  background-image: radial-gradient(ellipse, rgba(210, 103, 35, .72) 0 5px, transparent 6px), radial-gradient(ellipse, rgba(180, 67, 45, .58) 0 4px, transparent 5px);
+  background-size: 132px 104px, 186px 150px;
+  animation: global-leaves 9s linear infinite;
+}
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::after {
+  opacity: .3;
+  background: linear-gradient(116deg, transparent 0 47%, rgba(255, 249, 169, .75) 48% 49%, transparent 50%) 80% 10% / 9rem 10rem no-repeat, linear-gradient(180deg, rgba(36, 56, 82, .42), transparent 36%);
+  animation: global-lightning 5.6s step-end infinite;
+}
+@keyframes global-rain { from { background-position: 0 -28px; } to { background-position: -42px 38px; } }
+@keyframes global-snow { from { background-position: 0 -28px, 0 -58px; } to { background-position: 26px 90px, -18px 124px; } }
+@keyframes global-leaves { from { background-position: 0 -40px, 52px -90px; } to { background-position: 82px 130px, -48px 190px; } }
+@keyframes global-lightning { 0%, 88%, 100% { opacity: .16; } 90%, 92% { opacity: .48; } }
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene] #root > div.min-h-screen::after { animation: none !important; }
+}

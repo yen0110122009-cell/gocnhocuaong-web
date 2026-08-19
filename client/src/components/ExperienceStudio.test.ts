@@ -52,7 +52,8 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("configuredLumiImage");
     expect(studioSource).toContain("ambientScene");
     expect(studioSource).toContain("Âm thanh và cảnh nền");
-    expect(studioSource).toContain("typeof window !== \"undefined\"");
+    expect(studioSource).toContain("profile?.defaultAmbientScene");
+    expect(studioSource).toContain("defaultAmbientScene: ambientScene");
   });
 
   it("does not retain purchasable cosmetic theme selectors after switching to emotion-based colors", () => {

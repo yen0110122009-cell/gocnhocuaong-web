@@ -470,6 +470,14 @@ export type ProcrastinationEvent = {
 };
 export type ComboStep = { id: string; label: string; minutes: number; completed: boolean };
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
+export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm";
+export type AudioMixerSettings = {
+  ambientSceneVolumes: Record<AmbientScenePreference, number>;
+  pomodoroLayers: Record<string, number>;
+  pomodoroBackground: number;
+  pomodoroBell: number;
+  lumi: number;
+};
 
 export type ProfileState = {
   xp: number;
@@ -495,6 +503,8 @@ export type ProfileState = {
   animationsEnabled?: boolean;
   popupsEnabled?: boolean;
   emotionTheme?: "calm" | "happy" | "tired" | "sad" | "stressed" | "lazy" | "proud" | "focused" | "hopeful" | "overwhelmed" | "sleepy" | "excited" | "lonely" | "confident" | "curious" | "comeback";
+  defaultAmbientScene?: AmbientScenePreference;
+  audioMixer?: AudioMixerSettings;
   theme: "light" | "dark";
   lastActivityAt: string | null;
   currentStreak: number;
@@ -653,6 +663,8 @@ export const emptyProfile = (): ProfileState => ({
   animationsEnabled: true,
   popupsEnabled: true,
   emotionTheme: "calm",
+  defaultAmbientScene: "morning",
+  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 },
   theme: "light",
   lastActivityAt: null,
   currentStreak: 0,
@@ -1183,6 +1195,14 @@ export function normalizeProfile(value: unknown): ProfileState {
     animationsEnabled: source.animationsEnabled !== false,
     popupsEnabled: source.popupsEnabled !== false,
     emotionTheme: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(source.emotionTheme)) ? source.emotionTheme as ProfileState["emotionTheme"] : "calm",
+    defaultAmbientScene: ["morning", "rain", "snow", "leaves", "storm"].includes(String(source.defaultAmbientScene)) ? source.defaultAmbientScene as AmbientScenePreference : base.defaultAmbientScene,
+    audioMixer: {
+      ambientSceneVolumes: Object.fromEntries((["morning", "rain", "snow", "leaves", "storm"] as AmbientScenePreference[]).map((scene) => [scene, Math.max(0, Math.min(100, Number(source.audioMixer?.ambientSceneVolumes?.[scene] ?? base.audioMixer!.ambientSceneVolumes[scene]) || 0))])) as AudioMixerSettings["ambientSceneVolumes"],
+      pomodoroLayers: source.audioMixer?.pomodoroLayers && typeof source.audioMixer.pomodoroLayers === "object" ? Object.fromEntries(Object.entries(source.audioMixer.pomodoroLayers).map(([id, level]) => [id, Math.max(0, Math.min(100, Number(level) || 0))])) : {},
+      pomodoroBackground: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroBackground ?? base.audioMixer!.pomodoroBackground) || 0)),
+      pomodoroBell: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroBell ?? base.audioMixer!.pomodoroBell) || 0)),
+      lumi: Math.max(0, Math.min(100, Number(source.audioMixer?.lumi ?? base.audioMixer!.lumi) || 0)),
+    },
     currentStreak: Math.max(0, Number(source.currentStreak) || 0),
     bestStreak: Math.max(0, Number(source.bestStreak) || 0),
     streakShields: Math.max(0, Math.min(3, Number(source.streakShields) || 0)),
