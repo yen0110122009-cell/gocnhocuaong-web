@@ -477,6 +477,7 @@ export type ComboStep = { id: string; label: string; minutes: number; completed:
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
 export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm";
 export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string; /** Nhãn màu trực quan do người học chọn để phân loại bản thu. */ colorLabel?: string };
+export type LumiVoiceRecordingTrashEntry = { recording: LumiVoiceRecording; deletedAt: string; originalIndex: number; previousFavoriteId?: string };
 export type LumiCongratulationMessage = { id: string; text: string; createdAt: string; updatedAt: string };
 export type WeeklyPomodoroGoalCompletion = { weekKey: string; completedAt: string; goalMinutes: number; achievedMinutes: number };
 export type CompanionEmotionMedia = {
@@ -520,6 +521,8 @@ export type ProfileState = {
   popupsEnabled?: boolean;
   emotionTheme?: EmotionThemeId;
   companionEmotionMedia?: Partial<Record<EmotionThemeId, CompanionEmotionMedia>>;
+  /** Bản thu Lumi đã xóa mềm, tách riêng theo cảm xúc để có thể khôi phục. */
+  lumiVoiceRecordingTrash?: Partial<Record<EmotionThemeId, LumiVoiceRecordingTrashEntry[]>>;
   showMascot?: boolean;
   showLumi?: boolean;
   defaultAmbientScene?: AmbientScenePreference;
@@ -686,6 +689,7 @@ export const emptyProfile = (): ProfileState => ({
   popupsEnabled: true,
   emotionTheme: "calm",
   companionEmotionMedia: {},
+  lumiVoiceRecordingTrash: {},
   showMascot: true,
   showLumi: true,
   defaultAmbientScene: "morning",
@@ -1243,6 +1247,21 @@ export function normalizeProfile(value: unknown): ProfileState {
       const favoriteLumiVoiceId = lumiVoiceRecordings.some((recording) => recording.id === media.favoriteLumiVoiceId) ? media.favoriteLumiVoiceId : undefined;
       return mascotImageUrl || lumiImageUrl || lumiVoiceUrl || lumiVoiceRecordings.length ? [[emotion, { mascotImageUrl, lumiImageUrl, lumiVoiceUrl, lumiVoiceRecordings, favoriteLumiVoiceId }]] : [];
     })) as Partial<Record<EmotionThemeId, CompanionEmotionMedia>> : {},
+    lumiVoiceRecordingTrash: source.lumiVoiceRecordingTrash && typeof source.lumiVoiceRecordingTrash === "object" ? Object.fromEntries(Object.entries(source.lumiVoiceRecordingTrash).flatMap(([emotion, entries]) => {
+      if (!["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(emotion) || !Array.isArray(entries)) return [];
+      const ids = new Set<string>();
+      const normalized = entries.flatMap((entry, index) => {
+        if (!entry || typeof entry !== "object") return [];
+        const candidate = entry as Partial<LumiVoiceRecordingTrashEntry>;
+        const recording = candidate.recording as Partial<LumiVoiceRecording> | undefined;
+        const id = typeof recording?.id === "string" && recording.id.trim() ? recording.id.trim() : "";
+        const url = typeof recording?.url === "string" && recording.url.trim() ? recording.url.trim() : "";
+        if (!id || !url || ids.has(id)) return [];
+        ids.add(id);
+        return [{ recording: { id, url, label: typeof recording?.label === "string" && recording.label.trim() ? recording.label.slice(0, 80) : `Bản thu Lumi ${index + 1}`, createdAt: typeof recording?.createdAt === "string" && recording.createdAt ? recording.createdAt : new Date(0).toISOString(), imageUrl: typeof recording?.imageUrl === "string" && recording.imageUrl.trim() ? recording.imageUrl : undefined, colorLabel: typeof recording?.colorLabel === "string" && ["red", "orange", "yellow", "green", "blue", "purple", "pink", "gray"].includes(recording.colorLabel) ? recording.colorLabel : undefined }, deletedAt: typeof candidate.deletedAt === "string" && candidate.deletedAt ? candidate.deletedAt : new Date(0).toISOString(), originalIndex: Math.max(0, Number.isFinite(Number(candidate.originalIndex)) ? Math.floor(Number(candidate.originalIndex)) : 0), previousFavoriteId: typeof candidate.previousFavoriteId === "string" && candidate.previousFavoriteId ? candidate.previousFavoriteId : undefined }];
+      });
+      return normalized.length ? [[emotion, normalized.slice(0, 200)]] : [];
+    })) as Partial<Record<EmotionThemeId, LumiVoiceRecordingTrashEntry[]>> : {},
     showMascot: source.showMascot !== false,
     showLumi: source.showLumi !== false,
     defaultAmbientScene: ["morning", "rain", "snow", "leaves", "storm"].includes(String(source.defaultAmbientScene)) ? source.defaultAmbientScene as AmbientScenePreference : base.defaultAmbientScene,

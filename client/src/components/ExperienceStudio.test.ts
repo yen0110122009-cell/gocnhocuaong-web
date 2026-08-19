@@ -6,6 +6,7 @@ import { emotionThemes, emotionFromCommand } from "../lib/emotionThemes";
 const studioSource = await import.meta.glob("./ExperienceStudio.tsx", { query: "?raw", import: "default", eager: true })["./ExperienceStudio.tsx"] as string;
 const mediaControlsSource = await import.meta.glob("./EmotionCompanionMediaControls.tsx", { query: "?raw", import: "default", eager: true })["./EmotionCompanionMediaControls.tsx"] as string;
 const homeSource = await import.meta.glob("../pages/Home.tsx", { query: "?raw", import: "default", eager: true })["../pages/Home.tsx"] as string;
+const pomodoroSource = await import.meta.glob("../pages/Pomodoro.tsx", { query: "?raw", import: "default", eager: true })["../pages/Pomodoro.tsx"] as string;
 const cssSource = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
 
 describe("Experience Studio requirements", () => {
@@ -92,6 +93,22 @@ describe("Experience Studio requirements", () => {
     expect(mediaControlsSource).toContain("COLOR_LABELS");
     expect(mediaControlsSource).toContain("colorLabel");
     expect(mediaControlsSource).toContain("Nhãn màu");
+  });
+
+  it("supports quick filtering by color label and a separate restorable Lumi recording trash", () => {
+    expect(mediaControlsSource).toContain("Lọc nhanh bản thu theo nhãn màu");
+    expect(mediaControlsSource).toContain("colorFilter === \"none\"");
+    expect(mediaControlsSource).toContain("lumi-recording-trash");
+    expect(mediaControlsSource).toContain("Thùng rác bản thu Lumi");
+    expect(mediaControlsSource).toContain("restoreTrashedVoice");
+    expect(mediaControlsSource).toContain("Xóa vĩnh viễn");
+  });
+
+  it("keeps a compact Pomodoro controller that persists and can be expanded again", () => {
+    expect(pomodoroSource).toContain("compactMode");
+    expect(pomodoroSource).toContain("Thu nhỏ Pomodoro");
+    expect(pomodoroSource).toContain("Mở đầy đủ Pomodoro");
+    expect(pomodoroSource).toContain("Pomodoro thu nhỏ");
   });
 
   it("offers validated JSON export and merge-or-replace import without embedding media files", () => {

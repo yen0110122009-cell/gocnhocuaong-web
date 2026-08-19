@@ -1,6 +1,6 @@
 import { Copy, Download, Eye, EyeOff, GripVertical, ImagePlus, Mic, Play, Search, Star, Trash2, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CompanionEmotionMedia, EmotionThemeId, LumiVoiceRecording, ProfileState } from "../../../shared/study";
+import type { CompanionEmotionMedia, EmotionThemeId, LumiVoiceRecording, LumiVoiceRecordingTrashEntry, ProfileState } from "../../../shared/study";
 import { CLASSIC_LUMI_IMAGE, getDefaultLumiImage } from "../lib/defaultCompanionMedia";
 import { emotionThemes } from "../lib/emotionThemes";
 import { trpc } from "../lib/trpc";
@@ -10,7 +10,7 @@ import { PersistentCollapsible } from "./PersistentCollapsible";
 type MediaKind = "mascot-image" | "lumi-image" | "lumi-voice";
 type LibraryItem = LumiVoiceRecording & { emotion: EmotionThemeId; emotionLabel: string; linkedImage: string };
 type Props = { profile: ProfileState; emotion: EmotionThemeId; onProfile: (profile: ProfileState, message?: string) => void };
-type UndoEntry = { emotion: EmotionThemeId; recordings: LumiVoiceRecording[]; favoriteId?: string; description: string };
+type UndoEntry = { emotion: EmotionThemeId; recordings: LumiVoiceRecording[]; favoriteId?: string; description: string; trashedRecordingId?: string };
 type ImportMode = "merge" | "replace";
 
 const COLOR_LABELS = [
@@ -54,6 +54,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const [search, setSearch] = useState("");
   const [emotionFilter, setEmotionFilter] = useState<EmotionThemeId | "all">(emotion);
   const [imageFilter, setImageFilter] = useState("all");
+  const [colorFilter, setColorFilter] = useState<string>("all");
   const [dragging, setDragging] = useState<{ id: string; emotion: EmotionThemeId } | null>(null);
   const [collectionMessage, setCollectionMessage] = useState("");
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
@@ -63,6 +64,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const undoTimerRef = useRef<number | null>(null);
   const media = profile.companionEmotionMedia?.[emotion] ?? {};
   const voiceRecordings = recordingsFromMedia(media, emotion);
+  const trashedRecordings = useMemo(() => emotionThemes.flatMap((theme) => (profile.lumiVoiceRecordingTrash?.[theme.id] ?? []).map((entry) => ({ ...entry, emotion: theme.id, emotionLabel: theme.label, linkedImage: entry.recording.imageUrl || profile.companionEmotionMedia?.[theme.id]?.lumiImageUrl || getDefaultLumiImage(theme.id) }))), [profile.companionEmotionMedia, profile.lumiVoiceRecordingTrash]);
   const emotionLabel = emotionThemes.find((item) => item.id === emotion)?.label ?? emotion;
 
   const libraryItems = useMemo<LibraryItem[]>(() => emotionThemes.flatMap((theme) => {
@@ -81,10 +83,11 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     return libraryItems.filter((item) => {
       const matchesEmotion = emotionFilter === "all" || item.emotion === emotionFilter;
       const matchesImage = imageFilter === "all" || item.linkedImage === imageFilter;
+      const matchesColor = colorFilter === "all" || (colorFilter === "none" ? !item.colorLabel : item.colorLabel === colorFilter);
       const haystack = `${item.label} ${item.emotionLabel} ${item.linkedImage}`.toLocaleLowerCase("vi-VN");
-      return matchesEmotion && matchesImage && (!normalizedSearch || haystack.includes(normalizedSearch));
+      return matchesEmotion && matchesImage && matchesColor && (!normalizedSearch || haystack.includes(normalizedSearch));
     });
-  }, [emotionFilter, imageFilter, libraryItems, search]);
+  }, [colorFilter, emotionFilter, imageFilter, libraryItems, search]);
 
   useEffect(() => () => { if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current); }, []);
   useEffect(() => { setUndoStack([]); setUndoMessage(""); }, [emotion]);
@@ -99,8 +102,8 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   };
   const updateVoiceRecordings = (nextRecordings: LumiVoiceRecording[], favoriteLumiVoiceId?: string, message?: string) => updateVoiceRecordingsForEmotion(emotion, nextRecordings, favoriteLumiVoiceId, message);
 
-  function offerUndo(targetEmotion: EmotionThemeId, recordings: LumiVoiceRecording[], favoriteId: string | undefined, description: string) {
-    setUndoStack((stack) => [...stack.slice(-4), { emotion: targetEmotion, recordings: recordings.map((item) => ({ ...item })), favoriteId, description }]);
+  function offerUndo(targetEmotion: EmotionThemeId, recordings: LumiVoiceRecording[], favoriteId: string | undefined, description: string, trashedRecordingId?: string) {
+    setUndoStack((stack) => [...stack.slice(-4), { emotion: targetEmotion, recordings: recordings.map((item) => ({ ...item })), favoriteId, description, trashedRecordingId }]);
     setUndoMessage(description);
     if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current);
     undoTimerRef.current = window.setTimeout(() => setUndoMessage(""), 5_000);
@@ -110,7 +113,11 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     const entry = undoStack[undoStack.length - 1];
     if (!entry) return;
     const remaining = undoStack.slice(0, -1);
-    updateVoiceRecordingsForEmotion(entry.emotion, entry.recordings, entry.favoriteId, `Đã hoàn tác: ${entry.description}`);
+    const targetMedia = profile.companionEmotionMedia?.[entry.emotion] ?? {};
+    const nextMedia = { ...targetMedia, lumiVoiceRecordings: entry.recordings, favoriteLumiVoiceId: entry.favoriteId };
+    delete nextMedia.lumiVoiceUrl;
+    const nextTrash = entry.trashedRecordingId ? { ...(profile.lumiVoiceRecordingTrash ?? {}), [entry.emotion]: (profile.lumiVoiceRecordingTrash?.[entry.emotion] ?? []).filter((item) => item.recording.id !== entry.trashedRecordingId) } : profile.lumiVoiceRecordingTrash;
+    onProfile({ ...profile, companionEmotionMedia: { ...(profile.companionEmotionMedia ?? {}), [entry.emotion]: nextMedia }, lumiVoiceRecordingTrash: nextTrash }, `Đã hoàn tác: ${entry.description}`);
     setUndoStack(remaining);
     const previous = remaining[remaining.length - 1];
     setUndoMessage(previous?.description ?? "");
@@ -172,10 +179,41 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   function removeVoice(recordingId: string, targetEmotion = emotion) {
     const targetMedia = profile.companionEmotionMedia?.[targetEmotion] ?? {};
     const previousRecordings = recordingsFromMedia(targetMedia, targetEmotion);
+    const removed = previousRecordings.find((item) => item.id === recordingId);
+    if (!removed) return;
     const nextRecordings = previousRecordings.filter((item) => item.id !== recordingId);
     const nextFavorite = targetMedia.favoriteLumiVoiceId === recordingId ? nextRecordings[0]?.id : targetMedia.favoriteLumiVoiceId;
-    offerUndo(targetEmotion, previousRecordings, targetMedia.favoriteLumiVoiceId, "Đã xóa một bản thu Lumi.");
-    updateVoiceRecordingsForEmotion(targetEmotion, nextRecordings, nextFavorite, "Đã gỡ bản thu Lumi đã chọn.");
+    const nextMedia = { ...targetMedia, lumiVoiceRecordings: nextRecordings, favoriteLumiVoiceId: nextFavorite };
+    delete nextMedia.lumiVoiceUrl;
+    const trashEntry: LumiVoiceRecordingTrashEntry = { recording: { ...removed }, deletedAt: new Date().toISOString(), originalIndex: previousRecordings.findIndex((item) => item.id === recordingId), previousFavoriteId: targetMedia.favoriteLumiVoiceId };
+    const nextTrash = { ...(profile.lumiVoiceRecordingTrash ?? {}), [targetEmotion]: [trashEntry, ...(profile.lumiVoiceRecordingTrash?.[targetEmotion] ?? [])].slice(0, 200) };
+    offerUndo(targetEmotion, previousRecordings, targetMedia.favoriteLumiVoiceId, "Đã chuyển một bản thu Lumi vào thùng rác.", recordingId);
+    onProfile({ ...profile, companionEmotionMedia: { ...(profile.companionEmotionMedia ?? {}), [targetEmotion]: nextMedia }, lumiVoiceRecordingTrash: nextTrash }, "Đã chuyển bản thu Lumi đã chọn vào thùng rác.");
+  }
+
+  function restoreTrashedVoice(targetEmotion: EmotionThemeId, recordingId: string) {
+    const trash = profile.lumiVoiceRecordingTrash?.[targetEmotion] ?? [];
+    const entry = trash.find((item) => item.recording.id === recordingId);
+    if (!entry) return;
+    const targetMedia = profile.companionEmotionMedia?.[targetEmotion] ?? {};
+    const existing = recordingsFromMedia(targetMedia, targetEmotion);
+    if (existing.some((item) => item.id === recordingId)) {
+      onProfile({ ...profile, lumiVoiceRecordingTrash: { ...(profile.lumiVoiceRecordingTrash ?? {}), [targetEmotion]: trash.filter((item) => item.recording.id !== recordingId) } }, "Bản thu đã có trong thư viện; đã dọn mục trùng khỏi thùng rác.");
+      return;
+    }
+    const next = [...existing];
+    next.splice(Math.min(entry.originalIndex, next.length), 0, entry.recording);
+    const favoriteId = targetMedia.favoriteLumiVoiceId ?? (entry.previousFavoriteId && next.some((item) => item.id === entry.previousFavoriteId) ? entry.previousFavoriteId : next[0]?.id);
+    const nextMedia = { ...targetMedia, lumiVoiceRecordings: next, favoriteLumiVoiceId: favoriteId };
+    delete nextMedia.lumiVoiceUrl;
+    onProfile({ ...profile, companionEmotionMedia: { ...(profile.companionEmotionMedia ?? {}), [targetEmotion]: nextMedia }, lumiVoiceRecordingTrash: { ...(profile.lumiVoiceRecordingTrash ?? {}), [targetEmotion]: trash.filter((item) => item.recording.id !== recordingId) } }, `Đã khôi phục “${entry.recording.label}”.`);
+  }
+
+  function permanentlyDeleteTrashedVoice(targetEmotion: EmotionThemeId, recordingId: string) {
+    const trash = profile.lumiVoiceRecordingTrash?.[targetEmotion] ?? [];
+    const entry = trash.find((item) => item.recording.id === recordingId);
+    if (!entry || !window.confirm(`Xóa vĩnh viễn “${entry.recording.label}”? Thao tác này không thể hoàn tác.`)) return;
+    onProfile({ ...profile, lumiVoiceRecordingTrash: { ...(profile.lumiVoiceRecordingTrash ?? {}), [targetEmotion]: trash.filter((item) => item.recording.id !== recordingId) } }, "Đã xóa vĩnh viễn bản thu Lumi khỏi thùng rác.");
   }
 
   function renameVoice(recordingId: string, label: string, targetEmotion: EmotionThemeId) {
@@ -227,7 +265,11 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
       const recordings = recordingsFromMedia(themeMedia, theme.id);
       return recordings.length ? [[theme.id, { lumiVoiceRecordings: recordings, favoriteLumiVoiceId: themeMedia?.favoriteLumiVoiceId }]] : [];
     }));
-    const blob = new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), companionEmotionMedia }, null, 2)], { type: "application/json" });
+    const lumiVoiceRecordingTrash = Object.fromEntries(emotionThemes.flatMap((theme) => {
+      const entries = profile.lumiVoiceRecordingTrash?.[theme.id] ?? [];
+      return entries.length ? [[theme.id, entries]] : [];
+    }));
+    const blob = new Blob([JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), companionEmotionMedia, lumiVoiceRecordingTrash }, null, 2)], { type: "application/json" });
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = href;
@@ -302,7 +344,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
 
     <section className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-3" aria-label="Bộ sưu tập ảnh giọng Lumi">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black text-violet-800">Bộ sưu tập ảnh–giọng Lumi</p><p className="mt-1 text-xs leading-5 text-violet-800">Kéo thẻ để đổi thứ tự trong cùng cảm xúc. Mỗi cặp có ảnh, giọng, nhãn màu, nghe thử và thao tác nhân bản riêng.</p></div><span className="rounded-full border border-violet-200 bg-white px-2.5 py-1 text-[10px] font-black text-violet-800">{libraryItems.length} bản thu</span></div>
-      <div className="mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_190px]"><label className="relative"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-violet-500" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm tên bản thu hoặc ảnh…" className="w-full rounded-xl border border-violet-200 bg-white py-2 pl-9 pr-3 text-xs font-semibold text-violet-950" /></label><select value={emotionFilter} onChange={(event) => setEmotionFilter(event.target.value as EmotionThemeId | "all")} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-bold text-violet-900" aria-label="Lọc bản thu theo cảm xúc"><option value="all">Tất cả cảm xúc</option>{emotionThemes.map((theme) => <option key={theme.id} value={theme.id}>{theme.label}</option>)}</select><select value={imageFilter} onChange={(event) => setImageFilter(event.target.value)} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-bold text-violet-900" aria-label="Lọc bản thu theo ảnh đại diện"><option value="all">Tất cả ảnh đại diện</option>{imageOptions.map((item, index) => <option key={item.linkedImage} value={item.linkedImage}>Ảnh {index + 1} · {item.emotionLabel}</option>)}</select></div>
+      <div className="mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_165px_165px_180px]"><label className="relative"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-violet-500" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm tên bản thu hoặc ảnh…" className="w-full rounded-xl border border-violet-200 bg-white py-2 pl-9 pr-3 text-xs font-semibold text-violet-950" /></label><select value={emotionFilter} onChange={(event) => setEmotionFilter(event.target.value as EmotionThemeId | "all")} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-bold text-violet-900" aria-label="Lọc bản thu theo cảm xúc"><option value="all">Tất cả cảm xúc</option>{emotionThemes.map((theme) => <option key={theme.id} value={theme.id}>{theme.label}</option>)}</select><select value={colorFilter} onChange={(event) => setColorFilter(event.target.value)} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-bold text-violet-900" aria-label="Lọc nhanh bản thu theo nhãn màu"><option value="all">Tất cả nhãn màu</option><option value="none">Chưa gắn nhãn</option>{COLOR_LABELS.map((color) => <option key={color.id} value={color.id}>{color.label}</option>)}</select><select value={imageFilter} onChange={(event) => setImageFilter(event.target.value)} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-bold text-violet-900" aria-label="Lọc bản thu theo ảnh đại diện"><option value="all">Tất cả ảnh đại diện</option>{imageOptions.map((item, index) => <option key={item.linkedImage} value={item.linkedImage}>Ảnh {index + 1} · {item.emotionLabel}</option>)}</select></div>
       {undoMessage ? <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900" role="status"><span>{undoMessage}</span><button type="button" onClick={undoLastAction} className="rounded-lg bg-emerald-700 px-2.5 py-1.5 text-[11px] font-black text-white hover:bg-emerald-800">Hoàn tác</button></div> : null}
       {collectionMessage ? <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900" role="status">{collectionMessage}</p> : null}
       {visibleItems.length ? <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{visibleItems.map((item) => {
@@ -314,6 +356,9 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
       })}</div> : <p className="mt-4 rounded-xl border border-dashed border-violet-200 bg-white/80 p-4 text-center text-xs font-semibold text-violet-800">Không tìm thấy bản thu phù hợp. Hãy đổi bộ lọc hoặc thêm một bản thu mới.</p>}
       <PersistentCollapsible storageKey="lumi-library-backup" title="Sao lưu & khôi phục thư viện Lumi" className="mt-4">
         <div className="rounded-xl border border-sky-200 bg-sky-50/70 p-3"><p className="text-xs leading-5 text-sky-900">Tệp sao lưu chỉ lưu thông tin bản thu và các liên kết ảnh/âm thanh đang có; không sao chép tệp media vào JSON. Khi nhập, hệ thống kiểm tra cấu trúc, bỏ qua mục không hợp lệ hoặc trùng lặp.</p><div className="mt-3 flex flex-wrap items-center gap-2"><button type="button" onClick={exportLibrary} className="inline-flex items-center gap-2 rounded-xl bg-sky-700 px-3 py-2 text-xs font-black text-white hover:bg-sky-800"><Download className="h-4 w-4" />Xuất tệp JSON</button><select value={importMode} onChange={(event) => setImportMode(event.target.value as ImportMode)} className="rounded-xl border border-sky-200 bg-white px-3 py-2 text-xs font-bold text-sky-900" aria-label="Cách nhập thư viện Lumi"><option value="merge">Gộp với thư viện hiện có</option><option value="replace">Thay thư viện theo cảm xúc</option></select><label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-sky-300 bg-white px-3 py-2 text-xs font-black text-sky-800 hover:bg-sky-100"><Upload className="h-4 w-4" />Nhập tệp JSON<input className="sr-only" type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importLibrary(file); event.currentTarget.value = ""; }} /></label></div></div>
+      </PersistentCollapsible>
+      <PersistentCollapsible storageKey="lumi-recording-trash" eyebrow="Xóa mềm" title={`Thùng rác bản thu Lumi${trashedRecordings.length ? ` · ${trashedRecordings.length}` : ""}`} className="mt-4">
+        <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3"><p className="text-xs leading-5 text-rose-900">Bản thu bị xóa vẫn ở đây sau khi thời gian hoàn tác 5 giây kết thúc. Ong có thể khôi phục về đúng cảm xúc và vị trí gần nhất, hoặc xóa vĩnh viễn khi không còn cần.</p>{trashedRecordings.length ? <div className="mt-3 grid gap-2 sm:grid-cols-2">{trashedRecordings.map((entry) => <article key={`${entry.emotion}-${entry.recording.id}`} className="flex gap-3 rounded-xl border border-rose-100 bg-white p-2.5"><img src={entry.linkedImage} alt="Ảnh Lumi của bản thu đã xóa" className="h-12 w-12 rounded-lg object-cover object-top" /><div className="min-w-0 flex-1"><p className="truncate text-xs font-black text-rose-950">{entry.recording.label}</p><p className="mt-1 text-[10px] font-bold text-rose-700">{entry.emotionLabel} · xóa {new Date(entry.deletedAt).toLocaleString("vi-VN")}</p><div className="mt-2 flex flex-wrap gap-1.5"><button type="button" onClick={() => restoreTrashedVoice(entry.emotion, entry.recording.id)} className="rounded-lg bg-emerald-700 px-2 py-1.5 text-[10px] font-black text-white hover:bg-emerald-800">Khôi phục</button><button type="button" onClick={() => permanentlyDeleteTrashedVoice(entry.emotion, entry.recording.id)} className="rounded-lg border border-rose-200 bg-white px-2 py-1.5 text-[10px] font-black text-rose-800 hover:bg-rose-50">Xóa vĩnh viễn</button></div></div></article>)}</div> : <p className="mt-3 rounded-lg bg-white p-3 text-xs font-bold text-rose-800">Thùng rác đang trống. Bản thu xóa sau này sẽ xuất hiện ở đây thay vì bị mất ngay.</p>}</div>
       </PersistentCollapsible>
     </section>
   </section>;

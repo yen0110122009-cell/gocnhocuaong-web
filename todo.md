@@ -559,3 +559,9 @@
 - [x] Cho phép chọn và lưu nhãn màu tùy chỉnh theo từng bản thu Lumi.
 - [x] Cho phép xuất thư viện bản thu thành tệp sao lưu và nhập lại tệp hợp lệ có kiểm tra dữ liệu.
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho hoàn tác, nhãn màu và xuất/nhập thư viện.
+
+## Thu nhỏ Pomodoro, lọc nhãn màu và thùng rác Lumi
+- [x] Thêm chế độ thu nhỏ độc lập cho Pomodoro, lưu trạng thái và vẫn cho phép khôi phục về giao diện đầy đủ.
+- [x] Thêm bộ lọc nhanh bản thu Lumi theo nhãn màu, tương thích với tìm kiếm và các bộ lọc hiện có.
+- [x] Bổ sung thùng rác riêng cho bản thu Lumi đã xóa, gồm khôi phục và xóa vĩnh viễn dữ liệu.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho thu nhỏ Pomodoro, lọc màu và thùng rác Lumi.

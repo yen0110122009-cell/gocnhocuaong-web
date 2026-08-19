@@ -35,6 +35,18 @@ describe("Companion emotion media normalization", () => {
     ]);
   });
 
+  it("keeps valid deleted Lumi recordings in a separate per-emotion trash while discarding invalid entries", () => {
+    const profile = normalizeProfile({ lumiVoiceRecordingTrash: {
+      calm: [
+        { recording: { id: "restorable", url: "https://audio.example/restorable.webm", label: "Khôi phục được", createdAt: "2026-08-19T00:00:00.000Z", colorLabel: "purple" }, deletedAt: "2026-08-20T00:00:00.000Z", originalIndex: 2, previousFavoriteId: "restorable" },
+        { recording: { id: "invalid", url: "", label: "Không hợp lệ", createdAt: "2026-08-19T00:00:00.000Z" }, deletedAt: "2026-08-20T00:00:00.000Z", originalIndex: 0 },
+      ],
+      invalid: [{ recording: { id: "ignored", url: "https://audio.example/ignored.webm", label: "Bỏ qua", createdAt: "2026-08-19T00:00:00.000Z" }, deletedAt: "2026-08-20T00:00:00.000Z", originalIndex: 0 }],
+    } });
+    expect(profile.lumiVoiceRecordingTrash?.calm).toEqual([expect.objectContaining({ recording: expect.objectContaining({ id: "restorable", colorLabel: "purple" }), originalIndex: 2, previousFavoriteId: "restorable" })]);
+    expect(profile.lumiVoiceRecordingTrash?.happy).toBeUndefined();
+  });
+
   it("normalizes custom Lumi congratulations and weekly completion history without duplicate weeks", () => {
     const profile = normalizeProfile({
       weeklyPomodoroGoalCompletions: [
