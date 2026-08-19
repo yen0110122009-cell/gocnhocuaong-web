@@ -575,7 +575,7 @@
 - [x] Thiết kế dữ liệu tương thích để thành viên quản lý âm thanh riêng theo cảm xúc, mùa, thời tiết, Pomodoro, Lumi, Ong và thư viện cá nhân.
 - [x] Cho phép thành viên thêm, sửa, nghe thử, bật/tắt, chỉnh âm lượng, chọn mặc định, khôi phục và xóa âm thanh thuộc sở hữu của mình; hỗ trợ tải tệp MP3/WAV/OGG/M4A hoặc URL hợp lệ.
 - [x] Tích hợp lựa chọn âm thanh cá nhân với cảm xúc, mùa, thời tiết, cảnh nền và các mốc Pomodoro mà không làm thay đổi dữ liệu/âm thanh cũ ngoài ý muốn.
-- [ ] Bảo vệ quyền sở hữu âm thanh cá nhân, nguồn audio và tương thích sao lưu; không tạo URL hoặc nội dung audio giả.
+- [x] Bảo vệ quyền sở hữu âm thanh cá nhân, nguồn audio và tương thích sao lưu; không tạo URL hoặc nội dung audio giả.
 - [x] Bổ sung migration, regression, TypeScript, build, QA responsive và phát hành an toàn cho toàn bộ yêu cầu âm thanh mới.
 
 ## Không gian học cá nhân

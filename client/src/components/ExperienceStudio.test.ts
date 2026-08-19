@@ -133,6 +133,15 @@ describe("Experience Studio requirements", () => {
     expect(personalStudySpaceSource).toContain("preset");
   });
 
+  it("backs up the personal study space without embedding media and rejects unsafe external audio URLs", () => {
+    expect(personalStudySpaceSource).toContain("exportPersonalSpace");
+    expect(personalStudySpaceSource).toContain("importPersonalSpace");
+    expect(personalStudySpaceSource).toContain("khong-gian-hoc-ca-nhan-");
+    expect(personalStudySpaceSource).toContain("không sao chép tệp âm thanh");
+    expect(personalStudySpaceSource).toContain("isSafeExternalAudioUrl");
+    expect(personalStudySpaceSource).toContain('parsed.protocol === "https:"');
+  });
+
   it("applies member-selected audio at Pomodoro milestones and supports night-focus preferences", () => {
     expect(pomodoroSource).toContain("playPersonalCue");
     expect(pomodoroSource).toContain("matchingPersonalAudio");
