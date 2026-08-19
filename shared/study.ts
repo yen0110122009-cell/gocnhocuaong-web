@@ -476,7 +476,7 @@ export type ProcrastinationEvent = {
 export type ComboStep = { id: string; label: string; minutes: number; completed: boolean };
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
 export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm";
-export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string };
+export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string };
 export type LumiCongratulationMessage = { id: string; text: string; createdAt: string; updatedAt: string };
 export type WeeklyPomodoroGoalCompletion = { weekKey: string; completedAt: string; goalMinutes: number; achievedMinutes: number };
 export type CompanionEmotionMedia = {
@@ -1237,9 +1237,9 @@ export function normalizeProfile(value: unknown): ProfileState {
         const id = typeof recording.id === "string" && recording.id.trim() ? recording.id : "";
         if (!url || !id || recordingIds.has(id)) return [];
         recordingIds.add(id);
-        return [{ id, url, label: typeof recording.label === "string" && recording.label.trim() ? recording.label.slice(0, 80) : `Bản thu Lumi ${index + 1}`, createdAt: typeof recording.createdAt === "string" && recording.createdAt ? recording.createdAt : new Date(0).toISOString() }];
+        return [{ id, url, label: typeof recording.label === "string" && recording.label.trim() ? recording.label.slice(0, 80) : `Bản thu Lumi ${index + 1}`, createdAt: typeof recording.createdAt === "string" && recording.createdAt ? recording.createdAt : new Date(0).toISOString(), imageUrl: typeof recording.imageUrl === "string" && recording.imageUrl.trim() ? recording.imageUrl : lumiImageUrl }];
       }) : [];
-      if (!lumiVoiceRecordings.length && lumiVoiceUrl) lumiVoiceRecordings.push({ id: `legacy-${emotion}`, url: lumiVoiceUrl, label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString() });
+      if (!lumiVoiceRecordings.length && lumiVoiceUrl) lumiVoiceRecordings.push({ id: `legacy-${emotion}`, url: lumiVoiceUrl, label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString(), imageUrl: lumiImageUrl });
       const favoriteLumiVoiceId = lumiVoiceRecordings.some((recording) => recording.id === media.favoriteLumiVoiceId) ? media.favoriteLumiVoiceId : undefined;
       return mascotImageUrl || lumiImageUrl || lumiVoiceUrl || lumiVoiceRecordings.length ? [[emotion, { mascotImageUrl, lumiImageUrl, lumiVoiceUrl, lumiVoiceRecordings, favoriteLumiVoiceId }]] : [];
     })) as Partial<Record<EmotionThemeId, CompanionEmotionMedia>> : {},

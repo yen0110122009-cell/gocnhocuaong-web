@@ -6,7 +6,7 @@ describe("Companion emotion media normalization", () => {
     const profile = normalizeProfile({ companionEmotionMedia: { calm: { lumiVoiceUrl: "https://audio.example/legacy.webm" } } });
     const media = profile.companionEmotionMedia?.calm;
     expect(media?.lumiVoiceUrl).toBe("https://audio.example/legacy.webm");
-    expect(media?.lumiVoiceRecordings).toEqual([{ id: "legacy-calm", url: "https://audio.example/legacy.webm", label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString() }]);
+    expect(media?.lumiVoiceRecordings).toEqual([{ id: "legacy-calm", url: "https://audio.example/legacy.webm", label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString(), imageUrl: undefined }]);
   });
 
   it("preserves valid recording lists and only keeps a favorite that belongs to the emotion library", () => {
@@ -14,6 +14,14 @@ describe("Companion emotion media normalization", () => {
     expect(profile.companionEmotionMedia?.happy?.lumiVoiceRecordings).toHaveLength(2);
     expect(profile.companionEmotionMedia?.happy?.favoriteLumiVoiceId).toBe("second");
     expect(profile.companionEmotionMedia?.sad?.favoriteLumiVoiceId).toBeUndefined();
+  });
+
+  it("binds each Lumi recording to its saved image while migrating older recordings to the emotion image", () => {
+    const profile = normalizeProfile({ companionEmotionMedia: { calm: { lumiImageUrl: "https://image.example/calm.png", lumiVoiceRecordings: [{ id: "older", url: "https://audio.example/older.webm", label: "Bản cũ", createdAt: "2026-08-19T00:00:00.000Z" }, { id: "linked", url: "https://audio.example/linked.webm", label: "Bản đã gắn", createdAt: "2026-08-19T01:00:00.000Z", imageUrl: "https://image.example/linked.png" }] } } });
+    expect(profile.companionEmotionMedia?.calm?.lumiVoiceRecordings).toEqual([
+      expect.objectContaining({ id: "older", imageUrl: "https://image.example/calm.png" }),
+      expect.objectContaining({ id: "linked", imageUrl: "https://image.example/linked.png" }),
+    ]);
   });
 
   it("normalizes custom Lumi congratulations and weekly completion history without duplicate weeks", () => {

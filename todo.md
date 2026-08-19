@@ -535,3 +535,8 @@
 ## Thu gọn độc lập cho các vùng mới
 - [x] Bổ sung nút thu gọn mặc định đóng và lưu trạng thái riêng cho lịch sử mục tiêu tuần, quản lý lời chúc Lumi và các nhóm điều khiển âm thanh mới.
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho các vùng thu gọn mới.
+
+## Ảnh cũ và giọng Lumi theo ảnh
+- [x] Khôi phục ảnh Lumi cũ cho lời an ủi và động viên, không tự thay bằng bộ ảnh mới.
+- [x] Gắn từng bản thu Lumi với đúng ảnh Lumi tương ứng để phát cùng một cặp đồng hành.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho liên kết ảnh–giọng Lumi.

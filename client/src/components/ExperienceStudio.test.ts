@@ -55,6 +55,12 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("defaultAmbientScene: ambientScene");
   });
 
+  it("keeps the original Lumi image for comfort copy and shows the paired image of the selected voice", () => {
+    expect(studioSource).toContain("CLASSIC_LUMI_IMAGE");
+    expect(studioSource).toContain("voiceLinkedLumiImage");
+    expect(studioSource).toContain("Ảnh Lumi gắn với giọng đang chọn");
+  });
+
   it("offers per-emotion companion media chosen by the learner and honors image visibility settings", () => {
     expect(studioSource).toContain("EmotionCompanionMediaControls");
     expect(studioSource).toContain("companionMedia?.mascotImageUrl");

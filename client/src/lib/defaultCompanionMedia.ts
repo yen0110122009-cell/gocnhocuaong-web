@@ -1,5 +1,8 @@
 import type { EmotionThemeId } from "../../../shared/study";
 
+/** Ảnh Lumi gốc, dùng cố định cho phần lời an ủi và động viên. */
+export const CLASSIC_LUMI_IMAGE = "/manus-storage/lumi-mascot-clean_28a6da68.png";
+
 const MASCOT_FALLBACKS: Record<EmotionThemeId, string> = {
   calm: "/manus-storage/mascot-calm_75fbb2fa.png",
   happy: "/manus-storage/mascot-happy_954e950a.png",
