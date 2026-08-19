@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { emotionThemes, emotionFromCommand } from "../lib/emotionThemes";
 
 const studioSource = await import.meta.glob("./ExperienceStudio.tsx", { query: "?raw", import: "default", eager: true })["./ExperienceStudio.tsx"] as string;
+const mediaControlsSource = await import.meta.glob("./EmotionCompanionMediaControls.tsx", { query: "?raw", import: "default", eager: true })["./EmotionCompanionMediaControls.tsx"] as string;
 const homeSource = await import.meta.glob("../pages/Home.tsx", { query: "?raw", import: "default", eager: true })["../pages/Home.tsx"] as string;
 const cssSource = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
 
@@ -59,6 +60,15 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("CLASSIC_LUMI_IMAGE");
     expect(studioSource).toContain("voiceLinkedLumiImage");
     expect(studioSource).toContain("Ảnh Lumi gắn với giọng đang chọn");
+  });
+
+  it("manages saved Lumi recordings as a visual image-voice grid with direct preview and per-recording image replacement", () => {
+    expect(mediaControlsSource).toContain("Bộ sưu tập ảnh–giọng Lumi");
+    expect(mediaControlsSource).toContain("sm:grid-cols-2 xl:grid-cols-3");
+    expect(mediaControlsSource).toContain("uploadRecordingImage");
+    expect(mediaControlsSource).toContain("updateRecordingImage");
+    expect(mediaControlsSource).toContain("Nghe thử");
+    expect(mediaControlsSource).toContain("ImagePlus");
   });
 
   it("offers per-emotion companion media chosen by the learner and honors image visibility settings", () => {

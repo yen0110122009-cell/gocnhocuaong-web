@@ -540,3 +540,9 @@
 - [x] Khôi phục ảnh Lumi cũ cho lời an ủi và động viên, không tự thay bằng bộ ảnh mới.
 - [x] Gắn từng bản thu Lumi với đúng ảnh Lumi tương ứng để phát cùng một cặp đồng hành.
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho liên kết ảnh–giọng Lumi.
+
+## Bộ sưu tập ảnh–giọng Lumi theo bản thu
+- [x] Cho phép thay đổi ảnh đại diện riêng của từng bản thu Lumi đã lưu.
+- [x] Hiển thị các cặp ảnh–giọng Lumi dưới dạng lưới trực quan để quản lý.
+- [x] Thêm nút nghe thử trực tiếp trên từng thẻ ảnh Lumi trong bộ sưu tập.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho bộ sưu tập ảnh–giọng Lumi.
