@@ -71,6 +71,18 @@ describe("Experience Studio requirements", () => {
     expect(mediaControlsSource).toContain("ImagePlus");
   });
 
+  it("protects the classic comfort image and provides reorder, filter, and duplicate controls for saved pairs", () => {
+    expect(studioSource).toContain("const voiceLinkedLumiImage = CLASSIC_LUMI_IMAGE");
+    expect(mediaControlsSource).toContain("reorderWithinEmotion");
+    expect(mediaControlsSource).toContain("draggable");
+    expect(mediaControlsSource).toContain("Tìm tên bản thu hoặc ảnh");
+    expect(mediaControlsSource).toContain("Lọc bản thu theo cảm xúc");
+    expect(mediaControlsSource).toContain("Lọc bản thu theo ảnh đại diện");
+    expect(mediaControlsSource).toContain("duplicateVoice");
+    expect(mediaControlsSource).toContain("Nhân bản");
+    expect(mediaControlsSource).toContain("Ảnh Lumi cũ");
+  });
+
   it("offers per-emotion companion media chosen by the learner and honors image visibility settings", () => {
     expect(studioSource).toContain("EmotionCompanionMediaControls");
     expect(studioSource).toContain("companionMedia?.mascotImageUrl");

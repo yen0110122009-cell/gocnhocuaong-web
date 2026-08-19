@@ -546,3 +546,10 @@
 - [x] Hiển thị các cặp ảnh–giọng Lumi dưới dạng lưới trực quan để quản lý.
 - [x] Thêm nút nghe thử trực tiếp trên từng thẻ ảnh Lumi trong bộ sưu tập.
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho bộ sưu tập ảnh–giọng Lumi.
+
+## Sắp xếp, lọc và bảo vệ ảnh Lumi
+- [x] Xác định và khôi phục ảnh Lumi cũ đã bị thay đổi ngoài ý muốn; bảo toàn ảnh của mọi bản thu hiện có.
+- [x] Cho phép kéo-thả để sắp xếp lại thứ tự bản thu Lumi và lưu thứ tự theo cảm xúc.
+- [x] Thêm tìm kiếm và lọc bản thu theo cảm xúc hoặc ảnh đại diện.
+- [x] Cho phép nhân bản một cặp ảnh–giọng Lumi để chỉnh sửa nhanh mà không tạo lại từ đầu.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho ảnh Lumi, sắp xếp, lọc và nhân bản.

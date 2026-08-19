@@ -62,7 +62,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const configuredMascotImage = companionMedia?.mascotImageUrl;
   const configuredLumiImage = companionMedia?.lumiImageUrl || getDefaultLumiImage(theme.id);
   const preferredPersonalVoice = companionMedia?.lumiVoiceRecordings?.find((recording) => recording.id === companionMedia.favoriteLumiVoiceId) ?? companionMedia?.lumiVoiceRecordings?.[0];
-  const voiceLinkedLumiImage = preferredPersonalVoice?.imageUrl || companionMedia?.lumiImageUrl || CLASSIC_LUMI_IMAGE;
+  const voiceLinkedLumiImage = CLASSIC_LUMI_IMAGE;
   const matchingVoiceLine = [...voiceLines].reverse().find((item) => item.enabled && !item.deletedAt && (item.emotion === theme.id || item.state === `emotion-${theme.id}` || (!item.emotion && emotionVoiceStates[theme.id].includes(item.state))));
   const voiceMatchLabel = matchingVoiceLine?.emotion === theme.id || matchingVoiceLine?.state === `emotion-${theme.id}` ? `Bản thu cho cảm xúc “${theme.label}”` : matchingVoiceLine ? `Bản thu ngữ cảnh phù hợp với “${theme.label}”` : "Chưa có bản thu được duyệt cho cảm xúc này";
   const safeCommandHint = useMemo(() => "Ví dụ: vui vẻ, tôi đang mệt, cần đồng hành", []);
