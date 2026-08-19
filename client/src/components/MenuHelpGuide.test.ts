@@ -1,0 +1,31 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const source = readFileSync(new URL("./MenuHelpGuide.tsx", import.meta.url), "utf8");
+
+describe("MenuHelpGuide", () => {
+  it("cung cấp nút dấu hỏi có nhãn hỗ trợ truy cập và bảng hướng dẫn mở từ cạnh màn hình", () => {
+    expect(source).toContain('aria-label="Mở hướng dẫn các mục menu"');
+    expect(source).toContain("<CircleHelp");
+    expect(source).toContain('role="dialog"');
+    expect(source).toContain("setOpen(true)");
+    expect(source).toContain("Đóng hướng dẫn menu");
+  });
+
+  it("giới thiệu công dụng và bước bắt đầu cho tất cả menu thành viên", () => {
+    [
+      "Trang chủ", "Ôn tập thông minh", "Nhập dữ liệu AI", "Pomodoro", "Bản đồ kiến thức", "Lịch sử học",
+      "Tôi sắp kiểm tra", "Tiến trình", "AI Studio", "Flashcard", "Đề kiểm tra", "Thành tích",
+      "Bảo tàng hành trình", "Cửa hàng giao diện", "Vòng quay tri thức", "Tài khoản",
+    ].forEach((menuLabel) => expect(source).toContain(`title: "${menuLabel}"`));
+    expect(source).toContain("purpose:");
+    expect(source).toContain("firstStep:");
+    expect(source).toContain("Bắt đầu:");
+  });
+
+  it("chỉ hiển thị giải thích menu đặc quyền cho đúng tài khoản", () => {
+    expect(source).toContain('audience: "admin"');
+    expect(source).toContain('audience: "special111"');
+    expect(source).toContain('item.audience === "admin" ? isAdmin : isUnlimitedAccount');
+  });
+});

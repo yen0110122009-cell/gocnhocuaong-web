@@ -471,3 +471,9 @@
 - [x] Rà soát đồng bộ cảm xúc giữa Dashboard, Pomodoro, chuyển View và lúc khôi phục localStorage
 - [x] Rà soát CSS toàn cục của theme, nền animation, dark mode và attention controls để loại bỏ style/transition cạnh tranh
 - [x] Kiểm tra giao diện desktop/mobile khi đổi cảm xúc liên tục, điều hướng trang và tải lại trang
+
+## Trợ giúp giới thiệu menu
+- [x] Rà soát toàn bộ mục điều hướng và xác định nội dung giới thiệu riêng cho từng phần
+- [x] Thêm nút trợ giúp dấu hỏi cố định, có thể mở/đóng thuận tiện ở desktop và mobile
+- [x] Hiển thị mục đích, thao tác chính và gợi ý bắt đầu cho từng menu trong bảng trợ giúp
+- [x] Thêm regression, TypeScript, build và QA responsive cho hệ thống trợ giúp
