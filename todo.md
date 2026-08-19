@@ -531,3 +531,7 @@
 - [x] Chẩn đoán lỗi âm thanh khi bật, dừng, nghe thử, đổi cảnh và đổi cảm xúc; ghi lại nguyên nhân kỹ thuật.
 - [x] Khắc phục phát âm thanh nền sau thao tác người dùng, đồng bộ trạng thái phát/dừng và các thanh âm lượng.
 - [x] Bổ sung regression, kiểm tra lỗi runtime, TypeScript, build và QA responsive cho luồng âm thanh đã sửa.
+
+## Thu gọn độc lập cho các vùng mới
+- [x] Bổ sung nút thu gọn mặc định đóng và lưu trạng thái riêng cho lịch sử mục tiêu tuần, quản lý lời chúc Lumi và các nhóm điều khiển âm thanh mới.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho các vùng thu gọn mới.

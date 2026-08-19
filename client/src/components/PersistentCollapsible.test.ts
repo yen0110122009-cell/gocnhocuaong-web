@@ -22,6 +22,7 @@ describe("Item-level collapse scope contract", () => {
   const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
   const museum = readFileSync(resolve(process.cwd(), "client/src/pages/MuseumJourney.tsx"), "utf8");
   const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
+  const experienceStudio = readFileSync(resolve(process.cwd(), "client/src/components/ExperienceStudio.tsx"), "utf8");
 
   it("does not wrap an entire routed View in one collapsible container", () => {
     expect(home).not.toContain("storageKey={`view-${view}`}");
@@ -33,6 +34,10 @@ describe("Item-level collapse scope contract", () => {
     expect(museum).toContain('storageKey="museum-fragment-vault"');
     expect(museum).toContain('storageKey="museum-characters"');
     expect(pomodoro).toContain('storageKey="pomodoro-audio-center"');
+    expect(pomodoro).toContain('storageKey="pomodoro-weekly-goal-history"');
+    expect(experienceStudio).toContain('storageKey="experience-ambient-audio"');
+    expect(experienceStudio).toContain('storageKey="experience-emotion-command"');
+    expect(experienceStudio).toContain('storageKey="experience-lumi-speech-library"');
   });
 });
 
