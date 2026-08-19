@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { emotionFromCommand, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { activeContentFor, antiProcrastinationChoices, gentleReminders, randomAntiProcrastinationSpeech, randomMicroTask, speechForEvent, speechGroupLabels, type SpeechGroup } from "../lib/speechLibrary";
 import type { AppConfig } from "../../../shared/study";
@@ -26,22 +26,23 @@ export function ExperienceStudio({ selected, onSelect, onStartTwoMinutes, custom
   const safeCommandHint = useMemo(() => "Ví dụ: vui vẻ, tôi đang mệt, cần đồng hành", []);
   const mascotName = "Lumi";
   const mascotAlt = "Lumi đeo kính với kẹp tóc hình ngôi sao vàng, bạn đồng hành của Ong";
+  const restoredEmotionRef = useRef(false);
 
   useEffect(() => {
+    if (restoredEmotionRef.current) return;
+    restoredEmotionRef.current = true;
     const saved = window.localStorage.getItem("study-empire:emotion-theme") as EmotionId | null;
-    if (saved && emotionThemes.some((item) => item.id === saved) && saved !== selected) onSelect(saved);
+    const rootEmotion = document.documentElement.dataset.emotion as EmotionId | undefined;
+    const next = emotionThemes.some((item) => item.id === rootEmotion)
+      ? rootEmotion
+      : emotionThemes.some((item) => item.id === saved)
+        ? saved
+        : null;
+    if (next && next !== selected) {
+      onSelect(next);
+      window.dispatchEvent(new CustomEvent<EmotionId>("study-empire:emotion-change", { detail: next }));
+    }
   }, [onSelect, selected]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.emotion = selected;
-    root.style.setProperty("--emotion-primary", theme.colors.primary);
-    root.style.setProperty("--emotion-secondary", theme.colors.secondary);
-    root.style.setProperty("--emotion-soft", theme.colors.soft);
-    root.style.setProperty("--emotion-ink", theme.colors.ink);
-    root.style.setProperty("--emotion-glow", theme.colors.glow);
-    window.localStorage.setItem("study-empire:emotion-theme", selected);
-  }, [selected, theme]);
 
   useEffect(() => {
     document.documentElement.dataset.animations = attentionPreferences.animationsEnabled ? "on" : "off";
@@ -58,6 +59,7 @@ export function ExperienceStudio({ selected, onSelect, onStartTwoMinutes, custom
   function selectEmotion(id: EmotionId) {
     const next = emotionThemes.find((item) => item.id === id) ?? emotionThemes[0];
     onSelect(next.id);
+    if (next.id !== selected) window.dispatchEvent(new CustomEvent<EmotionId>("study-empire:emotion-change", { detail: next.id }));
     setMessage(`${next.emoji} ${next.encouragement}`);
   }
 

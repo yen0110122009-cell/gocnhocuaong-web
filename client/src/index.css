@@ -198,7 +198,7 @@ body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%
 :root[data-emotion] .primary-button { background: var(--emotion-primary); box-shadow: 0 10px 22px color-mix(in srgb, var(--emotion-primary) 24%, transparent); }
 :root[data-emotion] .primary-button:hover { background: var(--emotion-ink); }
 :root[data-emotion] .nav-item.active { background: color-mix(in srgb, var(--emotion-soft) 76%, white); color: var(--emotion-ink); ring-color: var(--emotion-primary); }
-@media (prefers-reduced-motion: no-preference) { :root[data-emotion] #root > div.min-h-screen, :root[data-emotion] #root > div.min-h-screen > aside, :root[data-emotion] #root > div.min-h-screen header { transition: background-color 240ms var(--ease-out), background-image 240ms var(--ease-out), border-color 240ms var(--ease-out); } }
+@media (prefers-reduced-motion: no-preference) { :root[data-emotion] #root > div.min-h-screen, :root[data-emotion] #root > div.min-h-screen > aside, :root[data-emotion] #root > div.min-h-screen header { transition: border-color 160ms var(--ease-out); } }
 .pomodoro-starting { animation: pomodoro-enter 680ms var(--ease-out) both; background-image: linear-gradient(135deg, rgba(255,240,235,.96), rgba(239,249,239,.96)); }
 	.pomodoro-critical { box-shadow: 0 0 0 2px rgba(198,40,40,.16), 0 18px 44px rgba(198,40,40,.12); }
 	.pomodoro-breathing { position: relative; isolation: isolate; }

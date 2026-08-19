@@ -462,3 +462,12 @@
 - [x] Bổ sung cài đặt tập trung để bật/tắt animation, popup và âm thanh độc lập
 - [x] Bổ sung các khoảng trống ưu tiên cao phát hiện từ ma trận kiểm tra mà không gộp các module khác bản chất
 - [x] Viết regression, thực hiện QA từng module và cập nhật checklist trạng thái cuối cùng
+
+## Sửa lag và lặp theme cảm xúc
+- [x] Xác định nguồn lặp render hoặc side effect khi chọn cảm xúc
+- [x] Ổn định cập nhật theme để chỉ chạy một lần cho mỗi thao tác người dùng
+- [x] Giảm thao tác DOM/persistence thừa gây lag trong luồng chọn cảm xúc
+- [x] Thêm regression và QA thao tác chọn/bỏ chọn cảm xúc liên tiếp
+- [x] Rà soát đồng bộ cảm xúc giữa Dashboard, Pomodoro, chuyển View và lúc khôi phục localStorage
+- [x] Rà soát CSS toàn cục của theme, nền animation, dark mode và attention controls để loại bỏ style/transition cạnh tranh
+- [x] Kiểm tra giao diện desktop/mobile khi đổi cảm xúc liên tục, điều hướng trang và tải lại trang
