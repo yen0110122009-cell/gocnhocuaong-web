@@ -1,14 +1,29 @@
-import { Copy, Eye, EyeOff, GripVertical, ImagePlus, Mic, Play, Search, Star, Trash2, Upload } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { Copy, Download, Eye, EyeOff, GripVertical, ImagePlus, Mic, Play, Search, Star, Trash2, Upload } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CompanionEmotionMedia, EmotionThemeId, LumiVoiceRecording, ProfileState } from "../../../shared/study";
 import { CLASSIC_LUMI_IMAGE, getDefaultLumiImage } from "../lib/defaultCompanionMedia";
 import { emotionThemes } from "../lib/emotionThemes";
 import { trpc } from "../lib/trpc";
 import { OngLearnerAvatar } from "./OngLearnerAvatar";
+import { PersistentCollapsible } from "./PersistentCollapsible";
 
 type MediaKind = "mascot-image" | "lumi-image" | "lumi-voice";
 type LibraryItem = LumiVoiceRecording & { emotion: EmotionThemeId; emotionLabel: string; linkedImage: string };
 type Props = { profile: ProfileState; emotion: EmotionThemeId; onProfile: (profile: ProfileState, message?: string) => void };
+type UndoEntry = { emotion: EmotionThemeId; recordings: LumiVoiceRecording[]; favoriteId?: string; description: string };
+type ImportMode = "merge" | "replace";
+
+const COLOR_LABELS = [
+  { id: "red", label: "Đỏ", className: "bg-red-500" },
+  { id: "orange", label: "Cam", className: "bg-orange-500" },
+  { id: "yellow", label: "Vàng", className: "bg-yellow-400" },
+  { id: "green", label: "Xanh lá", className: "bg-green-500" },
+  { id: "blue", label: "Xanh dương", className: "bg-blue-500" },
+  { id: "purple", label: "Tím", className: "bg-violet-500" },
+  { id: "pink", label: "Hồng", className: "bg-pink-500" },
+  { id: "gray", label: "Xám", className: "bg-slate-500" },
+] as const;
+const COLOR_LABEL_IDS = new Set<string>(COLOR_LABELS.map((color) => color.id));
 
 function getToken() { try { return JSON.parse(sessionStorage.getItem("study_historia_session_v1") || "{}").token as string || ""; } catch { return ""; } }
 function toDataUrl(file: File) { return new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(new Error("Không thể đọc tệp.")); reader.onload = () => resolve(String(reader.result)); reader.readAsDataURL(file); }); }
@@ -16,6 +31,20 @@ function toDataUrl(file: File) { return new Promise<string>((resolve, reject) =>
 function recordingsFromMedia(media: CompanionEmotionMedia | undefined, targetEmotion: EmotionThemeId): LumiVoiceRecording[] {
   if (media?.lumiVoiceRecordings?.length) return media.lumiVoiceRecordings;
   return media?.lumiVoiceUrl ? [{ id: `legacy-${targetEmotion}`, url: media.lumiVoiceUrl, label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString(), imageUrl: media.lumiImageUrl }] : [];
+}
+
+function validImportedRecording(value: unknown, index: number): LumiVoiceRecording | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Partial<LumiVoiceRecording>;
+  if (typeof candidate.id !== "string" || !candidate.id.trim() || typeof candidate.url !== "string" || !candidate.url.trim()) return null;
+  return {
+    id: candidate.id.trim(),
+    url: candidate.url.trim(),
+    label: typeof candidate.label === "string" && candidate.label.trim() ? candidate.label.trim().slice(0, 80) : `Bản thu Lumi ${index + 1}`,
+    createdAt: typeof candidate.createdAt === "string" && candidate.createdAt ? candidate.createdAt : new Date(0).toISOString(),
+    imageUrl: typeof candidate.imageUrl === "string" && candidate.imageUrl.trim() ? candidate.imageUrl.trim() : undefined,
+    colorLabel: typeof candidate.colorLabel === "string" && COLOR_LABEL_IDS.has(candidate.colorLabel) ? candidate.colorLabel : undefined,
+  };
 }
 
 export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: Props) {
@@ -27,10 +56,13 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const [imageFilter, setImageFilter] = useState("all");
   const [dragging, setDragging] = useState<{ id: string; emotion: EmotionThemeId } | null>(null);
   const [collectionMessage, setCollectionMessage] = useState("");
+  const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
+  const [undoMessage, setUndoMessage] = useState("");
+  const [importMode, setImportMode] = useState<ImportMode>("merge");
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const undoTimerRef = useRef<number | null>(null);
   const media = profile.companionEmotionMedia?.[emotion] ?? {};
   const voiceRecordings = recordingsFromMedia(media, emotion);
-  const favoriteVoice = voiceRecordings.find((item) => item.id === media.favoriteLumiVoiceId) ?? voiceRecordings[0];
   const emotionLabel = emotionThemes.find((item) => item.id === emotion)?.label ?? emotion;
 
   const libraryItems = useMemo<LibraryItem[]>(() => emotionThemes.flatMap((theme) => {
@@ -54,6 +86,9 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     });
   }, [emotionFilter, imageFilter, libraryItems, search]);
 
+  useEffect(() => () => { if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current); }, []);
+  useEffect(() => { setUndoStack([]); setUndoMessage(""); }, [emotion]);
+
   const update = (patch: Partial<typeof media>, message?: string) => onProfile({ ...profile, companionEmotionMedia: { ...(profile.companionEmotionMedia ?? {}), [emotion]: { ...media, ...patch } } }, message);
   const remove = (key: keyof typeof media) => { const next = { ...media }; delete next[key]; onProfile({ ...profile, companionEmotionMedia: { ...(profile.companionEmotionMedia ?? {}), [emotion]: next } }, "Đã gỡ media của cảm xúc này."); };
   const updateVoiceRecordingsForEmotion = (targetEmotion: EmotionThemeId, nextRecordings: LumiVoiceRecording[], favoriteLumiVoiceId?: string, message?: string) => {
@@ -63,11 +98,31 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     onProfile({ ...profile, companionEmotionMedia: { ...(profile.companionEmotionMedia ?? {}), [targetEmotion]: next } }, message);
   };
   const updateVoiceRecordings = (nextRecordings: LumiVoiceRecording[], favoriteLumiVoiceId?: string, message?: string) => updateVoiceRecordingsForEmotion(emotion, nextRecordings, favoriteLumiVoiceId, message);
-  const updateRecordingImage = (recordingId: string, imageUrl: string, targetEmotion = emotion, message = "Đã đổi ảnh đại diện cho bản thu Lumi.") => {
+
+  function offerUndo(targetEmotion: EmotionThemeId, recordings: LumiVoiceRecording[], favoriteId: string | undefined, description: string) {
+    setUndoStack((stack) => [...stack.slice(-4), { emotion: targetEmotion, recordings: recordings.map((item) => ({ ...item })), favoriteId, description }]);
+    setUndoMessage(description);
+    if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = window.setTimeout(() => setUndoMessage(""), 5_000);
+  }
+
+  function undoLastAction() {
+    const entry = undoStack[undoStack.length - 1];
+    if (!entry) return;
+    const remaining = undoStack.slice(0, -1);
+    updateVoiceRecordingsForEmotion(entry.emotion, entry.recordings, entry.favoriteId, `Đã hoàn tác: ${entry.description}`);
+    setUndoStack(remaining);
+    const previous = remaining[remaining.length - 1];
+    setUndoMessage(previous?.description ?? "");
+    if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current);
+    if (previous) undoTimerRef.current = window.setTimeout(() => setUndoMessage(""), 5_000);
+  }
+
+  function updateRecordingImage(recordingId: string, imageUrl: string, targetEmotion = emotion, message = "Đã đổi ảnh đại diện cho bản thu Lumi.") {
     const targetMedia = profile.companionEmotionMedia?.[targetEmotion] ?? {};
     const targetRecordings = recordingsFromMedia(targetMedia, targetEmotion);
     updateVoiceRecordingsForEmotion(targetEmotion, targetRecordings.map((voice) => voice.id === recordingId ? { ...voice, imageUrl } : voice), targetMedia.favoriteLumiVoiceId, message);
-  };
+  }
 
   async function uploadFile(file: File, kind: MediaKind) {
     const token = getToken();
@@ -116,8 +171,10 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
 
   function removeVoice(recordingId: string, targetEmotion = emotion) {
     const targetMedia = profile.companionEmotionMedia?.[targetEmotion] ?? {};
-    const nextRecordings = recordingsFromMedia(targetMedia, targetEmotion).filter((item) => item.id !== recordingId);
+    const previousRecordings = recordingsFromMedia(targetMedia, targetEmotion);
+    const nextRecordings = previousRecordings.filter((item) => item.id !== recordingId);
     const nextFavorite = targetMedia.favoriteLumiVoiceId === recordingId ? nextRecordings[0]?.id : targetMedia.favoriteLumiVoiceId;
+    offerUndo(targetEmotion, previousRecordings, targetMedia.favoriteLumiVoiceId, "Đã xóa một bản thu Lumi.");
     updateVoiceRecordingsForEmotion(targetEmotion, nextRecordings, nextFavorite, "Đã gỡ bản thu Lumi đã chọn.");
   }
 
@@ -137,17 +194,24 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     updateVoiceRecordingsForEmotion(item.emotion, [...recordingsFromMedia(targetMedia, item.emotion), clone], targetMedia.favoriteLumiVoiceId, `Đã nhân bản “${item.label}”. Bạn có thể đổi tên, ảnh hoặc đặt lại bản ưu tiên.`);
   }
 
+  function setColorLabel(recordingId: string, targetEmotion: EmotionThemeId, colorLabel?: string) {
+    const targetMedia = profile.companionEmotionMedia?.[targetEmotion] ?? {};
+    updateVoiceRecordingsForEmotion(targetEmotion, recordingsFromMedia(targetMedia, targetEmotion).map((voice) => voice.id === recordingId ? { ...voice, colorLabel } : voice), targetMedia.favoriteLumiVoiceId, colorLabel ? "Đã gắn nhãn màu cho bản thu Lumi." : "Đã gỡ nhãn màu của bản thu Lumi.");
+  }
+
   function reorderWithinEmotion(target: LibraryItem) {
     if (!dragging) return;
     if (dragging.emotion !== target.emotion) { setCollectionMessage("Chỉ có thể kéo thẻ để sắp xếp trong cùng một cảm xúc."); return; }
     if (dragging.id === target.id) return;
     const targetMedia = profile.companionEmotionMedia?.[target.emotion] ?? {};
-    const next = [...recordingsFromMedia(targetMedia, target.emotion)];
+    const previousRecordings = recordingsFromMedia(targetMedia, target.emotion);
+    const next = [...previousRecordings];
     const from = next.findIndex((item) => item.id === dragging.id);
     const to = next.findIndex((item) => item.id === target.id);
     if (from < 0 || to < 0) return;
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
+    offerUndo(target.emotion, previousRecordings, targetMedia.favoriteLumiVoiceId, "Đã sắp xếp lại thứ tự bản thu.");
     updateVoiceRecordingsForEmotion(target.emotion, next, targetMedia.favoriteLumiVoiceId, "Đã lưu thứ tự bản thu cho cảm xúc này.");
   }
 
@@ -157,27 +221,100 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     void audio.play().catch(() => setCollectionMessage("Không thể phát bản thu này. Hãy kiểm tra quyền âm thanh hoặc thử lại."));
   }
 
+  function exportLibrary() {
+    const companionEmotionMedia = Object.fromEntries(emotionThemes.flatMap((theme) => {
+      const themeMedia = profile.companionEmotionMedia?.[theme.id];
+      const recordings = recordingsFromMedia(themeMedia, theme.id);
+      return recordings.length ? [[theme.id, { lumiVoiceRecordings: recordings, favoriteLumiVoiceId: themeMedia?.favoriteLumiVoiceId }]] : [];
+    }));
+    const blob = new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), companionEmotionMedia }, null, 2)], { type: "application/json" });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = href;
+    anchor.download = `lumi-library-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(href), 0);
+    setCollectionMessage(`Đã xuất ${libraryItems.length} bản thu. Tệp chỉ lưu liên kết ảnh/âm thanh hiện có, không sao chép tệp media.`);
+  }
+
+  async function importLibrary(file: File) {
+    try {
+      const parsed = JSON.parse(await file.text()) as unknown;
+      const root = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : null;
+      const source = root?.companionEmotionMedia && typeof root.companionEmotionMedia === "object" && !Array.isArray(root.companionEmotionMedia) ? root.companionEmotionMedia as Record<string, unknown> : root;
+      if (!source) throw new Error("Tệp sao lưu không có dữ liệu thư viện hợp lệ.");
+      const knownEmotions = new Set<EmotionThemeId>(emotionThemes.map((theme) => theme.id));
+      const nextMedia: Partial<Record<EmotionThemeId, CompanionEmotionMedia>> = { ...(profile.companionEmotionMedia ?? {}) };
+      let imported = 0;
+      let skipped = 0;
+      let foundLibrary = false;
+      for (const [rawEmotion, rawMedia] of Object.entries(source)) {
+        if (!knownEmotions.has(rawEmotion as EmotionThemeId) || !rawMedia || typeof rawMedia !== "object" || Array.isArray(rawMedia)) { skipped += 1; continue; }
+        const targetEmotion = rawEmotion as EmotionThemeId;
+        const importedMedia = rawMedia as { lumiVoiceRecordings?: unknown; favoriteLumiVoiceId?: unknown };
+        if (!Array.isArray(importedMedia.lumiVoiceRecordings)) { skipped += 1; continue; }
+        foundLibrary = true;
+        const seenImported = new Set<string>();
+        const validRecords = importedMedia.lumiVoiceRecordings.flatMap((entry, index) => {
+          const item = validImportedRecording(entry, index);
+          if (!item || seenImported.has(item.id)) { skipped += 1; return []; }
+          seenImported.add(item.id);
+          return [item];
+        });
+        const existing = recordingsFromMedia(nextMedia[targetEmotion], targetEmotion);
+        const existingIds = new Set(existing.map((item) => item.id));
+        const uniqueImported = validRecords.filter((item) => {
+          if (existingIds.has(item.id)) { skipped += 1; return false; }
+          existingIds.add(item.id);
+          return true;
+        });
+        const recordings = importMode === "replace" ? validRecords : [...existing, ...uniqueImported];
+        const favoriteId = typeof importedMedia.favoriteLumiVoiceId === "string" && recordings.some((item) => item.id === importedMedia.favoriteLumiVoiceId)
+          ? importedMedia.favoriteLumiVoiceId
+          : nextMedia[targetEmotion]?.favoriteLumiVoiceId && recordings.some((item) => item.id === nextMedia[targetEmotion]?.favoriteLumiVoiceId)
+            ? nextMedia[targetEmotion]?.favoriteLumiVoiceId
+            : recordings[0]?.id;
+        const updatedMedia = { ...(nextMedia[targetEmotion] ?? {}), lumiVoiceRecordings: recordings, favoriteLumiVoiceId: favoriteId };
+        delete updatedMedia.lumiVoiceUrl;
+        nextMedia[targetEmotion] = updatedMedia;
+        imported += importMode === "replace" ? validRecords.length : uniqueImported.length;
+      }
+      if (!foundLibrary) throw new Error("Tệp sao lưu không chứa danh sách bản thu Lumi hợp lệ.");
+      onProfile({ ...profile, companionEmotionMedia: nextMedia }, `Đã nhập ${imported} bản thu${skipped ? `; bỏ qua ${skipped} mục không hợp lệ hoặc bị trùng` : ""}.`);
+      setCollectionMessage(`Đã nhập ${imported} bản thu${skipped ? `, bỏ qua ${skipped} mục` : ""}. Liên kết ảnh và âm thanh được giữ nguyên từ tệp sao lưu.`);
+    } catch (error) {
+      setCollectionMessage(error instanceof Error ? error.message : "Không thể đọc tệp sao lưu. Hãy chọn tệp JSON hợp lệ.");
+    }
+  }
+
   const ImageInput = ({ kind, label }: { kind: "mascot-image" | "lumi-image"; label: string }) => <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#2e7d32]/20 bg-white px-3 py-2 text-xs font-bold text-[#2e7d32] hover:bg-[#eff9ef]"><ImagePlus className="h-4 w-4" />{busy === kind ? "Đang tải…" : label}<input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={Boolean(busy)} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadFile(file, kind); event.currentTarget.value = ""; }} /></label>;
   const VoiceInput = () => <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-bold text-violet-800"><Upload className="h-4 w-4" />{busy === "lumi-voice" ? "Đang tải…" : "Tải bản thu"}<input className="sr-only" type="file" accept="audio/webm,audio/ogg,audio/wav,audio/mpeg" disabled={Boolean(busy)} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadFile(file, "lumi-voice"); event.currentTarget.value = ""; }} /></label>;
 
   return <section className="relative z-10 mt-4 rounded-2xl border border-[#2e7d32]/20 bg-white/85 p-4 shadow-sm" aria-label="Ảnh và giọng Lumi theo cảm xúc">
     <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">Đồng hành theo cảm xúc</p><h3 className="mt-1 font-display text-lg font-black text-[#7f1d1d]">Mascot & Lumi · {emotionLabel}</h3><p className="mt-1 max-w-2xl text-xs leading-5 text-[#35523a]">Ảnh và bản thu này thuộc riêng hồ sơ của Ong, chỉ dùng khi đang chọn cảm xúc hiện tại.</p></div><div className="flex gap-2"><button type="button" onClick={() => onProfile({ ...profile, showMascot: profile.showMascot === false })} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">{profile.showMascot === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}{profile.showMascot === false ? "Hiện Mascot" : "Ẩn Mascot"}</button><button type="button" onClick={() => onProfile({ ...profile, showLumi: profile.showLumi === false })} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">{profile.showLumi === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}{profile.showLumi === false ? "Hiện Lumi" : "Ẩn Lumi"}</button></div></div>
     <div className="mt-4 grid gap-3 sm:grid-cols-3">
-      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3"><p className="text-xs font-black text-amber-800">Mascot của Ong</p>{profile.showMascot === false ? <p className="mt-3 text-xs text-amber-800">Đang ẩn theo lựa chọn.</p> : <OngLearnerAvatar className="mt-3" size="sm" imageUrl={media.mascotImageUrl} emotion={emotion} /> }<p className="mt-2 text-[11px] leading-4 text-amber-800">Chưa tải ảnh riêng sẽ dùng ảnh mặc định phù hợp cảm xúc.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="mascot-image" label="Tải ảnh" />{media.mascotImageUrl ? <button type="button" onClick={() => remove("mascotImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Mascot"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
-      <div className="rounded-xl border border-red-200 bg-red-50/60 p-3"><p className="text-xs font-black text-[#8e1b1b]">Lumi</p>{profile.showLumi === false ? <p className="mt-3 text-xs text-[#8e1b1b]">Đang ẩn theo lựa chọn.</p> : <img src={media.lumiImageUrl || getDefaultLumiImage(emotion)} alt={`Lumi khi ${emotionLabel}`} className="mt-3 h-14 w-12 rounded-xl object-cover object-top" /> }<p className="mt-2 text-[11px] leading-4 text-[#8e1b1b]">Ảnh mặc định sẽ hiện khi Ong chưa tải ảnh Lumi riêng.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="lumi-image" label="Tải ảnh" />{media.lumiImageUrl ? <button type="button" onClick={() => remove("lumiImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Lumi"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
-      <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-3 sm:col-span-2"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="text-xs font-black text-violet-800">Thêm bản thu cho {emotionLabel}</p><p className="mt-1 text-xs leading-5 text-violet-800">Bản thu mới sẽ giữ ảnh Lumi đang chọn; sau đó Ong có thể đổi ảnh riêng ngay trong lưới.</p></div></div><div className="mt-3 flex flex-wrap gap-2"><VoiceInput /><button type="button" onClick={() => void toggleRecord()} disabled={Boolean(busy)} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white ${recording ? "bg-red-600" : "bg-violet-700"}`}><Mic className="h-4 w-4" />{recording ? "Dừng ghi" : "Ghi âm"}</button></div></div>
+      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3"><p className="text-xs font-black text-amber-800">Mascot của Ong</p>{profile.showMascot === false ? <p className="mt-3 text-xs text-amber-800">Đang ẩn theo lựa chọn.</p> : <OngLearnerAvatar className="mt-3" size="sm" imageUrl={media.mascotImageUrl} emotion={emotion} />}<p className="mt-2 text-[11px] leading-4 text-amber-800">Chưa tải ảnh riêng sẽ dùng ảnh mặc định phù hợp cảm xúc.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="mascot-image" label="Tải ảnh" />{media.mascotImageUrl ? <button type="button" onClick={() => remove("mascotImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Mascot"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
+      <div className="rounded-xl border border-red-200 bg-red-50/60 p-3"><p className="text-xs font-black text-[#8e1b1b]">Lumi</p>{profile.showLumi === false ? <p className="mt-3 text-xs text-[#8e1b1b]">Đang ẩn theo lựa chọn.</p> : <img src={media.lumiImageUrl || getDefaultLumiImage(emotion)} alt={`Lumi khi ${emotionLabel}`} className="mt-3 h-14 w-12 rounded-xl object-cover object-top" />}<p className="mt-2 text-[11px] leading-4 text-[#8e1b1b]">Ảnh mặc định sẽ hiện khi Ong chưa tải ảnh Lumi riêng.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="lumi-image" label="Tải ảnh" />{media.lumiImageUrl ? <button type="button" onClick={() => remove("lumiImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Lumi"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
+      <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-3 sm:col-span-2"><p className="text-xs font-black text-violet-800">Thêm bản thu cho {emotionLabel}</p><p className="mt-1 text-xs leading-5 text-violet-800">Bản thu mới sẽ giữ ảnh Lumi đang chọn; sau đó Ong có thể đổi ảnh riêng ngay trong lưới.</p><div className="mt-3 flex flex-wrap gap-2"><VoiceInput /><button type="button" onClick={() => void toggleRecord()} disabled={Boolean(busy)} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white ${recording ? "bg-red-600" : "bg-violet-700"}`}><Mic className="h-4 w-4" />{recording ? "Dừng ghi" : "Ghi âm"}</button></div></div>
     </div>
 
     <section className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-3" aria-label="Bộ sưu tập ảnh giọng Lumi">
-      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black text-violet-800">Bộ sưu tập ảnh–giọng Lumi</p><p className="mt-1 text-xs leading-5 text-violet-800">Kéo thẻ để đổi thứ tự trong cùng cảm xúc. Mỗi cặp có ảnh, giọng, nút nghe thử và thao tác nhân bản riêng.</p></div><span className="rounded-full border border-violet-200 bg-white px-2.5 py-1 text-[10px] font-black text-violet-800">{libraryItems.length} bản thu</span></div>
+      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black text-violet-800">Bộ sưu tập ảnh–giọng Lumi</p><p className="mt-1 text-xs leading-5 text-violet-800">Kéo thẻ để đổi thứ tự trong cùng cảm xúc. Mỗi cặp có ảnh, giọng, nhãn màu, nghe thử và thao tác nhân bản riêng.</p></div><span className="rounded-full border border-violet-200 bg-white px-2.5 py-1 text-[10px] font-black text-violet-800">{libraryItems.length} bản thu</span></div>
       <div className="mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_190px]"><label className="relative"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-violet-500" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm tên bản thu hoặc ảnh…" className="w-full rounded-xl border border-violet-200 bg-white py-2 pl-9 pr-3 text-xs font-semibold text-violet-950" /></label><select value={emotionFilter} onChange={(event) => setEmotionFilter(event.target.value as EmotionThemeId | "all")} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-bold text-violet-900" aria-label="Lọc bản thu theo cảm xúc"><option value="all">Tất cả cảm xúc</option>{emotionThemes.map((theme) => <option key={theme.id} value={theme.id}>{theme.label}</option>)}</select><select value={imageFilter} onChange={(event) => setImageFilter(event.target.value)} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-bold text-violet-900" aria-label="Lọc bản thu theo ảnh đại diện"><option value="all">Tất cả ảnh đại diện</option>{imageOptions.map((item, index) => <option key={item.linkedImage} value={item.linkedImage}>Ảnh {index + 1} · {item.emotionLabel}</option>)}</select></div>
+      {undoMessage ? <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-900" role="status"><span>{undoMessage}</span><button type="button" onClick={undoLastAction} className="rounded-lg bg-emerald-700 px-2.5 py-1.5 text-[11px] font-black text-white hover:bg-emerald-800">Hoàn tác</button></div> : null}
       {collectionMessage ? <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900" role="status">{collectionMessage}</p> : null}
       {visibleItems.length ? <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{visibleItems.map((item) => {
         const itemMedia = profile.companionEmotionMedia?.[item.emotion] ?? {};
         const isFavorite = (recordingsFromMedia(itemMedia, item.emotion).find((voice) => voice.id === itemMedia.favoriteLumiVoiceId) ?? recordingsFromMedia(itemMedia, item.emotion)[0])?.id === item.id;
         const isDragging = dragging?.id === item.id && dragging.emotion === item.emotion;
-        return <article key={`${item.emotion}-${item.id}`} draggable onDragStart={() => { setDragging({ id: item.id, emotion: item.emotion }); setCollectionMessage(""); }} onDragEnd={() => setDragging(null)} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); reorderWithinEmotion(item); setDragging(null); }} className={`overflow-hidden rounded-xl border p-2 shadow-sm transition ${isDragging ? "scale-[0.98] border-violet-400 opacity-60" : isFavorite ? "border-amber-300 bg-amber-50" : "border-violet-100 bg-white/85"}`}><div className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-violet-100"><img src={item.linkedImage} alt={`Ảnh Lumi gắn với ${item.label}`} className="h-full w-full object-cover object-top transition duration-200 group-hover:scale-[1.03]" /><button type="button" onClick={() => preview(item)} className="absolute inset-0 m-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/70 bg-violet-800/90 text-white shadow-lg transition hover:scale-105" aria-label={`Nghe thử ${item.label}`}><Play className="ml-0.5 h-5 w-5" fill="currentColor" /></button>{isFavorite ? <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-1 text-[10px] font-black text-amber-950"><Star className="h-3 w-3" fill="currentColor" />Bản thu ưu tiên</span> : null}<span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[10px] font-black text-violet-800"><GripVertical className="h-3 w-3" />{item.emotionLabel}</span></div><div className="mt-2"><input value={item.label} maxLength={80} aria-label="Tên bản thu Lumi" onChange={(event) => renameVoice(item.id, event.target.value, item.emotion)} className="w-full rounded-lg border border-violet-100 bg-white px-2 py-1.5 text-xs font-bold text-violet-950" /><p className="mt-1 text-[10px] font-medium text-violet-700">{new Date(item.createdAt).toLocaleDateString("vi-VN")} · {item.emotionLabel}</p></div><div className="mt-2 flex flex-wrap gap-1.5"><label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-[10px] font-black text-violet-800 hover:bg-violet-50"><ImagePlus className="h-3.5 w-3.5" />{busy === "lumi-image" ? "Đang tải…" : "Đổi ảnh"}<input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={Boolean(busy)} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadRecordingImage(file, item.id, item.emotion); event.currentTarget.value = ""; }} /></label><button type="button" onClick={() => updateRecordingImage(item.id, CLASSIC_LUMI_IMAGE, item.emotion, "Đã dùng lại ảnh Lumi cũ cho bản thu này.")} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-black text-slate-700 hover:bg-slate-50">Ảnh Lumi cũ</button><button type="button" onClick={() => selectFavorite(item.id, item.emotion, item.label)} className={`inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-black ${isFavorite ? "bg-amber-400 text-amber-950" : "border border-amber-200 bg-white text-amber-700 hover:bg-amber-50"}`} aria-label={`Chọn ${item.label} làm yêu thích`}><Star className="h-3.5 w-3.5" fill={isFavorite ? "currentColor" : "none"} />{isFavorite ? "Ưu tiên" : "Chọn"}</button><button type="button" onClick={() => duplicateVoice(item)} className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-white px-2 py-1.5 text-[10px] font-black text-sky-700 hover:bg-sky-50"><Copy className="h-3.5 w-3.5" />Nhân bản</button><button type="button" onClick={() => removeVoice(item.id, item.emotion)} className="rounded-lg border border-red-200 bg-white px-2 py-1.5 text-red-700 hover:bg-red-50" aria-label={`Xóa ${item.label}`}><Trash2 className="h-3.5 w-3.5" /></button></div></article>;
+        const currentColor = COLOR_LABELS.find((color) => color.id === item.colorLabel);
+        return <article key={`${item.emotion}-${item.id}`} draggable onDragStart={() => { setDragging({ id: item.id, emotion: item.emotion }); setCollectionMessage(""); }} onDragEnd={() => setDragging(null)} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); reorderWithinEmotion(item); setDragging(null); }} className={`overflow-hidden rounded-xl border p-2 shadow-sm transition ${isDragging ? "scale-[0.98] border-violet-400 opacity-60" : isFavorite ? "border-amber-300 bg-amber-50" : "border-violet-100 bg-white/85"}`}><div className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-violet-100"><img src={item.linkedImage} alt={`Ảnh Lumi gắn với ${item.label}`} className="h-full w-full object-cover object-top transition duration-200 group-hover:scale-[1.03]" /><button type="button" onClick={() => preview(item)} className="absolute inset-0 m-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/70 bg-violet-800/90 text-white shadow-lg transition hover:scale-105" aria-label={`Nghe thử ${item.label}`}><Play className="ml-0.5 h-5 w-5" fill="currentColor" /></button>{isFavorite ? <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-1 text-[10px] font-black text-amber-950"><Star className="h-3 w-3" fill="currentColor" />Bản thu ưu tiên</span> : null}<span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[10px] font-black text-violet-800"><GripVertical className="h-3 w-3" />{item.emotionLabel}</span>{currentColor ? <span className={`absolute bottom-2 right-2 h-4 w-4 rounded-full border-2 border-white shadow ${currentColor.className}`} title={`Nhãn ${currentColor.label}`} aria-label={`Nhãn màu ${currentColor.label}`} /> : null}</div><div className="mt-2"><input value={item.label} maxLength={80} aria-label="Tên bản thu Lumi" onChange={(event) => renameVoice(item.id, event.target.value, item.emotion)} className="w-full rounded-lg border border-violet-100 bg-white px-2 py-1.5 text-xs font-bold text-violet-950" /><p className="mt-1 text-[10px] font-medium text-violet-700">{new Date(item.createdAt).toLocaleDateString("vi-VN")} · {item.emotionLabel}</p></div><div className="mt-2 flex flex-wrap gap-1.5"><label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-[10px] font-black text-violet-800 hover:bg-violet-50"><ImagePlus className="h-3.5 w-3.5" />{busy === "lumi-image" ? "Đang tải…" : "Đổi ảnh"}<input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={Boolean(busy)} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadRecordingImage(file, item.id, item.emotion); event.currentTarget.value = ""; }} /></label><button type="button" onClick={() => updateRecordingImage(item.id, CLASSIC_LUMI_IMAGE, item.emotion, "Đã dùng lại ảnh Lumi cũ cho bản thu này.")} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-black text-slate-700 hover:bg-slate-50">Ảnh Lumi cũ</button><button type="button" onClick={() => selectFavorite(item.id, item.emotion, item.label)} className={`inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-black ${isFavorite ? "bg-amber-400 text-amber-950" : "border border-amber-200 bg-white text-amber-700 hover:bg-amber-50"}`} aria-label={`Chọn ${item.label} làm yêu thích`}><Star className="h-3.5 w-3.5" fill={isFavorite ? "currentColor" : "none"} />{isFavorite ? "Ưu tiên" : "Chọn"}</button><button type="button" onClick={() => duplicateVoice(item)} className="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-white px-2 py-1.5 text-[10px] font-black text-sky-700 hover:bg-sky-50"><Copy className="h-3.5 w-3.5" />Nhân bản</button><button type="button" onClick={() => removeVoice(item.id, item.emotion)} className="rounded-lg border border-red-200 bg-white px-2 py-1.5 text-red-700 hover:bg-red-50" aria-label={`Xóa ${item.label}`}><Trash2 className="h-3.5 w-3.5" /></button></div><div className="mt-2 flex items-center gap-1.5 border-t border-violet-100 pt-2" aria-label={`Chọn nhãn màu cho ${item.label}`}><span className="mr-1 text-[10px] font-black text-violet-700">Nhãn:</span>{COLOR_LABELS.map((color) => <button key={color.id} type="button" onClick={() => setColorLabel(item.id, item.emotion, item.colorLabel === color.id ? undefined : color.id)} aria-label={`Nhãn ${color.label}`} aria-pressed={item.colorLabel === color.id} className={`h-5 w-5 rounded-full border-2 ${color.className} ${item.colorLabel === color.id ? "scale-110 border-violet-950 ring-2 ring-violet-200" : "border-white"}`} />)}</div></article>;
       })}</div> : <p className="mt-4 rounded-xl border border-dashed border-violet-200 bg-white/80 p-4 text-center text-xs font-semibold text-violet-800">Không tìm thấy bản thu phù hợp. Hãy đổi bộ lọc hoặc thêm một bản thu mới.</p>}
+      <PersistentCollapsible storageKey="lumi-library-backup" title="Sao lưu & khôi phục thư viện Lumi" className="mt-4">
+        <div className="rounded-xl border border-sky-200 bg-sky-50/70 p-3"><p className="text-xs leading-5 text-sky-900">Tệp sao lưu chỉ lưu thông tin bản thu và các liên kết ảnh/âm thanh đang có; không sao chép tệp media vào JSON. Khi nhập, hệ thống kiểm tra cấu trúc, bỏ qua mục không hợp lệ hoặc trùng lặp.</p><div className="mt-3 flex flex-wrap items-center gap-2"><button type="button" onClick={exportLibrary} className="inline-flex items-center gap-2 rounded-xl bg-sky-700 px-3 py-2 text-xs font-black text-white hover:bg-sky-800"><Download className="h-4 w-4" />Xuất tệp JSON</button><select value={importMode} onChange={(event) => setImportMode(event.target.value as ImportMode)} className="rounded-xl border border-sky-200 bg-white px-3 py-2 text-xs font-bold text-sky-900" aria-label="Cách nhập thư viện Lumi"><option value="merge">Gộp với thư viện hiện có</option><option value="replace">Thay thư viện theo cảm xúc</option></select><label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-sky-300 bg-white px-3 py-2 text-xs font-black text-sky-800 hover:bg-sky-100"><Upload className="h-4 w-4" />Nhập tệp JSON<input className="sr-only" type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importLibrary(file); event.currentTarget.value = ""; }} /></label></div></div>
+      </PersistentCollapsible>
     </section>
   </section>;
 }

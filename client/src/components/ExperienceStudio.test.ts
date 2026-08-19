@@ -83,6 +83,28 @@ describe("Experience Studio requirements", () => {
     expect(mediaControlsSource).toContain("Ảnh Lumi cũ");
   });
 
+  it("protects accidental library edits with a short undo history and visual color labels", () => {
+    expect(mediaControlsSource).toContain("type UndoEntry");
+    expect(mediaControlsSource).toContain("offerUndo");
+    expect(mediaControlsSource).toContain("undoLastAction");
+    expect(mediaControlsSource).toContain("5_000");
+    expect(mediaControlsSource).toContain("Hoàn tác");
+    expect(mediaControlsSource).toContain("COLOR_LABELS");
+    expect(mediaControlsSource).toContain("colorLabel");
+    expect(mediaControlsSource).toContain("Nhãn màu");
+  });
+
+  it("offers validated JSON export and merge-or-replace import without embedding media files", () => {
+    expect(mediaControlsSource).toContain("exportLibrary");
+    expect(mediaControlsSource).toContain("importLibrary");
+    expect(mediaControlsSource).toContain("validImportedRecording");
+    expect(mediaControlsSource).toContain("lumi-library-backup-");
+    expect(mediaControlsSource).toContain("Gộp với thư viện hiện có");
+    expect(mediaControlsSource).toContain("Thay thư viện theo cảm xúc");
+    expect(mediaControlsSource).toContain("không sao chép tệp media");
+    expect(mediaControlsSource).toContain("PersistentCollapsible");
+  });
+
   it("offers per-emotion companion media chosen by the learner and honors image visibility settings", () => {
     expect(studioSource).toContain("EmotionCompanionMediaControls");
     expect(studioSource).toContain("companionMedia?.mascotImageUrl");

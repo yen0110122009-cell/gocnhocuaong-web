@@ -553,3 +553,9 @@
 - [x] Thêm tìm kiếm và lọc bản thu theo cảm xúc hoặc ảnh đại diện.
 - [x] Cho phép nhân bản một cặp ảnh–giọng Lumi để chỉnh sửa nhanh mà không tạo lại từ đầu.
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho ảnh Lumi, sắp xếp, lọc và nhân bản.
+
+## Hoàn tác, nhãn màu và sao lưu thư viện Lumi
+- [x] Thêm hoàn tác sau khi kéo-thả hoặc xóa một bản thu Lumi, không làm mất dữ liệu đang lưu.
+- [x] Cho phép chọn và lưu nhãn màu tùy chỉnh theo từng bản thu Lumi.
+- [x] Cho phép xuất thư viện bản thu thành tệp sao lưu và nhập lại tệp hợp lệ có kiểm tra dữ liệu.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho hoàn tác, nhãn màu và xuất/nhập thư viện.

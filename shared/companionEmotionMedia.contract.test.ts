@@ -6,7 +6,7 @@ describe("Companion emotion media normalization", () => {
     const profile = normalizeProfile({ companionEmotionMedia: { calm: { lumiVoiceUrl: "https://audio.example/legacy.webm" } } });
     const media = profile.companionEmotionMedia?.calm;
     expect(media?.lumiVoiceUrl).toBe("https://audio.example/legacy.webm");
-    expect(media?.lumiVoiceRecordings).toEqual([{ id: "legacy-calm", url: "https://audio.example/legacy.webm", label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString(), imageUrl: undefined }]);
+    expect(media?.lumiVoiceRecordings).toEqual([{ id: "legacy-calm", url: "https://audio.example/legacy.webm", label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString(), imageUrl: undefined, colorLabel: undefined }]);
   });
 
   it("preserves valid recording lists and only keeps a favorite that belongs to the emotion library", () => {
@@ -21,6 +21,17 @@ describe("Companion emotion media normalization", () => {
     expect(profile.companionEmotionMedia?.calm?.lumiVoiceRecordings).toEqual([
       expect.objectContaining({ id: "older", imageUrl: "https://image.example/calm.png" }),
       expect.objectContaining({ id: "linked", imageUrl: "https://image.example/linked.png" }),
+    ]);
+  });
+
+  it("preserves supported color labels and discards unsupported labels during normalization", () => {
+    const profile = normalizeProfile({ companionEmotionMedia: { calm: { lumiVoiceRecordings: [
+      { id: "green", url: "https://audio.example/green.webm", label: "Bản xanh", createdAt: "2026-08-19T00:00:00.000Z", colorLabel: "green" },
+      { id: "unknown", url: "https://audio.example/unknown.webm", label: "Bản không hợp lệ", createdAt: "2026-08-19T00:00:00.000Z", colorLabel: "rainbow" },
+    ] } } });
+    expect(profile.companionEmotionMedia?.calm?.lumiVoiceRecordings).toEqual([
+      expect.objectContaining({ id: "green", colorLabel: "green" }),
+      expect.objectContaining({ id: "unknown", colorLabel: undefined }),
     ]);
   });
 
