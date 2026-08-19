@@ -3,6 +3,7 @@ import AchievementCatalogAdmin from "@/components/AchievementCatalogAdmin";
 import AdminCommandCenter from "@/components/AdminCommandCenter";
 import SystemIntegrityPanel from "@/components/SystemIntegrityPanel";
 import AdminTrashPanel from "@/components/AdminTrashPanel";
+import ModuleAuditMatrix from "@/components/ModuleAuditMatrix";
 import { cn } from "@/lib/utils";
 import { Award, CirclePlus, Download, Filter, Gift, MessageCircle, Mic, Search, Square, Trash2, Upload } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
@@ -219,6 +220,7 @@ export default function AdminContentHub({ account, profile, config, onConfig }: 
       </EditorCard>
     </section>
     <SystemIntegrityPanel config={config} profile={profile} />
+    <ModuleAuditMatrix />
     <AdminTrashPanel config={config} onConfig={onConfig} />
     <AchievementCatalogAdmin config={config} />
     <AdminCommandCenter adminId={account.id} />

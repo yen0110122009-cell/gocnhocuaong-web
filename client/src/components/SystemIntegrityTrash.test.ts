@@ -12,13 +12,14 @@ describe("system integrity and trash contracts", () => {
     expect(source).not.toContain("Math.random");
   });
 
-  it("exposes soft-delete recovery and permanent-delete actions for characters and events", () => {
+  it("exposes soft-delete recovery and permanent-delete actions for every supported admin data group", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/components/AdminTrashPanel.tsx"), "utf8");
     expect(source).toContain("deletedAt");
-    expect(source).toContain("restoreCharacter");
-    expect(source).toContain("restoreEvent");
-    expect(source).toContain("permanentlyDeleteCharacter");
-    expect(source).toContain("permanentlyDeleteEvent");
-    expect(source).toContain("Thùng rác");
+    expect(source).toContain("restoreConfigItem");
+    expect(source).toContain("permanentlyDeleteConfigItem");
+    expect(source).toContain('"achievement"');
+    expect(source).toContain('"reward"');
+    expect(source).toContain('"shopItem"');
+    expect(source).toContain("Thùng rác theo module");
   });
 });

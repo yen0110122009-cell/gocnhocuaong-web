@@ -455,3 +455,10 @@
 - [x] Áp dụng theme màu toàn giao diện cùng câu động viên khi người dùng chọn cảm xúc
 - [x] Bổ sung lệnh AI quản trị có hướng dẫn chi tiết để tạo lời an ủi và động viên dưới dạng bản nháp
 - [x] Thêm regression, TypeScript, Vitest, build và QA responsive cho vòng cập nhật cảm xúc
+
+## Rà soát module độc lập và kiểm soát mất tập trung
+- [x] Lập ma trận trạng thái Đạt / Chưa đạt / Thiếu / Sai cho Giao diện, Mascot, Pomodoro, Audio, Achievement, Khoảnh khắc, Hiểu tận gốc, Làm đề giấy, Thùng rác, CRUD/khôi phục, Responsive, Lưu dữ liệu, Animation, Popup và trạng thái mascot
+- [x] Rà soát mỗi module để xác nhận giao diện riêng, dữ liệu riêng, trạng thái rõ ràng và thao tác thêm/sửa/xóa/khôi phục khi áp dụng
+- [x] Bổ sung cài đặt tập trung để bật/tắt animation, popup và âm thanh độc lập
+- [x] Bổ sung các khoảng trống ưu tiên cao phát hiện từ ma trận kiểm tra mà không gộp các module khác bản chất
+- [x] Viết regression, thực hiện QA từng module và cập nhật checklist trạng thái cuối cùng

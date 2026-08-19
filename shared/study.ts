@@ -103,6 +103,7 @@ export type PaperQuizSession = {
   certainty: Record<string, "certain" | "unsure" | "wrong" | "blank">;
   results?: Record<string, "correct" | "wrong" | "unsure" | "blank">;
   notes?: string;
+  deletedAt?: string;
 };
 
 export type StudyActivity = {
@@ -491,6 +492,9 @@ export type ProfileState = {
   activeCosmeticBackground?: CosmeticBackgroundId;
   achievementUnlockDates: Record<string, string>;
   soundEnabled: boolean;
+  animationsEnabled?: boolean;
+  popupsEnabled?: boolean;
+  emotionTheme?: "calm" | "happy" | "tired" | "sad" | "stressed" | "lazy" | "proud" | "focused" | "hopeful" | "overwhelmed" | "sleepy" | "excited" | "lonely" | "confident" | "curious" | "comeback";
   theme: "light" | "dark";
   lastActivityAt: string | null;
   currentStreak: number;
@@ -646,6 +650,9 @@ export const emptyProfile = (): ProfileState => ({
   inventory: [],
   achievementUnlockDates: {},
   soundEnabled: true,
+  animationsEnabled: true,
+  popupsEnabled: true,
+  emotionTheme: "calm",
   theme: "light",
   lastActivityAt: null,
   currentStreak: 0,
@@ -1182,6 +1189,9 @@ export function normalizeProfile(value: unknown): ProfileState {
     ownedBadges: Array.isArray(source.ownedBadges) ? source.ownedBadges : [],
     inventory: Array.isArray(source.inventory) ? source.inventory : [],
     achievementUnlockDates: source.achievementUnlockDates && typeof source.achievementUnlockDates === "object" ? source.achievementUnlockDates : {},
+    animationsEnabled: source.animationsEnabled !== false,
+    popupsEnabled: source.popupsEnabled !== false,
+    emotionTheme: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(source.emotionTheme)) ? source.emotionTheme as ProfileState["emotionTheme"] : "calm",
     currentStreak: Math.max(0, Number(source.currentStreak) || 0),
     bestStreak: Math.max(0, Number(source.bestStreak) || 0),
     streakShields: Math.max(0, Math.min(3, Number(source.streakShields) || 0)),

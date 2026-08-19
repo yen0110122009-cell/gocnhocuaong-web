@@ -107,6 +107,14 @@
   .animate-spin { animation: none !important; }
 }
 
+html[data-animations="off"] *, html[data-animations="off"] *::before, html[data-animations="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-popups="off"] [data-sonner-toaster] { display: none !important; }
+
 /* Cosmetic shop: theme and animated background are data-driven and applied on <html>. */
 :root[data-cosmetic-theme="ong-red"] { --cosmetic-accent: #c62828; --cosmetic-accent-soft: #fff1ef; }
 :root[data-cosmetic-theme="forest-green"] { --cosmetic-accent: #2e7d32; --cosmetic-accent-soft: #effcf1; }
