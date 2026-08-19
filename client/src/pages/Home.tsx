@@ -60,10 +60,19 @@ export default function Home() {
   useEffect(() => { if (configData.data) setConfig(configData.data as AppConfig); }, [configData.data]);
   useEffect(() => { if (profileData.error) { sessionStorage.removeItem(SESSION_KEY); setSession(null); } }, [profileData.error]);
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", profile.theme === "dark");
-    delete document.documentElement.dataset.cosmeticTheme;
-    delete document.documentElement.dataset.cosmeticBackground;
-  }, [profile.theme]);
+    const root = document.documentElement;
+    const applyAppearance = () => {
+      const hour = new Date().getHours();
+      const shouldUseNight = profile.autoNightMode === true && (hour >= 19 || hour < 6);
+      root.classList.toggle("dark", shouldUseNight || profile.theme === "dark");
+      root.dataset.focusMode = profile.focusMode === true ? "true" : "false";
+      delete root.dataset.cosmeticTheme;
+      delete root.dataset.cosmeticBackground;
+    };
+    applyAppearance();
+    const timer = profile.autoNightMode === true ? window.setInterval(applyAppearance, 60_000) : undefined;
+    return () => { if (timer) window.clearInterval(timer); };
+  }, [profile.autoNightMode, profile.focusMode, profile.theme]);
   useEffect(() => {
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
     const root = document.querySelector("main[data-scroll-reveal-root]");

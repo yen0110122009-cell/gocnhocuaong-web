@@ -133,6 +133,17 @@ describe("Experience Studio requirements", () => {
     expect(personalStudySpaceSource).toContain("preset");
   });
 
+  it("applies member-selected audio at Pomodoro milestones and supports night-focus preferences", () => {
+    expect(pomodoroSource).toContain("playPersonalCue");
+    expect(pomodoroSource).toContain("matchingPersonalAudio");
+    expect(pomodoroSource).toContain("personalBackgroundRef");
+    expect(pomodoroSource).toContain('playPersonalCue("start")');
+    expect(pomodoroSource).toContain('playPersonalCue("complete")');
+    expect(homeSource).toContain("profile.autoNightMode");
+    expect(homeSource).toContain("root.dataset.focusMode");
+    expect(cssSource).toContain(':root[data-focus-mode="true"]');
+  });
+
   it("offers validated JSON export and merge-or-replace import without embedding media files", () => {
     expect(mediaControlsSource).toContain("exportLibrary");
     expect(mediaControlsSource).toContain("importLibrary");

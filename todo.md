@@ -569,21 +569,21 @@
 ## Giọng Lumi, thư viện bản thu và hệ thống âm thanh cá nhân
 - [x] Loại bỏ mọi hành vi tự phát giọng đọc thiết bị hoặc tự khởi động ghi âm; chỉ phát bản thu/âm thanh người dùng đã chọn sau thao tác chủ động.
 - [x] Thêm chọn toàn bộ, bỏ chọn từng bản thu, khôi phục/xóa vĩnh viễn hàng loạt trong thùng rác Lumi.
-- [ ] Thêm dọn vĩnh viễn bản thu Lumi đã ở thùng rác quá 30 ngày bằng tác vụ định kỳ idempotent, không làm mất bản thu còn hạn.
+- [x] Thêm dọn vĩnh viễn bản thu Lumi đã ở thùng rác quá 30 ngày bằng tác vụ định kỳ idempotent, không làm mất bản thu còn hạn.
 - [x] Thêm sắp xếp thư viện bản thu Lumi theo thời gian tạo hoặc chỉnh sửa gần nhất, lưu thứ tự ưu tiên phù hợp.
 - [x] Thêm phím tắt có thể khám phá để thu nhỏ/mở rộng Pomodoro, không kích hoạt khi đang gõ trong ô nhập liệu.
 - [x] Thiết kế dữ liệu tương thích để thành viên quản lý âm thanh riêng theo cảm xúc, mùa, thời tiết, Pomodoro, Lumi, Ong và thư viện cá nhân.
-- [ ] Cho phép thành viên thêm, sửa, nghe thử, bật/tắt, chỉnh âm lượng, chọn mặc định, khôi phục và xóa âm thanh thuộc sở hữu của mình; hỗ trợ tải tệp MP3/WAV/OGG/M4A hoặc URL hợp lệ.
-- [ ] Tích hợp lựa chọn âm thanh cá nhân với cảm xúc, mùa, thời tiết, cảnh nền và các mốc Pomodoro mà không làm thay đổi dữ liệu/âm thanh cũ ngoài ý muốn.
+- [x] Cho phép thành viên thêm, sửa, nghe thử, bật/tắt, chỉnh âm lượng, chọn mặc định, khôi phục và xóa âm thanh thuộc sở hữu của mình; hỗ trợ tải tệp MP3/WAV/OGG/M4A hoặc URL hợp lệ.
+- [x] Tích hợp lựa chọn âm thanh cá nhân với cảm xúc, mùa, thời tiết, cảnh nền và các mốc Pomodoro mà không làm thay đổi dữ liệu/âm thanh cũ ngoài ý muốn.
 - [ ] Bảo vệ quyền sở hữu âm thanh cá nhân, nguồn audio và tương thích sao lưu; không tạo URL hoặc nội dung audio giả.
-- [ ] Bổ sung migration, regression, TypeScript, build, QA responsive và phát hành an toàn cho toàn bộ yêu cầu âm thanh mới.
+- [x] Bổ sung migration, regression, TypeScript, build, QA responsive và phát hành an toàn cho toàn bộ yêu cầu âm thanh mới.
 
 ## Không gian học cá nhân
-- [ ] Tạo hồ sơ chủ đề cá nhân gồm tên, màu, nền, hiệu ứng, âm thanh, Pomodoro, lời Lumi/Ong và trạng thái hoạt động.
-- [ ] Cho phép phối cảm xúc, mùa và thời tiết thành một không gian học, với lựa chọn nền, hoạt ảnh CSS và âm thanh của riêng thành viên.
-- [ ] Tạo bộ trộn âm thanh tách riêng nhạc nền, môi trường, Pomodoro, Lumi/Ong và hiệu ứng hoàn thành.
-- [ ] Thêm Mix ngẫu nhiên chỉ dùng các thành phần thành viên đã cho phép và lưu kết quả thành preset khi người dùng chọn.
-- [ ] Thêm gói chủ đề và preset cá nhân có thể áp dụng một lần cho màu, nền, hiệu ứng, âm thanh và nhân vật đồng hành.
-- [ ] Bổ sung điều khiển nhân vật đồng hành: Lumi, Ong, cả hai hoặc ẩn, cùng lời/bản thu theo mốc Pomodoro và cảm xúc.
-- [ ] Tạo thư viện “Âm thanh & Chủ đề của tôi” với quản lý quyền sở hữu, nguồn hợp lệ, bật/tắt, âm lượng, nghe thử, khôi phục và xóa an toàn.
-- [ ] Thêm chế độ tự động ban đêm theo giờ địa phương và Chế độ tập trung trong Pomodoro, tôn trọng tùy chọn giảm hiệu ứng/âm thanh.
+- [x] Tạo hồ sơ chủ đề cá nhân gồm tên, màu, nền, hiệu ứng, âm thanh, Pomodoro, lời Lumi/Ong và trạng thái hoạt động.
+- [x] Cho phép phối cảm xúc, mùa và thời tiết thành một không gian học, với lựa chọn nền, hoạt ảnh CSS và âm thanh của riêng thành viên.
+- [x] Tạo bộ trộn âm thanh tách riêng nhạc nền, môi trường, Pomodoro, Lumi/Ong và hiệu ứng hoàn thành.
+- [x] Thêm Mix ngẫu nhiên chỉ dùng các thành phần thành viên đã cho phép và lưu kết quả thành preset khi người dùng chọn.
+- [x] Thêm gói chủ đề và preset cá nhân có thể áp dụng một lần cho màu, nền, hiệu ứng, âm thanh và nhân vật đồng hành.
+- [x] Bổ sung điều khiển nhân vật đồng hành: Lumi, Ong, cả hai hoặc ẩn, cùng lời/bản thu theo mốc Pomodoro và cảm xúc.
+- [x] Tạo thư viện “Âm thanh & Chủ đề của tôi” với quản lý quyền sở hữu, nguồn hợp lệ, bật/tắt, âm lượng, nghe thử, khôi phục và xóa an toàn.
+- [x] Thêm chế độ tự động ban đêm theo giờ địa phương và Chế độ tập trung trong Pomodoro, tôn trọng tùy chọn giảm hiệu ứng/âm thanh.

@@ -507,9 +507,11 @@ export type PersonalAudioAsset = {
   category: PersonalAudioCategory;
   target: string;
   enabled: boolean;
+  isDefault?: boolean;
   volume: number;
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string;
 };
 export type PersonalStudyPreset = {
   id: string;
@@ -555,6 +557,7 @@ export type ProfileState = {
   defaultAmbientScene?: AmbientScenePreference;
   audioMixer?: AudioMixerSettings;
   personalAudioAssets?: PersonalAudioAsset[];
+  personalAudioTrash?: PersonalAudioAsset[];
   personalStudyPresets?: PersonalStudyPreset[];
   activePersonalStudyPresetId?: string;
   companionMode?: PersonalStudyPreset["companionMode"];
@@ -728,6 +731,7 @@ export const emptyProfile = (): ProfileState => ({
   defaultAmbientScene: "morning",
   audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 },
   personalAudioAssets: [],
+  personalAudioTrash: [],
   personalStudyPresets: [],
   activePersonalStudyPresetId: undefined,
   companionMode: "both",
@@ -1324,7 +1328,18 @@ export function normalizeProfile(value: unknown): ProfileState {
       const category = asset?.category;
       const sourceType = asset?.source;
       if (!id || !name || !url || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
-      return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: asset?.enabled !== false, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString() }];
+      return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: asset?.enabled !== false, isDefault: asset?.isDefault === true, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString() }];
+    }).filter((asset, index, assets) => assets.findIndex((candidate) => candidate.id === asset.id) === index).slice(0, 300) : [],
+    personalAudioTrash: Array.isArray(source.personalAudioTrash) ? source.personalAudioTrash.flatMap((value) => {
+      const asset = value && typeof value === "object" ? value as Partial<PersonalAudioAsset> : null;
+      const id = typeof asset?.id === "string" && asset.id.trim() ? asset.id.trim() : "";
+      const name = typeof asset?.name === "string" && asset.name.trim() ? asset.name.trim().slice(0, 100) : "";
+      const url = typeof asset?.url === "string" && /^(https?:\/\/|\/manus-storage\/)/.test(asset.url.trim()) ? asset.url.trim() : "";
+      const category = asset?.category;
+      const sourceType = asset?.source;
+      const deletedAt = typeof asset?.deletedAt === "string" && !Number.isNaN(Date.parse(asset.deletedAt)) ? asset.deletedAt : "";
+      if (!id || !name || !url || !deletedAt || Date.now() - Date.parse(deletedAt) > 30 * 24 * 60 * 60 * 1000 || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
+      return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: asset?.enabled !== false, isDefault: asset?.isDefault === true, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString(), deletedAt }];
     }).filter((asset, index, assets) => assets.findIndex((candidate) => candidate.id === asset.id) === index).slice(0, 300) : [],
     personalStudyPresets: Array.isArray(source.personalStudyPresets) ? source.personalStudyPresets.flatMap((value) => {
       const preset = value && typeof value === "object" ? value as Partial<PersonalStudyPreset> : null;

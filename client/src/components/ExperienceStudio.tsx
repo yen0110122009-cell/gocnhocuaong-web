@@ -56,6 +56,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const ambientStopRef = useRef<(() => void) | null>(null);
   const ambientMasterRef = useRef<GainNode | null>(null);
   const ambientGenerationRef = useRef(0);
+  const ambientTrackRef = useRef<HTMLAudioElement | null>(null);
   const lumiAudioRef = useRef<HTMLAudioElement | null>(null);
   const emotionTransitionTimerRef = useRef<number | null>(null);
   const theme = emotionThemes.find((item) => item.id === selected) ?? emotionThemes[0];
@@ -63,6 +64,13 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const configuredMascotImage = companionMedia?.mascotImageUrl;
   const configuredLumiImage = companionMedia?.lumiImageUrl || getDefaultLumiImage(theme.id);
   const preferredPersonalVoice = companionMedia?.lumiVoiceRecordings?.find((recording) => recording.id === companionMedia.favoriteLumiVoiceId) ?? companionMedia?.lumiVoiceRecordings?.[0];
+  const selectedPreset = profile?.personalStudyPresets?.find((preset) => preset.id === profile.activePersonalStudyPresetId);
+  const selectedPersonalAudioIds = selectedPreset?.audioAssetIds ?? [];
+  const preferredCompanionAudio = (kind: "lumi" | "ong") => (profile?.personalAudioAssets ?? [])
+    .filter((asset) => asset.enabled && asset.category === kind)
+    .filter((asset) => selectedPersonalAudioIds.length === 0 || selectedPersonalAudioIds.includes(asset.id))
+    .filter((asset) => [theme.id, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")))
+    .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
   const voiceLinkedLumiImage = CLASSIC_LUMI_IMAGE;
   const matchingVoiceLine = [...voiceLines].reverse().find((item) => item.enabled && !item.deletedAt && (item.emotion === theme.id || item.state === `emotion-${theme.id}` || (!item.emotion && emotionVoiceStates[theme.id].includes(item.state))));
   const voiceMatchLabel = matchingVoiceLine?.emotion === theme.id || matchingVoiceLine?.state === `emotion-${theme.id}` ? `Bản thu cho cảm xúc “${theme.label}”` : matchingVoiceLine ? `Bản thu ngữ cảnh phù hợp với “${theme.label}”` : "Chưa có bản thu được duyệt cho cảm xúc này";
@@ -131,6 +139,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     ambientStopRef.current?.();
     ambientStopRef.current = null;
     ambientMasterRef.current = null;
+    ambientTrackRef.current?.pause();
+    ambientTrackRef.current = null;
     setAmbientPlaying(false);
   }
 
@@ -139,6 +149,27 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     setScene(scene);
     if (ambientPlaying && scene === ambientScene) { stopAmbient(); return; }
     stopAmbient();
+    const selectedPreset = profile?.personalStudyPresets?.find((preset) => preset.id === profile.activePersonalStudyPresetId);
+    const permittedAssetIds = selectedPreset?.audioAssetIds ?? [];
+    const personalAmbientAudio = (profile?.personalAudioAssets ?? [])
+      .filter((asset) => asset.enabled && (asset.category === "season" || asset.category === "weather" || asset.category === "background"))
+      .filter((asset) => permittedAssetIds.length === 0 || permittedAssetIds.includes(asset.id))
+      .filter((asset) => [scene, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")))
+      .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
+    if (personalAmbientAudio) {
+      const audio = new Audio(personalAmbientAudio.url);
+      audio.loop = true;
+      audio.volume = ambientVolumes[scene] / 100;
+      ambientTrackRef.current = audio;
+      void audio.play().then(() => {
+        if (ambientTrackRef.current !== audio) return;
+        setAmbientPlaying(true);
+        setMessage(`Đang phát âm nền cá nhân “${personalAmbientAudio.name}”.`);
+      }).catch(() => {
+        if (ambientTrackRef.current === audio) { ambientTrackRef.current = null; setMessage("Không thể phát âm nền cá nhân này. Hãy kiểm tra tệp hoặc URL rồi nghe lại."); }
+      });
+      return;
+    }
     const generation = ++ambientGenerationRef.current;
     try {
       const context = !audioContextRef.current || audioContextRef.current.state === "closed" ? new AudioContext() : audioContextRef.current;
@@ -210,11 +241,18 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   function playLumiVoice() {
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
-    const voiceUrl = preferredPersonalVoice?.url || companionMedia?.lumiVoiceUrl || matchingVoiceLine?.audioUrl;
+    const voiceUrl = preferredCompanionAudio("lumi")?.url || preferredPersonalVoice?.url || companionMedia?.lumiVoiceUrl || matchingVoiceLine?.audioUrl;
     if (voiceUrl) {
       lumiAudioRef.current?.pause(); const audio = new Audio(voiceUrl); audio.volume = lumiVolume / 100; lumiAudioRef.current = audio; void audio.play().catch(() => setMessage("Không thể phát bản thu này. Lumi vẫn để lại lời nhắn ở bên cạnh.")); return;
     }
     setMessage("Chưa có bản thu Lumi cho lời nhắn này. Ong có thể thêm bản thu trong thư viện rồi chủ động nhấn nghe.");
+  }
+
+  function playOngVoice() {
+    if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
+    const voiceUrl = preferredCompanionAudio("ong")?.url;
+    if (!voiceUrl) { setMessage("Chưa có bản thu Ong cho cảm xúc này. Ong có thể thêm loại “Lời Ong” trong thư viện âm thanh cá nhân."); return; }
+    lumiAudioRef.current?.pause(); const audio = new Audio(voiceUrl); audio.volume = lumiVolume / 100; lumiAudioRef.current = audio; void audio.play().catch(() => setMessage("Không thể phát bản thu Ong này."));
   }
 
   function chooseSpeechGroup(group: SpeechGroup) {
@@ -245,7 +283,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     </section>
     </PersistentCollapsible>
     <PersistentCollapsible storageKey="experience-emotion-command" eyebrow="Tùy chỉnh cảm xúc" title="Câu lệnh đổi giao diện" className="relative z-10 mt-4 border-[#c62828]/15 bg-white/85"><div><label htmlFor="emotion-command" className="text-sm font-black text-[#7f1d1d]">Nhập cảm xúc hoặc câu lệnh</label><div className="mt-2 flex flex-col gap-2 sm:flex-row"><input id="emotion-command" value={command} onChange={(event) => setCommand(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") selectEmotion(emotionFromCommand(command).id); }} placeholder={safeCommandHint} className="field flex-1 border-[#2e7d32]/25 bg-white" /><button type="button" onClick={() => selectEmotion(emotionFromCommand(command).id)} className="primary-button justify-center bg-[#c62828] hover:bg-[#a91f1f]">Áp dụng</button></div>{message ? <p className="mt-2 text-xs font-bold text-[#2e7d32]" role="status">{message}</p> : null}</div></PersistentCollapsible>
-    <PersistentCollapsible storageKey="experience-lumi-speech-library" eyebrow="Đồng hành cùng Lumi" title="Lời an ủi và động viên" className="relative z-10 mt-5 border-2 border-[#2e7d32]/15 bg-[#f5fff5]/95"><section aria-labelledby="speech-library-title"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Lời an ủi và động viên từ Lumi</p><h3 id="speech-library-title" className="mt-1 text-lg font-black text-[#7f1d1d]">Lumi ở đây để đồng hành cùng Ong</h3></div><span className="rounded-full bg-[#c62828] px-3 py-1 text-xs font-black text-white">{speechGroupLabels[speechGroup]}</span></div><div className="mt-3 flex flex-wrap gap-2">{(Object.entries(speechGroupLabels) as [SpeechGroup, string][]).map(([group, label]) => <button key={group} type="button" onClick={() => chooseSpeechGroup(group)} className={`rounded-xl px-3 py-2 text-xs font-black ${speechGroup === group ? "bg-[#c62828] text-white" : "bg-white text-[#2e7d32]"}`}>{label}</button>)}</div><div className="mt-3 flex gap-3 rounded-2xl bg-[#fff0eb] p-4"><img src={CLASSIC_LUMI_IMAGE} alt="Lumi đang động viên Ong" className="h-20 w-16 rounded-xl object-cover object-top" /><div className="min-w-0 flex-1"><p className="text-[11px] font-black uppercase tracking-wider text-[#2e7d32]">Thư viện Lumi · {weekdayLumi.label}</p><p className="mt-1 text-sm font-bold leading-6 text-[#6f2424]">{lumiVoiceText}</p><button type="button" onClick={playLumiVoice} className="mt-3 rounded-xl bg-[#2e7d32] px-3 py-2 text-xs font-black text-white"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản thu Lumi</button>{matchingVoiceLine?.audioUrl ? <span className="ml-2 text-[11px] font-bold text-[#2e7d32]">Dùng bản thu đã lưu</span> : <span className="ml-2 text-[11px] text-[#6f5a53]">Chưa có bản thu; Ong có thể tự thêm trong thư viện.</span>}</div></div><div className="mt-3 grid gap-3 md:grid-cols-2"><div className="rounded-2xl border border-[#2e7d32]/20 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">🫠 Chống trì hoãn</p><div className="mt-2 flex flex-wrap gap-2">{antiProcrastinationChoices.map((choice) => <button key={choice.id} type="button" onClick={() => chooseAntiProcrastination(choice.id)} className="rounded-xl border border-[#2e7d32]/20 bg-[#eff9ef] px-3 py-2 text-left text-xs font-black text-[#2e7d32]"><span className="block">{choice.label}</span><small className="mt-1 block font-medium text-[#35523a]">{choice.description}</small></button>)}</div></div><div className="rounded-2xl border border-[#c62828]/15 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#c62828]">🎯 Nhiệm vụ siêu nhỏ</p><p className="mt-2 text-sm font-black text-[#35523a]">{microTask}</p><button type="button" onClick={() => setMicroTask(randomMicroTask())} className="mt-3 rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">Đổi nhiệm vụ</button></div></div></section></PersistentCollapsible>
+    <PersistentCollapsible storageKey="experience-lumi-speech-library" eyebrow="Đồng hành cùng Lumi" title="Lời an ủi và động viên" className="relative z-10 mt-5 border-2 border-[#2e7d32]/15 bg-[#f5fff5]/95"><section aria-labelledby="speech-library-title"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Lời an ủi và động viên từ Lumi</p><h3 id="speech-library-title" className="mt-1 text-lg font-black text-[#7f1d1d]">Lumi ở đây để đồng hành cùng Ong</h3></div><span className="rounded-full bg-[#c62828] px-3 py-1 text-xs font-black text-white">{speechGroupLabels[speechGroup]}</span></div><div className="mt-3 flex flex-wrap gap-2">{(Object.entries(speechGroupLabels) as [SpeechGroup, string][]).map(([group, label]) => <button key={group} type="button" onClick={() => chooseSpeechGroup(group)} className={`rounded-xl px-3 py-2 text-xs font-black ${speechGroup === group ? "bg-[#c62828] text-white" : "bg-white text-[#2e7d32]"}`}>{label}</button>)}</div><div className="mt-3 flex gap-3 rounded-2xl bg-[#fff0eb] p-4"><img src={CLASSIC_LUMI_IMAGE} alt="Lumi đang động viên Ong" className="h-20 w-16 rounded-xl object-cover object-top" /><div className="min-w-0 flex-1"><p className="text-[11px] font-black uppercase tracking-wider text-[#2e7d32]">Thư viện Lumi · {weekdayLumi.label}</p><p className="mt-1 text-sm font-bold leading-6 text-[#6f2424]">{lumiVoiceText}</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={playLumiVoice} className="rounded-xl bg-[#2e7d32] px-3 py-2 text-xs font-black text-white"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản thu Lumi</button>{profile?.companionMode === "ong" || profile?.companionMode === "both" || !profile?.companionMode ? <button type="button" onClick={playOngVoice} className="rounded-xl border border-[#c62828]/25 bg-white px-3 py-2 text-xs font-black text-[#c62828]"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản thu Ong</button> : null}</div>{matchingVoiceLine?.audioUrl ? <span className="mt-2 block text-[11px] font-bold text-[#2e7d32]">Dùng bản thu đã lưu</span> : <span className="mt-2 block text-[11px] text-[#6f5a53]">Chưa có bản thu; Ong có thể tự thêm trong thư viện.</span>}</div></div><div className="mt-3 grid gap-3 md:grid-cols-2"><div className="rounded-2xl border border-[#2e7d32]/20 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">🫠 Chống trì hoãn</p><div className="mt-2 flex flex-wrap gap-2">{antiProcrastinationChoices.map((choice) => <button key={choice.id} type="button" onClick={() => chooseAntiProcrastination(choice.id)} className="rounded-xl border border-[#2e7d32]/20 bg-[#eff9ef] px-3 py-2 text-left text-xs font-black text-[#2e7d32]"><span className="block">{choice.label}</span><small className="mt-1 block font-medium text-[#35523a]">{choice.description}</small></button>)}</div></div><div className="rounded-2xl border border-[#c62828]/15 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#c62828]">🎯 Nhiệm vụ siêu nhỏ</p><p className="mt-2 text-sm font-black text-[#35523a]">{microTask}</p><button type="button" onClick={() => setMicroTask(randomMicroTask())} className="mt-3 rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">Đổi nhiệm vụ</button></div></div></section></PersistentCollapsible>
     <aside className={`relative z-10 mt-4 rounded-2xl border p-3 text-sm ${matchingVoiceLine?.audioUrl ? "border-[#2e7d32]/25 bg-[#eff9ef] text-[#25582c]" : "border-amber-200 bg-amber-50 text-amber-900"}`} aria-live="polite"><b className="block text-xs uppercase tracking-wider">Giọng Lumi theo cảm xúc</b><span className="mt-1 block">{voiceMatchLabel}{matchingVoiceLine?.audioUrl ? " — nhấn “Nghe bản thu Lumi” để phát." : " — chưa có bản thu; Lumi vẫn hiển thị lời nhắn bên cạnh."}</span></aside>
     <div className="relative z-10 mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       <div className="rounded-2xl bg-[#fff0eb]/95 p-4">

@@ -115,6 +115,17 @@ html[data-animations="off"] *, html[data-animations="off"] *::before, html[data-
 
 html[data-popups="off"] [data-sonner-toaster] { display: none !important; }
 
+/* Chế độ tập trung chỉ giảm hiệu ứng phụ, không che nội dung học hay điều khiển Pomodoro. */
+:root[data-focus-mode="true"] .scroll-reveal,
+:root[data-focus-mode="true"] .ambient-scene *,
+:root[data-focus-mode="true"] .weather-layer,
+:root[data-focus-mode="true"] .pomodoro-journey::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 120ms !important;
+}
+:root[data-focus-mode="true"] .ambient-scene { filter: saturate(.72) brightness(.95); }
+
 @media (prefers-reduced-motion: no-preference) {
   html[data-animations="on"] .lumi-emotion-transition {
     animation: lumi-emotion-transition 460ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));

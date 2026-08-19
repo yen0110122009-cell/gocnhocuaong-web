@@ -1,7 +1,7 @@
 import { ArrowRight, BarChart3, BookOpen, Check, CircleHelp, Clock3, Flame, Pause, Play, RotateCcw, Settings2, Sparkles, Trophy, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { applyStudyActivityRewards, computedAchievements, type AppConfig, type PomodoroSession, type ProfileState } from "../../../shared/study";
+import { applyStudyActivityRewards, computedAchievements, type AppConfig, type PersonalAudioAsset, type PomodoroSession, type ProfileState } from "../../../shared/study";
 import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_PRESETS, scaledGain, scaledLayerGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing, type SoundEvent } from "../lib/pomodoroAudio";
 import { ExperienceStudio } from "../components/ExperienceStudio";
 import { PersistentCollapsible } from "../components/PersistentCollapsible";
@@ -84,6 +84,8 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const audioContextRef = useRef<AudioContext | null>(null);
   const previewStopRef = useRef<(() => void) | null>(null);
   const backgroundStopRef = useRef<(() => void) | null>(null);
+  const personalCueRef = useRef<HTMLAudioElement | null>(null);
+  const personalBackgroundRef = useRef<HTMLAudioElement | null>(null);
   const backgroundGenerationRef = useRef(0);
   const profileSoundRef = useRef(profile.soundEnabled);
   const weeklyGoalReachedRef = useRef<boolean | null>(null);
@@ -112,7 +114,43 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     backgroundGenerationRef.current += 1;
     backgroundStopRef.current?.();
     backgroundStopRef.current = null;
+    personalBackgroundRef.current?.pause();
+    if (personalBackgroundRef.current) personalBackgroundRef.current.currentTime = 0;
+    personalBackgroundRef.current = null;
     setBackgroundActive(false);
+  }
+  function stopPersonalCue() {
+    personalCueRef.current?.pause();
+    personalCueRef.current = null;
+  }
+  function matchingPersonalAudio(category: PersonalAudioAsset["category"], target: string) {
+    const wantedTarget = target.trim().toLocaleLowerCase("vi-VN");
+    const activePreset = (profile.personalStudyPresets ?? []).find((preset) => preset.id === profile.activePersonalStudyPresetId);
+    const selectedAssetIds = activePreset?.audioAssetIds ?? [];
+    return (profile.personalAudioAssets ?? [])
+      .filter((asset) => asset.enabled && asset.category === category)
+      .filter((asset) => selectedAssetIds.length === 0 || selectedAssetIds.includes(asset.id))
+      .filter((asset) => {
+        const assetTarget = asset.target.trim().toLocaleLowerCase("vi-VN");
+        return assetTarget === wantedTarget || assetTarget === "general" || assetTarget === "mặc định";
+      })
+      .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || Date.parse(right.updatedAt) - Date.parse(left.updatedAt))[0];
+  }
+  async function playPersonalCue(target: "start" | "warning" | "complete" | "break" | "reward") {
+    if (!sound || alertVolume <= 0) return false;
+    const asset = matchingPersonalAudio("pomodoro", target);
+    if (!asset) return false;
+    try {
+      stopPersonalCue();
+      const audio = new Audio(asset.url);
+      audio.volume = Math.min(1, Math.max(0, asset.volume / 100 * alertVolume / 100));
+      personalCueRef.current = audio;
+      audio.onended = () => { if (personalCueRef.current === audio) personalCueRef.current = null; };
+      await audio.play();
+      return true;
+    } catch {
+      return false;
+    }
   }
   async function startBackground(allowWhenJustEnabled = false) {
     backgroundStopRef.current?.();
@@ -123,6 +161,18 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     try {
       const unlocked = await unlockAudio(allowWhenJustEnabled);
       if (!unlocked || generation !== backgroundGenerationRef.current) return false;
+      const personalBackground = matchingPersonalAudio("background", backgroundSound) ?? matchingPersonalAudio("weather", backgroundSound);
+      if (personalBackground) {
+        const audio = new Audio(personalBackground.url);
+        audio.loop = true;
+        audio.volume = Math.min(1, Math.max(0, personalBackground.volume / 100 * backgroundVolume / 100));
+        personalBackgroundRef.current = audio;
+        await audio.play();
+        if (generation !== backgroundGenerationRef.current) { audio.pause(); return false; }
+        backgroundStopRef.current = () => { audio.pause(); audio.currentTime = 0; };
+        setBackgroundActive(true);
+        return true;
+      }
       const context = getAudioContext();
       const preset = SOUNDSCAPE_PRESETS[backgroundSound] ?? SOUNDSCAPE_PRESETS["Mưa nhẹ"];
       const master = context.createGain();
@@ -287,7 +337,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     if (started) toast.success(`Đang phát nền: ${SOUNDSCAPE_PRESETS[backgroundSound]?.label ?? backgroundSound}.`);
     else toast.error("Không thể phát âm nền. Hãy kiểm tra cảnh và âm lượng rồi thử lại.");
   }
-  useEffect(() => () => { stopPreview(); stopBackground(); void audioContextRef.current?.close(); }, []);
+  useEffect(() => () => { stopPreview(); stopPersonalCue(); stopBackground(); void audioContextRef.current?.close(); }, []);
   useEffect(() => { if (!sound) { stopPreview(); stopBackground(); } }, [sound]);
   useEffect(() => {
     if (profileSoundRef.current === profile.soundEnabled) return;
@@ -353,7 +403,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   }, [running]);
   useEffect(() => {
     if (!running || seconds <= 0 || seconds % 60 !== 0) return;
-    if (seconds === 60) playSequence("warning");
+    if (seconds === 60) { void playPersonalCue("warning").then((played) => { if (!played) void playSequence("warning"); }); }
     else playSequence("tick");
   }, [running, seconds]);
   useEffect(() => {
@@ -411,7 +461,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     } catch { /* Giữ chặn theo phiên bằng ref nếu trình duyệt không cho localStorage. */ }
     if (profile.popupsEnabled !== false) setWeeklyGoalCelebrationOpen(true);
     if (profile.popupsEnabled !== false) toast.success(`Mục tiêu tuần đã hoàn thành: ${weeklyMinutes} / ${weeklyGoal} phút!`);
-    if (sound) void playSequence("reward");
+    if (sound) void playPersonalCue("reward").then((played) => { if (!played) void playSequence("reward"); });
   }, [currentWeekKey, profile.popupsEnabled, sound, weeklyGoal, weeklyMinutes]);
 
   useEffect(() => {
@@ -431,7 +481,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     if (!sessionStartedAt && mode === "focus") setSessionStartedAt(new Date().toISOString());
     recordEvent(twoMinuteMode || focus <= 5 ? "started_small" : "started_focus", focus);
     trackedOpenRef.current = true;
-    completionRef.current = false; setIntroAnimation(true); setRunning(true); void playSequence("start");
+    completionRef.current = false; setIntroAnimation(true); setRunning(true); void playPersonalCue("start").then((played) => { if (!played) void playSequence("start"); });
     if (sound) { setBackgroundRequested(true); void startBackground(); }
     window.setTimeout(() => setIntroAnimation(false), 2600);
   }
@@ -453,7 +503,11 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     onProfile(rewarded.profile, rewarded.newlyUnlocked.length ? `Hoàn thành phiên Pomodoro · +${activityReward.xpEarned} XP · mở khóa ${rewarded.newlyUnlocked.length} thành tích` : `Hoàn thành phiên Pomodoro · +${activityReward.xpEarned} XP`);
     const nextMode: Mode = autoAdvance ? (session.sessionNumber % 4 === 0 ? "longBreak" : "shortBreak") : "focus";
     setRunning(false); setSessionStartedAt(null); setMode(nextMode); setSeconds((nextMode === "longBreak" ? longBreak : nextMode === "shortBreak" ? shortBreak : focus) * 60); completionRef.current = false;
-    if (sound) { try { window.navigator.vibrate?.(COMPLETE_ALERT_PROFILE.vibratePattern); } catch { /* optional */ } playAlert(); if (rewarded.newlyUnlocked.length) playSequence("reward"); }
+    if (sound) {
+      try { window.navigator.vibrate?.(COMPLETE_ALERT_PROFILE.vibratePattern); } catch { /* optional */ }
+      void playPersonalCue("complete").then((played) => { if (!played) playAlert(); });
+      if (rewarded.newlyUnlocked.length) void playPersonalCue("reward").then((played) => { if (!played) void playSequence("reward"); });
+    }
     setCompletionBanner(true);
     window.setTimeout(() => setCompletionBanner(false), 5200);
     toast.success("Một phiên nữa đã hoàn thành! Thời gian học đã được ghi nhận.");
