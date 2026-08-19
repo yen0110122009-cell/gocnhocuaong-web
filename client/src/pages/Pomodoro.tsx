@@ -83,12 +83,14 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const audioContextRef = useRef<AudioContext | null>(null);
   const previewStopRef = useRef<(() => void) | null>(null);
   const backgroundStopRef = useRef<(() => void) | null>(null);
+  const backgroundGenerationRef = useRef(0);
+  const profileSoundRef = useRef(profile.soundEnabled);
   const weeklyGoalReachedRef = useRef<boolean | null>(null);
   const weeklyGoalKeyRef = useRef<string | null>(null);
   const weeklyGoalHistoryWriteRef = useRef<Set<string>>(new Set());
 
   function getAudioContext() {
-    if (!audioContextRef.current) audioContextRef.current = new AudioContext();
+    if (!audioContextRef.current || audioContextRef.current.state === "closed") audioContextRef.current = new AudioContext();
     return audioContextRef.current;
   }
   async function unlockAudio(allowWhenJustEnabled = false) {
@@ -106,20 +108,24 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     previewStopRef.current = null;
   }
   function stopBackground() {
+    backgroundGenerationRef.current += 1;
     backgroundStopRef.current?.();
     backgroundStopRef.current = null;
     setBackgroundActive(false);
   }
   async function startBackground(allowWhenJustEnabled = false) {
-    stopBackground();
+    backgroundStopRef.current?.();
+    backgroundStopRef.current = null;
+    setBackgroundActive(false);
+    const generation = ++backgroundGenerationRef.current;
     if ((!sound && !allowWhenJustEnabled) || backgroundVolume <= 0 || backgroundSound === "Không âm thanh") return false;
     try {
       const unlocked = await unlockAudio(allowWhenJustEnabled);
-      if (!unlocked) return false;
+      if (!unlocked || generation !== backgroundGenerationRef.current) return false;
       const context = getAudioContext();
       const preset = SOUNDSCAPE_PRESETS[backgroundSound] ?? SOUNDSCAPE_PRESETS["Mưa nhẹ"];
       const master = context.createGain();
-      const targetMaster = Math.min(1, backgroundVolume / 100) * 0.3;
+      const targetMaster = Math.min(0.46, Math.max(0.015, backgroundVolume / 100 * 0.46));
       master.gain.setValueAtTime(0.001, context.currentTime);
       master.gain.exponentialRampToValueAtTime(Math.max(0.001, targetMaster), context.currentTime + 1.2);
       master.connect(context.destination);
@@ -127,7 +133,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
       const intervals: number[] = [];
       preset.layers.map((id) => SOUNDSCAPE_LAYERS[id]).filter(Boolean).forEach((definition, layerIndex) => {
         const layerGain = context.createGain();
-        const targetLayerGain = Math.max(0.001, scaledLayerGain(clamp(layerVolumes[definition.id] ?? 100, 0, 100), definition.baseVolume));
+        const targetLayerGain = Math.max(0.001, scaledLayerGain(clamp(layerVolumes[definition.id] ?? 100, 0, 100), definition.baseVolume) * 0.55);
         layerGain.gain.setValueAtTime(0.001, context.currentTime);
         layerGain.gain.exponentialRampToValueAtTime(targetLayerGain, context.currentTime + 0.8 + layerIndex * 0.18);
         layerGain.connect(master);
@@ -152,17 +158,22 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         }, definition.intervalMs);
         intervals.push(interval);
       });
-      backgroundStopRef.current = () => {
+      const stopCurrentBackground = () => {
         intervals.forEach((interval) => window.clearInterval(interval));
         master.gain.cancelScheduledValues(context.currentTime);
         master.gain.setTargetAtTime(0.001, context.currentTime, 0.45);
         window.setTimeout(() => oscillators.forEach((oscillator) => { try { oscillator.stop(); } catch { /* already stopped */ } }), 1500);
         window.setTimeout(() => master.disconnect(), 1750);
       };
+      if (generation !== backgroundGenerationRef.current) {
+        stopCurrentBackground();
+        return false;
+      }
+      backgroundStopRef.current = stopCurrentBackground;
       setBackgroundActive(true);
       return true;
     } catch {
-      setBackgroundActive(false);
+      if (generation === backgroundGenerationRef.current) setBackgroundActive(false);
       return false;
     }
   }
@@ -278,6 +289,11 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   useEffect(() => () => { stopPreview(); stopBackground(); void audioContextRef.current?.close(); }, []);
   useEffect(() => { if (!sound) { stopPreview(); stopBackground(); } }, [sound]);
   useEffect(() => {
+    if (profileSoundRef.current === profile.soundEnabled) return;
+    profileSoundRef.current = profile.soundEnabled;
+    setSound(profile.soundEnabled);
+  }, [profile.soundEnabled]);
+  useEffect(() => {
     if (trackedOpenRef.current || running) return;
     const timer = window.setTimeout(() => {
       if (trackedOpenRef.current || running) return;
@@ -301,7 +317,6 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         setShortBreak(clamp(Number(saved.shortBreak) || 5, 1, 30));
         setLongBreak(clamp(Number(saved.longBreak) || 15, 1, 45));
         setAutoAdvance(saved.autoAdvance !== false);
-        setSound(saved.sound !== false);
         setBackgroundSound(saved.backgroundSound || "Mưa nhẹ");
       }
     } catch { /* ignore malformed preference */ }

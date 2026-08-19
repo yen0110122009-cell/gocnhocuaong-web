@@ -52,6 +52,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const restoredEmotionRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const ambientStopRef = useRef<(() => void) | null>(null);
+  const ambientMasterRef = useRef<GainNode | null>(null);
+  const ambientGenerationRef = useRef(0);
   const lumiAudioRef = useRef<HTMLAudioElement | null>(null);
   const emotionTransitionTimerRef = useRef<number | null>(null);
   const theme = emotionThemes.find((item) => item.id === selected) ?? emotionThemes[0];
@@ -83,7 +85,14 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     root.dataset.ambientScene = ambientScene;
   }, [ambientScene]);
 
-  useEffect(() => () => { ambientStopRef.current?.(); lumiAudioRef.current?.pause(); if (emotionTransitionTimerRef.current) window.clearTimeout(emotionTransitionTimerRef.current); }, []);
+  useEffect(() => () => { stopAmbient(); lumiAudioRef.current?.pause(); if (emotionTransitionTimerRef.current) window.clearTimeout(emotionTransitionTimerRef.current); }, []);
+  useEffect(() => {
+    if (!attentionPreferences.soundEnabled) {
+      stopAmbient();
+      lumiAudioRef.current?.pause();
+      window.speechSynthesis?.cancel();
+    }
+  }, [attentionPreferences.soundEnabled]);
 
   function setScene(next: AmbientScene) {
     setAmbientScene(next);
@@ -99,6 +108,14 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   function updateAmbientVolume(scene: AmbientScene, level: number) {
     const next = { ...ambientVolumes, [scene]: level };
     setAmbientVolumes(next);
+    if (ambientPlaying && ambientScene === scene && ambientMasterRef.current) {
+      const context = audioContextRef.current;
+      const target = Math.min(.32, Math.max(.008, level / 100 * .32));
+      if (context?.state === "running") {
+        ambientMasterRef.current.gain.cancelScheduledValues(context.currentTime);
+        ambientMasterRef.current.gain.linearRampToValueAtTime(target, context.currentTime + .12);
+      }
+    }
     if (profile) onProfile?.({ ...profile, audioMixer: { ...(profile.audioMixer ?? { ambientSceneVolumes: defaultAmbientVolumes, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 }), ambientSceneVolumes: next } });
   }
 
@@ -107,33 +124,53 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     onProfile?.({ ...profile, audioMixer: { ...(profile.audioMixer ?? { ambientSceneVolumes: defaultAmbientVolumes, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 }), lumi: level } });
   }
 
-  function stopAmbient() { ambientStopRef.current?.(); ambientStopRef.current = null; setAmbientPlaying(false); }
+  function stopAmbient() {
+    ambientGenerationRef.current += 1;
+    ambientStopRef.current?.();
+    ambientStopRef.current = null;
+    ambientMasterRef.current = null;
+    setAmbientPlaying(false);
+  }
 
   async function toggleAmbient(scene = ambientScene) {
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung. Hãy bật Âm thanh trước."); return; }
     setScene(scene);
     if (ambientPlaying && scene === ambientScene) { stopAmbient(); return; }
     stopAmbient();
+    const generation = ++ambientGenerationRef.current;
     try {
-      const context = audioContextRef.current ?? new AudioContext();
+      const context = !audioContextRef.current || audioContextRef.current.state === "closed" ? new AudioContext() : audioContextRef.current;
       audioContextRef.current = context;
       if (context.state !== "running") await context.resume();
-      const master = context.createGain(); master.gain.value = 0.012 + ambientVolumes[scene] / 750; master.connect(context.destination);
+      if (context.state !== "running" || generation !== ambientGenerationRef.current) return;
+      const master = context.createGain();
+      const targetMaster = Math.min(.32, Math.max(.008, ambientVolumes[scene] / 100 * .32));
+      master.gain.setValueAtTime(.001, context.currentTime);
+      master.gain.exponentialRampToValueAtTime(targetMaster, context.currentTime + .45);
+      master.connect(context.destination);
       const sources: AudioScheduledSourceNode[] = []; const timers: number[] = [];
       const beep = (frequency: number, duration: number, gain: number, at = context.currentTime) => {
         const osc = context.createOscillator(); const node = context.createGain(); osc.type = "sine"; osc.frequency.setValueAtTime(frequency, at); node.gain.setValueAtTime(0.001, at); node.gain.exponentialRampToValueAtTime(gain, at + 0.03); node.gain.exponentialRampToValueAtTime(0.001, at + duration); osc.connect(node).connect(master); osc.start(at); osc.stop(at + duration + 0.05); sources.push(osc);
       };
-      if (scene === "morning") { beep(880, .17, .34); timers.push(window.setInterval(() => { beep(660, .16, .28); beep(880, .12, .22, context.currentTime + .22); }, 4200)); }
-      if (scene === "leaves") { beep(196, 1.5, .12); timers.push(window.setInterval(() => beep(261, 1.1, .1), 5600)); }
-      if (scene === "snow") { beep(330, 2.2, .08); timers.push(window.setInterval(() => beep(392, 1.4, .06), 6400)); }
+      if (scene === "morning") { beep(880, .17, .34); timers.push(window.setInterval(() => { beep(660, .16, .28); beep(880, .12, .22, context.currentTime + .22); }, 2200)); }
+      if (scene === "leaves") { beep(196, 1.5, .18); timers.push(window.setInterval(() => beep(261, 1.1, .15), 2600)); }
+      if (scene === "snow") { beep(330, 2.2, .13); timers.push(window.setInterval(() => beep(392, 1.4, .1), 3200)); }
       if (scene === "rain" || scene === "storm") {
         const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
-        const noise = context.createBufferSource(); const filter = context.createBiquadFilter(); const gain = context.createGain(); filter.type = "lowpass"; filter.frequency.value = scene === "storm" ? 1250 : 2200; gain.gain.value = scene === "storm" ? .18 : .1; noise.buffer = buffer; noise.loop = true; noise.connect(filter).connect(gain).connect(master); noise.start(); sources.push(noise);
-        if (scene === "storm") timers.push(window.setInterval(() => beep(70, .8, .42), 9000));
+        const noise = context.createBufferSource(); const filter = context.createBiquadFilter(); const gain = context.createGain(); filter.type = "lowpass"; filter.frequency.value = scene === "storm" ? 1250 : 2200; gain.gain.value = scene === "storm" ? .46 : .32; noise.buffer = buffer; noise.loop = true; noise.connect(filter).connect(gain).connect(master); noise.start(); sources.push(noise);
+        if (scene === "storm") timers.push(window.setInterval(() => beep(70, .8, .48), 7000));
       }
-      ambientStopRef.current = () => { timers.forEach(window.clearInterval); sources.forEach((source) => { try { source.stop(); } catch { /* stopped */ } }); master.disconnect(); };
+      const stopCurrentAmbient = () => { timers.forEach(window.clearInterval); sources.forEach((source) => { try { source.stop(); } catch { /* stopped */ } }); master.disconnect(); };
+      if (generation !== ambientGenerationRef.current) { stopCurrentAmbient(); return; }
+      ambientStopRef.current = stopCurrentAmbient;
+      ambientMasterRef.current = master;
       setAmbientPlaying(true); setMessage(`Đang phát nền ${sceneOptions.find((item) => item.id === scene)?.label.toLowerCase()} sau thao tác của Ong.`);
-    } catch { setMessage("Trình duyệt chưa cho phép phát âm thanh. Hãy nhấn lại nút âm nền."); }
+    } catch {
+      if (generation === ambientGenerationRef.current) {
+        setAmbientPlaying(false);
+        setMessage("Không thể phát âm nền trên thiết bị này. Hãy bật Âm thanh, tăng âm lượng cảnh rồi nhấn nghe lại.");
+      }
+    }
   }
 
   async function playEmotionTransitionSound(id: EmotionId) {

@@ -124,4 +124,20 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(pomodoro()).toContain("async function unlockAudio(allowWhenJustEnabled = false)");
     expect(pomodoro()).toContain("unlockAudio(allowWhenJustEnabled)");
   });
+
+  it("prevents stale background starts and keeps Pomodoro aligned with the global sound preference", () => {
+    expect(pomodoro()).toContain("backgroundGenerationRef");
+    expect(pomodoro()).toContain("generation !== backgroundGenerationRef.current");
+    expect(pomodoro()).toContain("profileSoundRef");
+    expect(pomodoro()).toContain("setSound(profile.soundEnabled)");
+    expect(pomodoro()).toContain('audioContextRef.current.state === "closed"');
+  });
+
+  it("keeps ambient scene playback exclusive, audible, and adjustable while it is already playing", () => {
+    expect(studio()).toContain("ambientGenerationRef");
+    expect(studio()).toContain("generation !== ambientGenerationRef.current");
+    expect(studio()).toContain("ambientMasterRef");
+    expect(studio()).toContain("linearRampToValueAtTime(target, context.currentTime + .12)");
+    expect(studio()).toContain("Không thể phát âm nền trên thiết bị này");
+  });
 });

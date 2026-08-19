@@ -526,3 +526,8 @@
 - [x] Cho phép thêm, sửa và xóa câu chúc mừng Lumi riêng theo từng cảm xúc, với dữ liệu lưu theo hồ sơ.
 - [x] Thêm chuyển tiếp hình ảnh và hiệu ứng âm thanh ngắn, có tôn trọng cài đặt giảm chuyển động/âm thanh, khi đổi cảm xúc Lumi.
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho lịch sử tuần, lời chúc và chuyển tiếp cảm xúc.
+
+## Ổn định Audio Center và âm thanh nền
+- [x] Chẩn đoán lỗi âm thanh khi bật, dừng, nghe thử, đổi cảnh và đổi cảm xúc; ghi lại nguyên nhân kỹ thuật.
+- [x] Khắc phục phát âm thanh nền sau thao tác người dùng, đồng bộ trạng thái phát/dừng và các thanh âm lượng.
+- [x] Bổ sung regression, kiểm tra lỗi runtime, TypeScript, build và QA responsive cho luồng âm thanh đã sửa.
