@@ -15,4 +15,24 @@ describe("Companion emotion media normalization", () => {
     expect(profile.companionEmotionMedia?.happy?.favoriteLumiVoiceId).toBe("second");
     expect(profile.companionEmotionMedia?.sad?.favoriteLumiVoiceId).toBeUndefined();
   });
+
+  it("normalizes custom Lumi congratulations and weekly completion history without duplicate weeks", () => {
+    const profile = normalizeProfile({
+      weeklyPomodoroGoalCompletions: [
+        { weekKey: "2026-W34", completedAt: "2026-08-19T12:00:00.000Z", goalMinutes: 300, achievedMinutes: 320 },
+        { weekKey: "2026-W34", completedAt: "2026-08-20T12:00:00.000Z", goalMinutes: 350, achievedMinutes: 370 },
+        { weekKey: "invalid", completedAt: "2026-08-20T12:00:00.000Z", goalMinutes: 350, achievedMinutes: 370 },
+      ],
+      lumiCongratulationMessages: {
+        calm: [
+          { id: "calm-1", text: " Ong đã rất bền bỉ. ", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" },
+          { id: "calm-1", text: "Bản trùng", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" },
+        ],
+        invalid: [{ id: "ignored", text: "Không hợp lệ", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" }],
+      },
+    });
+    expect(profile.weeklyPomodoroGoalCompletions).toEqual([{ weekKey: "2026-W34", completedAt: "2026-08-19T12:00:00.000Z", goalMinutes: 300, achievedMinutes: 320 }]);
+    expect(profile.lumiCongratulationMessages?.calm).toEqual([{ id: "calm-1", text: "Ong đã rất bền bỉ.", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" }]);
+    expect(profile.lumiCongratulationMessages?.happy).toBeUndefined();
+  });
 });

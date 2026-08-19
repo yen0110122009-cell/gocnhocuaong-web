@@ -520,3 +520,9 @@
 - [x] Hiển thị hiệu ứng chúc mừng và thông báo nổi bật một lần khi người học hoàn thành mục tiêu Pomodoro tuần.
 - [x] Cho phép lưu nhiều bản thu Lumi theo từng cảm xúc, chọn một bản yêu thích để phát ưu tiên và quản lý từng bản.
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho ảnh dự phòng, mốc tuần và thư viện bản thu.
+
+## Lịch sử mục tiêu tuần, lời chúc Lumi và chuyển tiếp cảm xúc
+- [x] Lưu và hiển thị lịch sử các tuần người học hoàn thành mục tiêu Pomodoro, gồm tuần, mục tiêu và số phút thực tế.
+- [x] Cho phép thêm, sửa và xóa câu chúc mừng Lumi riêng theo từng cảm xúc, với dữ liệu lưu theo hồ sơ.
+- [x] Thêm chuyển tiếp hình ảnh và hiệu ứng âm thanh ngắn, có tôn trọng cài đặt giảm chuyển động/âm thanh, khi đổi cảm xúc Lumi.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho lịch sử tuần, lời chúc và chuyển tiếp cảm xúc.

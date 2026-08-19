@@ -8,6 +8,8 @@ const home = () => readFileSync(resolve(projectRoot, "client/src/pages/Home.tsx"
 const pomodoro = () => readFileSync(resolve(projectRoot, "client/src/pages/Pomodoro.tsx"), "utf8");
 const companionControls = () => readFileSync(resolve(projectRoot, "client/src/components/EmotionCompanionMediaControls.tsx"), "utf8");
 const defaultCompanionMedia = () => readFileSync(resolve(projectRoot, "client/src/lib/defaultCompanionMedia.ts"), "utf8");
+const congratulationControls = () => readFileSync(resolve(projectRoot, "client/src/components/LumiCongratulationControls.tsx"), "utf8");
+const styles = () => readFileSync(resolve(projectRoot, "client/src/index.css"), "utf8");
 
 describe("Emotion, ambient scene and audio persistence contract", () => {
   it("uses the saved scene as the default scene and applies it globally", () => {
@@ -83,6 +85,32 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(pomodoro()).toContain("weeklyGoalReachedRef.current === false && reached");
     expect(pomodoro()).toContain("weeklyGoalCelebrationOpen");
     expect(pomodoro()).toContain("Ong đã chạm mục tiêu rồi!");
+  });
+
+  it("stores one weekly completion record and shows a persistent learner-visible history", () => {
+    expect(pomodoro()).toContain("weeklyPomodoroGoalCompletions");
+    expect(pomodoro()).toContain("weeklyGoalHistoryWriteRef");
+    expect(pomodoro()).toContain("Lịch sử hoàn thành mục tiêu tuần");
+    expect(pomodoro()).toContain("Mỗi tuần chỉ được lưu một lần");
+  });
+
+  it("provides per-emotion Lumi congratulation CRUD and uses the custom message when available", () => {
+    expect(studio()).toContain("LumiCongratulationControls");
+    expect(studio()).toContain("lumiCongratulationMessages?.[theme.id]?.[0]");
+    expect(studio()).toContain("lumiCongratulationText");
+    expect(congratulationControls()).toContain("function save()");
+    expect(congratulationControls()).toContain("function beginEdit");
+    expect(congratulationControls()).toContain("function remove");
+    expect(congratulationControls()).toContain("Thêm lời chúc mới");
+  });
+
+  it("adds a brief visual and audio transition only when the learner enables these attention preferences", () => {
+    expect(studio()).toContain("async function playEmotionTransitionSound");
+    expect(studio()).toContain("attentionPreferences.soundEnabled");
+    expect(studio()).toContain("attentionPreferences.animationsEnabled");
+    expect(studio()).toContain("lumi-emotion-transition");
+    expect(styles()).toContain('html[data-animations="on"] .lumi-emotion-transition');
+    expect(styles()).toContain("@media (prefers-reduced-motion: no-preference)");
   });
 
   it("keeps explicit audio-center start, stop, preview and status controls behind a user gesture", () => {

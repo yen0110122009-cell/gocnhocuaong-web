@@ -477,6 +477,8 @@ export type ComboStep = { id: string; label: string; minutes: number; completed:
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
 export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm";
 export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string };
+export type LumiCongratulationMessage = { id: string; text: string; createdAt: string; updatedAt: string };
+export type WeeklyPomodoroGoalCompletion = { weekKey: string; completedAt: string; goalMinutes: number; achievedMinutes: number };
 export type CompanionEmotionMedia = {
   mascotImageUrl?: string;
   lumiImageUrl?: string;
@@ -523,6 +525,8 @@ export type ProfileState = {
   defaultAmbientScene?: AmbientScenePreference;
   audioMixer?: AudioMixerSettings;
   weeklyPomodoroGoalMinutes?: number;
+  weeklyPomodoroGoalCompletions?: WeeklyPomodoroGoalCompletion[];
+  lumiCongratulationMessages?: Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>>;
   theme: "light" | "dark";
   lastActivityAt: string | null;
   currentStreak: number;
@@ -687,6 +691,8 @@ export const emptyProfile = (): ProfileState => ({
   defaultAmbientScene: "morning",
   audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 },
   weeklyPomodoroGoalMinutes: 300,
+  weeklyPomodoroGoalCompletions: [],
+  lumiCongratulationMessages: {},
   theme: "light",
   lastActivityAt: null,
   currentStreak: 0,
@@ -1248,6 +1254,28 @@ export function normalizeProfile(value: unknown): ProfileState {
       lumi: Math.max(0, Math.min(100, Number(source.audioMixer?.lumi ?? base.audioMixer!.lumi) || 0)),
     },
     weeklyPomodoroGoalMinutes: Math.max(30, Math.min(10_080, Math.round(Number(source.weeklyPomodoroGoalMinutes ?? base.weeklyPomodoroGoalMinutes ?? 300) || base.weeklyPomodoroGoalMinutes || 300))),
+    weeklyPomodoroGoalCompletions: Array.isArray(source.weeklyPomodoroGoalCompletions) ? source.weeklyPomodoroGoalCompletions.flatMap((value) => {
+      const item = value && typeof value === "object" ? value as Partial<WeeklyPomodoroGoalCompletion> : null;
+      const safeItem = item ?? {};
+      const weekKey = typeof safeItem.weekKey === "string" && /^\d{4}-W\d{2}$/.test(safeItem.weekKey) ? safeItem.weekKey : "";
+      if (!weekKey) return [];
+      return [{ weekKey, completedAt: typeof safeItem.completedAt === "string" && safeItem.completedAt ? safeItem.completedAt : new Date(0).toISOString(), goalMinutes: Math.max(30, Math.min(10_080, Math.round(Number(safeItem.goalMinutes) || 30))), achievedMinutes: Math.max(0, Math.round(Number(safeItem.achievedMinutes) || 0)) }];
+    }).filter((item, index, items) => items.findIndex((candidate) => candidate.weekKey === item.weekKey) === index).slice(0, 104) : [],
+    lumiCongratulationMessages: source.lumiCongratulationMessages && typeof source.lumiCongratulationMessages === "object" ? Object.fromEntries(Object.entries(source.lumiCongratulationMessages).flatMap(([emotion, values]) => {
+      if (!["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(emotion) || !Array.isArray(values)) return [];
+      const ids = new Set<string>();
+      const messages = values.flatMap((value) => {
+        const message = value && typeof value === "object" ? value as Partial<LumiCongratulationMessage> : null;
+        const safeMessage = message ?? {};
+        const id = typeof safeMessage.id === "string" && safeMessage.id.trim() ? safeMessage.id : "";
+        const text = typeof safeMessage.text === "string" ? safeMessage.text.trim().slice(0, 320) : "";
+        if (!id || !text || ids.has(id)) return [];
+        ids.add(id);
+        const createdAt = typeof safeMessage.createdAt === "string" && safeMessage.createdAt ? safeMessage.createdAt : new Date(0).toISOString();
+        return [{ id, text, createdAt, updatedAt: typeof safeMessage.updatedAt === "string" && safeMessage.updatedAt ? safeMessage.updatedAt : createdAt }];
+      }).slice(0, 30);
+      return messages.length ? [[emotion, messages]] : [];
+    })) as Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>> : {},
     currentStreak: Math.max(0, Number(source.currentStreak) || 0),
     bestStreak: Math.max(0, Number(source.bestStreak) || 0),
     streakShields: Math.max(0, Math.min(3, Number(source.streakShields) || 0)),

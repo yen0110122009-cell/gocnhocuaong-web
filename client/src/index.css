@@ -115,6 +115,18 @@ html[data-animations="off"] *, html[data-animations="off"] *::before, html[data-
 
 html[data-popups="off"] [data-sonner-toaster] { display: none !important; }
 
+@media (prefers-reduced-motion: no-preference) {
+  html[data-animations="on"] .lumi-emotion-transition {
+    animation: lumi-emotion-transition 460ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+  }
+}
+
+@keyframes lumi-emotion-transition {
+  0% { opacity: .12; transform: translateY(7px) scale(.96); filter: saturate(.72) blur(1px); }
+  52% { opacity: 1; transform: translateY(-2px) scale(1.04); filter: saturate(1.18) blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: saturate(1) blur(0); }
+}
+
 @media (forced-colors: active) {
   button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid CanvasText; outline-offset: 3px; }
 }
