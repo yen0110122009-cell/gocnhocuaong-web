@@ -515,3 +515,8 @@
 - [x] Bổ sung thanh điều chỉnh âm lượng riêng cho giọng nói Lumi, dùng chung cho bản thu và đọc bằng thiết bị.
 - [x] Cho người dùng tự ghi âm hoặc tải bản thu giọng Lumi, lưu dữ liệu an toàn và cho phép phát/xóa bản thu của chính họ.
 - [x] Bổ sung regression, TypeScript, build và QA responsive cho ảnh, mục tiêu và bản thu cá nhân.
+## Ảnh dự phòng, mốc tuần và thư viện bản thu Lumi
+- [x] Thêm bộ ảnh mặc định riêng cho Mascot và Lumi ở từng cảm xúc, dùng khi người học chưa tự tải ảnh.
+- [x] Hiển thị hiệu ứng chúc mừng và thông báo nổi bật một lần khi người học hoàn thành mục tiêu Pomodoro tuần.
+- [x] Cho phép lưu nhiều bản thu Lumi theo từng cảm xúc, chọn một bản yêu thích để phát ưu tiên và quản lý từng bản.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho ảnh dự phòng, mốc tuần và thư viện bản thu.

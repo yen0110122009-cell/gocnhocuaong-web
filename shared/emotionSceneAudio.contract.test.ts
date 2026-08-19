@@ -6,6 +6,8 @@ const projectRoot = resolve(import.meta.dirname, "..");
 const studio = () => readFileSync(resolve(projectRoot, "client/src/components/ExperienceStudio.tsx"), "utf8");
 const home = () => readFileSync(resolve(projectRoot, "client/src/pages/Home.tsx"), "utf8");
 const pomodoro = () => readFileSync(resolve(projectRoot, "client/src/pages/Pomodoro.tsx"), "utf8");
+const companionControls = () => readFileSync(resolve(projectRoot, "client/src/components/EmotionCompanionMediaControls.tsx"), "utf8");
+const defaultCompanionMedia = () => readFileSync(resolve(projectRoot, "client/src/lib/defaultCompanionMedia.ts"), "utf8");
 
 describe("Emotion, ambient scene and audio persistence contract", () => {
   it("uses the saved scene as the default scene and applies it globally", () => {
@@ -58,6 +60,29 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain("companionMedia?.lumiImageUrl");
     expect(studio()).toContain("profile?.showMascot !== false");
     expect(studio()).toContain("profile?.showLumi !== false");
+  });
+
+  it("uses emotion-specific fallback images when the learner has not uploaded personal images", () => {
+    expect(defaultCompanionMedia()).toContain("getDefaultMascotImage");
+    expect(defaultCompanionMedia()).toContain("getDefaultLumiImage");
+    expect(companionControls()).toContain("getDefaultLumiImage(emotion)");
+    expect(companionControls()).toContain("emotion={emotion}");
+    expect(studio()).toContain("getDefaultLumiImage(theme.id)");
+  });
+
+  it("plays a favorite personal Lumi recording before legacy and approved recordings", () => {
+    expect(studio()).toContain("preferredPersonalVoice?.url || companionMedia?.lumiVoiceUrl || matchingVoiceLine?.audioUrl");
+    expect(companionControls()).toContain("lumiVoiceRecordings");
+    expect(companionControls()).toContain("favoriteLumiVoiceId");
+    expect(companionControls()).toContain("Bản thu ưu tiên");
+  });
+
+  it("shows a weekly goal celebration only after crossing the goal and remembers the calendar week", () => {
+    expect(pomodoro()).toContain("calendarWeekKey");
+    expect(pomodoro()).toContain("pomodoro_goal_celebrated_week_");
+    expect(pomodoro()).toContain("weeklyGoalReachedRef.current === false && reached");
+    expect(pomodoro()).toContain("weeklyGoalCelebrationOpen");
+    expect(pomodoro()).toContain("Ong đã chạm mục tiêu rồi!");
   });
 
   it("keeps explicit audio-center start, stop, preview and status controls behind a user gesture", () => {

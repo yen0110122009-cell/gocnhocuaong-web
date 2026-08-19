@@ -34,6 +34,14 @@ const activities: { id: Activity; label: string; icon: string }[] = [
 const modeLabels: Record<Mode, string> = { focus: "Đang tập trung", shortBreak: "Đang nghỉ ngắn", longBreak: "Đang nghỉ dài" };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const dayKey = (value: string) => new Date(value).toLocaleDateString("vi-VN");
+function calendarWeekKey(value: Date | string = new Date()) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+  const yearStart = new Date(date.getFullYear(), 0, 1);
+  const week = Math.ceil((((date.getTime() - yearStart.getTime()) / 86_400_000) + 1) / 7);
+  return `${date.getFullYear()}-W${String(week).padStart(2, "0")}`;
+}
 
 export default function Pomodoro({ profile, config, onProfile, onView }: Props) {
   const [focus, setFocus] = useState(25);
@@ -62,6 +70,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const emotion: EmotionId = profile.emotionTheme ?? "calm";
   const [introAnimation, setIntroAnimation] = useState(false);
   const [completionBanner, setCompletionBanner] = useState(false);
+  const [weeklyGoalCelebrationOpen, setWeeklyGoalCelebrationOpen] = useState(false);
   const [twoMinuteMode, setTwoMinuteMode] = useState(false);
   const [randomTask, setRandomTask] = useState("Lumi đang chờ Ong chọn một việc nhỏ.");
   const [activeTaskCombo, setActiveTaskCombo] = useState<TaskCombo | null>(null);
@@ -74,6 +83,8 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const audioContextRef = useRef<AudioContext | null>(null);
   const previewStopRef = useRef<(() => void) | null>(null);
   const backgroundStopRef = useRef<(() => void) | null>(null);
+  const weeklyGoalReachedRef = useRef<boolean | null>(null);
+  const weeklyGoalKeyRef = useRef<string | null>(null);
 
   function getAudioContext() {
     if (!audioContextRef.current) audioContextRef.current = new AudioContext();
@@ -345,11 +356,33 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const isComeback = lastCompletedAt > 0 && Date.now() - lastCompletedAt > 48 * 60 * 60 * 1000;
   const recentDays = useMemo(() => Array.from({ length: 7 }, (_, index) => { const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() - (6 - index)); const key = dayKey(date.toISOString()); return { label: date.toLocaleDateString("vi-VN", { weekday: "short" }), minutes: completedFocus.filter((item) => dayKey(item.endedAt) === key).reduce((sum, item) => sum + item.durationMinutes, 0) }; }), [completedFocus]);
   const maxMinutes = Math.max(1, ...recentDays.map((item) => item.minutes));
-  const weeklyMinutes = recentDays.reduce((sum, item) => sum + item.minutes, 0);
+  const currentWeekKey = calendarWeekKey();
+  const weeklyMinutes = completedFocus.filter((item) => calendarWeekKey(item.endedAt) === currentWeekKey).reduce((sum, item) => sum + item.durationMinutes, 0);
   const weeklyGoal = Math.max(30, Math.min(10_080, profile.weeklyPomodoroGoalMinutes ?? 300));
   const weeklyProgress = Math.min(100, Math.round(weeklyMinutes / weeklyGoal * 100));
   const byActivity = activities.map((entry) => ({ ...entry, minutes: completedFocus.filter((item) => (item.topic || "").toLowerCase().includes(entry.label.toLowerCase()) || (item.subject || "").toLowerCase().includes(entry.label.toLowerCase())).reduce((sum, item) => sum + item.durationMinutes, 0) })).filter((item) => item.minutes > 0).slice(0, 5);
   const procrastination = procrastinationAnalytics(profile.procrastinationEvents ?? [], profile.avoidanceReasons ?? []);
+
+  useEffect(() => {
+    const reached = weeklyMinutes >= weeklyGoal;
+    const storageKey = `pomodoro_goal_celebrated_week_${currentWeekKey}`;
+    if (weeklyGoalKeyRef.current !== storageKey) {
+      weeklyGoalKeyRef.current = storageKey;
+      weeklyGoalReachedRef.current = reached;
+      setWeeklyGoalCelebrationOpen(false);
+      return;
+    }
+    const crossedGoal = weeklyGoalReachedRef.current === false && reached;
+    weeklyGoalReachedRef.current = reached;
+    if (!crossedGoal) return;
+    try {
+      if (window.localStorage.getItem(storageKey)) return;
+      window.localStorage.setItem(storageKey, "true");
+    } catch { /* Giữ chặn theo phiên bằng ref nếu trình duyệt không cho localStorage. */ }
+    if (profile.popupsEnabled !== false) setWeeklyGoalCelebrationOpen(true);
+    if (profile.popupsEnabled !== false) toast.success(`Mục tiêu tuần đã hoàn thành: ${weeklyMinutes} / ${weeklyGoal} phút!`);
+    if (sound) void playSequence("reward");
+  }, [currentWeekKey, profile.popupsEnabled, sound, weeklyGoal, weeklyMinutes]);
 
   function recordEvent(kind: ProcrastinationEvent["kind"], taskMinutes?: number) {
     const event: ProcrastinationEvent = { id: crypto.randomUUID(), occurredAt: new Date().toISOString(), kind, hour: new Date().getHours(), taskMinutes };
@@ -425,6 +458,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   function handleMainAction() { if (mode !== "focus" && !running) void start(); else if (running) setRunning(false); else void start(); }
 
   return <div className="space-y-6">
+    {weeklyGoalCelebrationOpen ? <section className="celebration-overlay celebration-overlay--animated" role="dialog" aria-modal="true" aria-labelledby="weekly-goal-celebration-title"><div className="celebration-card"><div className="celebration-confetti" aria-hidden="true">✦ • ✦ • ✦ • ✦ • ✦</div><div className="celebration-icon" aria-hidden="true">🏁</div><p className="relative z-10 text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">Cột mốc tuần</p><h2 id="weekly-goal-celebration-title" className="relative z-10 mt-2 font-display text-3xl font-black text-[#7f1d1d]">Ong đã chạm mục tiêu rồi!</h2><p className="relative z-10 mt-3 text-sm font-bold leading-6 text-[#35523a]">{weeklyMinutes} / {weeklyGoal} phút Pomodoro trong tuần {currentWeekKey}. Mỗi phiên hoàn thành đều là một bước vững vàng của Ong.</p><div className="relative z-10 mt-5 flex flex-wrap justify-center gap-2"><button type="button" className="primary-button bg-[#2e7d32]" onClick={() => setWeeklyGoalCelebrationOpen(false)}>Tuyệt vời · tiếp tục nhé</button><button type="button" className="secondary-button" onClick={() => { setWeeklyGoalCelebrationOpen(false); onView("progress"); }}>Xem tiến trình</button></div></div></section> : null}
     <header className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-red-700 dark:text-red-300">Tiến trình học tập · Góc học tập</p><h1 className="mt-2 font-display text-4xl font-bold">🍅 Pomodoro</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Một nhịp học vừa đủ tập trung, vừa đủ nghỉ. Pomodoro chỉ ghi nhận thời gian học, không phải danh sách công việc.</p></div><button className="secondary-button" onClick={() => onView("progress")}><BarChart3 className="h-4 w-4" />Xem tiến trình</button></header>
     {isComeback ? <section className="rounded-3xl border-2 border-[#2e7d32]/20 bg-[#eff9ef] p-5 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">🌱 COMEBACK</p><h2 className="mt-2 font-display text-2xl font-black text-[#35523a]">Ong quay lại rồi.</h2><p className="mt-1 text-sm font-bold text-[#4d6c53]">Bắt đầu lại không có nghĩa là thất bại. Mình thử 5 phút thật nhẹ nhé.</p></div><button type="button" className="primary-button bg-[#2e7d32]" onClick={() => { setFocus(5); setSeconds(300); setMode("focus"); }}>🍅 Học 5 phút</button></div></section> : null}
     <section className={`pomodoro-journey pomodoro-journey--${timeOfDay} rounded-3xl border border-[#2e7d32]/15 p-4`} aria-label="Start Small và nền học theo thời gian"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#c62828]">🎁 HỘP NHIỆM VỤ NGẪU NHIÊN</p><p className="mt-1 text-sm font-bold text-[#4d352f]">{randomTask}</p></div><div className="flex gap-2"><button type="button" className="secondary-button text-xs" onClick={chooseRandomTask}>✨ Mở nhiệm vụ</button><button type="button" className="secondary-button text-xs" onClick={startTwoMinutes}>⏱ 2 phút</button></div></div><p className="mt-3 text-xs font-bold text-[#4d6c53]">Nền {timeOfDay === "morning" ? "buổi sáng" : timeOfDay === "afternoon" ? "buổi chiều" : "buổi tối"} · chuyển động thở nhẹ · có thể tắt bằng chế độ giảm chuyển động của thiết bị.</p></section>

@@ -27,9 +27,8 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("Ong vs Trì hoãn");
     expect(studioSource).toContain("#c62828");
     expect(studioSource).toContain("#2e7d32");
-    expect(studioSource).toContain("companionImage");
     expect(studioSource).toContain("OngLearnerAvatar");
-    expect(studioSource).toContain("companionImage");
+    expect(studioSource).toContain("getDefaultLumiImage");
   });
 
   it("restores a saved emotion at most once and delegates DOM theme ownership to the app controller", () => {

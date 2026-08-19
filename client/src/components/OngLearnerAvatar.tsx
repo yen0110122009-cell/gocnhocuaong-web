@@ -1,12 +1,14 @@
 import React, { useState } from "react";
+import type { EmotionThemeId } from "../../../shared/study";
+import { getDefaultMascotImage } from "../lib/defaultCompanionMedia";
 
 export const ONG_MASCOT_ASSETS = { human: "/manus-storage/ong-human_8377d607.png", hoodie: "/manus-storage/ong-hoodie_8025fa4d.png", chibi: "/manus-storage/ong-chibi_d25033af.png" } as const;
 export type OngMascotVariant = keyof typeof ONG_MASCOT_ASSETS;
 
-type Props = { className?: string; imageUrl?: string; variant?: OngMascotVariant; size?: "sm" | "md" | "lg"; label?: boolean };
+type Props = { className?: string; imageUrl?: string; emotion?: EmotionThemeId; variant?: OngMascotVariant; size?: "sm" | "md" | "lg"; label?: boolean };
 
-export function OngLearnerAvatar({ className = "", imageUrl, variant = "hoodie", size = "md", label = false }: Props) {
-  const selectedImage = imageUrl ?? ONG_MASCOT_ASSETS[variant];
+export function OngLearnerAvatar({ className = "", imageUrl, emotion, variant = "hoodie", size = "md", label = false }: Props) {
+  const selectedImage = imageUrl ?? (emotion ? getDefaultMascotImage(emotion) : ONG_MASCOT_ASSETS[variant]);
   const mascotAlt = variant === "hoodie" ? "Ong mặc hoodie, mascot người học" : variant === "chibi" ? "Ong chibi, biến thể mascot" : "Ong phong cách người, avatar thay thế";
   const [failed, setFailed] = useState(false);
   const sizeClass = size === "lg" ? "h-32 w-28" : size === "sm" ? "h-12 w-10" : "h-20 w-16";
