@@ -503,3 +503,9 @@
 - [x] Tạo mixer âm lượng độc lập cho từng lớp âm thanh môi trường và chuông Pomodoro
 - [x] Tạo thư viện lời thoại Lumi theo ngày trong tuần, tự chọn nội dung phù hợp ngày học
 - [x] Bổ sung regression, kiểm tra âm thanh sau user gesture và QA trực quan desktop/mobile
+## Lumi theo cảm xúc, báo cáo Pomodoro và âm nền
+- [x] Ánh xạ bản thu giọng nói Lumi đã được Admin duyệt theo trạng thái cảm xúc người học và phát đúng bản thu khi có dữ liệu.
+- [x] Thêm biểu đồ tổng thời gian Pomodoro thực tế trong bảy ngày gần nhất, có trạng thái không dữ liệu rõ ràng.
+- [x] Chẩn đoán và sửa âm nền để chỉ khởi tạo/phát sau thao tác người dùng, có phản hồi lỗi và điều khiển dừng đáng tin cậy.
+- [x] Rà soát và sửa riêng Audio Center Pomodoro: bật/tắt, nghe thử, đổi cảnh, mixer, chuyển trang và chuông phải phản ánh đúng trạng thái phát.
+- [x] Bổ sung regression, TypeScript, build và QA desktop/mobile cho các luồng mới.

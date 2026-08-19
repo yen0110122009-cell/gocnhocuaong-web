@@ -33,4 +33,28 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(pomodoro()).toContain('const emotion: EmotionId = profile.emotionTheme ?? "calm"');
     expect(pomodoro()).toContain("emotionTheme: nextEmotion");
   });
+
+  it("selects an approved Lumi recording for the learner emotion before falling back to device speech", () => {
+    expect(studio()).toContain("item.emotion === theme.id");
+    expect(studio()).toContain("Giọng Lumi theo cảm xúc");
+    expect(studio()).toContain("Dùng bản thu đã được Admin duyệt");
+  });
+
+  it("shows the actual seven-day Pomodoro study trend and a clear empty state", () => {
+    expect(pomodoro()).toContain("Array.from({ length: 7 }");
+    expect(pomodoro()).toContain("Tổng thời gian Pomodoro tuần qua");
+    expect(pomodoro()).toContain("Chưa có phiên Pomodoro hoàn thành trong bảy ngày qua");
+  });
+
+  it("keeps explicit audio-center start, stop, preview and status controls behind a user gesture", () => {
+    expect(pomodoro()).toContain("async function toggleAudioCenter");
+    expect(pomodoro()).toContain("async function toggleBackgroundPlayback");
+    expect(pomodoro()).toContain("const [backgroundRequested, setBackgroundRequested]");
+    expect(pomodoro()).toContain("const [backgroundActive, setBackgroundActive]");
+    expect(pomodoro()).toContain("Bật Audio Center");
+    expect(pomodoro()).toContain("Dừng nền");
+    expect(pomodoro()).toContain("Nghe thử 5 giây");
+    expect(pomodoro()).toContain("async function unlockAudio(allowWhenJustEnabled = false)");
+    expect(pomodoro()).toContain("unlockAudio(allowWhenJustEnabled)");
+  });
 });

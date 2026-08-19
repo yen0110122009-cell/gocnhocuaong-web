@@ -44,6 +44,8 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const [running, setRunning] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [sound, setSound] = useState(profile.soundEnabled);
+  const [backgroundRequested, setBackgroundRequested] = useState(false);
+  const [backgroundActive, setBackgroundActive] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
@@ -68,6 +70,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const completionRef = useRef(false);
   const trackedOpenRef = useRef(false);
   const audioMixerHydratedRef = useRef(false);
+  const soundHydratedRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const previewStopRef = useRef<(() => void) | null>(null);
   const backgroundStopRef = useRef<(() => void) | null>(null);
@@ -76,8 +79,8 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     if (!audioContextRef.current) audioContextRef.current = new AudioContext();
     return audioContextRef.current;
   }
-  async function unlockAudio() {
-    if (!sound) return false;
+  async function unlockAudio(allowWhenJustEnabled = false) {
+    if (!sound && !allowWhenJustEnabled) return false;
     try {
       const context = getAudioContext();
       if (context.state !== "running") await context.resume();
@@ -93,12 +96,13 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   function stopBackground() {
     backgroundStopRef.current?.();
     backgroundStopRef.current = null;
+    setBackgroundActive(false);
   }
-  async function startBackground() {
+  async function startBackground(allowWhenJustEnabled = false) {
     stopBackground();
-    if (!sound || backgroundVolume <= 0 || backgroundSound === "Không âm thanh") return false;
+    if ((!sound && !allowWhenJustEnabled) || backgroundVolume <= 0 || backgroundSound === "Không âm thanh") return false;
     try {
-      const unlocked = await unlockAudio();
+      const unlocked = await unlockAudio(allowWhenJustEnabled);
       if (!unlocked) return false;
       const context = getAudioContext();
       const preset = SOUNDSCAPE_PRESETS[backgroundSound] ?? SOUNDSCAPE_PRESETS["Mưa nhẹ"];
@@ -143,16 +147,19 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         window.setTimeout(() => oscillators.forEach((oscillator) => { try { oscillator.stop(); } catch { /* already stopped */ } }), 1500);
         window.setTimeout(() => master.disconnect(), 1750);
       };
+      setBackgroundActive(true);
       return true;
-    } catch { /* browsers may deny audio until a user gesture */
+    } catch {
+      setBackgroundActive(false);
       return false;
     }
   }
-  function playSequence(event: SoundEvent) {
-    if (!sound || alertVolume <= 0) return;
+  async function playSequence(event: SoundEvent, allowWhenJustEnabled = false) {
+    if ((!sound && !allowWhenJustEnabled) || alertVolume <= 0) return false;
     try {
       const context = getAudioContext();
-      void context.resume();
+      if (context.state !== "running") await context.resume();
+      if (context.state !== "running") return false;
       const now = context.currentTime;
       const master = context.createGain();
       const isCompletion = event === "complete";
@@ -188,10 +195,15 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         oscillator.stop(startAt + soundEventDuration(event));
       });
       window.setTimeout(() => { master.disconnect(); reverb?.disconnect(); echo?.disconnect(); }, notes.length * soundEventSpacing(event) * 1000 + soundEventDuration(event) * 1000 + (isCompletion ? 1600 : 500));
-    } catch { /* browsers may deny audio without a user gesture */ }
+      return true;
+    } catch { return false; }
   }
-  function playAlert() { playSequence("complete"); }
-  function previewEvent(event: SoundEvent) { playSequence(event); toast.success(`Đã thử âm báo: ${event}`); }
+  function playAlert() { void playSequence("complete"); }
+  async function previewEvent(event: SoundEvent) {
+    const played = await playSequence(event);
+    if (played) toast.success(`Đã thử âm báo: ${event}`);
+    else toast.error("Không thể phát âm báo. Hãy bật âm thanh rồi nhấn thử lại.");
+  }
   async function previewBackground() {
     stopPreview();
     if (!sound || backgroundVolume <= 0 || backgroundSound === "Không âm thanh") {
@@ -203,10 +215,53 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
       toast.info("Trình duyệt đang chặn tự phát. Hãy nhấn lại nút nghe thử hoặc bật âm thanh sau một tương tác.");
       return;
     }
-    await startBackground();
+    const started = await startBackground();
+    if (!started) {
+      toast.error("Không thể khởi tạo âm nền. Hãy bật âm thanh và nhấn nghe thử lại.");
+      return;
+    }
     previewStopRef.current = () => stopBackground();
     window.setTimeout(() => { if (previewStopRef.current) stopPreview(); }, 5000);
     toast.success(`Đang nghe thử: ${backgroundSound}`);
+  }
+  async function toggleAudioCenter() {
+    if (sound) {
+      setSound(false);
+      setBackgroundRequested(false);
+      stopPreview();
+      stopBackground();
+      toast.info("Đã tắt Audio Center.");
+      return;
+    }
+    const context = getAudioContext();
+    try {
+      if (context.state !== "running") await context.resume();
+      if (context.state !== "running") throw new Error("audio_locked");
+      setSound(true);
+      setBackgroundRequested(true);
+      const started = await startBackground(true);
+      if (started) toast.success(`Audio Center đã bật: ${SOUNDSCAPE_PRESETS[backgroundSound]?.label ?? backgroundSound}.`);
+      else toast.info("Audio Center đã bật. Chọn cảnh có âm lượng lớn hơn 0 để phát nền.");
+    } catch {
+      toast.error("Trình duyệt chưa cấp quyền âm thanh. Hãy nhấn lại nút bật âm thanh.");
+    }
+  }
+  async function toggleBackgroundPlayback() {
+    if (backgroundActive || backgroundRequested) {
+      setBackgroundRequested(false);
+      stopPreview();
+      stopBackground();
+      toast.info("Đã dừng âm nền.");
+      return;
+    }
+    if (!sound) {
+      await toggleAudioCenter();
+      return;
+    }
+    setBackgroundRequested(true);
+    const started = await startBackground();
+    if (started) toast.success(`Đang phát nền: ${SOUNDSCAPE_PRESETS[backgroundSound]?.label ?? backgroundSound}.`);
+    else toast.error("Không thể phát âm nền. Hãy kiểm tra cảnh và âm lượng rồi thử lại.");
   }
   useEffect(() => () => { stopPreview(); stopBackground(); void audioContextRef.current?.close(); }, []);
   useEffect(() => { if (!sound) { stopPreview(); stopBackground(); } }, [sound]);
@@ -221,10 +276,10 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     return () => window.clearTimeout(timer);
   }, [onProfile, profile, running]);
   useEffect(() => {
-    if (running && sound) void startBackground();
-    else stopBackground();
+    if (!sound || !backgroundRequested) { stopBackground(); return; }
+    void startBackground();
     return () => stopBackground();
-  }, [running, sound, backgroundSound, backgroundVolume, layerVolumes]);
+  }, [sound, backgroundRequested, backgroundSound, backgroundVolume, layerVolumes]);
 
   useEffect(() => {
     try {
@@ -240,6 +295,11 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     } catch { /* ignore malformed preference */ }
   }, []);
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify({ focus, shortBreak, longBreak, autoAdvance, sound, backgroundSound })); }, [focus, shortBreak, longBreak, autoAdvance, sound, backgroundSound]);
+
+  useEffect(() => {
+    if (!soundHydratedRef.current) { soundHydratedRef.current = true; return; }
+    if (profile.soundEnabled !== sound) onProfile({ ...profile, soundEnabled: sound });
+  }, [sound, profile, onProfile]);
 
   useEffect(() => {
     if (!audioMixerHydratedRef.current) { audioMixerHydratedRef.current = true; return; }
@@ -285,6 +345,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const isComeback = lastCompletedAt > 0 && Date.now() - lastCompletedAt > 48 * 60 * 60 * 1000;
   const recentDays = useMemo(() => Array.from({ length: 7 }, (_, index) => { const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() - (6 - index)); const key = dayKey(date.toISOString()); return { label: date.toLocaleDateString("vi-VN", { weekday: "short" }), minutes: completedFocus.filter((item) => dayKey(item.endedAt) === key).reduce((sum, item) => sum + item.durationMinutes, 0) }; }), [completedFocus]);
   const maxMinutes = Math.max(1, ...recentDays.map((item) => item.minutes));
+  const weeklyMinutes = recentDays.reduce((sum, item) => sum + item.minutes, 0);
   const byActivity = activities.map((entry) => ({ ...entry, minutes: completedFocus.filter((item) => (item.topic || "").toLowerCase().includes(entry.label.toLowerCase()) || (item.subject || "").toLowerCase().includes(entry.label.toLowerCase())).reduce((sum, item) => sum + item.durationMinutes, 0) })).filter((item) => item.minutes > 0).slice(0, 5);
   const procrastination = procrastinationAnalytics(profile.procrastinationEvents ?? [], profile.avoidanceReasons ?? []);
 
@@ -298,8 +359,8 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     if (!sessionStartedAt && mode === "focus") setSessionStartedAt(new Date().toISOString());
     recordEvent(twoMinuteMode || focus <= 5 ? "started_small" : "started_focus", focus);
     trackedOpenRef.current = true;
-    completionRef.current = false; setIntroAnimation(true); setRunning(true); playSequence("start");
-    if (sound) startBackground();
+    completionRef.current = false; setIntroAnimation(true); setRunning(true); void playSequence("start");
+    if (sound) { setBackgroundRequested(true); void startBackground(); }
     window.setTimeout(() => setIntroAnimation(false), 2600);
   }
   function reset(record = false) {
@@ -377,12 +438,12 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     <ExperienceStudio selected={emotion} onSelect={(nextEmotion) => onProfile({ ...profile, emotionTheme: nextEmotion }, "Đã đổi giao diện theo cảm xúc.")} profile={profile} onProfile={onProfile} onStartTwoMinutes={startTwoMinutes} />
     <section className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,.9fr)]">
       <div className={`panel relative overflow-hidden p-5 sm:p-8 transition-colors duration-700 pomodoro-breathing pomodoro-breathing--${timeOfDay} ${introAnimation ? "pomodoro-starting" : ""} ${criticalMoment ? "pomodoro-critical" : ""}`}><div className="absolute right-5 top-5 text-2xl opacity-80" aria-hidden="true">🐝</div><div className="text-center"><p className={`text-xs font-bold uppercase tracking-[.18em] ${mode === "focus" ? "text-red-700 dark:text-red-300" : "text-emerald-700 dark:text-emerald-300"}`}>{modeLabels[mode]}</p><h2 className="mt-2 font-display text-2xl font-bold">{mode === "focus" ? `Phiên ${cyclePosition + 1} / 4` : "Thời gian hồi phục"}</h2><div className="mx-auto mt-6 grid aspect-square w-full max-w-[22rem] place-items-center rounded-full p-3" style={{ background: `conic-gradient(${mode === "focus" ? "#b4232a" : "#18805c"} ${progress}%, rgba(180,35,42,.12) ${progress}% 100%)` }}><div className="grid h-full w-full place-items-center rounded-full bg-[var(--card)] text-center shadow-inner"><span className="font-mono text-[clamp(3.3rem,10vw,5.5rem)] font-bold tracking-tight" aria-live="polite">{display}</span><small className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500">{modeLabels[mode]}</small></div></div><p className="mx-auto mt-4 max-w-md text-sm text-slate-600 dark:text-slate-300">{criticalMoment ? "🔥 5 PHÚT CUỐI — Đừng bỏ cuộc ở đây, Ong." : statusText}</p><div className="mx-auto mt-3 flex max-w-md items-center justify-center gap-2 rounded-full bg-[#fff0eb] px-3 py-2 text-xs font-black text-[#8e1b1b]" role="status"><span aria-hidden="true">{selectedEmotion.mascot === "lumi" ? "🌟" : "🔥"}</span>{selectedEmotion.encouragement}</div><div className="mt-5 flex flex-wrap justify-center gap-2" aria-label="Tiến trình chu kỳ Pomodoro">{[0, 1, 2, 3].map((index) => <span key={index} className={`h-3 w-3 rounded-full border-2 ${index < cyclePosition ? "border-emerald-600 bg-emerald-600" : index === cyclePosition && mode === "focus" ? "border-red-600 bg-red-100" : "border-slate-300 bg-transparent dark:border-white/20"}`} title={`Phiên ${index + 1}`} />)}</div><div className="mt-6 flex flex-wrap justify-center gap-2"><button className="primary-button min-w-44 justify-center px-6 py-3" onClick={handleMainAction}>{running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}{running ? "Tạm dừng" : sessionStartedAt ? "Tiếp tục" : mode === "focus" ? "Bắt đầu tập trung" : `Bắt đầu ${modeLabels[mode].toLowerCase()}`}</button>{mode === "focus" && sessionStartedAt ? <button className="secondary-button px-4 py-3" onClick={endEarly}>🏁 Kết thúc phiên</button> : null}<button className="secondary-button px-4 py-3" onClick={() => reset(true)}><RotateCcw className="h-4 w-4" />Đặt lại</button>{mode !== "focus" && !running ? <button className="secondary-button px-4 py-3" onClick={skipBreak}>⏭ Bỏ qua nghỉ</button> : null}</div></div></div>
-      <div className="space-y-5"><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Trước khi bắt đầu</p><h2 className="mt-2 font-display text-2xl font-bold">Bạn đang học gì?</h2></div><Settings2 className="h-5 w-5 text-red-700" /></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">{activities.map((item) => <button key={item.id} type="button" className={`rounded-xl border p-3 text-left text-xs font-bold transition ${activity === item.id ? "border-red-600 bg-red-50 text-red-800 dark:bg-red-400/10 dark:text-red-200" : "border-slate-200 dark:border-white/10"}`} onClick={() => setActivity(item.id)}><span className="mr-1 text-base">{item.icon}</span>{item.label}</button>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Môn học<input className="field mt-2" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ví dụ: Lịch sử Việt Nam" /></label><label className="text-sm font-bold">Nội dung<input className="field mt-2" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Ví dụ: Nhà Trần" /></label></div><div className="mt-4 flex flex-wrap gap-2"><button className="secondary-button" onClick={() => onView("flashcards")}><BookOpen className="h-4 w-4" />Mở Flashcard</button><button className="secondary-button" onClick={() => onView("quizzes")}><CircleHelp className="h-4 w-4" />Mở Đề kiểm tra</button></div></section><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Chọn nhịp học</p><h2 className="mt-2 font-display text-xl font-bold">Preset nhanh</h2></div><button className="text-sm font-bold text-red-700 underline-offset-4 hover:underline" onClick={() => setShowSettings((value) => !value)}>{showSettings ? "Ẩn tùy chỉnh" : "Tùy chỉnh"}</button></div><div className="mt-4 grid gap-2 sm:grid-cols-2">{presets.map((preset) => <button key={preset.label} type="button" className={`rounded-xl border p-3 text-left ${focus === preset.focus && shortBreak === preset.short && longBreak === preset.long ? "border-red-600 bg-red-50 dark:bg-red-400/10" : "border-slate-200 dark:border-white/10"}`} onClick={() => choosePreset(preset)}><b className="block text-sm">{preset.label}</b><span className="mt-1 block text-xs text-slate-500">{preset.note}</span></button>)}</div>{showSettings ? <div className="mt-4 rounded-2xl border border-dashed border-red-200 p-4 dark:border-red-400/20"><div className="grid gap-3 sm:grid-cols-3"><label className="text-xs font-bold">Tập trung<input className="field mt-1" type="number" min="1" max="120" value={focus} onChange={(e) => { const value = clamp(Number(e.target.value) || 1, 1, 120); setFocus(value); if (!running && mode === "focus") setSeconds(value * 60); }} /></label><label className="text-xs font-bold">Nghỉ ngắn<input className="field mt-1" type="number" min="1" max="30" value={shortBreak} onChange={(e) => setShortBreak(clamp(Number(e.target.value) || 1, 1, 30))} /></label><label className="text-xs font-bold">Nghỉ dài<input className="field mt-1" type="number" min="1" max="45" value={longBreak} onChange={(e) => setLongBreak(clamp(Number(e.target.value) || 1, 1, 45))} /></label></div><label className="mt-3 flex items-center justify-between rounded-xl bg-slate-50 p-3 text-sm dark:bg-white/5"><span>Tự động chuyển sang nghỉ</span><input type="checkbox" checked={autoAdvance} onChange={(e) => setAutoAdvance(e.target.checked)} /></label></div> : null}</section><PersistentCollapsible storageKey="pomodoro-audio-center" title="Âm thanh tập trung" eyebrow="Audio Center"><div className="space-y-4"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Audio Center</p><h2 className="mt-2 font-display text-xl font-bold">Âm thanh tập trung</h2></div><button className="secondary-button" onClick={() => setSound((value) => !value)}>{sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}{sound ? "Đang bật" : "Đang tắt"}</button></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Cảnh âm thanh<select className="field mt-2" value={backgroundSound} onChange={(e) => setBackgroundSound(e.target.value)}>{Object.entries(SOUNDSCAPE_PRESETS).map(([id, preset]) => <option key={id} value={id}>{preset.label}</option>)}</select><span className="mt-1 block text-xs font-normal text-slate-500">{SOUNDSCAPE_PRESETS[backgroundSound]?.description}</span></label><button className="secondary-button self-end" onClick={previewBackground}>▶ Nghe thử</button></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Âm lượng tổng · {backgroundVolume}%<input aria-label="Âm lượng tổng" type="range" min="0" max="100" value={backgroundVolume} onChange={(e) => setBackgroundVolume(Number(e.target.value))} /></label><label className="text-xs font-bold">Âm báo · {alertVolume}%<input aria-label="Âm lượng âm báo" type="range" min="0" max="100" value={alertVolume} onChange={(e) => setAlertVolume(Number(e.target.value))} /></label></div><div className="mt-4 rounded-2xl border border-[#2e7d32]/15 bg-[#f2fbf2] p-4 dark:bg-white/5"><div className="flex items-center justify-between gap-2"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">🎚️ Mixer từng lớp</p><span className="text-xs font-bold text-slate-500">{selectedSoundscape.layers.length} lớp đang chọn</span></div>{selectedSoundscape.layers.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2">{selectedSoundscape.layers.map((id) => { const layer = SOUNDSCAPE_LAYERS[id]; const value = layerVolumes[id] ?? 100; return <label key={id} className="rounded-xl border border-[#2e7d32]/10 bg-white/70 p-3 text-xs font-bold dark:bg-slate-900/50"><span className="flex items-center justify-between gap-2"><span>{layer?.label ?? id}</span><span className="text-[#c62828]">{value}%</span></span><input aria-label={`Âm lượng ${layer?.label ?? id}`} className="mt-2 w-full accent-[#c62828]" type="range" min="0" max="100" value={value} onChange={(e) => setLayerVolumes((current) => ({ ...current, [id]: Number(e.target.value) }))} /></label>; })}</div> : <p className="mt-2 text-xs text-slate-500">Chọn một cảnh có lớp âm thanh để điều chỉnh từng thành phần.</p>}</div><div className="mt-4 rounded-2xl bg-slate-50 p-3 dark:bg-white/5"><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Thử âm báo từng trạng thái</p><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3"><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("start")}>▶ Bắt đầu</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("tick")}>▶ Tick nhẹ</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("complete")}>▶ Hoàn thành</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("warning")}>▶ Cảnh báo</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("reward")}>▶ Phần thưởng</button><button className="secondary-button justify-center text-xs" onClick={() => previewEvent("error")}>▶ Lỗi</button></div></div></div></PersistentCollapsible></div>
+      <div className="space-y-5"><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Trước khi bắt đầu</p><h2 className="mt-2 font-display text-2xl font-bold">Bạn đang học gì?</h2></div><Settings2 className="h-5 w-5 text-red-700" /></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">{activities.map((item) => <button key={item.id} type="button" className={`rounded-xl border p-3 text-left text-xs font-bold transition ${activity === item.id ? "border-red-600 bg-red-50 text-red-800 dark:bg-red-400/10 dark:text-red-200" : "border-slate-200 dark:border-white/10"}`} onClick={() => setActivity(item.id)}><span className="mr-1 text-base">{item.icon}</span>{item.label}</button>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Môn học<input className="field mt-2" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ví dụ: Lịch sử Việt Nam" /></label><label className="text-sm font-bold">Nội dung<input className="field mt-2" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Ví dụ: Nhà Trần" /></label></div><div className="mt-4 flex flex-wrap gap-2"><button className="secondary-button" onClick={() => onView("flashcards")}><BookOpen className="h-4 w-4" />Mở Flashcard</button><button className="secondary-button" onClick={() => onView("quizzes")}><CircleHelp className="h-4 w-4" />Mở Đề kiểm tra</button></div></section><section className="panel p-5 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Chọn nhịp học</p><h2 className="mt-2 font-display text-xl font-bold">Preset nhanh</h2></div><button className="text-sm font-bold text-red-700 underline-offset-4 hover:underline" onClick={() => setShowSettings((value) => !value)}>{showSettings ? "Ẩn tùy chỉnh" : "Tùy chỉnh"}</button></div><div className="mt-4 grid gap-2 sm:grid-cols-2">{presets.map((preset) => <button key={preset.label} type="button" className={`rounded-xl border p-3 text-left ${focus === preset.focus && shortBreak === preset.short && longBreak === preset.long ? "border-red-600 bg-red-50 dark:bg-red-400/10" : "border-slate-200 dark:border-white/10"}`} onClick={() => choosePreset(preset)}><b className="block text-sm">{preset.label}</b><span className="mt-1 block text-xs text-slate-500">{preset.note}</span></button>)}</div>{showSettings ? <div className="mt-4 rounded-2xl border border-dashed border-red-200 p-4 dark:border-red-400/20"><div className="grid gap-3 sm:grid-cols-3"><label className="text-xs font-bold">Tập trung<input className="field mt-1" type="number" min="1" max="120" value={focus} onChange={(e) => { const value = clamp(Number(e.target.value) || 1, 1, 120); setFocus(value); if (!running && mode === "focus") setSeconds(value * 60); }} /></label><label className="text-xs font-bold">Nghỉ ngắn<input className="field mt-1" type="number" min="1" max="30" value={shortBreak} onChange={(e) => setShortBreak(clamp(Number(e.target.value) || 1, 1, 30))} /></label><label className="text-xs font-bold">Nghỉ dài<input className="field mt-1" type="number" min="1" max="45" value={longBreak} onChange={(e) => setLongBreak(clamp(Number(e.target.value) || 1, 1, 45))} /></label></div><label className="mt-3 flex items-center justify-between rounded-xl bg-slate-50 p-3 text-sm dark:bg-white/5"><span>Tự động chuyển sang nghỉ</span><input type="checkbox" checked={autoAdvance} onChange={(e) => setAutoAdvance(e.target.checked)} /></label></div> : null}</section><PersistentCollapsible storageKey="pomodoro-audio-center" title="Âm thanh tập trung" eyebrow="Audio Center"><div className="space-y-4"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Audio Center</p><h2 className="mt-2 font-display text-xl font-bold">Âm thanh tập trung</h2><p className="mt-1 text-xs font-bold text-slate-500" role="status">{backgroundActive ? `Đang phát: ${selectedSoundscape.label}` : sound ? "Đã bật, chưa phát nền" : "Đang tắt"}</p></div><button className="secondary-button" onClick={() => void toggleAudioCenter()}>{sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}{sound ? "Tắt Audio Center" : "Bật Audio Center"}</button></div><div className="mt-4 grid gap-3 sm:grid-cols-3"><label className="text-sm font-bold sm:col-span-2">Cảnh âm thanh<select className="field mt-2" value={backgroundSound} onChange={(e) => setBackgroundSound(e.target.value)}>{Object.entries(SOUNDSCAPE_PRESETS).map(([id, preset]) => <option key={id} value={id}>{preset.label}</option>)}</select><span className="mt-1 block text-xs font-normal text-slate-500">{SOUNDSCAPE_PRESETS[backgroundSound]?.description}</span></label><div className="flex flex-col justify-end gap-2"><button className="secondary-button justify-center" onClick={() => void toggleBackgroundPlayback()}>{backgroundActive ? "■ Dừng nền" : "▶ Phát nền"}</button><button className="secondary-button justify-center text-xs" onClick={() => void previewBackground()}>▶ Nghe thử 5 giây</button></div></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Âm lượng tổng · {backgroundVolume}%<input aria-label="Âm lượng tổng" type="range" min="0" max="100" value={backgroundVolume} onChange={(e) => setBackgroundVolume(Number(e.target.value))} /></label><label className="text-xs font-bold">Âm báo · {alertVolume}%<input aria-label="Âm lượng âm báo" type="range" min="0" max="100" value={alertVolume} onChange={(e) => setAlertVolume(Number(e.target.value))} /></label></div><div className="mt-4 rounded-2xl border border-[#2e7d32]/15 bg-[#f2fbf2] p-4 dark:bg-white/5"><div className="flex items-center justify-between gap-2"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">🎚️ Mixer từng lớp</p><span className="text-xs font-bold text-slate-500">{selectedSoundscape.layers.length} lớp đang chọn</span></div>{selectedSoundscape.layers.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2">{selectedSoundscape.layers.map((id) => { const layer = SOUNDSCAPE_LAYERS[id]; const value = layerVolumes[id] ?? 100; return <label key={id} className="rounded-xl border border-[#2e7d32]/10 bg-white/70 p-3 text-xs font-bold dark:bg-slate-900/50"><span className="flex items-center justify-between gap-2"><span>{layer?.label ?? id}</span><span className="text-[#c62828]">{value}%</span></span><input aria-label={`Âm lượng ${layer?.label ?? id}`} className="mt-2 w-full accent-[#c62828]" type="range" min="0" max="100" value={value} onChange={(e) => setLayerVolumes((current) => ({ ...current, [id]: Number(e.target.value) }))} /></label>; })}</div> : <p className="mt-2 text-xs text-slate-500">Chọn một cảnh có lớp âm thanh để điều chỉnh từng thành phần.</p>}</div><div className="mt-4 rounded-2xl bg-slate-50 p-3 dark:bg-white/5"><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Thử âm báo từng trạng thái</p><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3"><button className="secondary-button justify-center text-xs" onClick={() => void previewEvent("start")}>▶ Bắt đầu</button><button className="secondary-button justify-center text-xs" onClick={() => void previewEvent("tick")}>▶ Tick nhẹ</button><button className="secondary-button justify-center text-xs" onClick={() => void previewEvent("complete")}>▶ Hoàn thành</button><button className="secondary-button justify-center text-xs" onClick={() => void previewEvent("warning")}>▶ Cảnh báo</button><button className="secondary-button justify-center text-xs" onClick={() => void previewEvent("reward")}>▶ Phần thưởng</button><button className="secondary-button justify-center text-xs" onClick={() => void previewEvent("error")}>▶ Lỗi</button></div></div></div></PersistentCollapsible></div>
     </section>
     {running && miniPlayerVisible ? <aside className={`fixed inset-x-3 bottom-3 z-40 mx-auto ${miniPlayerExpanded ? "max-w-2xl" : "max-w-xl"} rounded-2xl border border-[#2e7d32]/25 bg-white/95 p-3 shadow-2xl backdrop-blur dark:bg-slate-950/95 ${miniPlayerPinned ? "ring-2 ring-[#c62828]/40" : ""}`} aria-label="Mini player âm thanh và Pomodoro"><div className="flex flex-wrap items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c62828] text-xl text-white">🍅</div><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><strong className="font-mono text-lg">{display}</strong><button type="button" className="text-xs font-bold text-slate-500 underline" onClick={() => setMiniPlayerVisible(false)}>Đóng</button></div><p className="truncate text-xs font-bold text-[#2e7d32]">🎵 {selectedSoundscape.label} · {selectedSoundscape.layers.length} lớp đang hòa</p></div><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => setMiniPlayerPinned((value) => !value)} aria-pressed={miniPlayerPinned}>{miniPlayerPinned ? "📌 Đã ghim" : "📌 Ghim"}</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => setMiniPlayerExpanded((value) => !value)} aria-pressed={miniPlayerExpanded}>{miniPlayerExpanded ? "Thu gọn" : "Mở rộng"}</button><button type="button" className="secondary-button px-3 py-2" onClick={() => { if (!sound) void unlockAudio(); setSound((value) => !value); }} aria-label={sound ? "Tắt âm thanh" : "Bật âm thanh"}>{sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button></div>{miniPlayerExpanded ? <div className="mt-3 grid gap-2 border-t border-[#2e7d32]/10 pt-3 sm:grid-cols-2"><p className="text-xs font-bold text-slate-600 dark:text-slate-300">{modeLabels[mode]} · Âm lượng tổng {backgroundVolume}%</p><p className="text-xs font-bold text-slate-600 dark:text-slate-300">Ghim chỉ giữ mini player trong trang; trình duyệt không cấp quyền always-on-top hệ điều hành.</p></div> : null}</aside> : null}
     {!miniPlayerVisible && running ? <button type="button" className="fixed bottom-3 right-3 z-40 rounded-full bg-[#2e7d32] px-4 py-2 text-xs font-black text-white shadow-lg" onClick={() => setMiniPlayerVisible(true)}>🎵 Mở mini player</button> : null}
     {completionBanner ? <div className="pomodoro-complete rounded-3xl border-2 border-[#2e7d32]/20 bg-[#eff9ef] p-5 text-center shadow-lg" role="status"><div className="text-4xl" aria-hidden="true">🎉 🌟 🐝</div><h2 className="mt-2 font-display text-2xl font-black text-[#2e7d32]">ONG VỪA HOÀN THÀNH 1 PHIÊN!</h2><p className="mt-2 text-sm font-bold text-[#35523a]">{selectedEmotion.encouragement}</p><div className="mt-4 flex flex-wrap justify-center gap-2"><button type="button" className="secondary-button" onClick={() => { setMode("shortBreak"); setSeconds(shortBreak * 60); }}>🍵 Nghỉ</button><button type="button" className="primary-button bg-[#c62828]" onClick={() => { setMode("focus"); setSeconds(focus * 60); start(); }}>🔥 Làm tiếp</button></div></div> : null}
-    <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]"><section className="panel p-5 sm:p-6"><div className="flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">7 ngày gần đây</p><h2 className="mt-2 font-display text-2xl font-bold">Phút tập trung theo ngày</h2></div><BarChart3 className="h-5 w-5 text-emerald-700" /></div><div className="mt-7 grid h-48 grid-cols-7 items-end gap-2" role="img" aria-label="Biểu đồ phút Pomodoro trong bảy ngày gần đây">{recentDays.map((day) => <div className="flex h-full min-w-0 flex-col justify-end" key={day.label}><div className="rounded-t-xl bg-gradient-to-t from-emerald-600 to-lime-300" style={{ height: `${Math.max(day.minutes ? 12 : 3, day.minutes / maxMinutes * 100)}%` }} title={`${day.label}: ${day.minutes} phút`} /><span className="mt-2 truncate text-center text-[11px] font-bold text-slate-500">{day.label}</span></div>)}</div></section><section className="panel p-5 sm:p-6"><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Theo hoạt động học</p><h2 className="mt-2 font-display text-2xl font-bold">Thời gian đã đầu tư</h2><div className="mt-5 space-y-3">{byActivity.length ? byActivity.map((item) => <div key={item.id}><div className="flex justify-between gap-3 text-sm"><b className="truncate">{item.icon} {item.label}</b><span className="text-slate-500">{item.minutes} phút</span></div><div className="mt-1 h-2 rounded-full bg-red-100 dark:bg-red-400/10"><div className="h-full rounded-full bg-red-600" style={{ width: `${Math.min(100, item.minutes / Math.max(1, byActivity[0].minutes) * 100)}%` }} /></div></div>) : <p className="text-sm text-slate-500">Chọn hoạt động học trước khi bắt đầu để xem phân bổ.</p>}</div></section></section>
+    <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]"><section className="panel p-5 sm:p-6"><div className="flex items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">7 ngày gần đây</p><h2 className="mt-2 font-display text-2xl font-bold">Tổng thời gian Pomodoro tuần qua</h2><p className="mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-300">{Math.floor(weeklyMinutes / 60)} giờ {weeklyMinutes % 60} phút · từ các phiên đã hoàn thành</p></div><BarChart3 className="h-5 w-5 shrink-0 text-emerald-700" /></div>{weeklyMinutes ? <div className="mt-7 grid h-52 grid-cols-7 items-end gap-2" role="img" aria-label={`Biểu đồ tổng ${weeklyMinutes} phút Pomodoro trong bảy ngày gần đây`}>{recentDays.map((day) => <div className="flex h-full min-w-0 flex-col justify-end" key={day.label}><span className="mb-1 text-center text-[10px] font-black text-emerald-700 dark:text-emerald-300">{day.minutes}p</span><div className="rounded-t-xl bg-gradient-to-t from-emerald-600 to-lime-300 transition-[height] duration-300" style={{ height: `${Math.max(day.minutes ? 12 : 3, day.minutes / maxMinutes * 100)}%` }} title={`${day.label}: ${day.minutes} phút`} /><span className="mt-2 truncate text-center text-[11px] font-bold text-slate-500">{day.label}</span></div>)}</div> : <p className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-900 dark:bg-emerald-400/10 dark:text-emerald-100">Chưa có phiên Pomodoro hoàn thành trong bảy ngày qua. Khi Ong hoàn thành phiên đầu tiên, biểu đồ sẽ cập nhật theo ngày.</p>}</section><section className="panel p-5 sm:p-6"><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Theo hoạt động học</p><h2 className="mt-2 font-display text-2xl font-bold">Thời gian đã đầu tư</h2><div className="mt-5 space-y-3">{byActivity.length ? byActivity.map((item) => <div key={item.id}><div className="flex justify-between gap-3 text-sm"><b className="truncate">{item.icon} {item.label}</b><span className="text-slate-500">{item.minutes} phút</span></div><div className="mt-1 h-2 rounded-full bg-red-100 dark:bg-red-400/10"><div className="h-full rounded-full bg-red-600" style={{ width: `${Math.min(100, item.minutes / Math.max(1, byActivity[0].minutes) * 100)}%` }} /></div></div>) : <p className="text-sm text-slate-500">Chọn hoạt động học trước khi bắt đầu để xem phân bổ.</p>}</div></section></section>
     <section className="grid gap-3 sm:grid-cols-3"><Metric icon={Clock3} label="Tổng phiên hoàn thành" value={completedFocus.length} detail={`${completedToday} hôm nay`} /><Metric icon={Flame} label="Tổng thời gian học" value={`${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}p`} detail={`Trung bình ${average} phút/phiên`} /><Metric icon={Trophy} label="Mốc Pomodoro" value={computedAchievements(profile, config).filter((item) => item.metric === "pomodoroSessions").length || "—"} detail={`${profile.xp.toLocaleString("vi-VN")} XP`} /></section>
     <section className="panel p-5 sm:p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-red-700 dark:text-red-300">Lịch sử tập trung</p><h2 className="mt-2 font-display text-2xl font-bold">Các phiên gần đây</h2></div><button className="secondary-button" onClick={() => onView("achievements")}><Trophy className="h-4 w-4" />Xem Thành tích</button></div>{profile.pomodoroHistory.length ? <div className="mt-5 grid gap-2 md:grid-cols-2">{profile.pomodoroHistory.slice(0, 8).map((item) => <div key={item.id} className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 dark:border-white/10"><span className={`grid h-9 w-9 place-items-center rounded-xl ${item.status === "completed" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300" : "bg-slate-100 text-slate-500 dark:bg-white/5"}`}>{item.status === "completed" ? <Check className="h-4 w-4" /> : <Clock3 className="h-4 w-4" />}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{item.subject || "Tự học"}</b><small className="text-xs text-slate-500">{item.durationMinutes ? `${item.durationMinutes} phút` : "Chưa hoàn tất"} · {new Date(item.endedAt).toLocaleString("vi-VN")}</small></span><span className="text-xs font-bold text-slate-500">{item.status === "completed" ? "Hoàn thành" : item.status === "abandoned" ? "Chưa hoàn thành" : "Đã bỏ qua"}</span></div>)}</div> : <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-white/5">Chưa có phiên nào. Bắt đầu với 10 phút cũng là một bước tiến.</p>}</section>
   </div>;

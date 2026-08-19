@@ -401,9 +401,13 @@ export type AchievementEvidence = {
   occurredAt?: string;
 };
 
+export type EmotionThemeId = "calm" | "happy" | "tired" | "sad" | "stressed" | "lazy" | "proud" | "focused" | "hopeful" | "overwhelmed" | "sleepy" | "excited" | "lonely" | "confident" | "curious" | "comeback";
+
 export type MascotVoiceLine = {
   id: string;
   state: MascotStateId | string;
+  /** A recording explicitly selected for this learner emotion. Older state-only recordings remain supported. */
+  emotion?: EmotionThemeId;
   text: string;
   audioUrl?: string;
   enabled: boolean;
@@ -502,7 +506,7 @@ export type ProfileState = {
   soundEnabled: boolean;
   animationsEnabled?: boolean;
   popupsEnabled?: boolean;
-  emotionTheme?: "calm" | "happy" | "tired" | "sad" | "stressed" | "lazy" | "proud" | "focused" | "hopeful" | "overwhelmed" | "sleepy" | "excited" | "lonely" | "confident" | "curious" | "comeback";
+  emotionTheme?: EmotionThemeId;
   defaultAmbientScene?: AmbientScenePreference;
   audioMixer?: AudioMixerSettings;
   theme: "light" | "dark";
@@ -1217,7 +1221,7 @@ export function normalizeProfile(value: unknown): ProfileState {
   merged.taskCombos = Array.isArray(source.taskCombos) ? source.taskCombos : [];
   merged.deepLearningEvents = Array.isArray(source.deepLearningEvents) ? source.deepLearningEvents : [];
   merged.achievementEvidence = source.achievementEvidence && typeof source.achievementEvidence === "object" ? source.achievementEvidence : {};
-  merged.mascotVoiceLines = Array.isArray(source.mascotVoiceLines) ? source.mascotVoiceLines.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<MascotVoiceLine>) : null; if (!item?.id || !item.text) return []; return [{ id: String(item.id), state: String(item.state ?? "achievement"), text: String(item.text), audioUrl: item.audioUrl ? String(item.audioUrl) : undefined, enabled: item.enabled !== false, createdAt: item.createdAt ? String(item.createdAt) : undefined, deletedAt: item.deletedAt ? String(item.deletedAt) : undefined }]; }) : [];
+  merged.mascotVoiceLines = Array.isArray(source.mascotVoiceLines) ? source.mascotVoiceLines.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<MascotVoiceLine>) : null; if (!item?.id || !item.text) return []; return [{ id: String(item.id), state: String(item.state ?? "achievement"), emotion: item.emotion ? String(item.emotion) as EmotionThemeId : undefined, text: String(item.text), audioUrl: item.audioUrl ? String(item.audioUrl) : undefined, enabled: item.enabled !== false, createdAt: item.createdAt ? String(item.createdAt) : undefined, deletedAt: item.deletedAt ? String(item.deletedAt) : undefined }]; }) : [];
   merged.level = levelForXp(merged.xp);
   return merged;
 }
