@@ -54,19 +54,20 @@ export const studyRouter = router({
     }),
     uploadCompanionMedia: publicProcedure.input(tokenInput.extend({
       fileName: z.string().min(1).max(160),
-      contentType: z.enum(["image/png", "image/jpeg", "image/webp", "image/gif", "audio/webm", "audio/ogg", "audio/wav", "audio/mpeg"]),
+      contentType: z.enum(["image/png", "image/jpeg", "image/webp", "image/gif", "audio/webm", "audio/ogg", "audio/wav", "audio/mpeg", "audio/mp4", "audio/x-m4a"]),
       dataUrl: z.string().min(32).max(11_500_000),
-      mediaType: z.enum(["mascot-image", "lumi-image", "lumi-voice"]),
+      mediaType: z.enum(["mascot-image", "lumi-image", "lumi-voice", "personal-audio"]),
     })).mutation(async ({ input }) => {
       try {
         const { account } = await getStudySession(input.token);
-        const requiredType = input.mediaType === "lumi-voice" ? /^audio\/(webm|ogg|wav|mpeg)$/ : /^image\/(png|jpeg|webp|gif)$/;
+        const isAudio = input.mediaType === "lumi-voice" || input.mediaType === "personal-audio";
+        const requiredType = isAudio ? /^audio\/(webm|ogg|wav|mpeg|mp4|x-m4a)$/ : /^image\/(png|jpeg|webp|gif)$/;
         if (!requiredType.test(input.contentType)) throw new Error("Loại tệp không phù hợp với nội dung đang tải.");
         const match = input.dataUrl.match(/^data:([^;]+);base64,([A-Za-z0-9+/=]+)$/);
         if (!match || match[1] !== input.contentType) throw new Error("Dữ liệu tệp không hợp lệ.");
         const bytes = Buffer.from(match[2], "base64");
-        const maximumBytes = input.mediaType === "lumi-voice" ? 8 * 1024 * 1024 : 3 * 1024 * 1024;
-        if (bytes.length > maximumBytes) throw new Error(input.mediaType === "lumi-voice" ? "Bản thu Lumi tối đa 8 MB." : "Ảnh đồng hành tối đa 3 MB.");
+        const maximumBytes = isAudio ? 8 * 1024 * 1024 : 3 * 1024 * 1024;
+        if (bytes.length > maximumBytes) throw new Error(isAudio ? "Tệp âm thanh tối đa 8 MB." : "Ảnh đồng hành tối đa 3 MB.");
         const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
         const { url, key } = await storagePut(`study-historia/learners/${account.id}/companions/${input.mediaType}/${Date.now()}-${safeName}`, bytes, input.contentType);
         return { url, key, mediaType: input.mediaType, contentType: input.contentType };

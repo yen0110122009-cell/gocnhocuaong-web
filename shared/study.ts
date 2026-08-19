@@ -476,8 +476,9 @@ export type ProcrastinationEvent = {
 export type ComboStep = { id: string; label: string; minutes: number; completed: boolean };
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
 export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm";
-export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string; /** Nhãn màu trực quan do người học chọn để phân loại bản thu. */ colorLabel?: string };
+export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Thời điểm người học sửa tên, ảnh hoặc nhãn của bản thu. */ updatedAt?: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string; /** Nhãn màu trực quan do người học chọn để phân loại bản thu. */ colorLabel?: string };
 export type LumiVoiceRecordingTrashEntry = { recording: LumiVoiceRecording; deletedAt: string; originalIndex: number; previousFavoriteId?: string };
+export const LUMI_VOICE_TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 export type LumiCongratulationMessage = { id: string; text: string; createdAt: string; updatedAt: string };
 export type WeeklyPomodoroGoalCompletion = { weekKey: string; completedAt: string; goalMinutes: number; achievedMinutes: number };
 export type CompanionEmotionMedia = {
@@ -494,6 +495,32 @@ export type AudioMixerSettings = {
   pomodoroBackground: number;
   pomodoroBell: number;
   lumi: number;
+};
+export type PersonalAudioCategory = "emotion" | "season" | "weather" | "pomodoro" | "lumi" | "ong" | "background";
+export type PersonalAudioSource = "user_upload" | "external_url";
+export type PersonalAudioAsset = {
+  id: string;
+  name: string;
+  description?: string;
+  url: string;
+  source: PersonalAudioSource;
+  category: PersonalAudioCategory;
+  target: string;
+  enabled: boolean;
+  volume: number;
+  createdAt: string;
+  updatedAt: string;
+};
+export type PersonalStudyPreset = {
+  id: string;
+  name: string;
+  emotion?: EmotionThemeId;
+  ambientScene?: AmbientScenePreference;
+  audioAssetIds: string[];
+  companionMode: "lumi" | "ong" | "both" | "hidden";
+  focusMode: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type ProfileState = {
@@ -527,6 +554,12 @@ export type ProfileState = {
   showLumi?: boolean;
   defaultAmbientScene?: AmbientScenePreference;
   audioMixer?: AudioMixerSettings;
+  personalAudioAssets?: PersonalAudioAsset[];
+  personalStudyPresets?: PersonalStudyPreset[];
+  activePersonalStudyPresetId?: string;
+  companionMode?: PersonalStudyPreset["companionMode"];
+  autoNightMode?: boolean;
+  focusMode?: boolean;
   weeklyPomodoroGoalMinutes?: number;
   weeklyPomodoroGoalCompletions?: WeeklyPomodoroGoalCompletion[];
   lumiCongratulationMessages?: Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>>;
@@ -694,6 +727,12 @@ export const emptyProfile = (): ProfileState => ({
   showLumi: true,
   defaultAmbientScene: "morning",
   audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 },
+  personalAudioAssets: [],
+  personalStudyPresets: [],
+  activePersonalStudyPresetId: undefined,
+  companionMode: "both",
+  autoNightMode: false,
+  focusMode: false,
   weeklyPomodoroGoalMinutes: 300,
   weeklyPomodoroGoalCompletions: [],
   lumiCongratulationMessages: {},
@@ -1241,9 +1280,9 @@ export function normalizeProfile(value: unknown): ProfileState {
         const id = typeof recording.id === "string" && recording.id.trim() ? recording.id : "";
         if (!url || !id || recordingIds.has(id)) return [];
         recordingIds.add(id);
-        return [{ id, url, label: typeof recording.label === "string" && recording.label.trim() ? recording.label.slice(0, 80) : `Bản thu Lumi ${index + 1}`, createdAt: typeof recording.createdAt === "string" && recording.createdAt ? recording.createdAt : new Date(0).toISOString(), imageUrl: typeof recording.imageUrl === "string" && recording.imageUrl.trim() ? recording.imageUrl : lumiImageUrl, colorLabel: typeof recording.colorLabel === "string" && ["red", "orange", "yellow", "green", "blue", "purple", "pink", "gray"].includes(recording.colorLabel) ? recording.colorLabel : undefined }];
+        return [{ id, url, label: typeof recording.label === "string" && recording.label.trim() ? recording.label.slice(0, 80) : `Bản thu Lumi ${index + 1}`, createdAt: typeof recording.createdAt === "string" && recording.createdAt ? recording.createdAt : new Date(0).toISOString(), updatedAt: typeof recording.updatedAt === "string" && recording.updatedAt ? recording.updatedAt : undefined, imageUrl: typeof recording.imageUrl === "string" && recording.imageUrl.trim() ? recording.imageUrl : lumiImageUrl, colorLabel: typeof recording.colorLabel === "string" && ["red", "orange", "yellow", "green", "blue", "purple", "pink", "gray"].includes(recording.colorLabel) ? recording.colorLabel : undefined }];
       }) : [];
-      if (!lumiVoiceRecordings.length && lumiVoiceUrl) lumiVoiceRecordings.push({ id: `legacy-${emotion}`, url: lumiVoiceUrl, label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString(), imageUrl: lumiImageUrl, colorLabel: undefined });
+      if (!lumiVoiceRecordings.length && lumiVoiceUrl) lumiVoiceRecordings.push({ id: `legacy-${emotion}`, url: lumiVoiceUrl, label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString(), updatedAt: undefined, imageUrl: lumiImageUrl, colorLabel: undefined });
       const favoriteLumiVoiceId = lumiVoiceRecordings.some((recording) => recording.id === media.favoriteLumiVoiceId) ? media.favoriteLumiVoiceId : undefined;
       return mascotImageUrl || lumiImageUrl || lumiVoiceUrl || lumiVoiceRecordings.length ? [[emotion, { mascotImageUrl, lumiImageUrl, lumiVoiceUrl, lumiVoiceRecordings, favoriteLumiVoiceId }]] : [];
     })) as Partial<Record<EmotionThemeId, CompanionEmotionMedia>> : {},
@@ -1258,9 +1297,14 @@ export function normalizeProfile(value: unknown): ProfileState {
         const url = typeof recording?.url === "string" && recording.url.trim() ? recording.url.trim() : "";
         if (!id || !url || ids.has(id)) return [];
         ids.add(id);
-        return [{ recording: { id, url, label: typeof recording?.label === "string" && recording.label.trim() ? recording.label.slice(0, 80) : `Bản thu Lumi ${index + 1}`, createdAt: typeof recording?.createdAt === "string" && recording.createdAt ? recording.createdAt : new Date(0).toISOString(), imageUrl: typeof recording?.imageUrl === "string" && recording.imageUrl.trim() ? recording.imageUrl : undefined, colorLabel: typeof recording?.colorLabel === "string" && ["red", "orange", "yellow", "green", "blue", "purple", "pink", "gray"].includes(recording.colorLabel) ? recording.colorLabel : undefined }, deletedAt: typeof candidate.deletedAt === "string" && candidate.deletedAt ? candidate.deletedAt : new Date(0).toISOString(), originalIndex: Math.max(0, Number.isFinite(Number(candidate.originalIndex)) ? Math.floor(Number(candidate.originalIndex)) : 0), previousFavoriteId: typeof candidate.previousFavoriteId === "string" && candidate.previousFavoriteId ? candidate.previousFavoriteId : undefined }];
+        return [{ recording: { id, url, label: typeof recording?.label === "string" && recording.label.trim() ? recording.label.slice(0, 80) : `Bản thu Lumi ${index + 1}`, createdAt: typeof recording?.createdAt === "string" && recording.createdAt ? recording.createdAt : new Date(0).toISOString(), updatedAt: typeof recording?.updatedAt === "string" && recording.updatedAt ? recording.updatedAt : undefined, imageUrl: typeof recording?.imageUrl === "string" && recording.imageUrl.trim() ? recording.imageUrl : undefined, colorLabel: typeof recording?.colorLabel === "string" && ["red", "orange", "yellow", "green", "blue", "purple", "pink", "gray"].includes(recording.colorLabel) ? recording.colorLabel : undefined }, deletedAt: typeof candidate.deletedAt === "string" && candidate.deletedAt ? candidate.deletedAt : new Date(0).toISOString(), originalIndex: Math.max(0, Number.isFinite(Number(candidate.originalIndex)) ? Math.floor(Number(candidate.originalIndex)) : 0), previousFavoriteId: typeof candidate.previousFavoriteId === "string" && candidate.previousFavoriteId ? candidate.previousFavoriteId : undefined }];
       });
-      return normalized.length ? [[emotion, normalized.slice(0, 200)]] : [];
+      const retentionCutoff = Date.now() - LUMI_VOICE_TRASH_RETENTION_MS;
+      const retained = normalized.filter((entry) => {
+        const deletedAt = Date.parse(entry.deletedAt);
+        return Number.isFinite(deletedAt) && deletedAt > retentionCutoff;
+      });
+      return retained.length ? [[emotion, retained.slice(0, 200)]] : [];
     })) as Partial<Record<EmotionThemeId, LumiVoiceRecordingTrashEntry[]>> : {},
     showMascot: source.showMascot !== false,
     showLumi: source.showLumi !== false,
@@ -1272,6 +1316,27 @@ export function normalizeProfile(value: unknown): ProfileState {
       pomodoroBell: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroBell ?? base.audioMixer!.pomodoroBell) || 0)),
       lumi: Math.max(0, Math.min(100, Number(source.audioMixer?.lumi ?? base.audioMixer!.lumi) || 0)),
     },
+    personalAudioAssets: Array.isArray(source.personalAudioAssets) ? source.personalAudioAssets.flatMap((value) => {
+      const asset = value && typeof value === "object" ? value as Partial<PersonalAudioAsset> : null;
+      const id = typeof asset?.id === "string" && asset.id.trim() ? asset.id.trim() : "";
+      const name = typeof asset?.name === "string" && asset.name.trim() ? asset.name.trim().slice(0, 100) : "";
+      const url = typeof asset?.url === "string" && /^(https?:\/\/|\/manus-storage\/)/.test(asset.url.trim()) ? asset.url.trim() : "";
+      const category = asset?.category;
+      const sourceType = asset?.source;
+      if (!id || !name || !url || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
+      return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: asset?.enabled !== false, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString() }];
+    }).filter((asset, index, assets) => assets.findIndex((candidate) => candidate.id === asset.id) === index).slice(0, 300) : [],
+    personalStudyPresets: Array.isArray(source.personalStudyPresets) ? source.personalStudyPresets.flatMap((value) => {
+      const preset = value && typeof value === "object" ? value as Partial<PersonalStudyPreset> : null;
+      const id = typeof preset?.id === "string" && preset.id.trim() ? preset.id.trim() : "";
+      const name = typeof preset?.name === "string" && preset.name.trim() ? preset.name.trim().slice(0, 80) : "";
+      if (!id || !name) return [];
+      return [{ id, name, emotion: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(preset?.emotion)) ? preset?.emotion as EmotionThemeId : undefined, ambientScene: ["morning", "rain", "snow", "leaves", "storm"].includes(String(preset?.ambientScene)) ? preset?.ambientScene as AmbientScenePreference : undefined, audioAssetIds: Array.isArray(preset?.audioAssetIds) ? preset!.audioAssetIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0).slice(0, 80) : [], companionMode: ["lumi", "ong", "both", "hidden"].includes(String(preset?.companionMode)) ? preset?.companionMode as PersonalStudyPreset["companionMode"] : "both", focusMode: preset?.focusMode === true, createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
+    }).filter((preset, index, presets) => presets.findIndex((candidate) => candidate.id === preset.id) === index).slice(0, 100) : [],
+    activePersonalStudyPresetId: typeof source.activePersonalStudyPresetId === "string" && source.personalStudyPresets?.some((preset) => preset && typeof preset === "object" && (preset as Partial<PersonalStudyPreset>).id === source.activePersonalStudyPresetId) ? source.activePersonalStudyPresetId : undefined,
+    companionMode: ["lumi", "ong", "both", "hidden"].includes(String(source.companionMode)) ? source.companionMode as PersonalStudyPreset["companionMode"] : "both",
+    autoNightMode: source.autoNightMode === true,
+    focusMode: source.focusMode === true,
     weeklyPomodoroGoalMinutes: Math.max(30, Math.min(10_080, Math.round(Number(source.weeklyPomodoroGoalMinutes ?? base.weeklyPomodoroGoalMinutes ?? 300) || base.weeklyPomodoroGoalMinutes || 300))),
     weeklyPomodoroGoalCompletions: Array.isArray(source.weeklyPomodoroGoalCompletions) ? source.weeklyPomodoroGoalCompletions.flatMap((value) => {
       const item = value && typeof value === "object" ? value as Partial<WeeklyPomodoroGoalCompletion> : null;

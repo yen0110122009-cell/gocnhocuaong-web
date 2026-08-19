@@ -5,6 +5,7 @@ import { emotionThemes, emotionFromCommand } from "../lib/emotionThemes";
 
 const studioSource = await import.meta.glob("./ExperienceStudio.tsx", { query: "?raw", import: "default", eager: true })["./ExperienceStudio.tsx"] as string;
 const mediaControlsSource = await import.meta.glob("./EmotionCompanionMediaControls.tsx", { query: "?raw", import: "default", eager: true })["./EmotionCompanionMediaControls.tsx"] as string;
+const personalStudySpaceSource = await import.meta.glob("./PersonalStudySpaceControls.tsx", { query: "?raw", import: "default", eager: true })["./PersonalStudySpaceControls.tsx"] as string;
 const homeSource = await import.meta.glob("../pages/Home.tsx", { query: "?raw", import: "default", eager: true })["../pages/Home.tsx"] as string;
 const pomodoroSource = await import.meta.glob("../pages/Pomodoro.tsx", { query: "?raw", import: "default", eager: true })["../pages/Pomodoro.tsx"] as string;
 const cssSource = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
@@ -104,11 +105,32 @@ describe("Experience Studio requirements", () => {
     expect(mediaControlsSource).toContain("Xóa vĩnh viễn");
   });
 
+  it("supports selecting individual or all trashed Lumi recordings and sorts saved recordings by time", () => {
+    expect(mediaControlsSource).toContain("selectedTrashKeys");
+    expect(mediaControlsSource).toContain("Chọn tất cả");
+    expect(mediaControlsSource).toContain("Khôi phục đã chọn");
+    expect(mediaControlsSource).toContain("Xóa vĩnh viễn đã chọn");
+    expect(mediaControlsSource).toContain("librarySort");
+    expect(mediaControlsSource).toContain("Mới tạo gần nhất");
+    expect(mediaControlsSource).toContain("Chỉnh sửa gần nhất");
+    expect(mediaControlsSource).toContain("updatedAt");
+  });
+
   it("keeps a compact Pomodoro controller that persists and can be expanded again", () => {
     expect(pomodoroSource).toContain("compactMode");
     expect(pomodoroSource).toContain("Thu nhỏ Pomodoro");
     expect(pomodoroSource).toContain("Mở đầy đủ Pomodoro");
     expect(pomodoroSource).toContain("Pomodoro thu nhỏ");
+    expect(pomodoroSource).toContain("Alt + M");
+    expect(pomodoroSource).toContain("window.addEventListener(\"keydown\"");
+  });
+
+  it("only plays saved Lumi audio and exposes a member-owned personal study-space library", () => {
+    expect(studioSource).not.toContain("speechSynthesis");
+    expect(studioSource).toContain("Thêm hoặc nghe bản thu Lumi");
+    expect(personalStudySpaceSource).toContain("Âm thanh & Chủ đề của tôi");
+    expect(personalStudySpaceSource).toContain("Tải tệp MP3/WAV/OGG/M4A");
+    expect(personalStudySpaceSource).toContain("preset");
   });
 
   it("offers validated JSON export and merge-or-replace import without embedding media files", () => {

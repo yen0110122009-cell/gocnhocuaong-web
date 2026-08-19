@@ -5,8 +5,10 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
+import { sdk } from "./sdk";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { purgeExpiredLumiVoiceTrash } from "../studyStore";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -36,6 +38,16 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  app.post("/api/scheduled/purge-lumi-voice-trash", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron || !user.taskUid) return res.status(403).json({ error: "cron-only" });
+      const result = await purgeExpiredLumiVoiceTrash();
+      return res.json({ ok: true, ...result, taskUid: user.taskUid });
+    } catch (error) {
+      return res.status(500).json({ error: error instanceof Error ? error.message : "cleanup-failed", timestamp: new Date().toISOString() });
+    }
+  });
   // tRPC API
   app.use(
     "/api/trpc",

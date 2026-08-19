@@ -132,6 +132,22 @@ export async function getProfileForToken(token: string) {
   return { account, profile: normalizeProfile(jsonFromText(profile.data, emptyProfile)) };
 }
 
+/** Idempotently discards Lumi recordings that exceeded the 30-day trash retention period. */
+export async function purgeExpiredLumiVoiceTrash() {
+  const db = await database();
+  const rows = await db.select().from(studyProfiles);
+  let updatedProfiles = 0;
+  for (const row of rows) {
+    const normalized = normalizeProfile(jsonFromText(row.data, emptyProfile));
+    const nextData = JSON.stringify(normalized);
+    if (nextData !== row.data) {
+      await db.update(studyProfiles).set({ data: nextData, updatedAt: new Date() }).where(eq(studyProfiles.accountId, row.accountId));
+      updatedProfiles += 1;
+    }
+  }
+  return { updatedProfiles };
+}
+
 export async function saveProfileForToken(token: string, value: unknown) {
   const { account } = await getStudySession(token);
   const profile = normalizeProfile(value);

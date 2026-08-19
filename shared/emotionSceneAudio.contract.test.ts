@@ -18,12 +18,13 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(home()).toContain('root.dataset.ambientScene = profile.defaultAmbientScene ?? "morning"');
   });
 
-  it("persists independent scene and Lumi volume controls in the learner profile", () => {
+  it("persists independent scene and recorded-Lumi volume controls without device speech synthesis", () => {
     expect(studio()).toContain("function updateAmbientVolume");
     expect(studio()).toContain("ambientSceneVolumes: next");
     expect(studio()).toContain("function updateLumiVolume");
     expect(studio()).toContain("audio.volume = lumiVolume / 100");
-    expect(studio()).toContain("utterance.volume = lumiVolume / 100");
+    expect(studio()).not.toContain("speechSynthesis");
+    expect(studio()).not.toContain("Dùng giọng đọc theo ngày của thiết bị");
   });
 
   it("keeps the Pomodoro layer mixer and bell volume in the same profile mixer", () => {
@@ -38,10 +39,10 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(pomodoro()).toContain("emotionTheme: nextEmotion");
   });
 
-  it("selects an approved Lumi recording for the learner emotion before falling back to device speech", () => {
+  it("uses a saved Lumi recording for the learner emotion and explains when no recording exists", () => {
     expect(studio()).toContain("item.emotion === theme.id");
     expect(studio()).toContain("Giọng Lumi theo cảm xúc");
-    expect(studio()).toContain("Dùng bản thu đã được Admin duyệt");
+    expect(studio()).toContain("Chưa có bản thu Lumi cho lời nhắn này");
   });
 
   it("shows the actual seven-day Pomodoro study trend and a clear empty state", () => {

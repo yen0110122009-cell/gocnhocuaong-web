@@ -47,6 +47,14 @@ describe("Companion emotion media normalization", () => {
     expect(profile.lumiVoiceRecordingTrash?.happy).toBeUndefined();
   });
 
+  it("permanently discards Lumi trash entries older than 30 days while retaining newer entries", () => {
+    const profile = normalizeProfile({ lumiVoiceRecordingTrash: { calm: [
+      { recording: { id: "old", url: "https://audio.example/old.webm", label: "Bản quá hạn", createdAt: "2026-08-19T00:00:00.000Z" }, deletedAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString(), originalIndex: 0 },
+      { recording: { id: "fresh", url: "https://audio.example/fresh.webm", label: "Bản còn hạn", createdAt: "2026-08-19T00:00:00.000Z" }, deletedAt: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString(), originalIndex: 1 },
+    ] } });
+    expect(profile.lumiVoiceRecordingTrash?.calm).toEqual([expect.objectContaining({ recording: expect.objectContaining({ id: "fresh" }) })]);
+  });
+
   it("normalizes custom Lumi congratulations and weekly completion history without duplicate weeks", () => {
     const profile = normalizeProfile({
       weeklyPomodoroGoalCompletions: [
