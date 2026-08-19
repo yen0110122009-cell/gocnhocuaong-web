@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bird, CloudRain, Leaf, Pause, Play, Snowflake, Volume2, VolumeX, Zap } from "lucide-react";
+import { Bird, CloudRain, Eye, EyeOff, ImagePlus, Leaf, Mic, Pause, Play, Snowflake, Trash2, Upload, Volume2, VolumeX, Zap } from "lucide-react";
 import { emotionFromCommand, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { lumiQuoteForDate } from "../lib/lumiDailyQuotes";
 import { activeContentFor, antiProcrastinationChoices, gentleReminders, randomAntiProcrastinationSpeech, randomMicroTask, speechForEvent, speechGroupLabels, type SpeechGroup } from "../lib/speechLibrary";
 import type { AppConfig, ProfileState } from "../../../shared/study";
 import { OngLearnerAvatar } from "./OngLearnerAvatar";
+import { EmotionCompanionMediaControls } from "./EmotionCompanionMediaControls";
+import { trpc } from "@/lib/trpc";
 
 type AttentionPreferences = { animationsEnabled: boolean; popupsEnabled: boolean; soundEnabled: boolean };
 type AmbientScene = "morning" | "rain" | "snow" | "leaves" | "storm";
@@ -51,7 +53,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const ambientStopRef = useRef<(() => void) | null>(null);
   const lumiAudioRef = useRef<HTMLAudioElement | null>(null);
   const theme = emotionThemes.find((item) => item.id === selected) ?? emotionThemes[0];
-  const configuredLumiImage = mascotStates.find((item) => item.enabled && item.imageUrl)?.imageUrl || companionImage;
+  const companionMedia = profile?.companionEmotionMedia?.[theme.id];
+  const configuredMascotImage = companionMedia?.mascotImageUrl;
+  const configuredLumiImage = companionMedia?.lumiImageUrl || mascotStates.find((item) => item.enabled && item.imageUrl)?.imageUrl || companionImage;
   const matchingVoiceLine = [...voiceLines].reverse().find((item) => item.enabled && !item.deletedAt && (item.emotion === theme.id || item.state === `emotion-${theme.id}` || (!item.emotion && emotionVoiceStates[theme.id].includes(item.state))));
   const voiceMatchLabel = matchingVoiceLine?.emotion === theme.id || matchingVoiceLine?.state === `emotion-${theme.id}` ? `Bản thu cho cảm xúc “${theme.label}”` : matchingVoiceLine ? `Bản thu ngữ cảnh phù hợp với “${theme.label}”` : "Chưa có bản thu được duyệt cho cảm xúc này";
   const safeCommandHint = useMemo(() => "Ví dụ: vui vẻ, tôi đang mệt, cần đồng hành", []);
@@ -135,8 +139,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   function playLumiVoice() {
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
-    if (matchingVoiceLine?.audioUrl) {
-      lumiAudioRef.current?.pause(); const audio = new Audio(matchingVoiceLine.audioUrl); audio.volume = lumiVolume / 100; lumiAudioRef.current = audio; void audio.play().catch(() => setMessage("Không thể phát bản thu này. Lumi vẫn để lại lời nhắn ở bên cạnh.")); return;
+    const voiceUrl = companionMedia?.lumiVoiceUrl || matchingVoiceLine?.audioUrl;
+    if (voiceUrl) {
+      lumiAudioRef.current?.pause(); const audio = new Audio(voiceUrl); audio.volume = lumiVolume / 100; lumiAudioRef.current = audio; void audio.play().catch(() => setMessage("Không thể phát bản thu này. Lumi vẫn để lại lời nhắn ở bên cạnh.")); return;
     }
     if ("speechSynthesis" in window) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(lumiVoiceText); utterance.lang = "vi-VN"; utterance.rate = .92; utterance.pitch = 1.15; utterance.volume = lumiVolume / 100; window.speechSynthesis.speak(utterance); setMessage("Lumi đang đọc lời nhắn cho Ong."); }
     else setMessage("Thiết bị này chưa hỗ trợ giọng đọc. Ong có thể đọc lời nhắn của Lumi.");
@@ -152,8 +157,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   return <section className="panel emotion-studio relative overflow-hidden border-2 border-[#c62828]/15 bg-[linear-gradient(135deg,#fff7f2_0%,#f5fff5_100%)] p-5 sm:p-6" aria-labelledby="emotion-studio-title">
     <div className={`ambient-scene ambient-scene-${ambientScene}`} aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
-    <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-[#c62828]">Không gian cảm xúc của Lumi</p><h2 id="emotion-studio-title" className="mt-2 font-display text-2xl font-black text-[#7f1d1d]">Hôm nay Ong đang cảm thấy thế nào?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#3f513f]">Chọn cảm xúc để đổi màu toàn ứng dụng và nhận lời đồng hành phù hợp. Âm nền chỉ phát khi Ong chủ động nhấn nút.</p></div><div className="flex items-center gap-3 rounded-2xl border border-[#2e7d32]/20 bg-white/85 px-3 py-3 shadow-sm"><img src={configuredLumiImage} alt="Lumi, bạn đồng hành của Ong" className="h-20 w-16 rounded-2xl object-cover object-top" /><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Bạn đồng hành</p><p className="mt-1 text-sm font-black text-[#7f1d1d]">Lumi</p><span className="text-xs text-[#35523a]">Đang ở bên Ong · {theme.label}</span></div><OngLearnerAvatar size="sm" label /></div></div>
+    <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-[#c62828]">Không gian cảm xúc của Lumi</p><h2 id="emotion-studio-title" className="mt-2 font-display text-2xl font-black text-[#7f1d1d]">Hôm nay Ong đang cảm thấy thế nào?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#3f513f]">Chọn cảm xúc để đổi màu toàn ứng dụng và nhận lời đồng hành phù hợp. Âm nền chỉ phát khi Ong chủ động nhấn nút.</p></div><div className="flex items-center gap-3 rounded-2xl border border-[#2e7d32]/20 bg-white/85 px-3 py-3 shadow-sm">{profile?.showLumi !== false ? <img src={configuredLumiImage} alt={`Lumi khi ${theme.label}`} className="h-20 w-16 rounded-2xl object-cover object-top" /> : null}<div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Bạn đồng hành</p><p className="mt-1 text-sm font-black text-[#7f1d1d]">Lumi</p><span className="text-xs text-[#35523a]">{profile?.showLumi === false ? "Ảnh Lumi đang ẩn" : `Đang ở bên Ong · ${theme.label}`}</span></div>{profile?.showMascot !== false ? <OngLearnerAvatar size="sm" label imageUrl={configuredMascotImage} /> : null}</div></div>
     <AttentionControls preferences={attentionPreferences} onToggle={(key) => profile && onProfile?.({ ...profile, [key]: !attentionPreferences[key] })} />
+    {profile && onProfile ? <EmotionCompanionMediaControls profile={profile} emotion={theme.id} onProfile={onProfile} /> : null}
     <div className="relative z-10 mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{emotionThemes.map((item) => <div key={item.id} className={`relative rounded-2xl border ${item.id === selected ? "border-[var(--emotion-primary)] bg-[var(--emotion-soft)] shadow-md" : "border-[#2e7d32]/15 bg-white/75"}`}><button type="button" aria-pressed={item.id === selected} onClick={() => selectEmotion(item.id)} className="w-full p-3 pr-10 text-left text-[var(--emotion-ink)]"><span className="text-xl" aria-hidden="true">{item.emoji}</span><b className="mt-1 block text-sm">{item.label}</b><small className="mt-1 block text-[11px] leading-4 opacity-75">{item.description}</small></button><button type="button" aria-label={`Phát âm nền cho cảm xúc ${item.label}`} onClick={() => toggleAmbient(item.id === "sad" || item.id === "tired" ? "rain" : item.id === "happy" || item.id === "proud" ? "morning" : item.id === "stressed" ? "storm" : "leaves")} className="absolute bottom-2 right-2 rounded-lg border border-[#c62828]/20 bg-white/95 p-1.5 text-[#c62828] shadow-sm"><Volume2 className="h-3.5 w-3.5" /></button></div>)}</div>
     <section className="relative z-10 mt-4 rounded-2xl border border-[#2e7d32]/20 bg-white/85 p-3" aria-label="Âm thanh và cảnh nền">
       <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Âm thanh và cảnh nền</p><p className="mt-1 text-xs text-[#35523a]">Chọn cảnh rồi nhấn nghe. Không tự phát khi tải trang.</p></div><button type="button" onClick={() => toggleAmbient()} className="rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">{ambientPlaying ? <><Pause className="mr-1 inline h-3.5 w-3.5" />Dừng âm nền</> : <><Play className="mr-1 inline h-3.5 w-3.5" />Nghe âm nền</>}</button></div>

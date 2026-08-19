@@ -56,6 +56,14 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("defaultAmbientScene: ambientScene");
   });
 
+  it("offers per-emotion companion media chosen by the learner and honors image visibility settings", () => {
+    expect(studioSource).toContain("EmotionCompanionMediaControls");
+    expect(studioSource).toContain("companionMedia?.mascotImageUrl");
+    expect(studioSource).toContain("companionMedia?.lumiImageUrl");
+    expect(studioSource).toContain("profile?.showMascot !== false");
+    expect(studioSource).toContain("profile?.showLumi !== false");
+  });
+
   it("does not retain purchasable cosmetic theme selectors after switching to emotion-based colors", () => {
     expect(cssSource).not.toContain("data-cosmetic-theme");
     expect(cssSource).not.toContain("data-cosmetic-background");

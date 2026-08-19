@@ -509,3 +509,9 @@
 - [x] Chẩn đoán và sửa âm nền để chỉ khởi tạo/phát sau thao tác người dùng, có phản hồi lỗi và điều khiển dừng đáng tin cậy.
 - [x] Rà soát và sửa riêng Audio Center Pomodoro: bật/tắt, nghe thử, đổi cảnh, mixer, chuyển trang và chuông phải phản ánh đúng trạng thái phát.
 - [x] Bổ sung regression, TypeScript, build và QA desktop/mobile cho các luồng mới.
+## Ảnh đồng hành, mục tiêu tuần và bản thu Lumi cá nhân
+- [x] Cho người dùng tự tải ảnh Mascot và Lumi riêng cho từng cảm xúc, kèm điều khiển hiển thị/ẩn từng nhân vật và lưu trạng thái theo hồ sơ.
+- [x] Thêm mục tiêu số phút Pomodoro theo tuần và hiển thị tiến độ thực tế ngay trên biểu đồ bảy ngày.
+- [x] Bổ sung thanh điều chỉnh âm lượng riêng cho giọng nói Lumi, dùng chung cho bản thu và đọc bằng thiết bị.
+- [x] Cho người dùng tự ghi âm hoặc tải bản thu giọng Lumi, lưu dữ liệu an toàn và cho phép phát/xóa bản thu của chính họ.
+- [x] Bổ sung regression, TypeScript, build và QA responsive cho ảnh, mục tiêu và bản thu cá nhân.

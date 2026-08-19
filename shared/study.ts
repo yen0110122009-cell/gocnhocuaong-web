@@ -410,6 +410,7 @@ export type MascotVoiceLine = {
   emotion?: EmotionThemeId;
   text: string;
   audioUrl?: string;
+  source?: "admin" | "learner";
   enabled: boolean;
   createdAt?: string;
   deletedAt?: string;
@@ -475,6 +476,7 @@ export type ProcrastinationEvent = {
 export type ComboStep = { id: string; label: string; minutes: number; completed: boolean };
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
 export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm";
+export type CompanionEmotionMedia = { mascotImageUrl?: string; lumiImageUrl?: string; lumiVoiceUrl?: string };
 export type AudioMixerSettings = {
   ambientSceneVolumes: Record<AmbientScenePreference, number>;
   pomodoroLayers: Record<string, number>;
@@ -507,8 +509,12 @@ export type ProfileState = {
   animationsEnabled?: boolean;
   popupsEnabled?: boolean;
   emotionTheme?: EmotionThemeId;
+  companionEmotionMedia?: Partial<Record<EmotionThemeId, CompanionEmotionMedia>>;
+  showMascot?: boolean;
+  showLumi?: boolean;
   defaultAmbientScene?: AmbientScenePreference;
   audioMixer?: AudioMixerSettings;
+  weeklyPomodoroGoalMinutes?: number;
   theme: "light" | "dark";
   lastActivityAt: string | null;
   currentStreak: number;
@@ -667,8 +673,12 @@ export const emptyProfile = (): ProfileState => ({
   animationsEnabled: true,
   popupsEnabled: true,
   emotionTheme: "calm",
+  companionEmotionMedia: {},
+  showMascot: true,
+  showLumi: true,
   defaultAmbientScene: "morning",
   audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 },
+  weeklyPomodoroGoalMinutes: 300,
   theme: "light",
   lastActivityAt: null,
   currentStreak: 0,
@@ -1199,6 +1209,16 @@ export function normalizeProfile(value: unknown): ProfileState {
     animationsEnabled: source.animationsEnabled !== false,
     popupsEnabled: source.popupsEnabled !== false,
     emotionTheme: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(source.emotionTheme)) ? source.emotionTheme as ProfileState["emotionTheme"] : "calm",
+    companionEmotionMedia: source.companionEmotionMedia && typeof source.companionEmotionMedia === "object" ? Object.fromEntries(Object.entries(source.companionEmotionMedia).flatMap(([emotion, value]) => {
+      if (!["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(emotion) || !value || typeof value !== "object") return [];
+      const media = value as Partial<CompanionEmotionMedia>;
+      const mascotImageUrl = media.mascotImageUrl ? String(media.mascotImageUrl) : undefined;
+      const lumiImageUrl = media.lumiImageUrl ? String(media.lumiImageUrl) : undefined;
+      const lumiVoiceUrl = typeof media.lumiVoiceUrl === "string" ? media.lumiVoiceUrl : undefined;
+      return mascotImageUrl || lumiImageUrl || lumiVoiceUrl ? [[emotion, { mascotImageUrl, lumiImageUrl, lumiVoiceUrl }]] : [];
+    })) as Partial<Record<EmotionThemeId, CompanionEmotionMedia>> : {},
+    showMascot: source.showMascot !== false,
+    showLumi: source.showLumi !== false,
     defaultAmbientScene: ["morning", "rain", "snow", "leaves", "storm"].includes(String(source.defaultAmbientScene)) ? source.defaultAmbientScene as AmbientScenePreference : base.defaultAmbientScene,
     audioMixer: {
       ambientSceneVolumes: Object.fromEntries((["morning", "rain", "snow", "leaves", "storm"] as AmbientScenePreference[]).map((scene) => [scene, Math.max(0, Math.min(100, Number(source.audioMixer?.ambientSceneVolumes?.[scene] ?? base.audioMixer!.ambientSceneVolumes[scene]) || 0))])) as AudioMixerSettings["ambientSceneVolumes"],
@@ -1207,6 +1227,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       pomodoroBell: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroBell ?? base.audioMixer!.pomodoroBell) || 0)),
       lumi: Math.max(0, Math.min(100, Number(source.audioMixer?.lumi ?? base.audioMixer!.lumi) || 0)),
     },
+    weeklyPomodoroGoalMinutes: Math.max(30, Math.min(10_080, Math.round(Number(source.weeklyPomodoroGoalMinutes ?? base.weeklyPomodoroGoalMinutes ?? 300) || base.weeklyPomodoroGoalMinutes || 300))),
     currentStreak: Math.max(0, Number(source.currentStreak) || 0),
     bestStreak: Math.max(0, Number(source.bestStreak) || 0),
     streakShields: Math.max(0, Math.min(3, Number(source.streakShields) || 0)),
@@ -1221,7 +1242,7 @@ export function normalizeProfile(value: unknown): ProfileState {
   merged.taskCombos = Array.isArray(source.taskCombos) ? source.taskCombos : [];
   merged.deepLearningEvents = Array.isArray(source.deepLearningEvents) ? source.deepLearningEvents : [];
   merged.achievementEvidence = source.achievementEvidence && typeof source.achievementEvidence === "object" ? source.achievementEvidence : {};
-  merged.mascotVoiceLines = Array.isArray(source.mascotVoiceLines) ? source.mascotVoiceLines.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<MascotVoiceLine>) : null; if (!item?.id || !item.text) return []; return [{ id: String(item.id), state: String(item.state ?? "achievement"), emotion: item.emotion ? String(item.emotion) as EmotionThemeId : undefined, text: String(item.text), audioUrl: item.audioUrl ? String(item.audioUrl) : undefined, enabled: item.enabled !== false, createdAt: item.createdAt ? String(item.createdAt) : undefined, deletedAt: item.deletedAt ? String(item.deletedAt) : undefined }]; }) : [];
+  merged.mascotVoiceLines = Array.isArray(source.mascotVoiceLines) ? source.mascotVoiceLines.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<MascotVoiceLine>) : null; if (!item?.id || !item.text) return []; return [{ id: String(item.id), state: String(item.state ?? "achievement"), emotion: item.emotion ? String(item.emotion) as EmotionThemeId : undefined, text: String(item.text), audioUrl: item.audioUrl ? String(item.audioUrl) : undefined, source: item.source === "admin" ? "admin" : "learner", enabled: item.enabled !== false, createdAt: item.createdAt ? String(item.createdAt) : undefined, deletedAt: item.deletedAt ? String(item.deletedAt) : undefined }]; }) : [];
   merged.level = levelForXp(merged.xp);
   return merged;
 }

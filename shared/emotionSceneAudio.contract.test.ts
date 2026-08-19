@@ -46,6 +46,20 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(pomodoro()).toContain("Chưa có phiên Pomodoro hoàn thành trong bảy ngày qua");
   });
 
+  it("keeps the weekly Pomodoro goal and progress beside the seven-day chart", () => {
+    expect(pomodoro()).toContain("weeklyPomodoroGoalMinutes");
+    expect(pomodoro()).toContain("Mục tiêu tuần (phút)");
+    expect(pomodoro()).toContain("weeklyProgress");
+    expect(pomodoro()).toContain("Tiến độ mục tiêu tuần");
+  });
+
+  it("uses learner-uploaded Mascot and Lumi images for the selected emotion and honors visibility choices", () => {
+    expect(studio()).toContain("companionMedia?.mascotImageUrl");
+    expect(studio()).toContain("companionMedia?.lumiImageUrl");
+    expect(studio()).toContain("profile?.showMascot !== false");
+    expect(studio()).toContain("profile?.showLumi !== false");
+  });
+
   it("keeps explicit audio-center start, stop, preview and status controls behind a user gesture", () => {
     expect(pomodoro()).toContain("async function toggleAudioCenter");
     expect(pomodoro()).toContain("async function toggleBackgroundPlayback");
