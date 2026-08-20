@@ -53,6 +53,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const [ambientVolumes, setAmbientVolumes] = useState<AmbientVolumes>(() => ({ ...defaultAmbientVolumes, ...profile?.audioMixer?.ambientSceneVolumes }));
   const [ambientPlaying, setAmbientPlaying] = useState(false);
   const [ambientMuted, setAmbientMuted] = useState(false);
+  const [ambientError, setAmbientError] = useState<string | null>(null);
   const [playbackStatus, setPlaybackStatus] = useState<AudioPlaybackStatus>({ environment: { active: false, label: "", volume: 0, muted: false }, music: { active: false, label: "", volume: 0, muted: false }, voice: { active: false, label: "", volume: 0, muted: false } });
   const attentionPreferences: AttentionPreferences = { animationsEnabled: profile?.animationsEnabled !== false, popupsEnabled: profile?.popupsEnabled !== false, soundEnabled: profile?.soundEnabled !== false };
   const restoredEmotionRef = useRef(false);
@@ -214,17 +215,30 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     stopAmbient();
     const selectedPreset = profile?.personalStudyPresets?.find((preset) => preset.id === profile.activePersonalStudyPresetId);
     const permittedAssetIds = selectedPreset?.audioAssetIds ?? [];
-    const personalAmbientAudio = (profile?.personalAudioAssets ?? [])
-      .filter((asset) => asset.enabled && (asset.category === "season" || asset.category === "weather" || asset.category === "background"))
-      .filter((asset) => permittedAssetIds.length === 0 || permittedAssetIds.includes(asset.id))
-      .filter((asset) => [scene, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")))
+    const ambientAssets = (profile?.personalAudioAssets ?? [])
+      .filter((asset) => asset.enabled && Boolean(asset.url) && (asset.category === "season" || asset.category === "weather" || asset.category === "background"));
+    const permittedAmbientAssets = permittedAssetIds.length > 0 ? ambientAssets.filter((asset) => permittedAssetIds.includes(asset.id)) : ambientAssets;
+    const sceneAmbientAssets = permittedAmbientAssets.filter((asset) => [scene, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")));
+    const personalAmbientAudio = [...sceneAmbientAssets, ...permittedAmbientAssets.filter((asset) => !sceneAmbientAssets.includes(asset))]
       .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
     if (personalAmbientAudio) {
-      const audio = new Audio(personalAmbientAudio.url);
+      setAmbientError(null);
+      const audio = new Audio();
+      audio.preload = "auto";
+      audio.src = personalAmbientAudio.url;
       audio.loop = true;
       const targetVolume = ambientMuted ? 0 : Math.max(0, Math.min(1, ambientVolumes[scene] / 100 * audioChannelVolumes.environment / 100));
       audio.volume = 0;
       ambientTrackRef.current = audio;
+      audio.onerror = () => {
+        if (ambientTrackRef.current === audio) {
+          ambientTrackRef.current = null;
+          setAmbientPlaying(false);
+          setChannelPlaying("environment", false);
+          setAmbientError(`Không tải được “${personalAmbientAudio.name}”. Hãy kiểm tra URL HTTPS hoặc thử lại.`);
+          setMessage("Âm nền chưa tải được. Bạn có thể nhấn Thử lại sau khi kiểm tra tệp.");
+        }
+      };
       void audio.play().then(() => {
         if (ambientTrackRef.current !== audio) return;
         const startedAt = performance.now();
@@ -238,13 +252,20 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
         setChannelPlaying("environment", true, personalAmbientAudio.name, personalAmbientAudio.url, ambientMuted ? 0 : ambientVolumes[scene] / 100 * audioChannelVolumes.environment, ambientMuted);
         setMessage(`Đang phát âm nền cá nhân “${personalAmbientAudio.name}”.`);
       }).catch(() => {
-        if (ambientTrackRef.current === audio) { ambientTrackRef.current = null; setMessage("Không thể phát âm nền cá nhân này. Hãy kiểm tra tệp hoặc URL rồi nghe lại."); }
+        if (ambientTrackRef.current === audio) {
+          ambientTrackRef.current = null;
+          setAmbientPlaying(false);
+          setChannelPlaying("environment", false);
+          setAmbientError("Trình duyệt đang chặn phát tự động hoặc tệp không hợp lệ. Hãy nhấn Thử lại.");
+          setMessage("Âm nền chưa phát được. Hãy nhấn Thử lại sau một thao tác chạm.");
+        }
       });
       return;
     }
     setAmbientPlaying(false);
     setChannelPlaying("environment", false);
-    setMessage(`Chưa có bản thu sạch cho cảnh ${sceneOptions.find((item) => item.id === scene)?.label.toLowerCase()}. Hãy thêm file thật vào Audio Center rồi nhấn nghe lại; hệ thống không phát âm tổng hợp để tránh nhiễu.`);
+    setAmbientError(`Chưa có tệp âm nền hợp lệ cho cảnh ${sceneOptions.find((item) => item.id === scene)?.label.toLowerCase()}.`);
+    setMessage("Chưa có bản thu âm nền hợp lệ. Hãy thêm tệp thật vào Audio Center rồi thử lại.");
   }
 
   useEffect(() => {
@@ -379,6 +400,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     <PersistentCollapsible storageKey="experience-ambient-audio" eyebrow="Không gian cảm xúc" title="Âm thanh và cảnh nền" className="relative z-10 mt-4 border-[#2e7d32]/20 bg-white/85">
     <section className="rounded-2xl" aria-label="Âm thanh và cảnh nền">
       <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Âm thanh và cảnh nền</p><p className="mt-1 text-xs text-[#35523a]">Cảnh nền sẽ tự phát từ khi mở web đến khi đóng web nếu trình duyệt cho phép; nếu autoplay bị chặn, chỉ cần chạm hoặc nhấn phím một lần để tiếp tục.</p></div><div className="flex flex-wrap items-center gap-2"><button type="button" aria-pressed={ambientMuted} onClick={toggleAmbientMute} className="rounded-xl border border-[#c62828]/25 bg-white px-3 py-2 text-xs font-black text-[#c62828]">{ambientMuted ? <><VolumeX className="mr-1 inline h-3.5 w-3.5" />Bật tiếng âm nền</> : <><Volume2 className="mr-1 inline h-3.5 w-3.5" />Mute âm nền</>}</button><button type="button" onClick={() => toggleAmbient()} className="rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">{ambientPlaying ? <><Pause className="mr-1 inline h-3.5 w-3.5" />Dừng âm nền</> : <><Play className="mr-1 inline h-3.5 w-3.5" />Nghe âm nền</>}</button></div></div>
+      {ambientError ? <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#c62828]/25 bg-[#fff0eb] px-3 py-2 text-xs font-bold text-[#7f1d1d]" role="alert"><span>{ambientError}</span><button type="button" onClick={() => { setAmbientError(null); void toggleAmbient(); }} className="rounded-lg bg-[#c62828] px-3 py-1.5 font-black text-white">Thử lại âm nền</button></div> : null}
       <div className="mt-3 rounded-xl border border-[#c62828]/15 bg-[#fff8f5] px-3 py-2"><label className="block text-xs font-black text-[#7f1d1d]">Âm lượng âm nền <span className="float-right">{audioChannelVolumes.environment}%</span><input type="range" min="0" max="100" value={audioChannelVolumes.environment} onChange={(event) => updateAudioChannelVolume("environment", Number(event.target.value))} className="mt-2 w-full accent-[#c62828]" aria-label="Âm lượng âm nền" /></label></div>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">{sceneOptions.map((scene) => { const Icon = scene.icon; return <button key={scene.id} type="button" aria-pressed={ambientScene === scene.id} onClick={() => setScene(scene.id)} className={`rounded-xl border p-2 text-left text-xs ${ambientScene === scene.id ? "border-[#c62828] bg-[#fff0eb] text-[#7f1d1d]" : "border-[#2e7d32]/15 bg-white text-[#35523a]"}`}><Icon className="h-4 w-4" /><b className="mt-1 block">{scene.label}</b><span className="text-[10px] opacity-75">{scene.detail}</span></button>; })}</div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#eff9ef] p-2"><p className="text-xs font-bold text-[#35523a]">Mặc định hiện tại: <b>{sceneOptions.find((item) => item.id === favoriteScene)?.label}</b></p><button type="button" onClick={saveFavoriteScene} className="rounded-lg border border-[#2e7d32]/30 bg-white px-2.5 py-1.5 text-xs font-black text-[#2e7d32]">Lưu cảnh này làm mặc định</button></div>

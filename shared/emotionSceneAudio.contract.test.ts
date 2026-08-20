@@ -102,7 +102,9 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(congratulationControls()).toContain("function save()");
     expect(congratulationControls()).toContain("function beginEdit");
     expect(congratulationControls()).toContain("function remove");
-    expect(congratulationControls()).toContain("Thêm lời chúc mới");
+    expect(congratulationControls()).toContain("Ghi âm trực tiếp");
+    expect(congratulationControls()).toContain("audioUrl");
+    expect(congratulationControls()).toContain("getUserMedia");
   });
 
   it("adds a brief visual and audio transition only when the learner enables these attention preferences", () => {
@@ -142,7 +144,9 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain("audio.play()");
     expect(studio()).toContain("fadeIn");
     expect(studio()).toContain("track.pause(); track.removeAttribute(\"src\"); track.load()");
-    expect(studio()).toContain("Hãy thêm file thật vào Audio Center");
+    expect(studio()).toContain("Hãy thêm tệp thật vào Audio Center");
+    expect(studio()).toContain('audio.preload = "auto"');
+    expect(studio()).toContain("Thử lại âm nền");
     expect(studio()).not.toContain("ambientGenerationRef.current);");
   });
 });

@@ -479,7 +479,7 @@ export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "s
 export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Thời điểm người học sửa tên, ảnh hoặc nhãn của bản thu. */ updatedAt?: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string; /** Nhãn màu trực quan do người học chọn để phân loại bản thu. */ colorLabel?: string };
 export type LumiVoiceRecordingTrashEntry = { recording: LumiVoiceRecording; deletedAt: string; originalIndex: number; previousFavoriteId?: string };
 export const LUMI_VOICE_TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
-export type LumiCongratulationMessage = { id: string; text: string; createdAt: string; updatedAt: string };
+export type LumiCongratulationMessage = { id: string; text: string; createdAt: string; updatedAt: string; audioUrl?: string; audioMimeType?: string; audioDurationSeconds?: number };
 export type WeeklyPomodoroGoalCompletion = { weekKey: string; completedAt: string; goalMinutes: number; achievedMinutes: number };
 export type CompanionEmotionMedia = {
   mascotImageUrl?: string;

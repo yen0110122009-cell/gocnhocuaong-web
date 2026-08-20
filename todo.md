@@ -855,3 +855,24 @@
 - [x] Bổ sung tests cho từng module và các quyền dữ liệu theo người dùng.
 - [x] Chạy typecheck, Vitest, production build và QA responsive cho cả bốn module.
 - [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.
+
+## GitHub Pages — sửa media và âm nền
+- [x] Cho phép ghi âm trực tiếp bằng micro thiết bị trên GitHub Pages, không cần tải file ghi âm.
+- [x] Hiển thị xin quyền micro, trạng thái đang ghi, dừng, nghe thử và lưu bản ghi rõ ràng.
+- [x] Cho phép tải ảnh Mascot/Lumi độc lập, không bắt buộc có bản ghi âm trước.
+- [x] Giữ liên kết audio tùy chọn; ảnh không có audio phải hiển thị trạng thái chưa có âm thanh.
+- [x] Sửa Audio Center để âm nền phát được trên GitHub Pages với cơ chế khởi tạo, retry và xử lý autoplay policy.
+- [x] Kiểm tra nguồn âm thanh, lỗi tải, mute/volume và trạng thái đang phát.
+- [x] Bổ sung regression tests cho recording, image-only upload và ambient playback.
+- [x] Chạy typecheck, Vitest, production build, GitHub Pages QA và responsive QA.
+- [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.
+
+## Ghi âm lời chúc và động viên
+- [x] Thêm khu vực ghi âm trực tiếp cho từng lời chúc, lời an ủi và lời động viên của Lumi/Ong.
+- [x] Hiển thị trạng thái xin quyền micro, đang ghi, thời lượng, dừng và lỗi theo từng lời thoại.
+- [x] Cho phép nghe thử, lưu, thay thế và xóa bản ghi gắn với từng lời thoại.
+- [x] Cho phép lưu bản ghi cục bộ trên GitHub Pages và đồng bộ theo tài khoản khi có backend.
+- [x] Không bắt buộc tải file âm thanh và không bắt buộc phải có bản ghi khi tạo lời thoại chữ.
+- [x] Bổ sung regression tests cho liên kết lời thoại-bản ghi, quyền micro và playback.
+- [x] Chạy typecheck, Vitest, production build và QA responsive.
+- [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.
