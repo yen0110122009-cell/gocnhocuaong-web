@@ -768,4 +768,4 @@
 - [x] Hiển thị phần trăm âm lượng hiện tại trong từng trạng thái đang phát và cập nhật theo mute/slider.
 - [x] Bổ sung preset tốc độ mặc định theo loại tệp âm thanh, cho phép áp dụng nhanh nhưng vẫn chọn tốc độ thủ công.
 - [x] Viết regression tests cho volume status và speed presets theo loại tệp.
-- [ ] Chạy typecheck, Vitest, production build và QA desktop/mobile; chờ checkpoint mới.
+- [x] Chạy typecheck, Vitest, production build và QA desktop/mobile; checkpoint `3a5acbf1` đã lưu.
