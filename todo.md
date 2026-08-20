@@ -909,3 +909,9 @@
 - [x] Kiểm tra MediaRecorder trên Chrome sandbox: API có sẵn nhưng môi trường không có thiết bị microphone, trả về `NotFoundError`.
 - [x] Bổ sung visualizer sóng âm realtime khi đang ghi âm, có trạng thái accessible và fallback khi không đọc được mức âm thanh.
 - [x] Chạy regression Vitest, TypeScript, production build và QA responsive sau thay đổi visualizer.
+
+## Audit âm thanh nền GitHub Pages
+- [x] Kiểm tra live asset URL, network status và console error của âm thanh nền trên GitHub Pages; không phát hiện lỗi runtime mới, account 111 chưa có asset để kiểm tra request phát thật.
+- [x] Kiểm tra autoplay, nút Phát thử, mute, volume, fade in/out và cleanup khi rời trang ở mức logic/UI; nhánh thiếu asset và autoplay rejection có thông báo rõ.
+- [x] Không phát hiện lỗi source mới trong audit; không cần sửa regression contract ở đợt này.
+- [x] Đối chiếu regression, TypeScript, production build và QA responsive từ checkpoint 964940fd; audit này chỉ bổ sung bằng chứng, không đổi source runtime.
