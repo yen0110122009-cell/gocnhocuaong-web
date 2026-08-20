@@ -587,3 +587,37 @@
 - [x] Bổ sung điều khiển nhân vật đồng hành: Lumi, Ong, cả hai hoặc ẩn, cùng lời/bản thu theo mốc Pomodoro và cảm xúc.
 - [x] Tạo thư viện “Âm thanh & Chủ đề của tôi” với quản lý quyền sở hữu, nguồn hợp lệ, bật/tắt, âm lượng, nghe thử, khôi phục và xóa an toàn.
 - [x] Thêm chế độ tự động ban đêm theo giờ địa phương và Chế độ tập trung trong Pomodoro, tôn trọng tùy chọn giảm hiệu ứng/âm thanh.
+
+## Tóm tắt website, Góc học tập của tôi và lịch preset
+- [x] Thêm phần tóm tắt sơ qua về GÓC HỌC TẬP CỦA ONG, mục tiêu, các khu vực chính và cách bắt đầu.
+- [x] Khôi phục/hiển thị rõ Góc học tập của tôi với minh họa góc bàn học, khu vực học tập cá nhân và các thành phần liên quan.
+- [x] Thêm nhãn cho âm thanh cá nhân và tìm kiếm nhanh theo tên, nhãn, nhóm, cảm xúc hoặc mốc sử dụng.
+- [x] Thêm lịch tự động chuyển preset theo từng ngày trong tuần, có thể tắt/bật và lưu theo hồ sơ.
+- [x] Thêm lịch sử thay đổi preset, xem chi tiết, áp dụng lại và khôi phục cấu hình cũ an toàn.
+- [x] Bổ sung regression, TypeScript, build, QA responsive và phát hành cho các hạng mục mới.
+- [x] Kiểm tra mọi mục mới có thu gọn độc lập, mặc định đóng và ghi nhớ trạng thái sau reload.
+
+## Tóm tắt web và Góc học tập của tôi — yêu cầu tiếp tục
+- [x] Hiển thị phần tóm tắt sơ qua về GÓC HỌC TẬP CỦA ONG ở vị trí dễ thấy trên trang chính.
+- [x] Hiển thị rõ Góc học tập của tôi với minh họa góc bàn học/phòng học, không để mục này bị ẩn trong Experience Studio.
+- [x] Bổ sung nhãn và tìm kiếm nhanh trong thư viện âm thanh cá nhân.
+- [x] Bổ sung lịch tự động chuyển preset theo từng ngày trong tuần.
+- [x] Bổ sung lịch sử thay đổi preset, xem lại và khôi phục cấu hình cũ.
+- [x] Kiểm tra các mục mới có thu gọn độc lập, mặc định đóng và ghi nhớ trạng thái sau reload.
+- [x] Cập nhật regression, TypeScript, build, QA responsive và phát hành.
+
+## Xác minh GitHub và hoàn thiện Góc học tập — tiếp tục
+- [x] Kiểm tra remote GitHub, branch hiện tại, commit mới nhất và xác nhận các thay đổi đã được đồng bộ.
+- [x] Kiểm tra tệp index chính của ứng dụng và giải thích rõ vị trí `index.html`/`index.tsx` nếu người dùng đang tìm tệp khác.
+- [x] Hoàn thiện phần Tóm tắt sơ qua về web.
+- [x] Hiển thị rõ Góc học tập của tôi với minh họa góc bàn học.
+- [x] Hoàn thiện nhãn/tìm kiếm âm thanh, lịch preset theo ngày và lịch sử khôi phục preset.
+- [x] Chạy test, build, QA và checkpoint sau khi hoàn tất.
+
+- [x] Bổ sung phần “Tóm tắt sơ qua về web” trên dashboard, mô tả rõ tác dụng các nhóm chức năng và liên kết đi tới từng phần.
+- [x] Bổ sung “Góc học tập của tôi” với bố cục bàn học trực quan, vùng đặt Lumi/Ong, cảnh nền và trạng thái preset hiện tại.
+- [x] Thêm nhãn tùy chỉnh và tìm kiếm nhanh cho thư viện âm thanh cá nhân; giữ thao tác sửa, nghe thử, bật/tắt và thùng rác 30 ngày.
+- [x] Bổ sung lịch tự động chuyển preset theo từng ngày trong tuần, lưu cấu hình và áp dụng preset của ngày hiện tại an toàn.
+- [x] Bổ sung lịch sử thay đổi preset, hiển thị chi tiết và cho phép khôi phục cấu hình cũ.
+- [x] Kiểm thử hồi quy cho dữ liệu, giao diện, lịch preset, lịch sử khôi phục, Tóm tắt website và Góc học tập; chạy TypeScript, Vitest, build và QA responsive.
+- [x] Đồng bộ checkpoint hoàn thiện lên GitHub user_github/main.

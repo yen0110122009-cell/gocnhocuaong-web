@@ -502,6 +502,8 @@ export type PersonalAudioAsset = {
   id: string;
   name: string;
   description?: string;
+  /** Nhãn tùy chỉnh để tìm kiếm và phân loại nhanh. */
+  tags?: string[];
   url: string;
   source: PersonalAudioSource;
   category: PersonalAudioCategory;
@@ -523,6 +525,21 @@ export type PersonalStudyPreset = {
   focusMode: boolean;
   createdAt: string;
   updatedAt: string;
+};
+export type PersonalStudyPresetSchedule = {
+  id: string;
+  dayOfWeek: number;
+  presetId: string;
+  enabled: boolean;
+  updatedAt: string;
+};
+export type PersonalStudyPresetHistory = {
+  id: string;
+  presetId: string;
+  presetName: string;
+  snapshot: PersonalStudyPreset;
+  changedAt: string;
+  reason?: string;
 };
 
 export type ProfileState = {
@@ -559,6 +576,8 @@ export type ProfileState = {
   personalAudioAssets?: PersonalAudioAsset[];
   personalAudioTrash?: PersonalAudioAsset[];
   personalStudyPresets?: PersonalStudyPreset[];
+  personalStudyPresetSchedule?: PersonalStudyPresetSchedule[];
+  personalStudyPresetHistory?: PersonalStudyPresetHistory[];
   activePersonalStudyPresetId?: string;
   companionMode?: PersonalStudyPreset["companionMode"];
   autoNightMode?: boolean;
@@ -1328,7 +1347,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       const category = asset?.category;
       const sourceType = asset?.source;
       if (!id || !name || !url || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
-      return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: asset?.enabled !== false, isDefault: asset?.isDefault === true, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString() }];
+      return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, tags: Array.isArray(asset?.tags) ? asset.tags.filter((tag): tag is string => typeof tag === "string" && Boolean(tag.trim())).map((tag) => tag.trim().slice(0, 32)).slice(0, 12) : [], url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: asset?.enabled !== false, isDefault: asset?.isDefault === true, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString() }];
     }).filter((asset, index, assets) => assets.findIndex((candidate) => candidate.id === asset.id) === index).slice(0, 300) : [],
     personalAudioTrash: Array.isArray(source.personalAudioTrash) ? source.personalAudioTrash.flatMap((value) => {
       const asset = value && typeof value === "object" ? value as Partial<PersonalAudioAsset> : null;
@@ -1348,6 +1367,24 @@ export function normalizeProfile(value: unknown): ProfileState {
       if (!id || !name) return [];
       return [{ id, name, emotion: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(preset?.emotion)) ? preset?.emotion as EmotionThemeId : undefined, ambientScene: ["morning", "rain", "snow", "leaves", "storm"].includes(String(preset?.ambientScene)) ? preset?.ambientScene as AmbientScenePreference : undefined, audioAssetIds: Array.isArray(preset?.audioAssetIds) ? preset!.audioAssetIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0).slice(0, 80) : [], companionMode: ["lumi", "ong", "both", "hidden"].includes(String(preset?.companionMode)) ? preset?.companionMode as PersonalStudyPreset["companionMode"] : "both", focusMode: preset?.focusMode === true, createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
     }).filter((preset, index, presets) => presets.findIndex((candidate) => candidate.id === preset.id) === index).slice(0, 100) : [],
+    personalStudyPresetSchedule: Array.isArray(source.personalStudyPresetSchedule) ? source.personalStudyPresetSchedule.flatMap((value) => {
+      const item = value && typeof value === "object" ? value as Partial<PersonalStudyPresetSchedule> : null;
+      const id = typeof item?.id === "string" && item.id.trim() ? item.id.trim() : "";
+      const presetId = typeof item?.presetId === "string" && item.presetId.trim() ? item.presetId.trim() : "";
+      const dayOfWeek = Math.max(0, Math.min(6, Math.round(Number(item?.dayOfWeek))));
+      if (!id || !presetId || !Number.isFinite(dayOfWeek)) return [];
+      return [{ id, presetId, dayOfWeek, enabled: item?.enabled !== false, updatedAt: typeof item?.updatedAt === "string" && item.updatedAt ? item.updatedAt : new Date(0).toISOString() }];
+    }).filter((item, index, items) => items.findIndex((candidate) => candidate.dayOfWeek === item.dayOfWeek) === index).slice(0, 7) : [],
+    personalStudyPresetHistory: Array.isArray(source.personalStudyPresetHistory) ? source.personalStudyPresetHistory.flatMap((value) => {
+      const item = value && typeof value === "object" ? value as Partial<PersonalStudyPresetHistory> : null;
+      const id = typeof item?.id === "string" && item.id.trim() ? item.id.trim() : "";
+      const presetId = typeof item?.presetId === "string" && item.presetId.trim() ? item.presetId.trim() : "";
+      const presetName = typeof item?.presetName === "string" && item.presetName.trim() ? item.presetName.trim().slice(0, 80) : "";
+      const changedAt = typeof item?.changedAt === "string" && !Number.isNaN(Date.parse(item.changedAt)) ? item.changedAt : "";
+      const snapshot = item?.snapshot && typeof item.snapshot === "object" ? item.snapshot as PersonalStudyPreset : null;
+      if (!id || !presetId || !presetName || !changedAt || !snapshot || snapshot.id !== presetId) return [];
+      return [{ id, presetId, presetName, snapshot, changedAt, reason: typeof item?.reason === "string" && item.reason.trim() ? item.reason.trim().slice(0, 160) : undefined }];
+    }).filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index).sort((a, b) => Date.parse(b.changedAt) - Date.parse(a.changedAt)).slice(0, 100) : [],
     activePersonalStudyPresetId: typeof source.activePersonalStudyPresetId === "string" && source.personalStudyPresets?.some((preset) => preset && typeof preset === "object" && (preset as Partial<PersonalStudyPreset>).id === source.activePersonalStudyPresetId) ? source.activePersonalStudyPresetId : undefined,
     companionMode: ["lumi", "ong", "both", "hidden"].includes(String(source.companionMode)) ? source.companionMode as PersonalStudyPreset["companionMode"] : "both",
     autoNightMode: source.autoNightMode === true,
