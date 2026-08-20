@@ -720,3 +720,9 @@
 - [x] Cho phép thêm, sửa và chuẩn hóa danh sách tag cho từng file backup.
 - [x] Lưu tên/tag trong metadata gói JSON và bảo toàn khi nhập lại, hợp nhất hoặc thay thế.
 - [x] Bổ sung regression cho tên/tag backup, validate metadata và chạy TypeScript, Vitest, build, QA responsive.
+
+## Audit lỗi và gợi ý cải thiện
+- [x] Audit tĩnh toàn bộ contract Audio Center, backup tên/tag, persistence, auth, GitHub Pages và responsive.
+- [x] Audit runtime logs và các luồng phát audio, upload/trash/restore/permanent-delete, export/import và auto preset.
+- [x] Audit trực quan desktop/mobile, khả năng thu gọn, khả năng hiểu trạng thái và lỗi hiển thị.
+- [x] Tổng hợp lỗi theo mức độ Critical/High/Medium/Low kèm bằng chứng, cách tái hiện và gợi ý xử lý.
