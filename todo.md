@@ -924,8 +924,8 @@
 - [x] Bổ sung regression tests, chạy Vitest, TypeScript, production build và QA desktop/mobile; QA live phát asset mới chờ sau deploy checkpoint.
 
 ## Kiểm thử tiếng mưa và asset lật sách
-- [ ] Kiểm tra thực tế nút tiếng mưa trên GitHub Pages: URL, readyState, play/pause, volume và lỗi media.
-- [ ] Tạo và upload asset lật sách mặc định sạch, có thể phát thử ngay.
-- [ ] Tích hợp asset lật sách mặc định vào Audio Center và fallback playback.
-- [ ] Hiển thị thời gian health-check URL gần nhất cho từng asset ambient.
-- [ ] Bổ sung regression tests, chạy Vitest, TypeScript, production build và QA live.
+- [x] Kiểm tra thực tế nút tiếng mưa trên GitHub Pages: URL, readyState, play/pause, volume và lỗi media; asset và URL đúng, smoke test ghi nhận storage proxy có thể trả 429 tạm thời khi bị rate-limit.
+- [x] Tạo và upload asset lật sách mặc định sạch, có thể phát thử ngay; storage path `ambient-book-pages-default_790e9c11.wav`.
+- [x] Tích hợp asset lật sách mặc định vào Audio Center và fallback playback.
+- [x] Hiển thị thời gian health-check URL gần nhất cho từng asset ambient; timeout 7 giây luôn kết thúc bằng trạng thái và timestamp.
+- [x] Bổ sung regression tests, chạy Vitest, TypeScript, production build và QA live; 62 file/251 test đạt, build đạt, Pages workflow thành công.
