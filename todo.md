@@ -944,3 +944,10 @@
 - [x] Tạo preset Pomodoro kết hợp ambient “Buổi sáng” và “Bão nhẹ”.
 - [x] Bổ sung regression tests cho localStorage cooldown và preset ambient mới.
 - [x] Chạy TypeScript, Vitest, production build và QA responsive trước checkpoint; 62 file/258 test đạt, build đạt.
+
+## Lịch sử preset Pomodoro và tỷ lệ ambient
+- [x] Lưu preset âm thanh đã sử dụng vào bản ghi lịch sử Pomodoro.
+- [x] Hiển thị preset âm thanh trong danh sách/lịch sử phiên để người dùng theo dõi và dùng lại.
+- [x] Cho phép chỉnh tỷ lệ âm lượng giữa “Buổi sáng” và “Bão nhẹ” trong preset kết hợp.
+- [x] Lưu/khôi phục tỷ lệ âm lượng và áp dụng đúng khi phát đồng thời hai ambient.
+- [x] Bổ sung regression tests, chạy TypeScript, Vitest, production build và QA trước checkpoint; 62 file/257 test đạt, build đạt.

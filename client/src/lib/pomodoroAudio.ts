@@ -89,6 +89,7 @@ export const SOUNDSCAPE_PRESETS: Record<string, { label: string; description: st
   "Phòng học": { label: "Phòng học", description: "Phòng học, bút và bàn phím rất tiết chế.", layers: ["classroom", "pencil", "keyboard"] },
   "Đêm ambient": { label: "Đêm ambient", description: "Một lớp đêm yên cho học sâu.", layers: ["night", "ambient", "deepFocus"] },
   "Sáng trong": { label: "Sáng trong", description: "Rừng nhẹ, suối và lớp âm sáng để mở đầu ngày học.", layers: ["forest", "stream", "piano"] },
+  "Bình minh & Bão nhẹ": { label: "Bình minh & Bão nhẹ", description: "Phối hai bản thu thật Buổi sáng và Bão nhẹ; có thể chỉnh tỷ lệ riêng.", layers: [] },
   "Deep focus": { label: "Deep focus", description: "Brown noise, deep focus và ticking nhẹ.", layers: ["brown", "deepFocus", "ticking"] },
   "White noise": { label: "White noise", description: "Nền đều, ít giai điệu, che tiếng ồn.", layers: ["white"] },
   "Brown noise": { label: "Brown noise", description: "Nền trầm ổn định cho người dễ phân tâm.", layers: ["brown"] },
