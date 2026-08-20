@@ -33,7 +33,8 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("#c62828");
     expect(studioSource).toContain("#2e7d32");
     expect(studioSource).toContain("OngLearnerAvatar");
-    expect(studioSource).toContain("getDefaultLumiImage");
+    expect(mediaControlsSource).toContain("Chưa có ảnh Lumi");
+    expect(mediaControlsSource).not.toContain("getDefaultLumiImage");
   });
 
   it("restores a saved emotion at most once and delegates DOM theme ownership to the app controller", () => {
@@ -61,9 +62,9 @@ describe("Experience Studio requirements", () => {
   });
 
   it("keeps the original Lumi image for comfort copy and shows the paired image of the selected voice", () => {
-    expect(studioSource).toContain("CLASSIC_LUMI_IMAGE");
-    expect(studioSource).toContain("voiceLinkedLumiImage");
-    expect(studioSource).toContain("Ảnh Lumi gắn với giọng đang chọn");
+    expect(mediaControlsSource).toContain("linkedImage");
+    expect(mediaControlsSource).toContain("aria-label={`Phát bản thu ${item.label} khi nhấn ảnh`}");
+    expect(mediaControlsSource).toContain("onClick={() => preview(item)}");
   });
 
   it("manages saved Lumi recordings as a visual image-voice grid with direct preview and per-recording image replacement", () => {
@@ -76,7 +77,8 @@ describe("Experience Studio requirements", () => {
   });
 
   it("protects the classic comfort image and provides reorder, filter, and duplicate controls for saved pairs", () => {
-    expect(studioSource).toContain("const voiceLinkedLumiImage = CLASSIC_LUMI_IMAGE");
+    expect(mediaControlsSource).not.toContain("CLASSIC_LUMI_IMAGE");
+    expect(mediaControlsSource).toContain("updateRecordingImage");
     expect(mediaControlsSource).toContain("reorderWithinEmotion");
     expect(mediaControlsSource).toContain("draggable");
     expect(mediaControlsSource).toContain("Tìm tên bản thu hoặc ảnh");
@@ -84,7 +86,7 @@ describe("Experience Studio requirements", () => {
     expect(mediaControlsSource).toContain("Lọc bản thu theo ảnh đại diện");
     expect(mediaControlsSource).toContain("duplicateVoice");
     expect(mediaControlsSource).toContain("Nhân bản");
-    expect(mediaControlsSource).toContain("Ảnh Lumi cũ");
+    expect(mediaControlsSource).toContain("Chưa có ảnh Lumi");
   });
 
   it("protects accidental library edits with a short undo history and visual color labels", () => {
@@ -169,11 +171,10 @@ describe("Experience Studio requirements", () => {
   });
 
   it("offers per-emotion companion media chosen by the learner and honors image visibility settings", () => {
-    expect(studioSource).toContain("EmotionCompanionMediaControls");
-    expect(studioSource).toContain("companionMedia?.mascotImageUrl");
-    expect(studioSource).toContain("companionMedia?.lumiImageUrl");
-    expect(studioSource).toContain("profile?.showMascot !== false");
-    expect(studioSource).toContain("profile?.showLumi !== false");
+    expect(homeSource).toContain("EmotionCompanionMediaControls");
+    expect(mediaControlsSource).toContain("profile.showMascot === false");
+    expect(mediaControlsSource).toContain("profile.showLumi === false");
+    expect(mediaControlsSource).toContain("Chưa có ảnh");
   });
 
   it("adds real environment-file upload, voice filtering, and channel playback status to Audio Center", () => {

@@ -776,3 +776,25 @@
 - [x] Hiển thị thanh biểu đồ mức âm lượng trực quan cạnh từng kênh đang phát, phản ánh volume/mute hiện tại.
 - [x] Viết regression tests cho tùy chỉnh speed preset và volume meter.
 - [x] Chạy typecheck, Vitest, production build và QA desktop/mobile; checkpoint `8fd8cce8` đã lưu.
+
+## Tái cấu trúc mascot/Lumi và ảnh–ghi âm
+- [x] Loại vùng hiển thị mascot/Lumi lớn khỏi trang chủ, chỉ giữ nội dung học tập và Audio Center cần thiết.
+- [x] Đưa khu vực mascot, Lumi, ảnh và ghi âm vào trang cá nhân; cung cấp đường dẫn quản trị riêng nếu người dùng có quyền.
+- [x] Đặt ảnh mascot/Lumi mặc định ở trạng thái “Chưa có ảnh”, không tự gán ảnh mặc định trong hồ sơ mới.
+- [x] Sửa luồng tải ảnh: kiểm MIME/kích thước, preview, thay/xóa ảnh, lỗi upload rõ ràng và không lưu trạng thái dở dang.
+- [x] Bắt buộc mỗi ảnh người dùng thêm phải có bản ghi âm do người dùng tự ghi âm liên kết với ảnh trước khi kích hoạt.
+- [x] Cho phép nhấn vào ảnh để phát bản ghi âm liên kết, có nút phát/ghi âm riêng ở góc ảnh và hỗ trợ lời động viên/an ủi Lumi kèm ảnh.
+- [x] Bổ sung regression tests cho route, trạng thái chưa có ảnh, upload ảnh, liên kết audio và phát khi nhấn ảnh.
+- [x] Chạy typecheck, Vitest, production build, QA desktop/mobile và lưu checkpoint mới.
+
+- [x] Di chuyển EmotionCompanionMediaControls khỏi Dashboard/ExperienceStudio sang Account.
+- [x] Giữ Dashboard tập trung vào Audio Center và không hiển thị khu chỉnh sửa mascot/Lumi.
+- [x] Bảo đảm Mascot và Lumi khởi đầu ở trạng thái “Chưa có ảnh”, không dùng ảnh mặc định.
+- [x] Bắt buộc có ít nhất một bản ghi âm do người dùng ghi trước khi tải ảnh Lumi theo cảm xúc.
+- [x] Gắn ảnh Lumi với bản thu cụ thể và giữ liên kết khi thay đổi ảnh đại diện bản thu.
+- [x] Cho phép nhấn ảnh Lumi/bản thu để phát đúng âm thanh liên kết.
+- [x] Bảo đảm nút phát âm thanh trên từng ảnh không phát chồng hoặc tạo vòng lặp ngoài ý muốn.
+- [x] Sửa thông báo, trạng thái loading/lỗi và luồng upload ảnh mascot/Lumi.
+- [x] Bổ sung regression tests cho relocation, no-image, audio-image linkage và click-to-play.
+- [x] Chạy Vitest, typecheck, production build và QA responsive desktop/mobile.
+- [x] Đọc lại todo.md, đánh dấu toàn bộ hạng mục hoàn tất trước checkpoint.

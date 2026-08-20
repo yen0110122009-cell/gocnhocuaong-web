@@ -65,12 +65,12 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain("profile?.showLumi !== false");
   });
 
-  it("uses emotion-specific fallback images when the learner has not uploaded personal images", () => {
+  it("starts companion media without default images and requires a recorded Lumi voice before image upload", () => {
     expect(defaultCompanionMedia()).toContain("getDefaultMascotImage");
     expect(defaultCompanionMedia()).toContain("getDefaultLumiImage");
-    expect(companionControls()).toContain("getDefaultLumiImage(emotion)");
-    expect(companionControls()).toContain("emotion={emotion}");
-    expect(studio()).toContain("getDefaultLumiImage(theme.id)");
+    expect(companionControls()).toContain("Chưa có ảnh");
+    expect(companionControls()).toContain("kind === \"lumi-image\" && voiceRecordings.length === 0");
+    expect(companionControls()).not.toContain("getDefaultLumiImage(emotion)");
   });
 
   it("plays a favorite personal Lumi recording before legacy and approved recordings", () => {
