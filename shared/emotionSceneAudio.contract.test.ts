@@ -134,11 +134,15 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(pomodoro()).toContain('audioContextRef.current.state === "closed"');
   });
 
-  it("keeps ambient scene playback exclusive, audible, and adjustable while it is already playing", () => {
+  it("keeps clean ambient playback exclusive, user-initiated, faded, and adjustable", () => {
     expect(studio()).toContain("ambientGenerationRef");
-    expect(studio()).toContain("generation !== ambientGenerationRef.current");
-    expect(studio()).toContain("ambientMasterRef");
-    expect(studio()).toContain("linearRampToValueAtTime(target, context.currentTime + .12)");
-    expect(studio()).toContain("Không thể phát âm nền trên thiết bị này");
+    expect(studio()).toContain("ambientTrackRef");
+    expect(studio()).toContain("function stopAmbient()");
+    expect(studio()).toContain("audio.loop = true");
+    expect(studio()).toContain("audio.play()");
+    expect(studio()).toContain("fadeIn");
+    expect(studio()).toContain("track.pause(); track.removeAttribute(\"src\"); track.load()");
+    expect(studio()).toContain("Hãy thêm file thật vào Audio Center");
+    expect(studio()).not.toContain("ambientGenerationRef.current);");
   });
 });

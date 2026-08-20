@@ -665,3 +665,11 @@
 - [x] Chặn phát chồng, dừng âm thanh cũ trước khi đổi cảnh, không tự phát khi chưa có user gesture và đồng bộ mute/volume.
 - [x] Hiển thị điều khiển âm thanh nền tập trung trên trang chủ, gồm trạng thái, mute, âm lượng và lỗi asset rõ ràng.
 - [x] Cập nhật regression, TypeScript, Vitest, build và QA responsive cho luồng âm thanh mới.
+
+## Nâng cấp Audio Center — âm lượng, fade và thoại có nguồn rõ ràng
+- [x] Thêm thanh âm lượng độc lập cho nhạc nền, âm thanh môi trường, Pomodoro, hiệu ứng UI, giọng Lumi, giọng Ong và bản ghi thành viên.
+- [x] Sửa audio engine để fade in/fade out khi bật, tắt, đổi cảnh hoặc đổi nguồn; chống phát chồng và dừng node cũ an toàn.
+- [x] Loại bỏ hoặc vô hiệu hóa các nguồn âm thanh tạo nhiễu; chỉ cho phát asset đã xác thực hoặc placeholder rõ ràng.
+- [x] Bổ sung các ambience sạch như mưa rơi và lật sách, có preview, mute, volume và không tự phát ngoài user gesture.
+- [x] Phân loại lời thoại theo nguồn Lumi/Ong/thành viên; hiển thị nguồn, cảm xúc, sự kiện và cho phép thành viên tự ghi âm/chọn bản ghi yêu thích.
+- [x] Bổ sung regression cho volume độc lập, fade, chống phát chồng, chất lượng nguồn âm và nguồn lời thoại; chạy TypeScript, Vitest, build và QA.

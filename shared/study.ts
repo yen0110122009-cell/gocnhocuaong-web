@@ -494,9 +494,17 @@ export type AudioMixerSettings = {
   pomodoroLayers: Record<string, number>;
   pomodoroBackground: number;
   pomodoroBell: number;
+  /** Âm thanh môi trường tổng thể (mưa, chim, lá, tuyết). */
+  environment: number;
+  /** Nhạc nền do người dùng chọn, tách khỏi ambience. */
+  music: number;
+  /** Hiệu ứng UI/chuyển cảnh/chúc mừng. */
+  uiEffects: number;
   lumi: number;
+  ong: number;
+  memberVoice: number;
 };
-export type PersonalAudioCategory = "emotion" | "season" | "weather" | "pomodoro" | "lumi" | "ong" | "background";
+export type PersonalAudioCategory = "emotion" | "season" | "weather" | "pomodoro" | "lumi" | "ong" | "member" | "background";
 export type PersonalAudioSource = "user_upload" | "external_url";
 export type PersonalAudioAsset = {
   id: string;
@@ -816,7 +824,7 @@ export const emptyProfile = (): ProfileState => ({
   showMascot: true,
   showLumi: true,
   defaultAmbientScene: "morning",
-  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 },
+  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
   personalAudioAssets: [],
   personalAudioTrash: [],
   personalStudyPresets: [],
@@ -1408,7 +1416,12 @@ export function normalizeProfile(value: unknown): ProfileState {
       pomodoroLayers: source.audioMixer?.pomodoroLayers && typeof source.audioMixer.pomodoroLayers === "object" ? Object.fromEntries(Object.entries(source.audioMixer.pomodoroLayers).map(([id, level]) => [id, Math.max(0, Math.min(100, Number(level) || 0))])) : {},
       pomodoroBackground: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroBackground ?? base.audioMixer!.pomodoroBackground) || 0)),
       pomodoroBell: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroBell ?? base.audioMixer!.pomodoroBell) || 0)),
+      environment: Math.max(0, Math.min(100, Number(source.audioMixer?.environment ?? base.audioMixer!.environment) || 0)),
+      music: Math.max(0, Math.min(100, Number(source.audioMixer?.music ?? base.audioMixer!.music) || 0)),
+      uiEffects: Math.max(0, Math.min(100, Number(source.audioMixer?.uiEffects ?? base.audioMixer!.uiEffects) || 0)),
       lumi: Math.max(0, Math.min(100, Number(source.audioMixer?.lumi ?? base.audioMixer!.lumi) || 0)),
+      ong: Math.max(0, Math.min(100, Number(source.audioMixer?.ong ?? base.audioMixer!.ong) || 0)),
+      memberVoice: Math.max(0, Math.min(100, Number(source.audioMixer?.memberVoice ?? base.audioMixer!.memberVoice) || 0)),
     },
     personalAudioAssets: Array.isArray(source.personalAudioAssets) ? source.personalAudioAssets.flatMap((value) => {
       const asset = value && typeof value === "object" ? value as Partial<PersonalAudioAsset> : null;
@@ -1417,7 +1430,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       const url = typeof asset?.url === "string" && /^(https?:\/\/|\/manus-storage\/)/.test(asset.url.trim()) ? asset.url.trim() : "";
       const category = asset?.category;
       const sourceType = asset?.source;
-      if (!id || !name || !url || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
+      if (!id || !name || !url || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "member", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
       return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, tags: Array.isArray(asset?.tags) ? asset.tags.filter((tag): tag is string => typeof tag === "string" && Boolean(tag.trim())).map((tag) => tag.trim().slice(0, 32)).slice(0, 12) : [], url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: asset?.enabled !== false, isDefault: asset?.isDefault === true, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString() }];
     }).filter((asset, index, assets) => assets.findIndex((candidate) => candidate.id === asset.id) === index).slice(0, 300) : [],
     personalAudioTrash: Array.isArray(source.personalAudioTrash) ? source.personalAudioTrash.flatMap((value) => {
@@ -1428,7 +1441,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       const category = asset?.category;
       const sourceType = asset?.source;
       const deletedAt = typeof asset?.deletedAt === "string" && !Number.isNaN(Date.parse(asset.deletedAt)) ? asset.deletedAt : "";
-      if (!id || !name || !url || !deletedAt || Date.now() - Date.parse(deletedAt) > 30 * 24 * 60 * 60 * 1000 || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
+      if (!id || !name || !url || !deletedAt || Date.now() - Date.parse(deletedAt) > 30 * 24 * 60 * 60 * 1000 || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "member", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
       return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: asset?.enabled !== false, isDefault: asset?.isDefault === true, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString(), deletedAt }];
     }).filter((asset, index, assets) => assets.findIndex((candidate) => candidate.id === asset.id) === index).slice(0, 300) : [],
     personalStudyPresets: Array.isArray(source.personalStudyPresets) ? source.personalStudyPresets.flatMap((value) => {

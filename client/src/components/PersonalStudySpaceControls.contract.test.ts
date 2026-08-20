@@ -57,4 +57,16 @@ describe("StudyCorner contracts", () => {
     expect(home).not.toContain('<section id="personal-learning-corner"');
     expect(home).not.toContain("<PersonalStudySpaceControls");
   });
+
+  it("keeps Audio Center volumes separated by source and uses clean assets only", () => {
+    const audio = readFileSync(resolve(process.cwd(), "client/src/components/ExperienceStudio.tsx"), "utf8");
+    expect(study).toContain("memberVoice");
+    expect(study).toContain("AudioMixerSettings");
+    expect(audio).toContain("AudioChannelVolumes");
+    expect(audio).toContain("updateAudioChannelVolume");
+    expect(audio).toContain("playCleanAmbientAsset");
+    expect(audio).toContain("item.category === \"background\"");
+    expect(audio).toContain("preferredMemberVoice");
+    expect(audio).toContain("const fade =");
+  });
 });

@@ -2,7 +2,7 @@ import { ArrowRight, BarChart3, BookOpen, Check, CircleHelp, Clock3, Flame, Paus
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { applyStudyActivityRewards, computedAchievements, type AppConfig, type PersonalAudioAsset, type PomodoroSession, type ProfileState } from "../../../shared/study";
-import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_PRESETS, scaledGain, scaledLayerGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing, type SoundEvent } from "../lib/pomodoroAudio";
+import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_PRESETS, scaledGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing, type SoundEvent } from "../lib/pomodoroAudio";
 import { ExperienceStudio } from "../components/ExperienceStudio";
 import { PersistentCollapsible } from "../components/PersistentCollapsible";
 import { comboLabel, emotionThemes, type EmotionId } from "../lib/emotionThemes";
@@ -110,17 +110,29 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
     previewStopRef.current?.();
     previewStopRef.current = null;
   }
+  function fadeOutAudio(audio: HTMLAudioElement | null, duration = 280) {
+    if (!audio) return;
+    const initialVolume = audio.volume;
+    if (audio.paused || initialVolume <= 0) { audio.pause(); audio.currentTime = 0; return; }
+    const startedAt = performance.now();
+    const tick = () => {
+      const progress = Math.min(1, (performance.now() - startedAt) / duration);
+      audio.volume = Math.max(0, initialVolume * (1 - progress));
+      if (progress < 1 && !audio.paused) window.requestAnimationFrame(tick);
+      else { audio.pause(); audio.currentTime = 0; }
+    };
+    window.requestAnimationFrame(tick);
+  }
   function stopBackground() {
     backgroundGenerationRef.current += 1;
     backgroundStopRef.current?.();
     backgroundStopRef.current = null;
-    personalBackgroundRef.current?.pause();
-    if (personalBackgroundRef.current) personalBackgroundRef.current.currentTime = 0;
+    if (personalBackgroundRef.current) fadeOutAudio(personalBackgroundRef.current);
     personalBackgroundRef.current = null;
     setBackgroundActive(false);
   }
   function stopPersonalCue() {
-    personalCueRef.current?.pause();
+    fadeOutAudio(personalCueRef.current, 180);
     personalCueRef.current = null;
   }
   function matchingPersonalAudio(category: PersonalAudioAsset["category"], target: string) {
@@ -169,60 +181,17 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         personalBackgroundRef.current = audio;
         await audio.play();
         if (generation !== backgroundGenerationRef.current) { audio.pause(); return false; }
-        backgroundStopRef.current = () => { audio.pause(); audio.currentTime = 0; };
+        backgroundStopRef.current = () => fadeOutAudio(audio);
         setBackgroundActive(true);
         return true;
       }
-      const context = getAudioContext();
-      const preset = SOUNDSCAPE_PRESETS[backgroundSound] ?? SOUNDSCAPE_PRESETS["Mưa nhẹ"];
-      const master = context.createGain();
-      const targetMaster = Math.min(0.46, Math.max(0.015, backgroundVolume / 100 * 0.46));
-      master.gain.setValueAtTime(0.001, context.currentTime);
-      master.gain.exponentialRampToValueAtTime(Math.max(0.001, targetMaster), context.currentTime + 1.2);
-      master.connect(context.destination);
-      const oscillators: OscillatorNode[] = [];
-      const intervals: number[] = [];
-      preset.layers.map((id) => SOUNDSCAPE_LAYERS[id]).filter(Boolean).forEach((definition, layerIndex) => {
-        const layerGain = context.createGain();
-        const targetLayerGain = Math.max(0.001, scaledLayerGain(clamp(layerVolumes[definition.id] ?? 100, 0, 100), definition.baseVolume) * 0.55);
-        layerGain.gain.setValueAtTime(0.001, context.currentTime);
-        layerGain.gain.exponentialRampToValueAtTime(targetLayerGain, context.currentTime + 0.8 + layerIndex * 0.18);
-        layerGain.connect(master);
-        const layerOscillators = definition.notes.slice(0, 4).map((frequency, noteIndex) => {
-          const oscillator = context.createOscillator();
-          oscillator.type = definition.waveform;
-          oscillator.frequency.setValueAtTime(frequency, context.currentTime);
-          oscillator.detune.value = definition.detune + (noteIndex % 2 ? 4 : -4);
-          oscillator.connect(layerGain);
-          oscillator.start(context.currentTime + layerIndex * 0.08);
-          oscillators.push(oscillator);
-          return oscillator;
-        });
-        let noteIndex = 0;
-        const interval = window.setInterval(() => {
-          const oscillator = layerOscillators[noteIndex % layerOscillators.length];
-          const frequency = definition.notes[noteIndex % definition.notes.length];
-          const drift = Math.sin(noteIndex / 3) * (definition.category === "Tập trung" ? 1.5 : 5);
-          oscillator.frequency.setTargetAtTime(frequency + drift, context.currentTime, Math.min(0.8, definition.intervalMs / 1800));
-          oscillator.detune.setTargetAtTime(definition.detune + Math.sin(noteIndex / 2) * 5, context.currentTime, 0.7);
-          noteIndex += 1;
-        }, definition.intervalMs);
-        intervals.push(interval);
-      });
-      const stopCurrentBackground = () => {
-        intervals.forEach((interval) => window.clearInterval(interval));
-        master.gain.cancelScheduledValues(context.currentTime);
-        master.gain.setTargetAtTime(0.001, context.currentTime, 0.45);
-        window.setTimeout(() => oscillators.forEach((oscillator) => { try { oscillator.stop(); } catch { /* already stopped */ } }), 1500);
-        window.setTimeout(() => master.disconnect(), 1750);
-      };
-      if (generation !== backgroundGenerationRef.current) {
-        stopCurrentBackground();
-        return false;
+      // Không còn tạo oscillator giả cho âm nền: các tần số tổng hợp trước đây gây nhiễu và không phải bản thu thật.
+      // Nếu người dùng chưa thêm asset hợp lệ, Audio Center phải báo rõ thay vì phát âm thanh giả.
+      if (generation === backgroundGenerationRef.current) {
+        setBackgroundActive(false);
+        toast.info(`Chưa có bản thu sạch cho “${backgroundSound}”. Hãy thêm file âm thanh hoặc URL HTTPS trong thư viện cá nhân.`);
       }
-      backgroundStopRef.current = stopCurrentBackground;
-      setBackgroundActive(true);
-      return true;
+      return false;
     } catch {
       if (generation === backgroundGenerationRef.current) setBackgroundActive(false);
       return false;
@@ -394,7 +363,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
 
   useEffect(() => {
     if (!audioMixerHydratedRef.current) { audioMixerHydratedRef.current = true; return; }
-    onProfile({ ...profile, audioMixer: { ...(profile.audioMixer ?? { ambientSceneVolumes: { morning: 55, rain: 50, snow: 45, leaves: 50, storm: 40 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, lumi: 75 }), pomodoroBackground: backgroundVolume, pomodoroLayers: layerVolumes, pomodoroBell: alertVolume } });
+    onProfile({ ...profile, audioMixer: { ...(profile.audioMixer ?? { ambientSceneVolumes: { morning: 55, rain: 50, snow: 45, leaves: 50, storm: 40 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 }), pomodoroBackground: backgroundVolume, pomodoroLayers: layerVolumes, pomodoroBell: alertVolume } });
   }, [alertVolume, backgroundVolume, layerVolumes]);
   useEffect(() => {
     if (!running) return;
