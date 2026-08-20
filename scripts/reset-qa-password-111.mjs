@@ -1,0 +1,21 @@
+import { createHash, randomBytes } from "node:crypto";
+
+const base = String(process.env.VITE_SUPABASE_URL ?? "").replace(/\/+$/, "").replace(/\/rest\/v1$/i, "");
+const key = String(process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "");
+if (!base || !key) throw new Error("Thiếu cấu hình Supabase trong môi trường QA.");
+const headers = { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
+const endpoint = `${base}/rest/v1/app_state`;
+const response = await fetch(`${endpoint}?id=eq.global_state&select=id,payload`, { headers });
+if (!response.ok) throw new Error(`Không thể đọc cloud-state (${response.status}).`);
+const rows = await response.json();
+const row = rows[0];
+const scoped = row?.payload?.__gocnhocuaong;
+if (!scoped || !Array.isArray(scoped.accounts)) throw new Error("Cloud-state không có payload hợp lệ.");
+const account = scoped.accounts.find((item) => item?.code === "111");
+if (!account) throw new Error("Không tìm thấy tài khoản code 111.");
+const password = `Qa111-${randomBytes(12).toString("base64url")}`;
+const passwordHash = createHash("sha256").update(password).digest("hex");
+const nextPayload = { ...row.payload, __gocnhocuaong: { ...scoped, accounts: scoped.accounts.map((item) => item.id === account.id ? { ...item, passwordHash } : item), updatedAt: new Date().toISOString() } };
+const update = await fetch(`${endpoint}?id=eq.global_state`, { method: "PATCH", headers: { ...headers, Prefer: "return=minimal" }, body: JSON.stringify({ payload: nextPayload }) });
+if (!update.ok) throw new Error(`Không thể cập nhật mật khẩu test (${update.status}).`);
+console.log(JSON.stringify({ accountName: account.name, code: account.code, password }, null, 2));

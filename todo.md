@@ -903,3 +903,9 @@
 - [x] Bảo đảm metadata ảnh Mascot/Lumi và bản thu được đồng bộ đúng giữa frontend tĩnh, Supabase state và backend storage.
 - [x] Kiểm tra và sửa ambient playback trên GitHub Pages: URL asset, manual play, autoplay fallback, volume và cleanup.
 - [x] Chạy regression Vitest, TypeScript, production build và QA live GitHub Pages sau các sửa đổi media.
+
+## QA tài khoản 111 và ghi âm Chrome mobile
+- [x] Kiểm thử đăng nhập tài khoản 111 trên GitHub Pages và xác minh hồ sơ người dùng hiển thị đúng.
+- [x] Kiểm tra MediaRecorder trên Chrome sandbox: API có sẵn nhưng môi trường không có thiết bị microphone, trả về `NotFoundError`.
+- [x] Bổ sung visualizer sóng âm realtime khi đang ghi âm, có trạng thái accessible và fallback khi không đọc được mức âm thanh.
+- [x] Chạy regression Vitest, TypeScript, production build và QA responsive sau thay đổi visualizer.

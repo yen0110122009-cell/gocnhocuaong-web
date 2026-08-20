@@ -80,6 +80,10 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const [undoMessage, setUndoMessage] = useState("");
   const [importMode, setImportMode] = useState<ImportMode>("merge");
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const visualizerFrameRef = useRef<number | null>(null);
+  const [recordingLevels, setRecordingLevels] = useState<number[]>(() => Array.from({ length: 32 }, () => 0));
   const undoTimerRef = useRef<number | null>(null);
   const uploadProgressTimerRef = useRef<number | null>(null);
   const media = profile.companionEmotionMedia?.[emotion] ?? {};
@@ -148,9 +152,16 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     }, 900);
     return () => { cancelled = true; window.clearTimeout(timer); };
   }, [deviceLabel, emotion, profile.companionEmotionMedia, recording, saveDraftMutation, token]);
-  useEffect(() => () => { if (uploadProgressTimerRef.current) window.clearInterval(uploadProgressTimerRef.current); }, []);
-
+    useEffect(() => () => {
+    if (uploadProgressTimerRef.current) window.clearInterval(uploadProgressTimerRef.current);
+    if (visualizerFrameRef.current !== null) window.cancelAnimationFrame(visualizerFrameRef.current);
+    analyserRef.current = null;
+    const context = audioContextRef.current;
+    audioContextRef.current = null;
+    if (context) void context.close().catch(() => undefined);
+  }, []);
   const libraryItems = useMemo<LibraryItem[]>(() => emotionThemes.flatMap((theme) => {
+
     const themeMedia = profile.companionEmotionMedia?.[theme.id];
     return recordingsFromMedia(themeMedia, theme.id).map((item) => ({
       ...item,
@@ -272,17 +283,55 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     finally { if (uploadProgressTimerRef.current) window.clearInterval(uploadProgressTimerRef.current); uploadProgressTimerRef.current = null; setBusy(null); setUploadProgress(0); }
   }
 
+  function stopVisualizer() {
+    if (visualizerFrameRef.current !== null) window.cancelAnimationFrame(visualizerFrameRef.current);
+    visualizerFrameRef.current = null;
+    analyserRef.current = null;
+    const context = audioContextRef.current;
+    audioContextRef.current = null;
+    if (context) void context.close().catch(() => undefined);
+    setRecordingLevels(Array.from({ length: 32 }, () => 0));
+  }
+
+  function animateVisualizer(analyser: AnalyserNode) {
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const draw = () => {
+      analyser.getByteFrequencyData(data);
+      const levels = Array.from({ length: 32 }, (_, index) => {
+        const start = Math.floor(index * data.length / 32);
+        const end = Math.max(start + 1, Math.floor((index + 1) * data.length / 32));
+        const average = data.slice(start, end).reduce((sum, value) => sum + value, 0) / (end - start);
+        return Math.max(0.08, Math.min(1, average / 180));
+      });
+      setRecordingLevels(levels);
+      visualizerFrameRef.current = window.requestAnimationFrame(draw);
+    };
+    draw();
+  }
+
   async function toggleRecord() {
-    if (recording) { recorderRef.current?.stop(); setRecording(false); return; }
+    if (recording) { recorderRef.current?.stop(); recorderRef.current = null; setRecording(false); stopVisualizer(); return; }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { alert("Trình duyệt này chưa hỗ trợ ghi âm. Bạn vẫn có thể tải tệp âm thanh lên."); return; }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const chunks: BlobPart[] = [];
       const recorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : undefined });
+      const AudioContextConstructor = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (AudioContextConstructor) {
+        const context = new AudioContextConstructor();
+        const analyser = context.createAnalyser();
+        analyser.fftSize = 64;
+        analyser.smoothingTimeConstant = 0.75;
+        context.createMediaStreamSource(stream).connect(analyser);
+        audioContextRef.current = context;
+        analyserRef.current = analyser;
+        if (context.state === "suspended") await context.resume().catch(() => undefined);
+        animateVisualizer(analyser);
+      }
       recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
       recorder.onstop = () => { stream.getTracks().forEach((track) => track.stop()); const file = new File([new Blob(chunks, { type: recorder.mimeType || "audio/webm" })], `lumi-${emotion}-${Date.now()}.webm`, { type: recorder.mimeType || "audio/webm" }); void uploadFile(file, "lumi-voice"); };
       recorderRef.current = recorder; recorder.start(); setRecording(true);
-    } catch { alert("Không thể dùng micro. Hãy cho phép quyền micro hoặc tải bản thu có sẵn."); }
+    } catch { stopVisualizer(); alert("Không thể dùng micro. Hãy cho phép quyền micro hoặc tải bản thu có sẵn."); }
   }
 
   function removeVoice(recordingId: string, targetEmotion = emotion) {
@@ -501,7 +550,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     <div className="mt-4 grid gap-3 sm:grid-cols-3">
       <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3"><p className="text-xs font-black text-amber-800">Mascot của Ong</p>{profile.showMascot === false ? <p className="mt-3 text-xs text-amber-800">Đang ẩn theo lựa chọn.</p> : media.mascotImageUrl ? <img src={resolveMediaUrl(media.mascotImageUrl)} alt={`Mascot khi ${emotionLabel}`} className="mt-3 h-14 w-12 rounded-xl object-cover object-top" /> : <div className="mt-3 flex h-14 w-12 items-center justify-center rounded-xl border border-dashed border-amber-300 bg-white text-center text-[9px] font-black text-amber-800">Chưa có ảnh</div>}<p className="mt-2 text-[11px] leading-4 text-amber-800">Mascot chỉ hiển thị ảnh khi bạn tự tải lên.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="mascot-image" label="Tải ảnh" />{media.mascotImageUrl ? <button type="button" onClick={() => remove("mascotImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Mascot"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
       <div className="rounded-xl border border-red-200 bg-red-50/60 p-3"><p className="text-xs font-black text-[#8e1b1b]">Lumi</p>{profile.showLumi === false ? <p className="mt-3 text-xs text-[#8e1b1b]">Đang ẩn theo lựa chọn.</p> : media.lumiImageUrl ? <img src={resolveMediaUrl(media.lumiImageUrl)} alt={`Lumi khi ${emotionLabel}`} className="mt-3 h-14 w-12 rounded-xl object-cover object-top" /> : <div className="mt-3 flex h-14 w-12 items-center justify-center rounded-xl border border-dashed border-red-300 bg-white text-center text-[9px] font-black text-red-700">Chưa có ảnh</div>}<p className="mt-2 text-[11px] leading-4 text-[#8e1b1b]">Chưa có ảnh Lumi. Hãy ghi âm trước rồi tải ảnh để gắn vào lời thoại.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="lumi-image" label="Tải ảnh" />{media.lumiImageUrl ? <button type="button" onClick={() => remove("lumiImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Lumi"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
-      <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-3 sm:col-span-2"><p className="text-xs font-black text-violet-800">Thêm bản thu cho {emotionLabel}</p><p className="mt-1 text-xs leading-5 text-violet-800">Bản thu mới sẽ giữ ảnh Lumi đang chọn; sau đó Ong có thể đổi ảnh riêng ngay trong lưới.</p>{recording ? <p className="mt-2 rounded-lg bg-red-100 px-2.5 py-2 text-[11px] font-black text-red-800" role="status" aria-live="polite">Đang thu âm từ micro của thiết bị. Hãy nói lời động viên, rồi nhấn nút đỏ để lưu.</p> : busy ? <p className="mt-2 rounded-lg bg-violet-100 px-2.5 py-2 text-[11px] font-black text-violet-800" role="status" aria-live="polite">Đang xử lý tệp, vui lòng giữ nguyên trang trong giây lát.</p> : null}<div className="mt-3 flex flex-wrap gap-2"><VoiceInput /><button type="button" onClick={() => void toggleRecord()} disabled={Boolean(busy)} aria-pressed={recording} aria-busy={recording} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white transition active:scale-[.98] ${recording ? "animate-pulse bg-red-600" : "bg-violet-700"}`}>{recording ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}{recording ? "Đang ghi âm… Nhấn để dừng" : "Ghi âm Lumi"}</button></div></div>
+      <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-3 sm:col-span-2"><p className="text-xs font-black text-violet-800">Thêm bản thu cho {emotionLabel}</p><p className="mt-1 text-xs leading-5 text-violet-800">Bản thu mới sẽ giữ ảnh Lumi đang chọn; sau đó Ong có thể đổi ảnh riêng ngay trong lưới.</p>{recording ? <><p className="mt-2 rounded-lg bg-red-100 px-2.5 py-2 text-[11px] font-black text-red-800" role="status" aria-live="polite">Đang thu âm từ micro của thiết bị. Hãy nói lời động viên, rồi nhấn nút đỏ để lưu.</p><div className="mt-2 flex h-14 items-center gap-1 rounded-lg border border-red-200 bg-white px-3" role="img" aria-label="Sóng âm đang ghi âm"><span className="sr-only">Visualizer đang phản hồi theo âm thanh micro</span>{recordingLevels.map((level, index) => <span key={index} className="w-full rounded-full bg-red-500 transition-[height] duration-75" style={{ height: `${Math.max(8, Math.round(level * 48))}px` }} />)}</div></> : busy ? <p className="mt-2 rounded-lg bg-violet-100 px-2.5 py-2 text-[11px] font-black text-violet-800" role="status" aria-live="polite">Đang xử lý tệp, vui lòng giữ nguyên trang trong giây lát.</p> : null}<div className="mt-3 flex flex-wrap gap-2"><VoiceInput /><button type="button" onClick={() => void toggleRecord()} disabled={Boolean(busy)} aria-pressed={recording} aria-busy={recording} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white transition active:scale-[.98] ${recording ? "animate-pulse bg-red-600" : "bg-violet-700"}`}>{recording ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}{recording ? "Đang ghi âm… Nhấn để dừng" : "Ghi âm Lumi"}</button></div></div>
     </div>
 
     <section className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-3" aria-label="Bộ sưu tập ảnh giọng Lumi">
