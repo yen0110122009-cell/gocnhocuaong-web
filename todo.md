@@ -749,3 +749,11 @@
 - [x] Chạy typecheck, Vitest, production build và QA desktop/mobile.
 - [x] Xác minh GitHub remote/branch, workflow Pages và URL web; trước checkpoint, main vẫn đang ở commit `0205ee9` và workflow gần nhất thành công là bản audit trước.
 - [x] Lưu checkpoint và xác nhận đồng bộ sau khi mọi kiểm tra đạt; phiên bản `43071d25` đã lưu và tự động publish.
+
+## Audio Center — waveform preview, thao tác hàng loạt và tự phát âm nền
+- [x] Thêm phát thử trực tiếp trên waveform, có trạng thái đang phát, tiến trình và tua bằng thao tác trên waveform.
+- [x] Thêm chọn nhiều tệp và thao tác hàng loạt: xóa mềm, di chuyển/nhóm và gắn thẻ.
+- [x] Tự động nhận diện và gợi ý nhãn cho tệp âm thanh mới tải lên, cho phép người dùng xem/chỉnh sửa trước khi lưu.
+- [x] Cải thiện tự phát âm nền liên tục từ khi mở trang đến khi đóng web; xử lý autoplay policy, mute preference, cleanup và không phát chồng.
+- [x] Viết regression tests cho waveform preview, bulk actions, tag suggestions và autoplay-safe audio lifecycle.
+- [ ] Chạy typecheck, Vitest, production build và QA desktop/mobile; đang chờ checkpoint đồng bộ GitHub/Pages.

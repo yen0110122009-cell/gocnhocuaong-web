@@ -38,6 +38,13 @@ function readDataUrl(file: File) {
   });
 }
 function createId() { return `personal-audio-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
+function suggestAudioTags(fileName: string, target: string) {
+  const normalized = fileName.toLocaleLowerCase("vi-VN");
+  const tags = new Set<string>(["environment", target]);
+  const keywordTags: Array<[string, string]> = [["mưa", "rain"], ["rain", "rain"], ["sách", "book"], ["book", "book"], ["rừng", "forest"], ["forest", "forest"], ["biển", "ocean"], ["ocean", "ocean"], ["chim", "birds"], ["bird", "birds"], ["gió", "wind"], ["wind", "wind"], ["sấm", "storm"], ["thunder", "storm"], ["piano", "music"], ["nhạc", "music"], ["music", "music"]];
+  keywordTags.forEach(([keyword, tag]) => { if (normalized.includes(keyword)) tags.add(tag); });
+  return Array.from(tags);
+}
 function formatDuration(seconds?: number) {
   if (!seconds || !Number.isFinite(seconds)) return "Chưa đọc được thời lượng";
   const total = Math.max(0, Math.round(seconds));
@@ -85,15 +92,18 @@ async function inspectAudio(file: File) {
     return { durationSeconds: durationSeconds ?? decoded.duration, waveform };
   } catch { return { durationSeconds, waveform: fallback }; }
 }
-function Waveform({ values, currentTime = 0, duration, onSeek, label }: { values?: number[]; currentTime?: number; duration?: number; onSeek?: (seconds: number) => void; label?: string }) {
+function Waveform({ values, currentTime = 0, duration, onSeek, onPlay, label }: { values?: number[]; currentTime?: number; duration?: number; onSeek?: (seconds: number) => void; onPlay?: () => void; label?: string }) {
   const bars = values?.length ? values : Array.from({ length: 48 }, (_, index) => 0.18 + ((index * 17) % 60) / 100);
   const progress = duration && duration > 0 ? Math.max(0, Math.min(1, currentTime / duration)) : 0;
   function seek(event: React.MouseEvent<HTMLDivElement>) {
-    if (!onSeek || !duration || duration <= 0) return;
+    if (!duration || duration <= 0) return;
+    if (onPlay && !onSeek) { onPlay(); return; }
+    if (!onSeek) return;
     const rect = event.currentTarget.getBoundingClientRect();
     onSeek(Math.max(0, Math.min(duration, ((event.clientX - rect.left) / rect.width) * duration)));
   }
-  return <div className={`relative flex h-10 items-center gap-px overflow-hidden rounded-lg bg-[#edf8ee] px-2 ${onSeek && duration ? "cursor-pointer" : ""}`} role={onSeek && duration ? "slider" : "img"} aria-label={onSeek && duration ? `Tua ${label ?? "audio"}` : "Biểu đồ dạng sóng audio"} aria-valuemin={onSeek && duration ? 0 : undefined} aria-valuemax={onSeek && duration ? duration : undefined} aria-valuenow={onSeek && duration ? currentTime : undefined} tabIndex={onSeek && duration ? 0 : undefined} onClick={seek} onKeyDown={(event) => { if ((event.key === "ArrowRight" || event.key === "ArrowLeft") && onSeek && duration) { event.preventDefault(); onSeek(Math.max(0, Math.min(duration, currentTime + (event.key === "ArrowRight" ? 5 : -5)))); } }}><div className="pointer-events-none absolute inset-y-0 left-0 bg-[#c62828]/15 transition-[width] duration-100" style={{ width: `${progress * 100}%` }} />{bars.map((value, index) => <span key={index} className={`relative z-10 w-full rounded-full ${index / bars.length < progress ? "bg-[#c62828]" : "bg-[#2e7d32]"}`} style={{ height: `${Math.round(Math.max(12, Math.min(100, value * 100)))}%`, opacity: 0.45 + value * 0.5 }} />)}</div>;
+  const interactive = Boolean(duration && (onSeek || onPlay));
+  return <div className={`relative flex h-10 items-center gap-px overflow-hidden rounded-lg bg-[#edf8ee] px-2 ${interactive ? "cursor-pointer" : ""}`} role={onSeek && duration ? "slider" : "img"} aria-label={onSeek && duration ? `Tua ${label ?? "audio"}` : onPlay ? `Phát thử ${label ?? "audio"}` : "Biểu đồ dạng sóng audio"} aria-valuemin={onSeek && duration ? 0 : undefined} aria-valuemax={onSeek && duration ? duration : undefined} aria-valuenow={onSeek && duration ? currentTime : undefined} tabIndex={interactive ? 0 : undefined} onClick={seek} onKeyDown={(event) => { if (event.key === "Enter" && onPlay && !onSeek) { event.preventDefault(); onPlay(); } if ((event.key === "ArrowRight" || event.key === "ArrowLeft") && onSeek && duration) { event.preventDefault(); onSeek(Math.max(0, Math.min(duration, currentTime + (event.key === "ArrowRight" ? 5 : -5)))); } }}><div className="pointer-events-none absolute inset-y-0 left-0 bg-[#c62828]/15 transition-[width] duration-100" style={{ width: `${progress * 100}%` }} />{bars.map((value, index) => <span key={index} className={`relative z-10 w-full rounded-full ${index / bars.length < progress ? "bg-[#c62828]" : "bg-[#2e7d32]"}`} style={{ height: `${Math.round(Math.max(12, Math.min(100, value * 100)))}%`, opacity: 0.45 + value * 0.5 }} />)}</div>;
 }
 
 export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playbackStatus, onPlayAsset, onStopPlayback, onSeekPlayback }: Props) {
@@ -114,6 +124,7 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   const [audioStatus, setAudioStatus] = useState("all");
   const [audioTag, setAudioTag] = useState("all");
   const [audioTarget, setAudioTarget] = useState("all");
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
 
   const emotionOptions = useMemo(() => Array.from(new Set([
     ...voiceLines.map((item) => item.emotion).filter(Boolean),
@@ -130,6 +141,8 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
     });
   }, [activeAssets, audioSearch, audioSource, audioStatus, audioTag, audioTarget, groupFilter]);
   const audioGroupPresets = profile.audioGroupPresets ?? [];
+  const visibleLibraryAssets = libraryAssets.filter((asset) => asset.category === "background");
+  const selectedVisibleAssets = visibleLibraryAssets.filter((asset) => selectedAssetIds.includes(asset.id));
 
   const filteredVoices = useMemo(() => {
     const normalizedQuery = voiceSearch.trim().toLocaleLowerCase("vi-VN");
@@ -237,6 +250,47 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
     if (nextName && nextName !== asset.name) patchAsset(asset.id, { name: nextName.slice(0, 100) }, `Đã đổi tên “${asset.name}”.`);
   }
 
+  function toggleAssetSelection(id: string) {
+    setSelectedAssetIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  }
+
+  function toggleSelectAllVisible() {
+    setSelectedAssetIds((current) => selectedVisibleAssets.length > 0 && selectedVisibleAssets.every((asset) => current.includes(asset.id))
+      ? current.filter((id) => !selectedVisibleAssets.some((asset) => asset.id === id))
+      : Array.from(new Set([...current, ...selectedVisibleAssets.map((asset) => asset.id)])));
+  }
+
+  function bulkUpdateAssets(patch: Partial<PersonalAudioAsset>, message: string) {
+    if (!selectedVisibleAssets.length) return;
+    const ids = new Set(selectedVisibleAssets.map((asset) => asset.id));
+    onProfile({ ...profile, personalAudioAssets: assets.map((asset) => ids.has(asset.id) ? { ...asset, ...patch, updatedAt: new Date().toISOString() } : asset) }, message);
+    setSelectedAssetIds([]);
+  }
+
+  function bulkTagAssets() {
+    if (!selectedVisibleAssets.length) return;
+    const input = window.prompt("Nhãn áp dụng cho các tệp đã chọn (phân cách bằng dấu phẩy)", "");
+    if (input === null) return;
+    const tags = Array.from(new Set(input.split(",").map((tag) => tag.trim().toLocaleLowerCase("vi-VN")).filter(Boolean))).slice(0, 12);
+    bulkUpdateAssets({ tags }, `Đã gắn ${tags.length} nhãn cho ${selectedVisibleAssets.length} tệp audio.`);
+  }
+
+  function bulkMoveAssets() {
+    if (!selectedVisibleAssets.length) return;
+    const group = window.prompt("Nhóm/chủ đề mới cho các tệp đã chọn", "")?.trim();
+    if (group === undefined) return;
+    bulkUpdateAssets({ group: group ? group.slice(0, 60) : undefined }, group ? `Đã chuyển ${selectedVisibleAssets.length} tệp vào nhóm “${group}”.` : `Đã bỏ nhóm của ${selectedVisibleAssets.length} tệp.`);
+  }
+
+  function bulkSoftDeleteAssets() {
+    if (!selectedVisibleAssets.length || !window.confirm(`Chuyển ${selectedVisibleAssets.length} tệp vào thùng rác?`)) return;
+    const ids = new Set(selectedVisibleAssets.map((asset) => asset.id));
+    const deletedAt = new Date().toISOString();
+    const removed = assets.filter((asset) => ids.has(asset.id));
+    onProfile({ ...profile, personalAudioAssets: assets.filter((asset) => !ids.has(asset.id)), personalAudioTrash: [...trash.filter((asset) => !ids.has(asset.id)), ...removed.map((asset) => ({ ...asset, enabled: false, isDefault: false, deletedAt }))] }, `Đã chuyển ${removed.length} tệp audio vào thùng rác.`);
+    setSelectedAssetIds([]);
+  }
+
   async function uploadEnvironment(file: File, target: (typeof environmentTargets)[number]["id"]) {
     if (!acceptedMime.includes(file.type as AcceptedAudioMime)) { onProfile(profile, "Chỉ hỗ trợ MP3, WAV, OGG, WEBM hoặc M4A cho âm thanh môi trường."); return; }
     if (file.size > 8 * 1024 * 1024) { onProfile(profile, "Tệp âm thanh môi trường tối đa 8 MB."); return; }
@@ -249,8 +303,9 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
       const category = "background" as const;
       const hasDefault = activeAssets.some((asset) => asset.category === category && asset.target === target && asset.isDefault);
       const metadata = await inspectAudio(file);
-      const nextAsset: PersonalAudioAsset = { id: createId(), name: file.name.replace(/\.[^.]+$/, "").slice(0, 100), description: `Âm thanh môi trường · ${target}`, tags: ["environment", target], url: result.url, source: "user_upload", category, target, enabled: true, isDefault: !hasDefault, volume: 70, durationSeconds: metadata.durationSeconds, waveform: metadata.waveform, sortOrder: activeAssets.length, group: target === "rain" ? "Thiên nhiên" : "Đọc sách", createdAt: now, updatedAt: now };
-      onProfile({ ...profile, personalAudioAssets: [...assets, nextAsset] }, `Đã tải “${nextAsset.name}” vào Audio Center cho ${target === "rain" ? "mưa rơi" : "lật sách"}.`);
+      const suggestedTags = suggestAudioTags(file.name, target);
+      const nextAsset: PersonalAudioAsset = { id: createId(), name: file.name.replace(/\.[^.]+$/, "").slice(0, 100), description: `Âm thanh môi trường · ${target}`, tags: suggestedTags, url: result.url, source: "user_upload", category, target, enabled: true, isDefault: !hasDefault, volume: 70, durationSeconds: metadata.durationSeconds, waveform: metadata.waveform, sortOrder: activeAssets.length, group: target === "rain" ? "Thiên nhiên" : "Đọc sách", createdAt: now, updatedAt: now };
+      onProfile({ ...profile, personalAudioAssets: [...assets, nextAsset] }, `Đã tải “${nextAsset.name}” với nhãn gợi ý: ${suggestedTags.join(", ")}. Bạn có thể chỉnh sửa nhãn trong thư viện.`);
     } catch (error) { onProfile(profile, error instanceof Error ? error.message : "Không thể tải âm thanh môi trường."); }
     finally { setBusyTarget(null); }
   }
@@ -270,7 +325,8 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
       <p className="text-xs leading-5 text-[#35523a]">Kéo thả để đổi thứ tự phát. Mỗi asset có waveform, thời lượng, nhóm chủ đề và thao tác bật/tắt, đổi tên, nghe thử hoặc xóa mềm.</p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3"><label className="relative lg:col-span-2"><Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-[#6f5a53]" /><input value={audioSearch} onChange={(event) => setAudioSearch(event.target.value)} placeholder="Tìm theo tên, mô tả, nhóm, nhãn…" className="w-full rounded-xl border border-[#2e7d32]/20 bg-white py-2 pl-8 pr-3 text-xs outline-none focus:border-[#c62828]" aria-label="Tìm kiếm nâng cao thư viện audio" /></label><select value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)} className="rounded-xl border border-[#2e7d32]/20 bg-white px-3 py-2 text-xs" aria-label="Lọc nhóm audio"><option value="all">Tất cả nhóm</option>{groupOptions.map((group) => <option key={group} value={group}>{group}</option>)}</select><select value={audioSource} onChange={(event) => setAudioSource(event.target.value)} className="rounded-xl border border-[#2e7d32]/20 bg-white px-3 py-2 text-xs" aria-label="Lọc nguồn audio"><option value="all">Tất cả nguồn</option><option value="user_upload">Người dùng tải lên</option><option value="built_in">Có sẵn</option><option value="admin">Quản trị</option></select><select value={audioStatus} onChange={(event) => setAudioStatus(event.target.value)} className="rounded-xl border border-[#2e7d32]/20 bg-white px-3 py-2 text-xs" aria-label="Lọc trạng thái audio"><option value="all">Mọi trạng thái</option><option value="enabled">Đang bật</option><option value="disabled">Đang tắt</option></select><select value={audioTarget} onChange={(event) => setAudioTarget(event.target.value)} className="rounded-xl border border-[#2e7d32]/20 bg-white px-3 py-2 text-xs" aria-label="Lọc mục tiêu audio"><option value="all">Mọi mục tiêu</option>{environmentTargets.map((target) => <option key={target.id} value={target.id}>{target.label}</option>)}</select><select value={audioTag} onChange={(event) => setAudioTag(event.target.value)} className="rounded-xl border border-[#2e7d32]/20 bg-white px-3 py-2 text-xs" aria-label="Lọc nhãn audio"><option value="all">Mọi nhãn</option>{tagOptions.map((tag) => <option key={tag} value={tag}>{tag}</option>)}</select></div><div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-[#5a6d5d]"><span><Search className="mr-1 inline h-3.5 w-3.5" />{libraryAssets.length} asset phù hợp</span><span><GripVertical className="mr-1 inline h-3.5 w-3.5" />Thứ tự phát được lưu tự động</span></div>
       <div className="mt-3 rounded-xl border border-[#c62828]/15 bg-[#fff8f5] p-3"><div className="flex flex-wrap items-center justify-between gap-2"><div><b className="text-xs text-[#7f1d1d]">Preset nhóm âm thanh</b><p className="mt-1 text-[11px] text-[#5a6d5d]">Lưu các tệp cùng chủ đề để bật hoặc tắt cả nhóm trong một lần nhấn.</p></div>{groupOptions.length ? <div className="flex flex-wrap gap-1">{groupOptions.map((group) => <button key={group} type="button" onClick={() => saveGroupPreset(group)} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#c62828]">Lưu “{group}”</button>)}</div> : null}</div>{audioGroupPresets.length ? <div className="mt-2 grid gap-2 sm:grid-cols-2">{audioGroupPresets.map((preset) => <div key={preset.id} className="flex items-center justify-between gap-2 rounded-lg border border-[#2e7d32]/15 bg-white p-2"><div className="min-w-0"><b className="block truncate text-[11px] text-[#25582c]">{preset.name}</b><span className="text-[10px] text-[#5a6d5d]">{preset.audioAssetIds.length} tệp · {preset.enabled ? "đang bật" : "đang tắt"}</span></div><div className="flex shrink-0 gap-1"><button type="button" onClick={() => applyGroupPreset(preset, !preset.enabled)} className="rounded-md bg-[#2e7d32] px-2 py-1 text-[10px] font-black text-white">{preset.enabled ? "Tắt nhóm" : "Bật nhóm"}</button><button type="button" onClick={() => deleteGroupPreset(preset)} className="rounded-md border border-[#c62828]/20 px-2 py-1 text-[10px] font-black text-[#c62828]">Xóa</button></div></div>)}</div> : <p className="mt-2 text-[10px] text-[#5a6d5d]">Chưa có preset nhóm. Hãy gán nhóm cho asset rồi lưu preset.</p>}</div>
-      <div className="mt-3 grid gap-2">{libraryAssets.filter((asset) => asset.category === "background").length ? libraryAssets.filter((asset) => asset.category === "background").map((asset) => <div key={asset.id} draggable onDragStart={() => setDraggedAssetId(asset.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => { if (draggedAssetId) reorderAssets(draggedAssetId, asset.id); setDraggedAssetId(null); }} onDragEnd={() => setDraggedAssetId(null)} className={`rounded-xl border bg-[#f8fff8] p-3 transition ${draggedAssetId === asset.id ? "border-[#c62828] opacity-60" : "border-[#2e7d32]/15"}`}><div className="flex items-start gap-3"><button type="button" className="mt-1 cursor-grab text-[#5a6d5d]" aria-label={`Kéo ${asset.name}`}><GripVertical className="h-5 w-5" /></button><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><b className="block truncate text-xs text-[#25582c]">{asset.name}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">{asset.target === "rain" ? "Mưa rơi" : "Lật sách"} · {asset.group ?? "Chưa nhóm"} · {asset.enabled ? "Đang bật" : "Đang tắt"}</span></div><span className="shrink-0 rounded-full bg-[#fff1e9] px-2 py-1 text-[10px] font-black text-[#7f1d1d]">{formatDuration(asset.durationSeconds)}</span></div><div className="mt-2"><Waveform values={asset.waveform} currentTime={playbackStatus.environment.url === asset.url ? playbackStatus.environment.currentTime : 0} duration={playbackStatus.environment.url === asset.url ? playbackStatus.environment.duration ?? asset.durationSeconds : asset.durationSeconds} onSeek={playbackStatus.environment.url === asset.url ? onSeekPlayback : undefined} label={asset.name} /></div><div className="mt-2 flex flex-wrap gap-1"><button type="button" onClick={() => onPlayAsset(asset.url, "environment", asset.name, asset.volume)} className="inline-flex items-center gap-1 rounded-lg bg-[#2e7d32] px-2 py-1.5 text-[10px] font-black text-white" aria-label={`Nghe thử ${asset.name}`}><Play className="h-3 w-3" />Nghe thử</button><button type="button" onClick={() => patchAsset(asset.id, { enabled: !asset.enabled }, `${asset.enabled ? "Đã tắt" : "Đã bật"} “${asset.name}”.`)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]" aria-label={asset.enabled ? `Tắt ${asset.name}` : `Bật ${asset.name}`}><Volume2 className="h-3 w-3" />{asset.enabled ? "Tắt" : "Bật"}</button><button type="button" onClick={() => assignGroup(asset)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]"><Layers3 className="h-3 w-3" />Nhóm</button><button type="button" onClick={() => renameAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#c62828]">Đổi tên</button><button type="button" onClick={() => softDeleteAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white p-1.5 text-[#c62828]" aria-label={`Xóa mềm ${asset.name}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div></div></div>) : <div className="rounded-xl border border-dashed border-[#2e7d32]/20 p-4 text-center text-xs text-[#5a6d5d]">Chưa có asset môi trường nào phù hợp.</div>}</div>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#2e7d32]/15 bg-[#f8fff8] p-2.5"><label className="inline-flex items-center gap-2 text-xs font-black text-[#25582c]"><input type="checkbox" checked={visibleLibraryAssets.length > 0 && visibleLibraryAssets.every((asset) => selectedAssetIds.includes(asset.id))} onChange={toggleSelectAllVisible} />Chọn tất cả tệp đang hiển thị</label>{selectedVisibleAssets.length ? <div className="flex flex-wrap items-center gap-1.5"><span className="text-[11px] font-bold text-[#5a6d5d]">Đã chọn {selectedVisibleAssets.length}</span><button type="button" onClick={bulkMoveAssets} className="rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]">Chuyển nhóm</button><button type="button" onClick={bulkTagAssets} className="rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]">Gắn nhãn</button><button type="button" onClick={bulkSoftDeleteAssets} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#c62828]">Xóa đã chọn</button><button type="button" onClick={() => setSelectedAssetIds([])} className="rounded-lg border border-[#5a6d5d]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#5a6d5d]">Bỏ chọn</button></div> : null}</div>
+      <div className="mt-3 grid gap-2">{libraryAssets.filter((asset) => asset.category === "background").length ? libraryAssets.filter((asset) => asset.category === "background").map((asset) => <div key={asset.id} draggable onDragStart={() => setDraggedAssetId(asset.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => { if (draggedAssetId) reorderAssets(draggedAssetId, asset.id); setDraggedAssetId(null); }} onDragEnd={() => setDraggedAssetId(null)} className={`rounded-xl border bg-[#f8fff8] p-3 transition ${draggedAssetId === asset.id ? "border-[#c62828] opacity-60" : "border-[#2e7d32]/15"}`}><div className="flex items-start gap-3"><input type="checkbox" checked={selectedAssetIds.includes(asset.id)} onChange={() => toggleAssetSelection(asset.id)} aria-label={`Chọn ${asset.name}`} className="mt-2" /><button type="button" className="mt-1 cursor-grab text-[#5a6d5d]" aria-label={`Kéo ${asset.name}`}><GripVertical className="h-5 w-5" /></button><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><b className="block truncate text-xs text-[#25582c]">{asset.name}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">{asset.target === "rain" ? "Mưa rơi" : "Lật sách"} · {asset.group ?? "Chưa nhóm"} · {asset.enabled ? "Đang bật" : "Đang tắt"}</span></div><span className="shrink-0 rounded-full bg-[#fff1e9] px-2 py-1 text-[10px] font-black text-[#7f1d1d]">{formatDuration(asset.durationSeconds)}</span></div><div className="mt-2"><Waveform values={asset.waveform} currentTime={playbackStatus.environment.url === asset.url ? playbackStatus.environment.currentTime : 0} duration={playbackStatus.environment.url === asset.url ? playbackStatus.environment.duration ?? asset.durationSeconds : asset.durationSeconds} onSeek={playbackStatus.environment.url === asset.url ? onSeekPlayback : undefined} onPlay={() => onPlayAsset(asset.url, "environment", asset.name, asset.volume)} label={asset.name} /></div><div className="mt-2 flex flex-wrap gap-1"><button type="button" onClick={() => onPlayAsset(asset.url, "environment", asset.name, asset.volume)} className="inline-flex items-center gap-1 rounded-lg bg-[#2e7d32] px-2 py-1.5 text-[10px] font-black text-white" aria-label={`Nghe thử ${asset.name}`}><Play className="h-3 w-3" />Nghe thử</button><button type="button" onClick={() => patchAsset(asset.id, { enabled: !asset.enabled }, `${asset.enabled ? "Đã tắt" : "Đã bật"} “${asset.name}”.`)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]" aria-label={asset.enabled ? `Tắt ${asset.name}` : `Bật ${asset.name}`}><Volume2 className="h-3 w-3" />{asset.enabled ? "Tắt" : "Bật"}</button><button type="button" onClick={() => assignGroup(asset)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]"><Layers3 className="h-3 w-3" />Nhóm</button><button type="button" onClick={() => renameAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#c62828]">Đổi tên</button><button type="button" onClick={() => softDeleteAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white p-1.5 text-[#c62828]" aria-label={`Xóa mềm ${asset.name}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div></div></div>) : <div className="rounded-xl border border-dashed border-[#2e7d32]/20 p-4 text-center text-xs text-[#5a6d5d]">Chưa có asset môi trường nào phù hợp.</div>}</div>
     </PersistentCollapsible>
 
     <PersistentCollapsible storageKey="audio-center-trash" eyebrow="Audio Center" title={`Thùng rác audio (${trash.length})`} className="border-[#c62828]/20 bg-white/90">

@@ -4,6 +4,7 @@ import path from "node:path";
 
 const componentSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/components/AudioCenterEnhancements.tsx"), "utf8");
 const homeSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+const experienceStudioSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/components/ExperienceStudio.tsx"), "utf8");
 
 describe("Audio Center UX contracts", () => {
   it("provides advanced library search and filters", () => {
@@ -20,6 +21,28 @@ describe("Audio Center UX contracts", () => {
     expect(componentSource).toContain('toast.success(`Đã xóa vĩnh viễn');
     expect(componentSource).toContain("Tệp không còn truy cập được");
     expect(componentSource).toContain("storage contract");
+  });
+
+  it("supports direct waveform preview, multi-select and bulk management", () => {
+    expect(componentSource).toContain("onPlay");
+    expect(componentSource).toContain("selectedAssetIds");
+    expect(componentSource).toContain("bulkMoveAssets");
+    expect(componentSource).toContain("bulkTagAssets");
+    expect(componentSource).toContain("bulkSoftDeleteAssets");
+    expect(componentSource).toContain("Chọn tất cả tệp đang hiển thị");
+  });
+
+  it("suggests tags for newly uploaded audio", () => {
+    expect(componentSource).toContain("suggestAudioTags");
+    expect(componentSource).toContain("nhãn gợi ý");
+    expect(componentSource).toContain("suggestedTags");
+  });
+
+  it("attempts continuous ambient autoplay with a gesture fallback", () => {
+    expect(experienceStudioSource).toContain("ambientTrackRef");
+    expect(experienceStudioSource).toContain("pointerdown");
+    expect(experienceStudioSource).toContain("touchstart");
+    expect(experienceStudioSource).toContain("autoplay");
   });
 
   it("renders an accessible skeleton while the Audio Center lazy module loads", () => {

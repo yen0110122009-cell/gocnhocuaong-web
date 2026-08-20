@@ -239,6 +239,33 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     setMessage(`Chưa có bản thu sạch cho cảnh ${sceneOptions.find((item) => item.id === scene)?.label.toLowerCase()}. Hãy thêm file thật vào Audio Center rồi nhấn nghe lại; hệ thống không phát âm tổng hợp để tránh nhiễu.`);
   }
 
+  useEffect(() => {
+    if (!attentionPreferences.soundEnabled) return;
+    let disposed = false;
+    const tryStartAmbient = () => {
+      if (disposed || ambientTrackRef.current || ambientPlaying) return;
+      void toggleAmbient();
+    };
+    tryStartAmbient();
+    const resumeAfterGesture = () => {
+      tryStartAmbient();
+      if (ambientTrackRef.current) {
+        window.removeEventListener("pointerdown", resumeAfterGesture);
+        window.removeEventListener("keydown", resumeAfterGesture);
+        window.removeEventListener("touchstart", resumeAfterGesture);
+      }
+    };
+    window.addEventListener("pointerdown", resumeAfterGesture, { passive: true });
+    window.addEventListener("keydown", resumeAfterGesture);
+    window.addEventListener("touchstart", resumeAfterGesture, { passive: true });
+    return () => {
+      disposed = true;
+      window.removeEventListener("pointerdown", resumeAfterGesture);
+      window.removeEventListener("keydown", resumeAfterGesture);
+      window.removeEventListener("touchstart", resumeAfterGesture);
+    };
+  }, []);
+
   async function playEmotionTransitionSound(id: EmotionId) {
     if (!attentionPreferences.soundEnabled || lumiVolume <= 0) return;
     try {
@@ -339,7 +366,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     <div className="relative z-10 mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{emotionThemes.map((item) => <div key={item.id} className={`relative rounded-2xl border ${item.id === selected ? "border-[var(--emotion-primary)] bg-[var(--emotion-soft)] shadow-md" : "border-[#2e7d32]/15 bg-white/75"}`}><button type="button" aria-pressed={item.id === selected} onClick={() => selectEmotion(item.id)} className="w-full p-3 pr-10 text-left text-[var(--emotion-ink)]"><span className="text-xl" aria-hidden="true">{item.emoji}</span><b className="mt-1 block text-sm">{item.label}</b><small className="mt-1 block text-[11px] leading-4 opacity-75">{item.description}</small></button><button type="button" aria-label={`Phát âm nền cho cảm xúc ${item.label}`} onClick={() => toggleAmbient(item.id === "sad" || item.id === "tired" ? "rain" : item.id === "happy" || item.id === "proud" ? "morning" : item.id === "stressed" ? "storm" : "leaves")} className="absolute bottom-2 right-2 rounded-lg border border-[#c62828]/20 bg-white/95 p-1.5 text-[#c62828] shadow-sm"><Volume2 className="h-3.5 w-3.5" /></button></div>)}</div>
     <PersistentCollapsible storageKey="experience-ambient-audio" eyebrow="Không gian cảm xúc" title="Âm thanh và cảnh nền" className="relative z-10 mt-4 border-[#2e7d32]/20 bg-white/85">
     <section className="rounded-2xl" aria-label="Âm thanh và cảnh nền">
-      <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Âm thanh và cảnh nền</p><p className="mt-1 text-xs text-[#35523a]">Chọn cảnh rồi nhấn nghe. Không tự phát khi tải trang.</p></div><button type="button" onClick={() => toggleAmbient()} className="rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">{ambientPlaying ? <><Pause className="mr-1 inline h-3.5 w-3.5" />Dừng âm nền</> : <><Play className="mr-1 inline h-3.5 w-3.5" />Nghe âm nền</>}</button></div>
+      <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Âm thanh và cảnh nền</p><p className="mt-1 text-xs text-[#35523a]">Cảnh nền sẽ tự phát từ khi mở web đến khi đóng web nếu trình duyệt cho phép; nếu autoplay bị chặn, chỉ cần chạm hoặc nhấn phím một lần để tiếp tục.</p></div><button type="button" onClick={() => toggleAmbient()} className="rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">{ambientPlaying ? <><Pause className="mr-1 inline h-3.5 w-3.5" />Dừng âm nền</> : <><Play className="mr-1 inline h-3.5 w-3.5" />Nghe âm nền</>}</button></div>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">{sceneOptions.map((scene) => { const Icon = scene.icon; return <button key={scene.id} type="button" aria-pressed={ambientScene === scene.id} onClick={() => setScene(scene.id)} className={`rounded-xl border p-2 text-left text-xs ${ambientScene === scene.id ? "border-[#c62828] bg-[#fff0eb] text-[#7f1d1d]" : "border-[#2e7d32]/15 bg-white text-[#35523a]"}`}><Icon className="h-4 w-4" /><b className="mt-1 block">{scene.label}</b><span className="text-[10px] opacity-75">{scene.detail}</span></button>; })}</div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#eff9ef] p-2"><p className="text-xs font-bold text-[#35523a]">Mặc định hiện tại: <b>{sceneOptions.find((item) => item.id === favoriteScene)?.label}</b></p><button type="button" onClick={saveFavoriteScene} className="rounded-lg border border-[#2e7d32]/30 bg-white px-2.5 py-1.5 text-xs font-black text-[#2e7d32]">Lưu cảnh này làm mặc định</button></div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Mixer âm lượng cảnh nền">
