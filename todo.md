@@ -714,3 +714,9 @@
 - [x] Xuất preset, quy tắc tự động và nhật ký thao tác thành tệp JSON sao lưu cục bộ.
 - [x] Nhập tệp JSON có kiểm tra schema, phiên bản, giới hạn dữ liệu và lựa chọn hợp nhất/thay thế an toàn.
 - [x] Bổ sung regression cho preview rule và export/import backup; chạy TypeScript, Vitest, build và QA responsive.
+
+## Backup — tên tùy chỉnh và tag
+- [x] Cho phép người dùng đặt tên tùy chỉnh cho từng file backup khi xuất dữ liệu.
+- [x] Cho phép thêm, sửa và chuẩn hóa danh sách tag cho từng file backup.
+- [x] Lưu tên/tag trong metadata gói JSON và bảo toàn khi nhập lại, hợp nhất hoặc thay thế.
+- [x] Bổ sung regression cho tên/tag backup, validate metadata và chạy TypeScript, Vitest, build, QA responsive.

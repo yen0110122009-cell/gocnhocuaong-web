@@ -32,11 +32,16 @@ describe("StudyCorner contracts", () => {
   it("supports rule preview and versioned local backup for presets and audit logs", () => {
     expect(controls).toContain("previewRules");
     expect(controls).toContain("Xem trước quy tắc");
-    expect(controls).toContain("version: 2");
+    expect(controls).toContain("version: 3");
+    expect(controls).toContain("backupName");
+    expect(controls).toContain("backupTags");
+    expect(controls).toContain("backup: { name: safeName, tags, exportedAt }");
     expect(controls).toContain("audioActionLogs");
     expect(controls).toContain("importMode");
     expect(controls).toContain("replaceOrMerge");
     expect(controls).toContain("personalStudyPresetPomodoroRules");
+    expect(controls).toContain("importedBackup");
+    expect(controls).toContain("replace(/\\s+/g, \" \")");
   });
 
   it("defines an independent first-person desk scene with persistent controls", () => {

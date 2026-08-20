@@ -138,7 +138,9 @@ describe("Experience Studio requirements", () => {
   it("backs up the personal study space without embedding media and rejects unsafe external audio URLs", () => {
     expect(personalStudySpaceSource).toContain("exportPersonalSpace");
     expect(personalStudySpaceSource).toContain("importPersonalSpace");
-    expect(personalStudySpaceSource).toContain("khong-gian-hoc-ca-nhan-");
+    expect(personalStudySpaceSource).toContain("const filename");
+    expect(personalStudySpaceSource).toContain("safeName");
+    expect(personalStudySpaceSource).toContain(".json");
     expect(personalStudySpaceSource).toContain("không sao chép tệp âm thanh");
     expect(personalStudySpaceSource).toContain("isSafeExternalAudioUrl");
     expect(personalStudySpaceSource).toContain('parsed.protocol === "https:"');
