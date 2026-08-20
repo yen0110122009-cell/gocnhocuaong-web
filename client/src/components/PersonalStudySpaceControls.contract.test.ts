@@ -18,6 +18,17 @@ describe("StudyCorner contracts", () => {
     expect(controls).toContain("restorePresetHistory");
   });
 
+  it("supports automatic time and Pomodoro preset rules with auditable restore snapshots", () => {
+    expect(controls).toContain("personalStudyPresetTimeRules");
+    expect(controls).toContain("personalStudyPresetPomodoroRules");
+    expect(controls).toContain("applyTimeRule");
+    expect(controls).toContain("updatePomodoroRule");
+    expect(controls).toContain("audioActionLogs");
+    expect(controls).toContain("restoreAudioLog");
+    expect(controls).toContain("snapshot");
+    expect(controls).toContain("window.setInterval(applyTimeRule, 60_000)");
+  });
+
   it("defines an independent first-person desk scene with persistent controls", () => {
     expect(corner).toContain("study-corner-scene");
     expect(corner).toContain("lightMode");

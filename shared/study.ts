@@ -557,6 +557,23 @@ export type PersonalStudyPresetSchedule = {
   enabled: boolean;
   updatedAt: string;
 };
+export type PersonalStudyPresetTimeRule = {
+  id: string;
+  startTime: string;
+  endTime: string;
+  presetId: string;
+  daysOfWeek?: number[];
+  enabled: boolean;
+  updatedAt: string;
+};
+export type PersonalStudyPresetPomodoroRule = {
+  id: string;
+  mode: "focus" | "shortBreak" | "longBreak";
+  presetId: string;
+  enabled: boolean;
+  priority: number;
+  updatedAt: string;
+};
 export type PersonalStudyPresetHistory = {
   id: string;
   presetId: string;
@@ -564,6 +581,17 @@ export type PersonalStudyPresetHistory = {
   snapshot: PersonalStudyPreset;
   changedAt: string;
   reason?: string;
+};
+export type AudioActionLog = {
+  id: string;
+  occurredAt: string;
+  action: "create" | "update" | "delete" | "restore" | "apply" | "autoApply";
+  entityType: "preset" | "asset";
+  entityId: string;
+  entityName: string;
+  summary: string;
+  snapshot?: PersonalStudyPreset | PersonalAudioAsset;
+  previousSnapshot?: PersonalStudyPreset | PersonalAudioAsset;
 };
 
 export type StudyCornerSettings = {
@@ -667,7 +695,10 @@ export type ProfileState = {
   audioGroupPresets?: AudioGroupPreset[];
   personalStudyPresets?: PersonalStudyPreset[];
   personalStudyPresetSchedule?: PersonalStudyPresetSchedule[];
+  personalStudyPresetTimeRules?: PersonalStudyPresetTimeRule[];
+  personalStudyPresetPomodoroRules?: PersonalStudyPresetPomodoroRule[];
   personalStudyPresetHistory?: PersonalStudyPresetHistory[];
+  audioActionLogs?: AudioActionLog[];
   activePersonalStudyPresetId?: string;
   studyCornerSettings?: StudyCornerSettings;
   studyCornerEnvironment?: StudyCornerEnvironment;
@@ -845,6 +876,10 @@ export const emptyProfile = (): ProfileState => ({
   personalAudioAssets: [],
   personalAudioTrash: [],
   personalStudyPresets: [],
+  personalStudyPresetTimeRules: [],
+  personalStudyPresetPomodoroRules: [],
+  personalStudyPresetHistory: [],
+  audioActionLogs: [],
   activePersonalStudyPresetId: undefined,
   studyCornerSettings: { lightMode: "day", lampOn: false, lampIntensity: 62, windowOpen: true, curtainOpen: true, laptopOpen: true, bookOpen: true, ambientEnabled: false, ambientVolume: 35 },
   studyCornerEnvironment: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT, plantState: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT.plantState }, audioZones: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT.audioZones } },
@@ -1483,6 +1518,24 @@ export function normalizeProfile(value: unknown): ProfileState {
       if (!id || !presetId || !Number.isFinite(dayOfWeek)) return [];
       return [{ id, presetId, dayOfWeek, enabled: item?.enabled !== false, updatedAt: typeof item?.updatedAt === "string" && item.updatedAt ? item.updatedAt : new Date(0).toISOString() }];
     }).filter((item, index, items) => items.findIndex((candidate) => candidate.dayOfWeek === item.dayOfWeek) === index).slice(0, 7) : [],
+    personalStudyPresetTimeRules: Array.isArray(source.personalStudyPresetTimeRules) ? source.personalStudyPresetTimeRules.flatMap((value) => {
+      const item = value && typeof value === "object" ? value as Partial<PersonalStudyPresetTimeRule> : null;
+      const id = typeof item?.id === "string" && item.id.trim() ? item.id.trim() : "";
+      const presetId = typeof item?.presetId === "string" && item.presetId.trim() ? item.presetId.trim() : "";
+      const startTime = typeof item?.startTime === "string" && /^([01]\\d|2[0-3]):[0-5]\\d$/.test(item.startTime) ? item.startTime : "";
+      const endTime = typeof item?.endTime === "string" && /^([01]\\d|2[0-3]):[0-5]\\d$/.test(item.endTime) ? item.endTime : "";
+      if (!id || !presetId || !startTime || !endTime) return [];
+      const daysOfWeek = Array.isArray(item?.daysOfWeek) ? item!.daysOfWeek.filter((day): day is number => Number.isFinite(Number(day)) && Number(day) >= 0 && Number(day) <= 6).map((day) => Math.round(Number(day))).slice(0, 7) : undefined;
+      return [{ id, startTime, endTime, presetId, daysOfWeek, enabled: item?.enabled !== false, updatedAt: typeof item?.updatedAt === "string" && item.updatedAt ? item.updatedAt : new Date(0).toISOString() }];
+    }).filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index).slice(0, 50) : [],
+    personalStudyPresetPomodoroRules: Array.isArray(source.personalStudyPresetPomodoroRules) ? source.personalStudyPresetPomodoroRules.flatMap((value) => {
+      const item = value && typeof value === "object" ? value as Partial<PersonalStudyPresetPomodoroRule> : null;
+      const id = typeof item?.id === "string" && item.id.trim() ? item.id.trim() : "";
+      const presetId = typeof item?.presetId === "string" && item.presetId.trim() ? item.presetId.trim() : "";
+      const mode = item?.mode;
+      if (!id || !presetId || !["focus", "shortBreak", "longBreak"].includes(String(mode))) return [];
+      return [{ id, presetId, mode: mode as PersonalStudyPresetPomodoroRule["mode"], enabled: item?.enabled !== false, priority: Math.max(0, Math.min(999, Math.round(Number(item?.priority) || 0))), updatedAt: typeof item?.updatedAt === "string" && item.updatedAt ? item.updatedAt : new Date(0).toISOString() }];
+    }).filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index).sort((a, b) => a.priority - b.priority).slice(0, 30) : [],
     personalStudyPresetHistory: Array.isArray(source.personalStudyPresetHistory) ? source.personalStudyPresetHistory.flatMap((value) => {
       const item = value && typeof value === "object" ? value as Partial<PersonalStudyPresetHistory> : null;
       const id = typeof item?.id === "string" && item.id.trim() ? item.id.trim() : "";
@@ -1493,6 +1546,17 @@ export function normalizeProfile(value: unknown): ProfileState {
       if (!id || !presetId || !presetName || !changedAt || !snapshot || snapshot.id !== presetId) return [];
       return [{ id, presetId, presetName, snapshot, changedAt, reason: typeof item?.reason === "string" && item.reason.trim() ? item.reason.trim().slice(0, 160) : undefined }];
     }).filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index).sort((a, b) => Date.parse(b.changedAt) - Date.parse(a.changedAt)).slice(0, 100) : [],
+    audioActionLogs: Array.isArray(source.audioActionLogs) ? source.audioActionLogs.flatMap((value) => {
+      const item = value && typeof value === "object" ? value as Partial<AudioActionLog> : null;
+      const id = typeof item?.id === "string" && item.id.trim() ? item.id.trim() : "";
+      const entityId = typeof item?.entityId === "string" && item.entityId.trim() ? item.entityId.trim() : "";
+      const entityName = typeof item?.entityName === "string" && item.entityName.trim() ? item.entityName.trim().slice(0, 100) : "";
+      const occurredAt = typeof item?.occurredAt === "string" && !Number.isNaN(Date.parse(item.occurredAt)) ? item.occurredAt : "";
+      const action = item?.action;
+      const entityType = item?.entityType;
+      if (!id || !entityId || !entityName || !occurredAt || !["create", "update", "delete", "restore", "apply", "autoApply"].includes(String(action)) || !["preset", "asset"].includes(String(entityType))) return [];
+      return [{ id, occurredAt, action: action as AudioActionLog["action"], entityType: entityType as AudioActionLog["entityType"], entityId, entityName, summary: typeof item?.summary === "string" ? item.summary.slice(0, 200) : "Thao tác audio", snapshot: item?.snapshot && typeof item.snapshot === "object" ? item.snapshot as AudioActionLog["snapshot"] : undefined, previousSnapshot: item?.previousSnapshot && typeof item.previousSnapshot === "object" ? item.previousSnapshot as AudioActionLog["previousSnapshot"] : undefined }];
+    }).filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index).sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt)).slice(0, 200) : [],
     activePersonalStudyPresetId: typeof source.activePersonalStudyPresetId === "string" && source.personalStudyPresets?.some((preset) => preset && typeof preset === "object" && (preset as Partial<PersonalStudyPreset>).id === source.activePersonalStudyPresetId) ? source.activePersonalStudyPresetId : undefined,
     studyCornerEnvironment: {
       ...DEFAULT_STUDY_CORNER_ENVIRONMENT,

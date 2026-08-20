@@ -1,7 +1,7 @@
 import { ArrowRight, BarChart3, BookOpen, Check, CircleHelp, Clock3, Flame, Pause, Play, RotateCcw, Settings2, Sparkles, Trophy, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { applyStudyActivityRewards, computedAchievements, type AppConfig, type PersonalAudioAsset, type PomodoroSession, type ProfileState } from "../../../shared/study";
+import { applyStudyActivityRewards, computedAchievements, type AppConfig, type AudioActionLog, type PersonalAudioAsset, type PersonalStudyPreset, type PomodoroSession, type ProfileState } from "../../../shared/study";
 import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_PRESETS, scaledGain, soundEventDuration, soundEventGainMultiplier, soundEventSpacing, type SoundEvent } from "../lib/pomodoroAudio";
 import { ExperienceStudio } from "../components/ExperienceStudio";
 import { PersistentCollapsible } from "../components/PersistentCollapsible";
@@ -70,6 +70,15 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const [compactMode, setCompactMode] = useState(false);
   const emotion: EmotionId = profile.emotionTheme ?? "calm";
   const [introAnimation, setIntroAnimation] = useState(false);
+  useEffect(() => {
+    const rule = (profile.personalStudyPresetPomodoroRules ?? []).filter((item) => item.enabled && item.mode === mode).sort((a, b) => a.priority - b.priority)[0];
+    const preset = rule ? (profile.personalStudyPresets ?? []).find((item) => item.id === rule.presetId) : undefined;
+    if (!preset || preset.id === appliedAudioPresetRef.current || preset.id === profile.activePersonalStudyPresetId) return;
+    const nextAssets = (profile.personalAudioAssets ?? []).map((asset) => ({ ...asset, enabled: preset.audioAssetIds.includes(asset.id) }));
+    const log: AudioActionLog = { id: `pomo-audio-${Date.now()}`, occurredAt: new Date().toISOString(), action: "autoApply", entityType: "preset", entityId: preset.id, entityName: preset.name, summary: `Tự động áp dụng preset “${preset.name}” khi chuyển sang ${modeLabels[mode].toLowerCase()}.`, snapshot: preset as PersonalStudyPreset, previousSnapshot: (profile.personalStudyPresets ?? []).find((item) => item.id === profile.activePersonalStudyPresetId) };
+    appliedAudioPresetRef.current = preset.id;
+    onProfile({ ...profile, activePersonalStudyPresetId: preset.id, personalAudioAssets: nextAssets, audioActionLogs: [log, ...(profile.audioActionLogs ?? [])].slice(0, 200) }, `Đã tự động áp dụng preset “${preset.name}” theo Pomodoro.`);
+  }, [mode]);
   const [completionBanner, setCompletionBanner] = useState(false);
   const [weeklyGoalCelebrationOpen, setWeeklyGoalCelebrationOpen] = useState(false);
   const [twoMinuteMode, setTwoMinuteMode] = useState(false);
@@ -88,6 +97,7 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const personalBackgroundRef = useRef<HTMLAudioElement | null>(null);
   const backgroundGenerationRef = useRef(0);
   const profileSoundRef = useRef(profile.soundEnabled);
+  const appliedAudioPresetRef = useRef<string | null>(null);
   const weeklyGoalReachedRef = useRef<boolean | null>(null);
   const weeklyGoalKeyRef = useRef<string | null>(null);
   const weeklyGoalHistoryWriteRef = useRef<Set<string>>(new Set());

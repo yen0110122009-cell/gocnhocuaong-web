@@ -701,3 +701,10 @@
 - [x] Nâng waveform để hiển thị tiến trình phát trực tiếp và cho phép nhấp vào waveform để tua tới vị trí tương ứng.
 - [x] Cho phép lưu nhóm audio thành preset, áp dụng preset và bật/tắt toàn bộ nhóm trong một thao tác.
 - [x] Bổ sung regression cho permanent-delete confirmation, waveform seek/progress và group presets; chạy TypeScript, Vitest, build, QA responsive.
+
+## Audio Center — preset tự động và nhật ký thao tác
+- [x] Cho phép cấu hình preset âm thanh mặc định theo khung giờ trong ngày và tự động áp dụng khi mở/đang dùng dashboard.
+- [x] Cho phép cấu hình preset theo trạng thái hoặc mốc Pomodoro, ưu tiên quy tắc rõ ràng khi có nhiều điều kiện trùng nhau.
+- [x] Ghi nhật ký thao tác đối với preset và tệp audio, gồm thời gian, loại thao tác và snapshot đủ để khôi phục.
+- [x] Tạo giao diện xem lịch sử, xem chi tiết và khôi phục preset/tệp audio về phiên bản trước.
+- [x] Bổ sung regression cho auto preset, conflict resolution, audit log/restore; chạy TypeScript, Vitest, build và QA responsive.
