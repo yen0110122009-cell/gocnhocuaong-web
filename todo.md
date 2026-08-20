@@ -841,3 +841,17 @@
 - [x] Bổ sung regression tests cho cảnh báo thiết bị mới, diff, merge và phân quyền.
 - [x] Chạy typecheck, Vitest, production build và QA responsive.
 - [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.
+
+## Bốn module phát triển mới
+- [x] Sổ lỗi thông minh: lưu lỗi, nguyên nhân, kiến thức liên quan, tiến độ và lịch ôn lại.
+- [x] Sổ lỗi thông minh: có trạng thái, tìm kiếm, lọc, sửa, xóa mềm, khôi phục và dữ liệu riêng.
+- [x] Chế độ học theo năng lượng: chọn mức năng lượng và đề xuất nhiệm vụ phù hợp.
+- [x] Chế độ học theo năng lượng: ghi nhận lựa chọn và kết quả phiên học để cải thiện gợi ý.
+- [x] Bảng điều khiển sức khỏe học tập: tổng hợp thời lượng, gián đoạn, nghỉ và thời điểm tập trung.
+- [x] Bảng điều khiển sức khỏe học tập: hiển thị xu hướng trực quan, mục tiêu an toàn và trạng thái thiếu dữ liệu.
+- [x] Khu vực thí nghiệm kiến thức: tạo hoạt động kéo thả/mô phỏng có phản hồi ngay.
+- [x] Khu vực thí nghiệm kiến thức: lưu phiên thử nghiệm, đặt lại, hoàn tác và hỗ trợ mobile.
+- [x] Tạo schema/API/UI độc lập cho từng module, không gộp các tính năng khác bản chất.
+- [x] Bổ sung tests cho từng module và các quyền dữ liệu theo người dùng.
+- [x] Chạy typecheck, Vitest, production build và QA responsive cho cả bốn module.
+- [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.

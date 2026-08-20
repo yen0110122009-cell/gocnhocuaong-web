@@ -5,9 +5,13 @@ import { MenuHelpGuide } from "@/components/MenuHelpGuide";
 import { OngLearnerAvatar } from "@/components/OngLearnerAvatar";
 import ProfileTitleSelector from "@/components/ProfileTitleSelector";
 import { EmotionCompanionMediaControls } from "@/components/EmotionCompanionMediaControls";
+import { MistakeBook } from "@/components/MistakeBook";
+import { EnergyStudyMode } from "@/components/EnergyStudyMode";
+import { StudyHealthDashboard } from "@/components/StudyHealthDashboard";
+import { KnowledgeLab } from "@/components/KnowledgeLab";
 import { emotionThemes, type EmotionId } from "@/lib/emotionThemes";
 import { BRAND } from "@/branding";
-import { Award, BarChart3, BookOpen, BrainCircuit, Check, ChevronLeft, ChevronRight, CircleHelp, Clock3, Dices, Download, FileUp, Flag, GraduationCap, History, LayoutDashboard, LockKeyhole, Menu, Moon, Plus, Search, ShieldCheck, Sparkles, Sun, Trophy, UsersRound, Volume2, VolumeX, WandSparkles, X } from "lucide-react";
+import { Activity, AlertTriangle, Award, BarChart3, BatteryCharging, BookOpen, BrainCircuit, Check, ChevronLeft, ChevronRight, CircleHelp, Clock3, Dices, Download, FileUp, Flag, FlaskConical, GraduationCap, History, LayoutDashboard, LockKeyhole, Menu, Moon, Plus, Search, ShieldCheck, Sparkles, Sun, Trophy, UsersRound, Volume2, VolumeX, WandSparkles, X } from "lucide-react";
 import React, { ChangeEvent, FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 const ExperienceStudio = React.lazy(() => import("@/components/ExperienceStudio").then((module) => ({ default: module.ExperienceStudio })));
 type ExperienceStudioProps = React.ComponentProps<typeof ExperienceStudio>;
@@ -44,12 +48,12 @@ import { addCustomAchievement, addWheelReward, deleteCustomAchievement, deleteWh
 import { isGitHubPages, noEmailLoginHint, openFullstackLogin } from "@/lib/runtime";
 import { cloudLoadConfig, cloudLoadProfile, cloudLogin, cloudRestoreSession, cloudSaveConfig, cloudSaveProfile, cloudSignOut, cloudStateWarning } from "@/lib/cloudStateAuth";
 
-type View = "dashboard" | "focus" | "pomodoro" | "knowledge" | "history" | "exam" | "progress" | "studio" | "ai-import" | "flashcards" | "quizzes" | "achievements" | "museum" | "wheel" | "account" | "admin" | "special111";
+type View = "dashboard" | "focus" | "pomodoro" | "knowledge" | "history" | "exam" | "progress" | "studio" | "ai-import" | "flashcards" | "quizzes" | "achievements" | "museum" | "wheel" | "account" | "admin" | "special111" | "mistakes" | "energy" | "health" | "lab";
 const SESSION_KEY = "study_historia_session_v1";
 const uid = () => crypto.randomUUID();
 const isAdmin = (a: StudyAccount) => canManageLearningConfig(a.role);
 const nav: { id: View; label: string; icon: typeof LayoutDashboard; admin?: boolean; special111?: boolean }[] = [
-  { id: "dashboard", label: "Trang chủ", icon: LayoutDashboard }, { id: "special111", label: "Trung tâm 111", icon: WandSparkles, special111: true }, { id: "focus", label: "Ôn tập thông minh", icon: Sparkles }, { id: "ai-import", label: "Nhập dữ liệu AI", icon: FileUp }, { id: "pomodoro", label: "Pomodoro", icon: Clock3 }, { id: "knowledge", label: "Bản đồ kiến thức", icon: BarChart3 }, { id: "history", label: "Lịch sử học", icon: History }, { id: "exam", label: "Tôi sắp kiểm tra", icon: Flag }, { id: "progress", label: "Tiến trình", icon: BarChart3 }, { id: "studio", label: "AI Studio", icon: BrainCircuit }, { id: "flashcards", label: "Flashcard", icon: BookOpen }, { id: "quizzes", label: "Đề kiểm tra", icon: CircleHelp }, { id: "achievements", label: "Thành tích", icon: Trophy }, { id: "museum", label: "Bảo tàng hành trình", icon: History }, { id: "wheel", label: "Vòng quay tri thức", icon: Dices }, { id: "account", label: "Tài khoản", icon: UsersRound }, { id: "admin", label: "Admin Panel", icon: ShieldCheck, admin: true },
+  { id: "dashboard", label: "Trang chủ", icon: LayoutDashboard }, { id: "special111", label: "Trung tâm 111", icon: WandSparkles, special111: true }, { id: "mistakes", label: "Sổ lỗi thông minh", icon: AlertTriangle }, { id: "energy", label: "Học theo năng lượng", icon: BatteryCharging }, { id: "health", label: "Sức khỏe học tập", icon: Activity }, { id: "lab", label: "Thí nghiệm kiến thức", icon: FlaskConical }, { id: "focus", label: "Ôn tập thông minh", icon: Sparkles }, { id: "ai-import", label: "Nhập dữ liệu AI", icon: FileUp }, { id: "pomodoro", label: "Pomodoro", icon: Clock3 }, { id: "knowledge", label: "Bản đồ kiến thức", icon: BarChart3 }, { id: "history", label: "Lịch sử học", icon: History }, { id: "exam", label: "Tôi sắp kiểm tra", icon: Flag }, { id: "progress", label: "Tiến trình", icon: BarChart3 }, { id: "studio", label: "AI Studio", icon: BrainCircuit }, { id: "flashcards", label: "Flashcard", icon: BookOpen }, { id: "quizzes", label: "Đề kiểm tra", icon: CircleHelp }, { id: "achievements", label: "Thành tích", icon: Trophy }, { id: "museum", label: "Bảo tàng hành trình", icon: History }, { id: "wheel", label: "Vòng quay tri thức", icon: Dices }, { id: "account", label: "Tài khoản", icon: UsersRound }, { id: "admin", label: "Admin Panel", icon: ShieldCheck, admin: true },
 ];
 
 function storedSession(): StudySession | null { try { const item = sessionStorage.getItem(SESSION_KEY); return item ? JSON.parse(item) as StudySession : null; } catch { return null; } }
@@ -195,6 +199,10 @@ function Views({ view, account, profile, config, token, onView, onProfile, onCon
   else if (view === "museum") { content = <MuseumEnhanced account={account} profile={profile} config={config} onView={onView} onProfile={onProfile} />; }
   else if (view === "wheel") { content = <WheelEnhanced profile={profile} config={config} onProfile={onProfile} />; }
   else if (view === "account") { content = <Account account={account} profile={profile} config={config} onProfile={onProfile} onLogout={onLogout} />; }
+  else if (view === "mistakes") { content = <MistakeBook />; }
+  else if (view === "energy") { content = <EnergyStudyMode />; }
+  else if (view === "health") { content = <StudyHealthDashboard profile={profile} />; }
+  else if (view === "lab") { content = <KnowledgeLab />; }
   else { content = <AdminEnhanced account={account} profile={profile} config={config} onConfig={onConfig} />; }
   return <EmotionThemeController profile={profile} onProfile={onProfile}><Suspense fallback={<div className="panel mx-auto mt-8 max-w-3xl p-8 text-center"><p className="font-display text-lg font-bold">Lumi đang mở không gian học…</p><p className="mt-2 text-sm text-slate-500">Chỉ tải module khi Ong cần dùng.</p></div>}>{content}</Suspense></EmotionThemeController>;
 }
