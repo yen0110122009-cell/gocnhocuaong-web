@@ -5,7 +5,7 @@ import { purgeAudioAssetsFromTrash } from "../../../shared/audioPurge";
 import { trpc } from "../lib/trpc";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { toast } from "sonner";
-import { DEFAULT_AMBIENT_ASSET } from "../lib/defaultAmbient";
+import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_ASSETS, DEFAULT_AMBIENT_BOOK_PAGES_ASSET } from "../lib/defaultAmbient";
 import { resolveMediaUrl } from "../lib/runtime";
 
 type AudioChannel = "environment" | "music" | "voice";
@@ -147,7 +147,7 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   const [useTypeSpeedPreset, setUseTypeSpeedPreset] = useState(true);
   const [speedPresetCategory, setSpeedPresetCategory] = useState<(typeof speedPresetCategories)[number]>("background");
   const [speedPresetDraft, setSpeedPresetDraft] = useState<PreviewRate[]>(() => profile.audioPreviewSpeedPresets?.background ?? defaultSpeedPreset("background"));
-  const [healthByAssetId, setHealthByAssetId] = useState<Record<string, { status: "checking" | "ok" | "error"; message?: string }>>({});
+  const [healthByAssetId, setHealthByAssetId] = useState<Record<string, { status: "checking" | "ok" | "error"; message?: string; checkedAt?: string }>>({});
 
   const emotionOptions = useMemo(() => Array.from(new Set([
     ...voiceLines.map((item) => item.emotion).filter(Boolean),
@@ -165,18 +165,24 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   }, [activeAssets, audioSearch, audioSource, audioStatus, audioTag, audioTarget, groupFilter]);
   const audioGroupPresets = profile.audioGroupPresets ?? [];
   const visibleLibraryAssets = libraryAssets.filter((asset) => asset.category === "background");
-  const ambientHealthAssets = useMemo(() => [...activeAssets.filter((asset) => asset.category === "background"), DEFAULT_AMBIENT_ASSET].filter((asset, index, list) => list.findIndex((candidate) => candidate.id === asset.id) === index), [activeAssets]);
+  const ambientHealthAssets = useMemo(() => [...activeAssets.filter((asset) => asset.category === "background"), ...DEFAULT_AMBIENT_ASSETS].filter((asset, index, list) => list.findIndex((candidate) => candidate.id === asset.id) === index), [activeAssets]);
   useEffect(() => {
     let cancelled = false;
     ambientHealthAssets.forEach((asset) => {
       setHealthByAssetId((current) => ({ ...current, [asset.id]: { status: "checking" } }));
       const audio = new Audio();
       audio.preload = "metadata";
+      let finished = false;
+      let timeoutId: number | undefined;
       const finish = (status: "ok" | "error", message?: string) => {
-        if (!cancelled) setHealthByAssetId((current) => ({ ...current, [asset.id]: { status, message } }));
+        if (finished) return;
+        finished = true;
+        if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+        if (!cancelled) setHealthByAssetId((current) => ({ ...current, [asset.id]: { status, message, checkedAt: new Date().toISOString() } }));
         audio.removeAttribute("src");
         audio.load();
       };
+      timeoutId = window.setTimeout(() => finish("error", "Không nhận được metadata trong thời gian cho phép; hãy kiểm tra URL hoặc storage."), 7000);
       audio.onloadedmetadata = () => finish("ok");
       audio.oncanplay = () => finish("ok");
       audio.onerror = () => finish("error", "URL không tải được hoặc định dạng không được trình duyệt hỗ trợ.");
@@ -187,9 +193,10 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   }, [ambientHealthAssets]);
   function healthBadge(asset: PersonalAudioAsset) {
     const health = healthByAssetId[asset.id];
-    if (!health || health.status === "checking") return <span className="rounded-full bg-[#fff3cd] px-2 py-0.5 text-[10px] font-bold text-[#8a5a00]">Đang kiểm tra URL</span>;
-    if (health.status === "ok") return <span className="rounded-full bg-[#e6f7e9] px-2 py-0.5 text-[10px] font-bold text-[#236b2e]">URL hoạt động</span>;
-    return <span title={health.message} className="rounded-full bg-[#ffe6e3] px-2 py-0.5 text-[10px] font-bold text-[#a72820]">URL lỗi · thử lại</span>;
+    const checkedLabel = health?.checkedAt ? ` · kiểm tra ${new Date(health.checkedAt).toLocaleString("vi-VN")}` : "";
+    if (!health || health.status === "checking") return <span className="rounded-full bg-[#fff3cd] px-2 py-0.5 text-[10px] font-bold text-[#8a5a00]">Đang kiểm tra URL{checkedLabel}</span>;
+    if (health.status === "ok") return <span className="rounded-full bg-[#e6f7e9] px-2 py-0.5 text-[10px] font-bold text-[#236b2e]">URL hoạt động{checkedLabel}</span>;
+    return <span title={health.message} className="rounded-full bg-[#ffe6e3] px-2 py-0.5 text-[10px] font-bold text-[#a72820]">URL lỗi · thử lại{checkedLabel}</span>;
   }
   const selectedVisibleAssets = visibleLibraryAssets.filter((asset) => selectedAssetIds.includes(asset.id));
   function previewRateFor(asset: Pick<PersonalAudioAsset, "category" | "target" | "name" | "tags">): PreviewRate {
@@ -387,7 +394,7 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {environmentTargets.map((target) => {
           const personalCurrent = activeAssets.find((asset) => asset.enabled && asset.category === "background" && asset.target === target.id);
-          const current = personalCurrent ?? (target.id === "rain" ? DEFAULT_AMBIENT_ASSET : undefined);
+          const current = personalCurrent ?? (target.id === "rain" ? DEFAULT_AMBIENT_ASSET : target.id === "book" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET : undefined);
           return <div key={target.id} className="rounded-xl border border-[#2e7d32]/15 bg-[#f8fff8] p-3"><div className="flex items-start justify-between gap-2"><div><b className="text-sm text-[#25582c]">{target.label}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">{current ? `${current.source === "built_in" ? "Mặc định" : "Đang dùng"}: ${current.name}` : "Chưa có bản thu thật"}</span>{current ? <div className="mt-1">{healthBadge(current)}</div> : null}</div><div className="flex shrink-0 flex-wrap justify-end gap-1">{current?.source === "built_in" ? <button type="button" onClick={() => onPlayAsset(resolveMediaUrl(current.url), "environment", current.name, current.volume, 1)} className="inline-flex items-center gap-1 rounded-lg bg-[#2e7d32] px-2.5 py-2 text-xs font-black text-white"><Play className="h-3.5 w-3.5" />Nghe thử</button> : null}<input ref={(node) => { inputRefs.current[target.id] = node; }} type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/webm,audio/mp4,audio/x-m4a" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadEnvironment(file, target.id); event.target.value = ""; }} /><button type="button" disabled={busyTarget === target.id} onClick={() => inputRefs.current[target.id]?.click()} className="inline-flex items-center gap-1 rounded-lg bg-[#c62828] px-2.5 py-2 text-xs font-black text-white disabled:opacity-60"><Upload className="h-3.5 w-3.5" />{busyTarget === target.id ? "Đang tải…" : personalCurrent ? "Thay file" : "Tải file"}</button></div></div></div>;
         })}
       </div>

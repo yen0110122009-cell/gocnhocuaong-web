@@ -922,3 +922,10 @@
 - [x] Bổ sung upload tệp ambient riêng từ giao diện Audio Center/Cài đặt, có validation và đồng bộ metadata.
 - [x] Thêm health-check URL cho asset ambient và cảnh báo trực quan khi URL lỗi hoặc không phát được.
 - [x] Bổ sung regression tests, chạy Vitest, TypeScript, production build và QA desktop/mobile; QA live phát asset mới chờ sau deploy checkpoint.
+
+## Kiểm thử tiếng mưa và asset lật sách
+- [ ] Kiểm tra thực tế nút tiếng mưa trên GitHub Pages: URL, readyState, play/pause, volume và lỗi media.
+- [ ] Tạo và upload asset lật sách mặc định sạch, có thể phát thử ngay.
+- [ ] Tích hợp asset lật sách mặc định vào Audio Center và fallback playback.
+- [ ] Hiển thị thời gian health-check URL gần nhất cho từng asset ambient.
+- [ ] Bổ sung regression tests, chạy Vitest, TypeScript, production build và QA live.

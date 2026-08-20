@@ -6,7 +6,7 @@ describe("default ambient asset", () => {
     expect(DEFAULT_AMBIENT_ASSET.source).toBe("built_in");
     expect(DEFAULT_AMBIENT_ASSET.category).toBe("background");
     expect(DEFAULT_AMBIENT_ASSET.target).toBe("rain");
-    expect(DEFAULT_AMBIENT_RAIN_URL).toMatch(/^\/manus-storage\/ambient-rain-default_[a-z0-9]+\.wav$/);
+    expect(DEFAULT_AMBIENT_RAIN_URL).toMatch(/^https:\/\/[^/]+\/manus-storage\/ambient-rain-default_[a-z0-9]+\.wav$/);
     expect(DEFAULT_AMBIENT_ASSET.url).toBe(DEFAULT_AMBIENT_RAIN_URL);
   });
 

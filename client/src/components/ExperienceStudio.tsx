@@ -10,7 +10,7 @@ import { PersonalStudySpaceControls } from "./PersonalStudySpaceControls";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { trpc } from "@/lib/trpc";
 import { resolveMediaUrl } from "../lib/runtime";
-import { DEFAULT_AMBIENT_ASSET } from "../lib/defaultAmbient";
+import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_BOOK_PAGES_ASSET } from "../lib/defaultAmbient";
 import { AudioCenterEnhancements, type AudioChannel as PlaybackChannel, type PlaybackStatus as AudioPlaybackStatus } from "./AudioCenterEnhancements";
 
 type AttentionPreferences = { animationsEnabled: boolean; popupsEnabled: boolean; soundEnabled: boolean };
@@ -223,7 +223,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const sceneAmbientAssets = permittedAmbientAssets.filter((asset) => [scene, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")));
     const personalAmbientAudio = [...sceneAmbientAssets, ...permittedAmbientAssets.filter((asset) => !sceneAmbientAssets.includes(asset))]
       .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
-    const selectedAmbientAudio = personalAmbientAudio ?? (scene === "rain" ? DEFAULT_AMBIENT_ASSET : undefined);
+    const selectedAmbientAudio = personalAmbientAudio ?? (scene === "rain" ? DEFAULT_AMBIENT_ASSET : scene === "leaves" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET : undefined);
     if (selectedAmbientAudio) {
       setAmbientError(null);
       const audio = new Audio();
@@ -415,7 +415,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
         {(Object.entries({ environment: "Môi trường", music: "Nhạc nền", uiEffects: "Hiệu ứng", lumi: "Giọng Lumi", ong: "Giọng Ong", memberVoice: "Bản ghi thành viên" }) as [keyof AudioChannelVolumes, string][]).map(([channel, label]) => <label key={channel} className="rounded-xl border border-[#2e7d32]/15 bg-white px-3 py-2 text-xs text-[#35523a]"><span className="flex items-center justify-between font-bold"><span>{label}</span><span>{audioChannelVolumes[channel]}%</span></span><input type="range" min="0" max="100" value={audioChannelVolumes[channel]} onChange={(event) => updateAudioChannelVolume(channel, Number(event.target.value))} className="mt-2 w-full accent-[#2e7d32]" aria-label={`Âm lượng ${label}`} /></label>)}
       </div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Âm thanh nền sạch">
-        {[{ id: "rain", label: "Mưa rơi", detail: "Chỉ dùng bản thu thật đã thêm vào thư viện" }, { id: "book", label: "Lật sách", detail: "Hiệu ứng ngắn, phát khi Ong chủ động nhấn" }].map((effect) => { const asset = (profile?.personalAudioAssets ?? []).find((item) => item.enabled && item.category === "background" && item.target.toLocaleLowerCase("vi-VN") === effect.id); return <button key={effect.id} type="button" onClick={() => asset ? playCleanAmbientAsset(asset.url, effect.label) : setMessage(`Chưa có asset sạch cho ${effect.label}. Hãy thêm bản thu environment với target “${effect.id}”.`)} className="rounded-xl border border-[#2e7d32]/15 bg-[#f5fff5] p-3 text-left text-xs text-[#35523a]"><span className="block font-black">{effect.label}</span><span className="mt-1 block opacity-75">{asset ? "Có bản thu · nghe thử" : "Chưa có bản thu · không phát âm giả"}</span></button>; })}
+        {[{ id: "rain", label: "Mưa rơi", fallback: DEFAULT_AMBIENT_ASSET }, { id: "book", label: "Lật sách", fallback: DEFAULT_AMBIENT_BOOK_PAGES_ASSET }].map((effect) => { const asset = (profile?.personalAudioAssets ?? []).find((item) => item.enabled && item.category === "background" && item.target.toLocaleLowerCase("vi-VN") === effect.id); const playable = asset ?? effect.fallback; return <button key={effect.id} type="button" onClick={() => playCleanAmbientAsset(playable.url, effect.label)} className="rounded-xl border border-[#2e7d32]/15 bg-[#f5fff5] p-3 text-left text-xs text-[#35523a]"><span className="block font-black">{effect.label}</span><span className="mt-1 block opacity-75">{asset ? "Có bản thu riêng · nghe thử" : `Bản mặc định · ${effect.label === "Mưa rơi" ? "mưa dịu" : "tiếng lật trang"}`}</span></button>; })}
       </div>
     </section>
     </PersistentCollapsible>
