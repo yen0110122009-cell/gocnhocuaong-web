@@ -29,6 +29,16 @@ describe("StudyCorner contracts", () => {
     expect(controls).toContain("window.setInterval(applyTimeRule, 60_000)");
   });
 
+  it("supports rule preview and versioned local backup for presets and audit logs", () => {
+    expect(controls).toContain("previewRules");
+    expect(controls).toContain("Xem trước quy tắc");
+    expect(controls).toContain("version: 2");
+    expect(controls).toContain("audioActionLogs");
+    expect(controls).toContain("importMode");
+    expect(controls).toContain("replaceOrMerge");
+    expect(controls).toContain("personalStudyPresetPomodoroRules");
+  });
+
   it("defines an independent first-person desk scene with persistent controls", () => {
     expect(corner).toContain("study-corner-scene");
     expect(corner).toContain("lightMode");

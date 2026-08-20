@@ -708,3 +708,9 @@
 - [x] Ghi nhật ký thao tác đối với preset và tệp audio, gồm thời gian, loại thao tác và snapshot đủ để khôi phục.
 - [x] Tạo giao diện xem lịch sử, xem chi tiết và khôi phục preset/tệp audio về phiên bản trước.
 - [x] Bổ sung regression cho auto preset, conflict resolution, audit log/restore; chạy TypeScript, Vitest, build và QA responsive.
+
+## Audio Center — xem trước quy tắc và sao lưu cục bộ
+- [x] Thêm nút xem trước quy tắc để kiểm tra preset được chọn theo thời điểm cụ thể và trạng thái Pomodoro.
+- [x] Xuất preset, quy tắc tự động và nhật ký thao tác thành tệp JSON sao lưu cục bộ.
+- [x] Nhập tệp JSON có kiểm tra schema, phiên bản, giới hạn dữ liệu và lựa chọn hợp nhất/thay thế an toàn.
+- [x] Bổ sung regression cho preview rule và export/import backup; chạy TypeScript, Vitest, build và QA responsive.
