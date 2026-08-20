@@ -695,3 +695,9 @@
 - [x] Bổ sung metadata thời lượng và waveform trực quan cho từng tệp audio trong thư viện, có fallback rõ ràng khi trình duyệt không đọc được metadata.
 - [x] Thêm kéo thả để sắp xếp thứ tự phát, lưu thứ tự vào profile và cho phép nhóm asset theo chủ đề.
 - [x] Bổ sung regression cho trash/restore, waveform/duration, drag-drop/group và chạy TypeScript, Vitest, build, QA responsive.
+
+## Audio Center — xóa vĩnh viễn, waveform tương tác và preset nhóm
+- [x] Thêm xóa vĩnh viễn từng tệp hoặc hàng loạt trong thùng rác audio, luôn yêu cầu hộp thoại xác nhận.
+- [x] Nâng waveform để hiển thị tiến trình phát trực tiếp và cho phép nhấp vào waveform để tua tới vị trí tương ứng.
+- [x] Cho phép lưu nhóm audio thành preset, áp dụng preset và bật/tắt toàn bộ nhóm trong một thao tác.
+- [x] Bổ sung regression cho permanent-delete confirmation, waveform seek/progress và group presets; chạy TypeScript, Vitest, build, QA responsive.

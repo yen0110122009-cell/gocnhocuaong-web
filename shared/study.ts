@@ -531,6 +531,14 @@ export type PersonalAudioAsset = {
   updatedAt: string;
   deletedAt?: string;
 };
+export type AudioGroupPreset = {
+  id: string;
+  name: string;
+  audioAssetIds: string[];
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
 export type PersonalStudyPreset = {
   id: string;
   name: string;
@@ -656,6 +664,7 @@ export type ProfileState = {
   audioMixer?: AudioMixerSettings;
   personalAudioAssets?: PersonalAudioAsset[];
   personalAudioTrash?: PersonalAudioAsset[];
+  audioGroupPresets?: AudioGroupPreset[];
   personalStudyPresets?: PersonalStudyPreset[];
   personalStudyPresetSchedule?: PersonalStudyPresetSchedule[];
   personalStudyPresetHistory?: PersonalStudyPresetHistory[];
@@ -1452,6 +1461,13 @@ export function normalizeProfile(value: unknown): ProfileState {
       if (!id || !name || !url || !deletedAt || Date.now() - Date.parse(deletedAt) > 30 * 24 * 60 * 60 * 1000 || !["emotion", "season", "weather", "pomodoro", "lumi", "ong", "member", "background"].includes(String(category)) || !["user_upload", "external_url"].includes(String(sourceType))) return [];
       return [{ id, name, description: typeof asset?.description === "string" && asset.description.trim() ? asset.description.trim().slice(0, 280) : undefined, tags: Array.isArray(asset?.tags) ? asset.tags.filter((tag): tag is string => typeof tag === "string" && Boolean(tag.trim())).map((tag) => tag.trim().slice(0, 32)).slice(0, 12) : [], url, source: sourceType as PersonalAudioSource, category: category as PersonalAudioCategory, target: typeof asset?.target === "string" && asset.target.trim() ? asset.target.trim().slice(0, 80) : "general", enabled: false, isDefault: false, volume: Math.max(0, Math.min(100, Number(asset?.volume) || 0)), durationSeconds: Number.isFinite(Number(asset?.durationSeconds)) && Number(asset?.durationSeconds) > 0 ? Math.min(86400, Number(asset?.durationSeconds)) : undefined, waveform: Array.isArray(asset?.waveform) ? asset.waveform.filter((value): value is number => typeof value === "number" && Number.isFinite(value)).map((value) => Math.max(0, Math.min(1, value))).slice(0, 96) : undefined, sortOrder: Number.isFinite(Number(asset?.sortOrder)) ? Math.max(0, Math.min(999999, Math.round(Number(asset?.sortOrder)))) : undefined, group: typeof asset?.group === "string" && asset.group.trim() ? asset.group.trim().slice(0, 60) : undefined, createdAt: typeof asset?.createdAt === "string" && asset.createdAt ? asset.createdAt : new Date(0).toISOString(), updatedAt: typeof asset?.updatedAt === "string" && asset.updatedAt ? asset.updatedAt : new Date(0).toISOString(), deletedAt }];
     }).filter((asset, index, assets) => assets.findIndex((candidate) => candidate.id === asset.id) === index).slice(0, 300) : [],
+    audioGroupPresets: Array.isArray(source.audioGroupPresets) ? source.audioGroupPresets.flatMap((value) => {
+      const preset = value && typeof value === "object" ? value as Partial<AudioGroupPreset> : null;
+      const id = typeof preset?.id === "string" && preset.id.trim() ? preset.id.trim() : "";
+      const name = typeof preset?.name === "string" && preset.name.trim() ? preset.name.trim().slice(0, 80) : "";
+      if (!id || !name) return [];
+      return [{ id, name, audioAssetIds: Array.isArray(preset?.audioAssetIds) ? preset.audioAssetIds.filter((assetId): assetId is string => typeof assetId === "string" && assetId.trim().length > 0).slice(0, 120) : [], enabled: preset?.enabled !== false, createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
+    }).filter((preset, index, presets) => presets.findIndex((candidate) => candidate.id === preset.id) === index).slice(0, 100) : [],
     personalStudyPresets: Array.isArray(source.personalStudyPresets) ? source.personalStudyPresets.flatMap((value) => {
       const preset = value && typeof value === "object" ? value as Partial<PersonalStudyPreset> : null;
       const id = typeof preset?.id === "string" && preset.id.trim() ? preset.id.trim() : "";

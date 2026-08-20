@@ -207,6 +207,14 @@ describe("Experience Studio requirements", () => {
     expect(studySource).toContain("waveform");
     expect(studySource).toContain("sortOrder");
     expect(studySource).toContain("group");
+    expect(audioCenterEnhancementsSource).toContain("Xóa vĩnh viễn");
+    expect(audioCenterEnhancementsSource).toContain("window.confirm");
+    expect(audioCenterEnhancementsSource).toContain("onSeekPlayback");
+    expect(audioCenterEnhancementsSource).toContain("currentTime");
+    expect(audioCenterEnhancementsSource).toContain("audioGroupPresets");
+    expect(audioCenterEnhancementsSource).toContain("saveGroupPreset");
+    expect(audioCenterEnhancementsSource).toContain("applyGroupPreset");
+    expect(studySource).toContain("AudioGroupPreset");
   });
 
   it("does not retain purchasable cosmetic theme selectors after switching to emotion-based colors", () => {

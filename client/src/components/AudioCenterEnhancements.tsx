@@ -5,7 +5,7 @@ import { trpc } from "../lib/trpc";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 
 type AudioChannel = "environment" | "music" | "voice";
-type PlaybackStatus = Record<AudioChannel, { active: boolean; label: string }>;
+type PlaybackStatus = Record<AudioChannel, { active: boolean; label: string; url?: string; currentTime?: number; duration?: number }>;
 type Props = {
   profile: ProfileState;
   onProfile: (profile: ProfileState, message?: string) => void;
@@ -13,6 +13,7 @@ type Props = {
   playbackStatus: PlaybackStatus;
   onPlayAsset: (url: string, channel: AudioChannel, label: string, volume?: number) => void;
   onStopPlayback: (channel?: AudioChannel) => void;
+  onSeekPlayback: (seconds: number) => void;
 };
 
 type AcceptedAudioMime = "audio/webm" | "audio/ogg" | "audio/wav" | "audio/mpeg" | "audio/mp4" | "audio/x-m4a";
@@ -82,12 +83,18 @@ async function inspectAudio(file: File) {
     return { durationSeconds: durationSeconds ?? decoded.duration, waveform };
   } catch { return { durationSeconds, waveform: fallback }; }
 }
-function Waveform({ values }: { values?: number[] }) {
+function Waveform({ values, currentTime = 0, duration, onSeek, label }: { values?: number[]; currentTime?: number; duration?: number; onSeek?: (seconds: number) => void; label?: string }) {
   const bars = values?.length ? values : Array.from({ length: 48 }, (_, index) => 0.18 + ((index * 17) % 60) / 100);
-  return <div className="flex h-10 items-center gap-px rounded-lg bg-[#edf8ee] px-2" role="img" aria-label="Biểu đồ dạng sóng audio">{bars.map((value, index) => <span key={index} className="w-full rounded-full bg-[#2e7d32]" style={{ height: `${Math.round(Math.max(12, Math.min(100, value * 100)))}%`, opacity: 0.45 + value * 0.5 }} />)}</div>;
+  const progress = duration && duration > 0 ? Math.max(0, Math.min(1, currentTime / duration)) : 0;
+  function seek(event: React.MouseEvent<HTMLDivElement>) {
+    if (!onSeek || !duration || duration <= 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    onSeek(Math.max(0, Math.min(duration, ((event.clientX - rect.left) / rect.width) * duration)));
+  }
+  return <div className={`relative flex h-10 items-center gap-px overflow-hidden rounded-lg bg-[#edf8ee] px-2 ${onSeek && duration ? "cursor-pointer" : ""}`} role={onSeek && duration ? "slider" : "img"} aria-label={onSeek && duration ? `Tua ${label ?? "audio"}` : "Biểu đồ dạng sóng audio"} aria-valuemin={onSeek && duration ? 0 : undefined} aria-valuemax={onSeek && duration ? duration : undefined} aria-valuenow={onSeek && duration ? currentTime : undefined} tabIndex={onSeek && duration ? 0 : undefined} onClick={seek} onKeyDown={(event) => { if ((event.key === "ArrowRight" || event.key === "ArrowLeft") && onSeek && duration) { event.preventDefault(); onSeek(Math.max(0, Math.min(duration, currentTime + (event.key === "ArrowRight" ? 5 : -5)))); } }}><div className="pointer-events-none absolute inset-y-0 left-0 bg-[#c62828]/15 transition-[width] duration-100" style={{ width: `${progress * 100}%` }} />{bars.map((value, index) => <span key={index} className={`relative z-10 w-full rounded-full ${index / bars.length < progress ? "bg-[#c62828]" : "bg-[#2e7d32]"}`} style={{ height: `${Math.round(Math.max(12, Math.min(100, value * 100)))}%`, opacity: 0.45 + value * 0.5 }} />)}</div>;
 }
 
-export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playbackStatus, onPlayAsset, onStopPlayback }: Props) {
+export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playbackStatus, onPlayAsset, onStopPlayback, onSeekPlayback }: Props) {
   const upload = trpc.study.profile.uploadCompanionMedia.useMutation();
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [voiceSearch, setVoiceSearch] = useState("");
@@ -107,6 +114,7 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   ])).sort((a, b) => String(a).localeCompare(String(b), "vi")), [activeAssets, voiceLines]);
   const eventOptions = useMemo(() => Array.from(new Set(voiceLines.map((item) => item.state).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi")), [voiceLines]);
   const groupOptions = useMemo(() => Array.from(new Set(activeAssets.map((asset) => asset.group).filter((group): group is string => Boolean(group)))).sort((a, b) => a.localeCompare(b, "vi")), [activeAssets]);
+  const audioGroupPresets = profile.audioGroupPresets ?? [];
 
   const filteredVoices = useMemo(() => {
     const normalizedQuery = voiceSearch.trim().toLocaleLowerCase("vi-VN");
@@ -155,6 +163,37 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
     if (!trash.length) return;
     const restored = trash.map(({ deletedAt: _deletedAt, ...asset }, index) => ({ ...asset, enabled: true, sortOrder: assets.length + index, updatedAt: new Date().toISOString() }));
     onProfile({ ...profile, personalAudioAssets: [...assets, ...restored], personalAudioTrash: [] }, `Đã khôi phục ${restored.length} asset audio.`);
+  }
+
+  function permanentlyDeleteAsset(asset: PersonalAudioAsset) {
+    if (!window.confirm(`Xóa vĩnh viễn “${asset.name}”? Thao tác này không thể hoàn tác.`)) return;
+    onProfile({ ...profile, personalAudioTrash: trash.filter((candidate) => candidate.id !== asset.id) }, `Đã xóa vĩnh viễn “${asset.name}” khỏi thư viện audio.`);
+  }
+
+  function permanentlyDeleteAllAssets() {
+    if (!trash.length || !window.confirm(`Xóa vĩnh viễn ${trash.length} tệp trong thùng rác? Thao tác này không thể hoàn tác.`)) return;
+    onProfile({ ...profile, personalAudioTrash: [] }, `Đã xóa vĩnh viễn ${trash.length} tệp audio.`);
+  }
+
+  function saveGroupPreset(group: string) {
+    const ids = activeAssets.filter((asset) => asset.group === group).map((asset) => asset.id);
+    if (!ids.length) return;
+    const name = window.prompt(`Tên preset cho nhóm “${group}”`, group)?.trim();
+    if (!name) return;
+    const now = new Date().toISOString();
+    const preset = { id: createId(), name: name.slice(0, 80), audioAssetIds: ids, enabled: true, createdAt: now, updatedAt: now };
+    onProfile({ ...profile, audioGroupPresets: [...audioGroupPresets, preset] }, `Đã lưu preset nhóm “${preset.name}”.`);
+  }
+
+  function applyGroupPreset(preset: NonNullable<ProfileState["audioGroupPresets"]>[number], enabled: boolean) {
+    const ids = new Set(preset.audioAssetIds);
+    const now = new Date().toISOString();
+    onProfile({ ...profile, personalAudioAssets: assets.map((asset) => ids.has(asset.id) ? { ...asset, enabled, updatedAt: now } : asset), audioGroupPresets: audioGroupPresets.map((item) => item.id === preset.id ? { ...item, enabled, updatedAt: now } : item) }, `${enabled ? "Đã bật" : "Đã tắt"} preset “${preset.name}”.`);
+  }
+
+  function deleteGroupPreset(preset: NonNullable<ProfileState["audioGroupPresets"]>[number]) {
+    if (!window.confirm(`Xóa preset “${preset.name}”? Các tệp audio sẽ không bị xóa.`)) return;
+    onProfile({ ...profile, audioGroupPresets: audioGroupPresets.filter((item) => item.id !== preset.id) }, `Đã xóa preset “${preset.name}”.`);
   }
 
   function reorderAssets(sourceId: string, targetId: string) {
@@ -211,12 +250,13 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
     <PersistentCollapsible storageKey="audio-center-library" eyebrow="Audio Center" title="Thư viện asset đã tải lên" className="border-[#2e7d32]/20 bg-white/90">
       <p className="text-xs leading-5 text-[#35523a]">Kéo thả để đổi thứ tự phát. Mỗi asset có waveform, thời lượng, nhóm chủ đề và thao tác bật/tắt, đổi tên, nghe thử hoặc xóa mềm.</p>
       <div className="mt-3 flex flex-wrap items-center gap-2"><select value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)} className="rounded-xl border border-[#2e7d32]/20 bg-white px-3 py-2 text-xs" aria-label="Lọc nhóm audio"><option value="all">Tất cả nhóm</option>{groupOptions.map((group) => <option key={group} value={group}>{group}</option>)}</select><span className="text-[11px] font-bold text-[#5a6d5d]"><GripVertical className="mr-1 inline h-3.5 w-3.5" />Thứ tự phát được lưu tự động</span></div>
-      <div className="mt-3 grid gap-2">{activeAssets.filter((asset) => asset.category === "background" && (groupFilter === "all" || asset.group === groupFilter)).length ? activeAssets.filter((asset) => asset.category === "background" && (groupFilter === "all" || asset.group === groupFilter)).map((asset) => <div key={asset.id} draggable onDragStart={() => setDraggedAssetId(asset.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => { if (draggedAssetId) reorderAssets(draggedAssetId, asset.id); setDraggedAssetId(null); }} onDragEnd={() => setDraggedAssetId(null)} className={`rounded-xl border bg-[#f8fff8] p-3 transition ${draggedAssetId === asset.id ? "border-[#c62828] opacity-60" : "border-[#2e7d32]/15"}`}><div className="flex items-start gap-3"><button type="button" className="mt-1 cursor-grab text-[#5a6d5d]" aria-label={`Kéo ${asset.name}`}><GripVertical className="h-5 w-5" /></button><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><b className="block truncate text-xs text-[#25582c]">{asset.name}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">{asset.target === "rain" ? "Mưa rơi" : "Lật sách"} · {asset.group ?? "Chưa nhóm"} · {asset.enabled ? "Đang bật" : "Đang tắt"}</span></div><span className="shrink-0 rounded-full bg-[#fff1e9] px-2 py-1 text-[10px] font-black text-[#7f1d1d]">{formatDuration(asset.durationSeconds)}</span></div><div className="mt-2"><Waveform values={asset.waveform} /></div><div className="mt-2 flex flex-wrap gap-1"><button type="button" onClick={() => onPlayAsset(asset.url, "environment", asset.name, asset.volume)} className="inline-flex items-center gap-1 rounded-lg bg-[#2e7d32] px-2 py-1.5 text-[10px] font-black text-white" aria-label={`Nghe thử ${asset.name}`}><Play className="h-3 w-3" />Nghe thử</button><button type="button" onClick={() => patchAsset(asset.id, { enabled: !asset.enabled }, `${asset.enabled ? "Đã tắt" : "Đã bật"} “${asset.name}”.`)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]" aria-label={asset.enabled ? `Tắt ${asset.name}` : `Bật ${asset.name}`}><Volume2 className="h-3 w-3" />{asset.enabled ? "Tắt" : "Bật"}</button><button type="button" onClick={() => assignGroup(asset)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]"><Layers3 className="h-3 w-3" />Nhóm</button><button type="button" onClick={() => renameAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#c62828]">Đổi tên</button><button type="button" onClick={() => softDeleteAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white p-1.5 text-[#c62828]" aria-label={`Xóa mềm ${asset.name}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div></div></div>) : <div className="rounded-xl border border-dashed border-[#2e7d32]/20 p-4 text-center text-xs text-[#5a6d5d]">Chưa có asset môi trường nào phù hợp.</div>}</div>
+      <div className="mt-3 rounded-xl border border-[#c62828]/15 bg-[#fff8f5] p-3"><div className="flex flex-wrap items-center justify-between gap-2"><div><b className="text-xs text-[#7f1d1d]">Preset nhóm âm thanh</b><p className="mt-1 text-[11px] text-[#5a6d5d]">Lưu các tệp cùng chủ đề để bật hoặc tắt cả nhóm trong một lần nhấn.</p></div>{groupOptions.length ? <div className="flex flex-wrap gap-1">{groupOptions.map((group) => <button key={group} type="button" onClick={() => saveGroupPreset(group)} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#c62828]">Lưu “{group}”</button>)}</div> : null}</div>{audioGroupPresets.length ? <div className="mt-2 grid gap-2 sm:grid-cols-2">{audioGroupPresets.map((preset) => <div key={preset.id} className="flex items-center justify-between gap-2 rounded-lg border border-[#2e7d32]/15 bg-white p-2"><div className="min-w-0"><b className="block truncate text-[11px] text-[#25582c]">{preset.name}</b><span className="text-[10px] text-[#5a6d5d]">{preset.audioAssetIds.length} tệp · {preset.enabled ? "đang bật" : "đang tắt"}</span></div><div className="flex shrink-0 gap-1"><button type="button" onClick={() => applyGroupPreset(preset, !preset.enabled)} className="rounded-md bg-[#2e7d32] px-2 py-1 text-[10px] font-black text-white">{preset.enabled ? "Tắt nhóm" : "Bật nhóm"}</button><button type="button" onClick={() => deleteGroupPreset(preset)} className="rounded-md border border-[#c62828]/20 px-2 py-1 text-[10px] font-black text-[#c62828]">Xóa</button></div></div>)}</div> : <p className="mt-2 text-[10px] text-[#5a6d5d]">Chưa có preset nhóm. Hãy gán nhóm cho asset rồi lưu preset.</p>}</div>
+      <div className="mt-3 grid gap-2">{activeAssets.filter((asset) => asset.category === "background" && (groupFilter === "all" || asset.group === groupFilter)).length ? activeAssets.filter((asset) => asset.category === "background" && (groupFilter === "all" || asset.group === groupFilter)).map((asset) => <div key={asset.id} draggable onDragStart={() => setDraggedAssetId(asset.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => { if (draggedAssetId) reorderAssets(draggedAssetId, asset.id); setDraggedAssetId(null); }} onDragEnd={() => setDraggedAssetId(null)} className={`rounded-xl border bg-[#f8fff8] p-3 transition ${draggedAssetId === asset.id ? "border-[#c62828] opacity-60" : "border-[#2e7d32]/15"}`}><div className="flex items-start gap-3"><button type="button" className="mt-1 cursor-grab text-[#5a6d5d]" aria-label={`Kéo ${asset.name}`}><GripVertical className="h-5 w-5" /></button><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><b className="block truncate text-xs text-[#25582c]">{asset.name}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">{asset.target === "rain" ? "Mưa rơi" : "Lật sách"} · {asset.group ?? "Chưa nhóm"} · {asset.enabled ? "Đang bật" : "Đang tắt"}</span></div><span className="shrink-0 rounded-full bg-[#fff1e9] px-2 py-1 text-[10px] font-black text-[#7f1d1d]">{formatDuration(asset.durationSeconds)}</span></div><div className="mt-2"><Waveform values={asset.waveform} currentTime={playbackStatus.environment.url === asset.url ? playbackStatus.environment.currentTime : 0} duration={playbackStatus.environment.url === asset.url ? playbackStatus.environment.duration ?? asset.durationSeconds : asset.durationSeconds} onSeek={playbackStatus.environment.url === asset.url ? onSeekPlayback : undefined} label={asset.name} /></div><div className="mt-2 flex flex-wrap gap-1"><button type="button" onClick={() => onPlayAsset(asset.url, "environment", asset.name, asset.volume)} className="inline-flex items-center gap-1 rounded-lg bg-[#2e7d32] px-2 py-1.5 text-[10px] font-black text-white" aria-label={`Nghe thử ${asset.name}`}><Play className="h-3 w-3" />Nghe thử</button><button type="button" onClick={() => patchAsset(asset.id, { enabled: !asset.enabled }, `${asset.enabled ? "Đã tắt" : "Đã bật"} “${asset.name}”.`)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]" aria-label={asset.enabled ? `Tắt ${asset.name}` : `Bật ${asset.name}`}><Volume2 className="h-3 w-3" />{asset.enabled ? "Tắt" : "Bật"}</button><button type="button" onClick={() => assignGroup(asset)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#2e7d32]"><Layers3 className="h-3 w-3" />Nhóm</button><button type="button" onClick={() => renameAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-1.5 text-[10px] font-black text-[#c62828]">Đổi tên</button><button type="button" onClick={() => softDeleteAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white p-1.5 text-[#c62828]" aria-label={`Xóa mềm ${asset.name}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div></div></div>) : <div className="rounded-xl border border-dashed border-[#2e7d32]/20 p-4 text-center text-xs text-[#5a6d5d]">Chưa có asset môi trường nào phù hợp.</div>}</div>
     </PersistentCollapsible>
 
     <PersistentCollapsible storageKey="audio-center-trash" eyebrow="Audio Center" title={`Thùng rác audio (${trash.length})`} className="border-[#c62828]/20 bg-white/90">
-      <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs leading-5 text-[#35523a]">Asset trong thùng rác được giữ tối đa 30 ngày theo chính sách hồ sơ. Bạn có thể khôi phục từng tệp hoặc toàn bộ.</p>{trash.length ? <button type="button" onClick={restoreAllAssets} className="inline-flex items-center gap-1 rounded-lg bg-[#2e7d32] px-2.5 py-2 text-xs font-black text-white"><RotateCcw className="h-3.5 w-3.5" />Khôi phục tất cả</button> : null}</div>
-      <div className="mt-3 grid gap-2">{trash.length ? trash.map((asset) => <div key={asset.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#c62828]/15 bg-[#fff8f5] p-3"><div className="min-w-0"><b className="block truncate text-xs text-[#7f1d1d]">{asset.name}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">Đã xóa {asset.deletedAt ? new Date(asset.deletedAt).toLocaleDateString("vi-VN") : ""} · {formatDuration(asset.durationSeconds)}</span></div><button type="button" onClick={() => restoreAsset(asset)} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2.5 py-2 text-xs font-black text-[#2e7d32]"><RotateCcw className="h-3.5 w-3.5" />Khôi phục</button></div>) : <div className="rounded-xl border border-dashed border-[#c62828]/20 p-4 text-center text-xs text-[#5a6d5d]">Thùng rác đang trống.</div>}</div>
+      <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs leading-5 text-[#35523a]">Asset trong thùng rác được giữ tối đa 30 ngày theo chính sách hồ sơ. Bạn có thể khôi phục hoặc xóa vĩnh viễn sau khi xác nhận.</p>{trash.length ? <div className="flex flex-wrap gap-2"><button type="button" onClick={restoreAllAssets} className="inline-flex items-center gap-1 rounded-lg bg-[#2e7d32] px-2.5 py-2 text-xs font-black text-white"><RotateCcw className="h-3.5 w-3.5" />Khôi phục tất cả</button><button type="button" onClick={permanentlyDeleteAllAssets} className="inline-flex items-center gap-1 rounded-lg border border-[#c62828]/25 bg-white px-2.5 py-2 text-xs font-black text-[#c62828]">Xóa vĩnh viễn tất cả</button></div> : null}</div>
+      <div className="mt-3 grid gap-2">{trash.length ? trash.map((asset) => <div key={asset.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#c62828]/15 bg-[#fff8f5] p-3"><div className="min-w-0"><b className="block truncate text-xs text-[#7f1d1d]">{asset.name}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">Đã xóa {asset.deletedAt ? new Date(asset.deletedAt).toLocaleDateString("vi-VN") : ""} · {formatDuration(asset.durationSeconds)}</span></div><div className="flex shrink-0 flex-wrap justify-end gap-1"><button type="button" onClick={() => restoreAsset(asset)} className="inline-flex items-center gap-1 rounded-lg border border-[#2e7d32]/20 bg-white px-2.5 py-2 text-xs font-black text-[#2e7d32]"><RotateCcw className="h-3.5 w-3.5" />Khôi phục</button><button type="button" onClick={() => permanentlyDeleteAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-2 text-[11px] font-black text-[#c62828]">Xóa vĩnh viễn</button></div></div>) : <div className="rounded-xl border border-dashed border-[#c62828]/20 p-4 text-center text-xs text-[#5a6d5d]">Thùng rác đang trống.</div>}</div>
     </PersistentCollapsible>
 
     <PersistentCollapsible storageKey="audio-center-status" eyebrow="Audio Center" title="Trạng thái đang phát" className="border-[#2e7d32]/20 bg-white/90">
