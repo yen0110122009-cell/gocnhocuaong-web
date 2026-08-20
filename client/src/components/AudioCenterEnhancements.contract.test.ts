@@ -38,6 +38,22 @@ describe("Audio Center UX contracts", () => {
     expect(componentSource).toContain("suggestedTags");
   });
 
+  it("exposes four built-in environment choices and labels them clearly", () => {
+    expect(componentSource).toContain('{ id: "morning", label: "Buổi sáng" }');
+    expect(componentSource).toContain('{ id: "storm", label: "Bão nhẹ" }');
+    expect(componentSource).toContain("DEFAULT_AMBIENT_MORNING_ASSET");
+    expect(componentSource).toContain("DEFAULT_AMBIENT_STORM_ASSET");
+    expect(componentSource).toContain("environmentTargetLabel");
+  });
+
+  it("retries rate-limited health checks with bounded backoff and explains 429", () => {
+    expect(componentSource).toContain("maxAttempts = 3");
+    expect(componentSource).toContain("backoffMs = [500, 1200, 2500]");
+    expect(componentSource).toContain('response.status === 429');
+    expect(componentSource).toContain("Storage đang bận");
+    expect(componentSource).toContain("Hãy chờ một chút rồi thử lại");
+  });
+
   it("attempts continuous ambient autoplay with a gesture fallback", () => {
     expect(experienceStudioSource).toContain("ambientTrackRef");
     expect(experienceStudioSource).toContain("pointerdown");

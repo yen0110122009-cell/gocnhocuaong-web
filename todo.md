@@ -929,3 +929,12 @@
 - [x] Tích hợp asset lật sách mặc định vào Audio Center và fallback playback.
 - [x] Hiển thị thời gian health-check URL gần nhất cho từng asset ambient; timeout 7 giây luôn kết thúc bằng trạng thái và timestamp.
 - [x] Bổ sung regression tests, chạy Vitest, TypeScript, production build và QA live; 62 file/251 test đạt, build đạt, Pages workflow thành công.
+
+## Cải thiện retry health-check và ambient mặc định
+- [x] Thêm retry tự động với exponential backoff có giới hạn cho health-check URL ambient, nhận diện riêng lỗi 429.
+- [x] Hiển thị toast thân thiện khi health-check gặp 429, nêu thời gian chờ và hướng dẫn thử lại.
+- [x] Tạo và upload asset âm thanh môi trường mặc định “Buổi sáng”.
+- [x] Tạo và upload asset âm thanh môi trường mặc định “Bão nhẹ”.
+- [x] Tích hợp “Buổi sáng” và “Bão nhẹ” vào Audio Center, fallback và thư viện hiển thị.
+- [x] Bổ sung regression tests cho retry/backoff, lỗi 429, toast và hai asset mới.
+- [x] Chạy Vitest, TypeScript, production build và QA responsive/live trước checkpoint; 62 file/254 test đạt, build đạt, screenshot mobile bị công cụ capture từ chối nhưng dev server/typecheck sạch.
