@@ -10,6 +10,7 @@ import { PersonalStudySpaceControls } from "./PersonalStudySpaceControls";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { trpc } from "@/lib/trpc";
 import { resolveMediaUrl } from "../lib/runtime";
+import { DEFAULT_AMBIENT_ASSET } from "../lib/defaultAmbient";
 import { AudioCenterEnhancements, type AudioChannel as PlaybackChannel, type PlaybackStatus as AudioPlaybackStatus } from "./AudioCenterEnhancements";
 
 type AttentionPreferences = { animationsEnabled: boolean; popupsEnabled: boolean; soundEnabled: boolean };
@@ -222,11 +223,12 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const sceneAmbientAssets = permittedAmbientAssets.filter((asset) => [scene, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")));
     const personalAmbientAudio = [...sceneAmbientAssets, ...permittedAmbientAssets.filter((asset) => !sceneAmbientAssets.includes(asset))]
       .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
-    if (personalAmbientAudio) {
+    const selectedAmbientAudio = personalAmbientAudio ?? (scene === "rain" ? DEFAULT_AMBIENT_ASSET : undefined);
+    if (selectedAmbientAudio) {
       setAmbientError(null);
       const audio = new Audio();
       audio.preload = "auto";
-      audio.src = personalAmbientAudio.url;
+      audio.src = resolveMediaUrl(selectedAmbientAudio.url);
       audio.loop = true;
       const targetVolume = ambientMuted ? 0 : Math.max(0, Math.min(1, ambientVolumes[scene] / 100 * audioChannelVolumes.environment / 100));
       audio.volume = 0;
@@ -236,7 +238,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
           ambientTrackRef.current = null;
           setAmbientPlaying(false);
           setChannelPlaying("environment", false);
-          setAmbientError(`Không tải được “${personalAmbientAudio.name}”. Hãy kiểm tra URL HTTPS hoặc thử lại.`);
+          setAmbientError(`Không tải được “${selectedAmbientAudio.name}”. Hãy kiểm tra URL HTTPS hoặc thử lại.`);
           setMessage("Âm nền chưa tải được. Bạn có thể nhấn Thử lại sau khi kiểm tra tệp.");
         }
       };
@@ -250,8 +252,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
         };
         window.requestAnimationFrame(fadeIn);
         setAmbientPlaying(true);
-        setChannelPlaying("environment", true, personalAmbientAudio.name, personalAmbientAudio.url, ambientMuted ? 0 : ambientVolumes[scene] / 100 * audioChannelVolumes.environment, ambientMuted);
-        setMessage(`Đang phát âm nền cá nhân “${personalAmbientAudio.name}”.`);
+        setChannelPlaying("environment", true, selectedAmbientAudio.name, resolveMediaUrl(selectedAmbientAudio.url), ambientMuted ? 0 : ambientVolumes[scene] / 100 * audioChannelVolumes.environment, ambientMuted);
+        setMessage(selectedAmbientAudio.source === "built_in" ? `Đang phát âm nền mặc định “${selectedAmbientAudio.name}”.` : `Đang phát âm nền cá nhân “${selectedAmbientAudio.name}”.`);
       }).catch(() => {
         if (ambientTrackRef.current === audio) {
           ambientTrackRef.current = null;
@@ -266,7 +268,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     setAmbientPlaying(false);
     setChannelPlaying("environment", false);
     setAmbientError(`Chưa có tệp âm nền hợp lệ cho cảnh ${sceneOptions.find((item) => item.id === scene)?.label.toLowerCase()}.`);
-    setMessage("Chưa có bản thu âm nền hợp lệ. Hãy thêm tệp thật vào Audio Center rồi thử lại.");
+    setMessage("Chưa có bản thu âm nền hợp lệ cho cảnh này. Bạn có thể chọn Mưa để nghe bản mặc định hoặc tải tệp riêng trong Audio Center.");
   }
 
   useEffect(() => {

@@ -146,7 +146,8 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain("audio.play()");
     expect(studio()).toContain("fadeIn");
     expect(studio()).toContain("track.pause(); track.removeAttribute(\"src\"); track.load()");
-    expect(studio()).toContain("Hãy thêm tệp thật vào Audio Center");
+    expect(studio()).toContain('import { DEFAULT_AMBIENT_ASSET } from "../lib/defaultAmbient"');
+    expect(studio()).toContain('scene === "rain" ? DEFAULT_AMBIENT_ASSET : undefined');
     expect(studio()).toContain('audio.preload = "auto"');
     expect(studio()).toContain("Phát thử âm nền");
     expect(studio()).toContain("Thử lại âm nền");

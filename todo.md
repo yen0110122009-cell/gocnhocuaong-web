@@ -915,3 +915,10 @@
 - [x] Kiểm tra autoplay, nút Phát thử, mute, volume, fade in/out và cleanup khi rời trang ở mức logic/UI; nhánh thiếu asset và autoplay rejection có thông báo rõ.
 - [x] Không phát hiện lỗi source mới trong audit; không cần sửa regression contract ở đợt này.
 - [x] Đối chiếu regression, TypeScript, production build và QA responsive từ checkpoint 964940fd; audit này chỉ bổ sung bằng chứng, không đổi source runtime.
+
+## Ambient mặc định, upload và health-check URL
+- [x] Chuẩn bị một asset âm thanh nền mặc định hợp lệ, có thể phát thử ngay trên GitHub Pages; URL backend trả `audio/wav` và HTTP 200 sau redirect.
+- [x] Thêm lựa chọn phát thử ambient mặc định khi người dùng chưa có tệp cá nhân.
+- [x] Bổ sung upload tệp ambient riêng từ giao diện Audio Center/Cài đặt, có validation và đồng bộ metadata.
+- [x] Thêm health-check URL cho asset ambient và cảnh báo trực quan khi URL lỗi hoặc không phát được.
+- [x] Bổ sung regression tests, chạy Vitest, TypeScript, production build và QA desktop/mobile; QA live phát asset mới chờ sau deploy checkpoint.
