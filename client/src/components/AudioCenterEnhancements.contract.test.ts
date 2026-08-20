@@ -54,6 +54,20 @@ describe("Audio Center UX contracts", () => {
     expect(componentSource).toContain("Hãy chờ một chút rồi thử lại");
   });
 
+  it("persists the last rate-limit retry and skips immediate duplicate checks", () => {
+    expect(componentSource).toContain('study-empire:ambient-health-last-retry-v1');
+    expect(componentSource).toContain("healthRetryCooldownMs = 60_000");
+    expect(componentSource).toContain("localStorage.setItem(healthRetryStorageKey");
+    expect(componentSource).toContain("Hệ thống sẽ kiểm tra lại sau một chút");
+  });
+
+  it("offers the combined Pomodoro ambient preset", () => {
+    expect(componentSource).toContain("DEFAULT_POMODORO_AMBIENT_PRESET");
+    expect(componentSource).toContain("Áp dụng preset");
+    expect(experienceStudioSource).toContain("ambientAdditionalTracksRef");
+    expect(experienceStudioSource).toContain("secondaryTracks");
+  });
+
   it("attempts continuous ambient autoplay with a gesture fallback", () => {
     expect(experienceStudioSource).toContain("ambientTrackRef");
     expect(experienceStudioSource).toContain("pointerdown");

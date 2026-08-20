@@ -1,4 +1,4 @@
-import type { PersonalAudioAsset } from "../../../shared/study";
+import type { PersonalAudioAsset, PersonalStudyPreset } from "../../../shared/study";
 
 export const DEFAULT_AMBIENT_RAIN_URL = "https://3000-ilh4bqp66udbw8fyp31nf-3b48ee0a.us3.manus.computer/manus-storage/ambient-rain-default_b45cf4f8.wav";
 export const DEFAULT_AMBIENT_BOOK_PAGES_URL = "https://3000-ilh4bqp66udbw8fyp31nf-3b48ee0a.us3.manus.computer/manus-storage/ambient-book-pages-default_790e9c11.wav";
@@ -78,3 +78,15 @@ export const DEFAULT_AMBIENT_ASSETS = [
   DEFAULT_AMBIENT_MORNING_ASSET,
   DEFAULT_AMBIENT_STORM_ASSET,
 ] as const;
+
+export const DEFAULT_POMODORO_AMBIENT_PRESET: PersonalStudyPreset = {
+  id: "built-in-pomodoro-morning-storm",
+  name: "Pomodoro · Bình minh & Bão nhẹ",
+  emotion: "focused",
+  ambientScene: "morning",
+  audioAssetIds: [DEFAULT_AMBIENT_MORNING_ASSET.id, DEFAULT_AMBIENT_STORM_ASSET.id],
+  companionMode: "both",
+  focusMode: true,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+};

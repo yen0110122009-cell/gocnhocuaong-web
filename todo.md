@@ -938,3 +938,9 @@
 - [x] Tích hợp “Buổi sáng” và “Bão nhẹ” vào Audio Center, fallback và thư viện hiển thị.
 - [x] Bổ sung regression tests cho retry/backoff, lỗi 429, toast và hai asset mới.
 - [x] Chạy Vitest, TypeScript, production build và QA responsive/live trước checkpoint; 62 file/254 test đạt, build đạt, screenshot mobile bị công cụ capture từ chối nhưng dev server/typecheck sạch.
+
+## Lưu retry health-check và preset Pomodoro ambient
+- [x] Lưu thời điểm retry health-check ambient cuối cùng vào localStorage và bỏ qua kiểm tra lặp trong thời gian cooldown.
+- [x] Tạo preset Pomodoro kết hợp ambient “Buổi sáng” và “Bão nhẹ”.
+- [x] Bổ sung regression tests cho localStorage cooldown và preset ambient mới.
+- [x] Chạy TypeScript, Vitest, production build và QA responsive trước checkpoint; 62 file/258 test đạt, build đạt.

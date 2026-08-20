@@ -10,7 +10,7 @@ import { PersonalStudySpaceControls } from "./PersonalStudySpaceControls";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { trpc } from "@/lib/trpc";
 import { resolveMediaUrl } from "../lib/runtime";
-import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_BOOK_PAGES_ASSET } from "../lib/defaultAmbient";
+import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_BOOK_PAGES_ASSET, DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET, DEFAULT_POMODORO_AMBIENT_PRESET } from "../lib/defaultAmbient";
 import { AudioCenterEnhancements, type AudioChannel as PlaybackChannel, type PlaybackStatus as AudioPlaybackStatus } from "./AudioCenterEnhancements";
 
 type AttentionPreferences = { animationsEnabled: boolean; popupsEnabled: boolean; soundEnabled: boolean };
@@ -64,6 +64,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const ambientMasterRef = useRef<GainNode | null>(null);
   const ambientGenerationRef = useRef(0);
   const ambientTrackRef = useRef<HTMLAudioElement | null>(null);
+  const ambientAdditionalTracksRef = useRef<HTMLAudioElement[]>([]);
   const lumiAudioRef = useRef<HTMLAudioElement | null>(null);
   const emotionTransitionTimerRef = useRef<number | null>(null);
   const playbackTickerRef = useRef<number | null>(null);
@@ -193,6 +194,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     ambientStopRef.current?.();
     ambientStopRef.current = null;
     ambientMasterRef.current = null;
+    const additionalTracks = ambientAdditionalTracksRef.current;
+    ambientAdditionalTracksRef.current = [];
+    additionalTracks.forEach((track) => { track.pause(); track.removeAttribute("src"); track.load(); });
     const track = ambientTrackRef.current;
     ambientTrackRef.current = null;
     if (track) {
@@ -223,7 +227,11 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const sceneAmbientAssets = permittedAmbientAssets.filter((asset) => [scene, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")));
     const personalAmbientAudio = [...sceneAmbientAssets, ...permittedAmbientAssets.filter((asset) => !sceneAmbientAssets.includes(asset))]
       .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
-    const selectedAmbientAudio = personalAmbientAudio ?? (scene === "rain" ? DEFAULT_AMBIENT_ASSET : scene === "leaves" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET : undefined);
+    const isPomodoroAmbientPreset = selectedPreset?.id === DEFAULT_POMODORO_AMBIENT_PRESET.id && permittedAssetIds.includes(DEFAULT_AMBIENT_MORNING_ASSET.id) && permittedAssetIds.includes(DEFAULT_AMBIENT_STORM_ASSET.id);
+    const selectedAmbientAudios = isPomodoroAmbientPreset
+      ? [DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET]
+      : [personalAmbientAudio ?? (scene === "rain" ? DEFAULT_AMBIENT_ASSET : scene === "leaves" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET : undefined)].filter((asset): asset is NonNullable<typeof asset> => Boolean(asset));
+    const selectedAmbientAudio = selectedAmbientAudios[0];
     if (selectedAmbientAudio) {
       setAmbientError(null);
       const audio = new Audio();
@@ -251,6 +259,27 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
           if (progress < 1 && ambientTrackRef.current === audio) window.requestAnimationFrame(fadeIn);
         };
         window.requestAnimationFrame(fadeIn);
+        if (selectedAmbientAudios.length > 1) {
+          const secondaryTracks = selectedAmbientAudios.slice(1).map((asset) => {
+            const secondary = new Audio(resolveMediaUrl(asset.url));
+            secondary.preload = "auto";
+            secondary.loop = true;
+            secondary.volume = 0;
+            return secondary;
+          });
+          ambientAdditionalTracksRef.current = secondaryTracks;
+          secondaryTracks.forEach((secondary) => {
+            void secondary.play().then(() => {
+              const secondaryStartedAt = performance.now();
+              const secondaryFadeIn = () => {
+                const progress = Math.min(1, (performance.now() - secondaryStartedAt) / 420);
+                secondary.volume = targetVolume * 0.72 * progress;
+                if (progress < 1 && ambientAdditionalTracksRef.current.includes(secondary)) window.requestAnimationFrame(secondaryFadeIn);
+              };
+              window.requestAnimationFrame(secondaryFadeIn);
+            }).catch(() => { secondary.pause(); });
+          });
+        }
         setAmbientPlaying(true);
         setChannelPlaying("environment", true, selectedAmbientAudio.name, resolveMediaUrl(selectedAmbientAudio.url), ambientMuted ? 0 : ambientVolumes[scene] / 100 * audioChannelVolumes.environment, ambientMuted);
         setMessage(selectedAmbientAudio.source === "built_in" ? `Đang phát âm nền mặc định “${selectedAmbientAudio.name}”.` : `Đang phát âm nền cá nhân “${selectedAmbientAudio.name}”.`);

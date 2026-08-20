@@ -5,7 +5,7 @@ import { purgeAudioAssetsFromTrash } from "../../../shared/audioPurge";
 import { trpc } from "../lib/trpc";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { toast } from "sonner";
-import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_ASSETS, DEFAULT_AMBIENT_BOOK_PAGES_ASSET, DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET } from "../lib/defaultAmbient";
+import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_ASSETS, DEFAULT_AMBIENT_BOOK_PAGES_ASSET, DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET, DEFAULT_POMODORO_AMBIENT_PRESET } from "../lib/defaultAmbient";
 import { resolveMediaUrl } from "../lib/runtime";
 
 type AudioChannel = "environment" | "music" | "voice";
@@ -171,19 +171,33 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   const audioGroupPresets = profile.audioGroupPresets ?? [];
   const visibleLibraryAssets = libraryAssets.filter((asset) => asset.category === "background");
   const ambientHealthAssets = useMemo(() => [...activeAssets.filter((asset) => asset.category === "background"), ...DEFAULT_AMBIENT_ASSETS].filter((asset, index, list) => list.findIndex((candidate) => candidate.id === asset.id) === index), [activeAssets]);
+  const healthRetryCooldownMs = 60_000;
+  const healthRetryStorageKey = "study-empire:ambient-health-last-retry-v1";
   useEffect(() => {
     let cancelled = false;
     const timers = new Set<number>();
     const maxAttempts = 3;
     const backoffMs = [500, 1200, 2500];
+    let lastRetryByAsset: Record<string, number> = {};
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(healthRetryStorageKey) || "{}");
+      if (stored && typeof stored === "object") {
+        lastRetryByAsset = Object.fromEntries(Object.entries(stored).flatMap(([key, value]) => typeof value === "number" && Number.isFinite(value) ? [[key, value]] : []));
+      }
+    } catch { /* localStorage có thể bị chặn hoặc chứa dữ liệu cũ không hợp lệ. */ }
     ambientHealthAssets.forEach((asset) => {
       let attempt = 0;
       let finished = false;
-      const finish = (status: "ok" | "error", message?: string) => {
+      const finish = (status: "ok" | "error", message?: string, checkedAt = new Date().toISOString()) => {
         if (finished || cancelled) return;
         finished = true;
-        setHealthByAssetId((current) => ({ ...current, [asset.id]: { status, message, checkedAt: new Date().toISOString() } }));
+        setHealthByAssetId((current) => ({ ...current, [asset.id]: { status, message, checkedAt } }));
       };
+      const lastRetryAt = lastRetryByAsset[asset.id];
+      if (lastRetryAt && Date.now() - lastRetryAt < healthRetryCooldownMs) {
+        finish("error", "Storage vừa bị giới hạn tạm thời (429). Hệ thống sẽ kiểm tra lại sau một chút.", new Date(lastRetryAt).toISOString());
+        return;
+      }
       const inspectWithAudio = () => {
         if (cancelled || finished) return;
         const audio = new Audio();
@@ -213,11 +227,17 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
           const response = await fetch(resolveMediaUrl(asset.url), { method: "HEAD", cache: "no-store" });
           if (response.status === 429) {
             if (attempt < maxAttempts) {
+              const retryAt = Date.now();
+              lastRetryByAsset[asset.id] = retryAt;
+              try { window.localStorage.setItem(healthRetryStorageKey, JSON.stringify(lastRetryByAsset)); } catch { /* không làm gián đoạn health-check nếu storage bị chặn. */ }
               if (attempt === 1) toast.info("Storage đang bận", { description: `Audio Center sẽ tự thử lại “${asset.name}” sau ít giây.` });
               const timer = window.setTimeout(() => { timers.delete(timer); void check(); }, backoffMs[attempt - 1] ?? 2500);
               timers.add(timer);
               return;
             }
+            const retryAt = Date.now();
+            lastRetryByAsset[asset.id] = retryAt;
+            try { window.localStorage.setItem(healthRetryStorageKey, JSON.stringify(lastRetryByAsset)); } catch { /* không làm gián đoạn health-check nếu storage bị chặn. */ }
             toast.warning("Tạm thời bị giới hạn truy cập", { description: `Hãy chờ một chút rồi thử lại “${asset.name}”.` });
             finish("error", "Storage đang giới hạn tạm thời (429). Hãy chờ một chút rồi thử lại.");
             return;
@@ -433,7 +453,15 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
     finally { setBusyTarget(null); }
   }
 
+  function applyPomodoroAmbientPreset() {
+    const presets = profile.personalStudyPresets ?? [];
+    const hasPreset = presets.some((preset) => preset.id === DEFAULT_POMODORO_AMBIENT_PRESET.id);
+    onProfile({ ...profile, personalStudyPresets: hasPreset ? presets : [...presets, DEFAULT_POMODORO_AMBIENT_PRESET], activePersonalStudyPresetId: DEFAULT_POMODORO_AMBIENT_PRESET.id }, `Đã áp dụng preset “${DEFAULT_POMODORO_AMBIENT_PRESET.name}”.`);
+  }
   return <div className="relative z-10 mt-4 grid gap-3">
+    <div className="rounded-2xl border border-[#2e7d32]/20 bg-gradient-to-r from-[#f6fff2] to-[#fff8ed] p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c62828]">Preset Pomodoro mới</p><h3 className="mt-1 text-sm font-black text-[#25582c]">{DEFAULT_POMODORO_AMBIENT_PRESET.name}</h3><p className="mt-1 max-w-2xl text-xs leading-5 text-[#5a6d5d]">Phối hai lớp âm thanh Buổi sáng và Bão nhẹ ở mức dịu, phù hợp khi muốn đổi không gian tập trung.</p></div><button type="button" onClick={applyPomodoroAmbientPreset} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#2e7d32] px-3 py-2 text-xs font-black text-white shadow-sm transition-transform active:scale-[.98]" aria-label="Áp dụng preset Pomodoro Bình minh và Bão nhẹ"><Play className="h-3.5 w-3.5" />Áp dụng preset</button></div>
+    </div>
     <PersistentCollapsible storageKey="audio-center-upload" eyebrow="Audio Center" title="Tải âm thanh môi trường thật" className="border-[#c62828]/20 bg-white/90">
       <p className="text-xs leading-5 text-[#35523a]">Thêm bản thu sạch cho mưa rơi hoặc lật sách. Hệ thống chỉ lưu MP3/WAV/OGG/WEBM/M4A vào storage, không tạo âm tổng hợp.</p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">

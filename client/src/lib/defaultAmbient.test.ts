@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_ASSETS, DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_RAIN_URL, DEFAULT_AMBIENT_STORM_ASSET } from "./defaultAmbient";
+import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_ASSETS, DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_RAIN_URL, DEFAULT_AMBIENT_STORM_ASSET, DEFAULT_POMODORO_AMBIENT_PRESET } from "./defaultAmbient";
 
 describe("default ambient asset", () => {
   it("provides a stable built-in rain URL for immediate preview", () => {
@@ -18,6 +18,12 @@ describe("default ambient asset", () => {
     expect(DEFAULT_AMBIENT_STORM_ASSET.target).toBe("storm");
     expect(DEFAULT_AMBIENT_STORM_ASSET.name).toBe("Bão nhẹ");
     expect(DEFAULT_AMBIENT_STORM_ASSET.url).toMatch(/^https:\/\/[^/]+\/manus-storage\/ambient-storm-default_[a-z0-9]+\.mp3$/);
+  });
+
+  it("defines a Pomodoro preset combining morning and light storm", () => {
+    expect(DEFAULT_POMODORO_AMBIENT_PRESET.id).toBe("built-in-pomodoro-morning-storm");
+    expect(DEFAULT_POMODORO_AMBIENT_PRESET.audioAssetIds).toEqual([DEFAULT_AMBIENT_MORNING_ASSET.id, DEFAULT_AMBIENT_STORM_ASSET.id]);
+    expect(DEFAULT_POMODORO_AMBIENT_PRESET.focusMode).toBe(true);
   });
 
   it("starts health checking without marking a valid asset as broken", () => {
