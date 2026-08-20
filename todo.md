@@ -756,4 +756,4 @@
 - [x] Tự động nhận diện và gợi ý nhãn cho tệp âm thanh mới tải lên, cho phép người dùng xem/chỉnh sửa trước khi lưu.
 - [x] Cải thiện tự phát âm nền liên tục từ khi mở trang đến khi đóng web; xử lý autoplay policy, mute preference, cleanup và không phát chồng.
 - [x] Viết regression tests cho waveform preview, bulk actions, tag suggestions và autoplay-safe audio lifecycle.
-- [ ] Chạy typecheck, Vitest, production build và QA desktop/mobile; đang chờ checkpoint đồng bộ GitHub/Pages.
+- [x] Chạy typecheck, Vitest, production build và QA desktop/mobile; checkpoint đang được đồng bộ GitHub/Pages.
