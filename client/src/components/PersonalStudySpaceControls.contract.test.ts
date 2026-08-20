@@ -45,13 +45,15 @@ describe("StudyCorner contracts", () => {
   it("provides real-audio-only behavior and explicit fallback messaging", () => {
     expect(corner).toContain("category === \"background\"");
     expect(corner).toContain("Chưa có asset thật; không phát âm thanh giả.");
-    expect(corner).toContain("chỉ bắt đầu sau thao tác chủ động");
+    expect(corner).toContain("Audio chỉ bắt đầu sau user gesture");
     expect(corner).toContain("onError");
   });
 
-  it("routes the single StudyCorner screen without embedding legacy management cards", () => {
-    expect(home).toContain('"study-corner"');
-    expect(home).toContain("<StudyCorner profile={profile} onProfile={onProfile} />");
+  it("keeps StudyCorner out of Home and exposes one Audio Center on the dashboard", () => {
+    expect(home).not.toContain('"study-corner"');
+    expect(home).not.toContain("<StudyCorner");
+    expect(home).toContain('id="home-audio-center"');
+    expect(home).toContain("<ExperienceStudio");
     expect(home).not.toContain('<section id="personal-learning-corner"');
     expect(home).not.toContain("<PersonalStudySpaceControls");
   });

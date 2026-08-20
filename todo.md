@@ -658,3 +658,10 @@
 - [x] Điều tra lỗi 404 tại GitHub Pages: kiểm tra branch, workflow, thư mục artifact và entry point index.html.
 - [x] Sửa cấu hình GitHub Pages hoặc hướng dẫn dùng đúng domain Manus nếu repository không được cấu hình để host trực tiếp.
 - [ ] Xác nhận URL root và deep-link sau khi sửa; không làm ảnh hưởng deployment Manus hiện tại.
+
+## Điều chỉnh phạm vi — gỡ Góc học tập, hợp nhất âm thanh
+- [x] Gỡ mục StudyCorner khỏi menu/route/luồng hiển thị theo yêu cầu mới, không xóa dữ liệu profile đã có.
+- [x] Xác định và hợp nhất các bộ phát âm thanh nền đang nằm ở Home, Experience Studio và StudyCorner thành một controller dùng chung.
+- [x] Chặn phát chồng, dừng âm thanh cũ trước khi đổi cảnh, không tự phát khi chưa có user gesture và đồng bộ mute/volume.
+- [x] Hiển thị điều khiển âm thanh nền tập trung trên trang chủ, gồm trạng thái, mute, âm lượng và lỗi asset rõ ràng.
+- [x] Cập nhật regression, TypeScript, Vitest, build và QA responsive cho luồng âm thanh mới.

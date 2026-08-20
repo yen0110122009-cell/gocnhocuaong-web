@@ -558,13 +558,23 @@ export type StudyCornerSeason = "spring" | "summer" | "autumn" | "winter";
 export type StudyCornerWeather = "sunny" | "partlyCloudy" | "cloudy" | "rain" | "storm" | "fog" | "snow";
 export type StudyCornerAdaptiveEmotion = "neutral" | "calm" | "happy" | "motivated" | "focused" | "sad" | "tired" | "relaxed" | "energetic";
 export type StudyCornerColorProfile = "auto" | "spring" | "summer" | "autumn" | "winter" | "calm" | "happy" | "motivated" | "focused" | "sad" | "tired";
+export type StudyCornerWeatherStage = "clear" | "cloudsGathering" | "drizzle" | "steadyRain" | "heavyRain" | "stormBreak" | "afterRain" | "snowFall";
+export type StudyCornerWindowScene = "garden" | "city" | "park" | "neighborhood" | "sunrise" | "sunset" | "cityNight";
+export type StudyCornerAudioZone = "outside" | "room" | "desk";
+export type StudyCornerAudioZones = Record<StudyCornerAudioZone, { enabled: boolean; volume: number; assetId?: string }>;
+export type StudyCornerPlantState = { variety: "monstera" | "fern" | "succulent"; sway: number; hydration: number; leafTone: "fresh" | "autumn" | "winter"; lastUpdatedAt: string };
 export type StudyCornerEnvironment = {
   mode: "auto" | "manual";
   season: StudyCornerSeason;
   weather: StudyCornerWeather;
+  weatherStage: StudyCornerWeatherStage;
+  weatherProgress: number;
   emotion: StudyCornerAdaptiveEmotion;
   colorProfile: StudyCornerColorProfile;
   lightOverride: "auto" | "day" | "sunset" | "night";
+  windowScene: StudyCornerWindowScene;
+  plantState: StudyCornerPlantState;
+  audioZones: StudyCornerAudioZones;
   soundEnabled: boolean;
   soundVolume: number;
   thunderEnabled: boolean;
@@ -572,14 +582,24 @@ export type StudyCornerEnvironment = {
   reduceMotion: boolean;
   selectedPresetId?: string;
 };
-
+export type StudyCornerRoomSnapshot = {
+  version: 1;
+  savedAt: string;
+  settings: StudyCornerSettings;
+  environment: StudyCornerEnvironment;
+};
 export const DEFAULT_STUDY_CORNER_ENVIRONMENT: StudyCornerEnvironment = {
   mode: "auto",
   season: "spring",
   weather: "sunny",
+  weatherStage: "clear",
+  weatherProgress: 0,
   emotion: "neutral",
   colorProfile: "auto",
   lightOverride: "auto",
+  windowScene: "garden",
+  plantState: { variety: "monstera", sway: 35, hydration: 70, leafTone: "fresh", lastUpdatedAt: "1970-01-01T00:00:00.000Z" },
+  audioZones: { outside: { enabled: true, volume: 38 }, room: { enabled: true, volume: 24 }, desk: { enabled: true, volume: 18 } },
   soundEnabled: false,
   soundVolume: 35,
   thunderEnabled: false,
@@ -626,6 +646,7 @@ export type ProfileState = {
   activePersonalStudyPresetId?: string;
   studyCornerSettings?: StudyCornerSettings;
   studyCornerEnvironment?: StudyCornerEnvironment;
+  studyCornerRoomSnapshot?: StudyCornerRoomSnapshot;
   companionMode?: PersonalStudyPreset["companionMode"];
   autoNightMode?: boolean;
   focusMode?: boolean;
@@ -801,7 +822,8 @@ export const emptyProfile = (): ProfileState => ({
   personalStudyPresets: [],
   activePersonalStudyPresetId: undefined,
   studyCornerSettings: { lightMode: "day", lampOn: false, lampIntensity: 62, windowOpen: true, curtainOpen: true, laptopOpen: true, bookOpen: true, ambientEnabled: false, ambientVolume: 35 },
-  studyCornerEnvironment: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT },
+  studyCornerEnvironment: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT, plantState: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT.plantState }, audioZones: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT.audioZones } },
+  studyCornerRoomSnapshot: undefined,
   companionMode: "both",
   autoNightMode: false,
   focusMode: false,
@@ -1441,7 +1463,12 @@ export function normalizeProfile(value: unknown): ProfileState {
       mode: source.studyCornerEnvironment?.mode === "manual" ? "manual" : "auto",
       season: ["spring", "summer", "autumn", "winter"].includes(String(source.studyCornerEnvironment?.season)) ? source.studyCornerEnvironment!.season as StudyCornerSeason : DEFAULT_STUDY_CORNER_ENVIRONMENT.season,
       weather: ["sunny", "partlyCloudy", "cloudy", "rain", "storm", "fog", "snow"].includes(String(source.studyCornerEnvironment?.weather)) ? source.studyCornerEnvironment!.weather as StudyCornerWeather : DEFAULT_STUDY_CORNER_ENVIRONMENT.weather,
+      weatherStage: ["clear", "cloudsGathering", "drizzle", "steadyRain", "heavyRain", "stormBreak", "afterRain", "snowFall"].includes(String(source.studyCornerEnvironment?.weatherStage)) ? source.studyCornerEnvironment!.weatherStage as StudyCornerWeatherStage : DEFAULT_STUDY_CORNER_ENVIRONMENT.weatherStage,
+      weatherProgress: Math.max(0, Math.min(100, Number(source.studyCornerEnvironment?.weatherProgress ?? 0) || 0)),
       emotion: ["neutral", "calm", "happy", "motivated", "focused", "sad", "tired", "relaxed", "energetic"].includes(String(source.studyCornerEnvironment?.emotion)) ? source.studyCornerEnvironment!.emotion as StudyCornerAdaptiveEmotion : "neutral",
+      windowScene: ["garden", "city", "park", "neighborhood", "sunrise", "sunset", "cityNight"].includes(String(source.studyCornerEnvironment?.windowScene)) ? source.studyCornerEnvironment!.windowScene as StudyCornerWindowScene : DEFAULT_STUDY_CORNER_ENVIRONMENT.windowScene,
+      plantState: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT.plantState, variety: ["monstera", "fern", "succulent"].includes(String(source.studyCornerEnvironment?.plantState?.variety)) ? source.studyCornerEnvironment!.plantState!.variety as StudyCornerPlantState["variety"] : DEFAULT_STUDY_CORNER_ENVIRONMENT.plantState.variety, sway: Math.max(0, Math.min(100, Number(source.studyCornerEnvironment?.plantState?.sway ?? 35) || 0)), hydration: Math.max(0, Math.min(100, Number(source.studyCornerEnvironment?.plantState?.hydration ?? 70) || 0)), leafTone: ["fresh", "autumn", "winter"].includes(String(source.studyCornerEnvironment?.plantState?.leafTone)) ? source.studyCornerEnvironment!.plantState!.leafTone as StudyCornerPlantState["leafTone"] : DEFAULT_STUDY_CORNER_ENVIRONMENT.plantState.leafTone, lastUpdatedAt: typeof source.studyCornerEnvironment?.plantState?.lastUpdatedAt === "string" ? source.studyCornerEnvironment!.plantState!.lastUpdatedAt : DEFAULT_STUDY_CORNER_ENVIRONMENT.plantState.lastUpdatedAt },
+      audioZones: { outside: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT.audioZones.outside, ...(source.studyCornerEnvironment?.audioZones?.outside && typeof source.studyCornerEnvironment.audioZones.outside === "object" ? source.studyCornerEnvironment.audioZones.outside : {}), volume: Math.max(0, Math.min(100, Number(source.studyCornerEnvironment?.audioZones?.outside?.volume ?? 38) || 0)) }, room: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT.audioZones.room, ...(source.studyCornerEnvironment?.audioZones?.room && typeof source.studyCornerEnvironment.audioZones.room === "object" ? source.studyCornerEnvironment.audioZones.room : {}), volume: Math.max(0, Math.min(100, Number(source.studyCornerEnvironment?.audioZones?.room?.volume ?? 24) || 0)) }, desk: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT.audioZones.desk, ...(source.studyCornerEnvironment?.audioZones?.desk && typeof source.studyCornerEnvironment.audioZones.desk === "object" ? source.studyCornerEnvironment.audioZones.desk : {}), volume: Math.max(0, Math.min(100, Number(source.studyCornerEnvironment?.audioZones?.desk?.volume ?? 18) || 0)) } },
       colorProfile: ["auto", "spring", "summer", "autumn", "winter", "calm", "happy", "motivated", "focused", "sad", "tired"].includes(String(source.studyCornerEnvironment?.colorProfile)) ? source.studyCornerEnvironment!.colorProfile as StudyCornerColorProfile : "auto",
       lightOverride: ["auto", "day", "sunset", "night"].includes(String(source.studyCornerEnvironment?.lightOverride)) ? source.studyCornerEnvironment!.lightOverride as StudyCornerEnvironment["lightOverride"] : "auto",
       soundEnabled: source.studyCornerEnvironment?.soundEnabled === true,
@@ -1451,6 +1478,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       reduceMotion: source.studyCornerEnvironment?.reduceMotion === true,
       selectedPresetId: typeof source.studyCornerEnvironment?.selectedPresetId === "string" ? source.studyCornerEnvironment.selectedPresetId : undefined,
     },
+    studyCornerRoomSnapshot: source.studyCornerRoomSnapshot && typeof source.studyCornerRoomSnapshot === "object" ? source.studyCornerRoomSnapshot as ProfileState["studyCornerRoomSnapshot"] : undefined,
     companionMode: ["lumi", "ong", "both", "hidden"].includes(String(source.companionMode)) ? source.companionMode as PersonalStudyPreset["companionMode"] : "both",
     autoNightMode: source.autoNightMode === true,
     focusMode: source.focusMode === true,
