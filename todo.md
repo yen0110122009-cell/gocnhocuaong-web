@@ -829,3 +829,15 @@
 - [x] Bổ sung regression tests cho phân quyền, đồng bộ và khôi phục phiên bản.
 - [x] Chạy typecheck, Vitest, production build và QA responsive.
 - [x] Đọc lại todo.md, đánh dấu hoàn tất trước checkpoint.
+
+## Đồng bộ thiết bị mới và hợp nhất nháp
+- [x] Phát hiện thiết bị mới khi tài khoản đăng nhập và hiển thị cảnh báo nổi bật trên Account.
+- [x] Lưu nhãn thiết bị ổn định, thời điểm đồng bộ gần nhất và không lưu dữ liệu nhạy cảm trong nhận diện thiết bị.
+- [x] So sánh nháp cục bộ với nháp đám mây theo từng trường companion media.
+- [x] Hiển thị giao diện xem trước khác biệt trước khi hợp nhất.
+- [x] Cho phép chọn dữ liệu local, cloud hoặc giữ dữ liệu hiện tại cho từng mục khác nhau.
+- [x] Ghi phiên bản hợp nhất mới vào lịch sử và bảo toàn khả năng khôi phục.
+- [x] Chống ghi đè khi phiên bản cloud thay đổi trong lúc người dùng đang hợp nhất.
+- [x] Bổ sung regression tests cho cảnh báo thiết bị mới, diff, merge và phân quyền.
+- [x] Chạy typecheck, Vitest, production build và QA responsive.
+- [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.
