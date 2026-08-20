@@ -775,4 +775,4 @@
 - [x] Cho phép khôi phục preset tốc độ mặc định và áp dụng preset đã lưu vào waveform preview.
 - [x] Hiển thị thanh biểu đồ mức âm lượng trực quan cạnh từng kênh đang phát, phản ánh volume/mute hiện tại.
 - [x] Viết regression tests cho tùy chỉnh speed preset và volume meter.
-- [ ] Chạy typecheck, Vitest, production build và QA desktop/mobile; chờ checkpoint mới.
+- [x] Chạy typecheck, Vitest, production build và QA desktop/mobile; checkpoint `8fd8cce8` đã lưu.
