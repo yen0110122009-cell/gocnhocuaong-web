@@ -49,14 +49,43 @@ function trimLogFile(logPath: string, maxSize: number) {
   }
 }
 
+const SENSITIVE_LOG_KEY = /authorization|cookie|set-cookie|proxy-authorization|token|secret|api[-_]?key|signature/i;
+const SENSITIVE_LOG_TEXT = /(authorization\s*:\s*(?:bearer|basic)\s+)[^\s,;]+|(cookie\s*:\s*)[^;\n]+|(set-cookie\s*:\s*)[^;\n]+|(bearer\s+)[A-Za-z0-9._~+/=-]+|([?&](?:access_token|refresh_token|id_token|token|api_key|apikey|signature|sig)=)[^&#\s]+/gi;
+
+function redactLogText(value: string) {
+  return value.replace(SENSITIVE_LOG_TEXT, (match, authorization, cookie, setCookie, bearer, query) => {
+    if (authorization) return `${authorization}[REDACTED]`;
+    if (cookie) return `${cookie}[REDACTED]`;
+    if (setCookie) return `${setCookie}[REDACTED]`;
+    if (bearer) return `${bearer}[REDACTED]`;
+    if (query) return `${query}[REDACTED]`;
+    return "[REDACTED]";
+  });
+}
+
+function redactLogValue(value: unknown, depth = 0): unknown {
+  if (depth > 6 || value === null || value === undefined) return value;
+  if (typeof value === "string") {
+    const redacted = redactLogText(value);
+    return redacted.length > 10_000 ? `${redacted.slice(0, 10_000)}…[truncated]` : redacted;
+  }
+  if (Array.isArray(value)) return value.slice(0, 500).map((item) => redactLogValue(item, depth + 1));
+  if (typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).slice(0, 500).map(([key, child]) => [
+    key,
+    SENSITIVE_LOG_KEY.test(key) ? "[REDACTED]" : redactLogValue(child, depth + 1),
+  ]));
+}
+
 function writeToLogFile(source: LogSource, entries: unknown[]) {
   if (entries.length === 0) return;
+  const safeEntries = entries.map((entry) => redactLogValue(entry));
 
   ensureLogDir();
   const logPath = path.join(LOG_DIR, `${source}.log`);
 
   // Format entries with timestamps
-  const lines = entries.map((entry) => {
+  const lines = safeEntries.map((entry) => {
     const ts = new Date().toISOString();
     return `[${ts}] ${JSON.stringify(entry)}`;
   });
@@ -107,13 +136,13 @@ function vitePluginManusDebugCollector(): Plugin {
         const handlePayload = (payload: any) => {
           // Write logs directly to files
           if (payload.consoleLogs?.length > 0) {
-            writeToLogFile("browserConsole", payload.consoleLogs);
+            writeToLogFile("browserConsole", payload.consoleLogs.map((entry: unknown) => redactLogValue(entry)));
           }
           if (payload.networkRequests?.length > 0) {
-            writeToLogFile("networkRequests", payload.networkRequests);
+            writeToLogFile("networkRequests", payload.networkRequests.map((entry: unknown) => redactLogValue(entry)));
           }
           if (payload.sessionEvents?.length > 0) {
-            writeToLogFile("sessionReplay", payload.sessionEvents);
+            writeToLogFile("sessionReplay", payload.sessionEvents.map((entry: unknown) => redactLogValue(entry)));
           }
 
           res.writeHead(200, { "Content-Type": "application/json" });

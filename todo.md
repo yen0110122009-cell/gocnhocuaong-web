@@ -726,3 +726,17 @@
 - [x] Audit runtime logs và các luồng phát audio, upload/trash/restore/permanent-delete, export/import và auto preset.
 - [x] Audit trực quan desktop/mobile, khả năng thu gọn, khả năng hiểu trạng thái và lỗi hiển thị.
 - [x] Tổng hợp lỗi theo mức độ Critical/High/Medium/Low kèm bằng chứng, cách tái hiện và gợi ý xử lý.
+
+## Sửa lỗi audit và QA Audio Center
+- [ ] Xóa object audio vật lý khỏi storage: BLOCKED — platform hiện chỉ cung cấp presign PUT/GET, chưa có endpoint delete; không giả vờ cam kết xóa vật lý.
+- [x] Redact Authorization header, cookie và token nhạy cảm khỏi network log trước khi ghi.
+- [x] Lazy-load ExperienceStudio/Audio Center và đo lại kích thước chunk chính sau build.
+- [x] QA responsive public shell desktop/mobile và xác nhận Audio Center lazy fallback không phá SSR; QA đăng nhập sâu cần phiên tài khoản hợp lệ.
+- [x] Chạy regression/typecheck/build sau bản sửa; 56 test files và 221 tests đạt.
+## Audit tiếp theo — redaction và tính nhất quán storage
+- [x] Bịt rò rỉ Authorization/Cookie/Token trong network và console debug logs.
+- [x] Củng cố Permanent Delete: dọn metadata, preset references và audit snapshot; ghi rõ giới hạn storage object nếu platform chưa có API xóa vật lý.
+- [x] Rà soát lazy-load module lớn và đo lại bundle chính.
+- [x] Viết regression tests cho redaction và permanent-delete semantics.
+- [x] Chạy typecheck, Vitest, production build và QA responsive sau bản sửa.
+- [ ] Lưu checkpoint sau khi mọi kiểm tra đạt.

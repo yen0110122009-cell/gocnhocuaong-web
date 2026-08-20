@@ -61,6 +61,35 @@
   // Utility Functions
   // ==========================================================================
 
+  function redactSensitiveText(value) {
+    var text = String(value);
+    return text
+      .replace(/(authorization\s*:\s*(?:bearer|basic)\s+)[^\s,;]+/gi, "$1[REDACTED]")
+      .replace(/(cookie\s*:\s*)[^;\n]+/gi, "$1[REDACTED]")
+      .replace(/(set-cookie\s*:\s*)[^;\n]+/gi, "$1[REDACTED]")
+      .replace(/(bearer\s+)[A-Za-z0-9._~+/=-]+/gi, "$1[REDACTED]")
+      .replace(/([?&](?:access_token|refresh_token|id_token|token|api_key|apikey|signature|sig)=)[^&#\s]+/gi, "$1[REDACTED]");
+  }
+
+  function sanitizeUrl(value) {
+    return redactSensitiveText(value);
+  }
+
+  function sanitizeHeaders(headers) {
+    var result = {};
+    try {
+      new Headers(headers || {}).forEach(function (value, key) {
+        var lower = String(key).toLowerCase();
+        result[key] = /authorization|cookie|set-cookie|token|secret|api[-_]?key|signature/i.test(lower)
+          ? "[REDACTED]"
+          : redactSensitiveText(value);
+      });
+    } catch (e) {
+      return { _parseError: true };
+    }
+    return result;
+  }
+
   function sanitizeValue(value, depth) {
     if (depth === void 0) depth = 0;
     if (depth > 5) return "[Max Depth]";
@@ -68,7 +97,8 @@
     if (value === undefined) return undefined;
 
     if (typeof value === "string") {
-      return value.length > 1000 ? value.slice(0, 1000) + "...[truncated]" : value;
+      var redacted = redactSensitiveText(value);
+      return redacted.length > 1000 ? redacted.slice(0, 1000) + "...[truncated]" : redacted;
     }
 
     if (typeof value !== "object") return value;
@@ -470,7 +500,7 @@
     var requestHeaders = {};
     try {
       if (init.headers) {
-        requestHeaders = Object.fromEntries(new Headers(init.headers).entries());
+        requestHeaders = sanitizeHeaders(init.headers);
       }
     } catch (e) {
       requestHeaders = { _parseError: true };
@@ -480,7 +510,7 @@
       timestamp: startTime,
       type: "fetch",
       method: method.toUpperCase(),
-      url: url,
+      url: sanitizeUrl(url),
       request: {
         headers: requestHeaders,
         body: init.body ? sanitizeValue(tryParseJson(init.body)) : null,
@@ -500,7 +530,7 @@
         entry.response = {
           status: response.status,
           statusText: response.statusText,
-          headers: Object.fromEntries(response.headers.entries()),
+          headers: sanitizeHeaders(response.headers),
           body: null,
         };
 
@@ -600,7 +630,7 @@
   XMLHttpRequest.prototype.open = function (method, url) {
     this._manusData = {
       method: (method || "GET").toUpperCase(),
-      url: url,
+      url: sanitizeUrl(url),
       startTime: null,
     };
     return originalXHROpen.apply(this, arguments);
@@ -612,9 +642,10 @@
     if (
       xhr._manusData &&
       xhr._manusData.url &&
-      xhr._manusData.url.indexOf("/__manus__/") !== 0
+      String(xhr._manusData.url).indexOf("/__manus__/") !== 0
     ) {
       xhr._manusData.startTime = Date.now();
+      xhr._manusData.url = sanitizeUrl(xhr._manusData.url);
       xhr._manusData.requestBody = body ? sanitizeValue(tryParseJson(body)) : null;
 
       xhr.addEventListener("load", function () {
@@ -662,6 +693,7 @@
           response: {
             status: xhr.status,
             statusText: xhr.statusText,
+            headers: sanitizeHeaders(xhr.getAllResponseHeaders ? xhr.getAllResponseHeaders() : ""),
             body: responseBody,
           },
           duration: Date.now() - xhr._manusData.startTime,

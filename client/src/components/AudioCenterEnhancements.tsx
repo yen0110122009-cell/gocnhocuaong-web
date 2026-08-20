@@ -1,6 +1,7 @@
 import { CheckCircle2, Filter, GripVertical, Layers3, Pause, Play, Radio, RotateCcw, Search, Trash2, Upload, Volume2 } from "lucide-react";
 import React, { useMemo, useRef, useState } from "react";
 import type { MascotVoiceLine, PersonalAudioAsset, ProfileState } from "../../../shared/study";
+import { purgeAudioAssetsFromTrash } from "../../../shared/audioPurge";
 import { trpc } from "../lib/trpc";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 
@@ -167,12 +168,14 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
 
   function permanentlyDeleteAsset(asset: PersonalAudioAsset) {
     if (!window.confirm(`Xóa vĩnh viễn “${asset.name}”? Thao tác này không thể hoàn tác.`)) return;
-    onProfile({ ...profile, personalAudioTrash: trash.filter((candidate) => candidate.id !== asset.id) }, `Đã xóa vĩnh viễn “${asset.name}” khỏi thư viện audio.`);
+    const nextProfile = purgeAudioAssetsFromTrash(profile, [asset]);
+    onProfile(nextProfile, `Đã xóa vĩnh viễn “${asset.name}” khỏi hồ sơ, preset và nhật ký khôi phục audio.`);
   }
 
   function permanentlyDeleteAllAssets() {
     if (!trash.length || !window.confirm(`Xóa vĩnh viễn ${trash.length} tệp trong thùng rác? Thao tác này không thể hoàn tác.`)) return;
-    onProfile({ ...profile, personalAudioTrash: [] }, `Đã xóa vĩnh viễn ${trash.length} tệp audio.`);
+    const nextProfile = purgeAudioAssetsFromTrash(profile, trash);
+    onProfile(nextProfile, `Đã xóa vĩnh viễn ${trash.length} tệp audio khỏi hồ sơ, preset và nhật ký khôi phục.`);
   }
 
   function saveGroupPreset(group: string) {
