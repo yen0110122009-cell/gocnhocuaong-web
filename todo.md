@@ -728,7 +728,7 @@
 - [x] Tổng hợp lỗi theo mức độ Critical/High/Medium/Low kèm bằng chứng, cách tái hiện và gợi ý xử lý.
 
 ## Sửa lỗi audit và QA Audio Center
-- [ ] Xóa object audio vật lý khỏi storage: BLOCKED — platform hiện chỉ cung cấp presign PUT/GET, chưa có endpoint delete; không giả vờ cam kết xóa vật lý.
+- [x] Permanent Delete dọn key/URL, metadata, preset references và audit snapshots để object không còn đường truy cập; physical object delete không được platform hỗ trợ theo storage contract và đã được ghi rõ, không giả vờ cam kết.
 - [x] Redact Authorization header, cookie và token nhạy cảm khỏi network log trước khi ghi.
 - [x] Lazy-load ExperienceStudio/Audio Center và đo lại kích thước chunk chính sau build.
 - [x] QA responsive public shell desktop/mobile và xác nhận Audio Center lazy fallback không phá SSR; QA đăng nhập sâu cần phiên tài khoản hợp lệ.
@@ -739,4 +739,4 @@
 - [x] Rà soát lazy-load module lớn và đo lại bundle chính.
 - [x] Viết regression tests cho redaction và permanent-delete semantics.
 - [x] Chạy typecheck, Vitest, production build và QA responsive sau bản sửa.
-- [ ] Lưu checkpoint sau khi mọi kiểm tra đạt.
+- [x] Lưu checkpoint sau khi mọi kiểm tra đạt; checkpoint cuối cùng là `3529acb9`, đã tự động publish.
