@@ -748,4 +748,4 @@
 - [x] Viết regression tests cho skeleton, bộ lọc nâng cao và toast permanent delete.
 - [x] Chạy typecheck, Vitest, production build và QA desktop/mobile.
 - [x] Xác minh GitHub remote/branch, workflow Pages và URL web; trước checkpoint, main vẫn đang ở commit `0205ee9` và workflow gần nhất thành công là bản audit trước.
-- [ ] Lưu checkpoint và xác nhận đồng bộ sau khi mọi kiểm tra đạt.
+- [x] Lưu checkpoint và xác nhận đồng bộ sau khi mọi kiểm tra đạt; phiên bản `43071d25` đã lưu và tự động publish.
