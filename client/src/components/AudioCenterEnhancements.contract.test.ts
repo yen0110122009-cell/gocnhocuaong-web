@@ -52,6 +52,13 @@ describe("Audio Center UX contracts", () => {
     expect(experienceStudioSource).toContain("Âm lượng âm nền");
   });
 
+  it("shows current volume in playback status and offers type-aware speed presets", () => {
+    expect(componentSource).toContain("Âm lượng: ${volume}%");
+    expect(componentSource).toContain("defaultPreviewRate");
+    expect(componentSource).toContain("Tự động theo loại tệp");
+    expect(experienceStudioSource).toContain("volume: Math.round(environment.volume * 100)");
+  });
+
   it("supports waveform preview playback rates", () => {
     expect(componentSource).toContain("previewRate");
     expect(componentSource).toContain('value="0.5"');
