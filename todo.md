@@ -689,3 +689,9 @@
 ### Lịch sử yêu cầu Audio Center — kế thừa
 - [x] Mixer đa kênh và fade in/out không dùng oscillator cho âm nền đã triển khai.
 - [x] GitHub Pages dùng base `/gocnhocuaong-web/` và workflow theo `main` đã ổn định.
+
+## Audio Center — thùng rác, waveform và sắp xếp
+- [x] Tạo màn hình thùng rác audio riêng, liệt kê asset xóa mềm và cho phép khôi phục từng tệp hoặc khôi phục hàng loạt.
+- [x] Bổ sung metadata thời lượng và waveform trực quan cho từng tệp audio trong thư viện, có fallback rõ ràng khi trình duyệt không đọc được metadata.
+- [x] Thêm kéo thả để sắp xếp thứ tự phát, lưu thứ tự vào profile và cho phép nhóm asset theo chủ đề.
+- [x] Bổ sung regression cho trash/restore, waveform/duration, drag-drop/group và chạy TypeScript, Vitest, build, QA responsive.

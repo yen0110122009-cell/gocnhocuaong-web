@@ -10,6 +10,7 @@ const mediaControlsSource = await import.meta.glob("./EmotionCompanionMediaContr
 const homeSource = await import.meta.glob("../pages/Home.tsx", { query: "?raw", import: "default", eager: true })["../pages/Home.tsx"] as string;
 const pomodoroSource = await import.meta.glob("../pages/Pomodoro.tsx", { query: "?raw", import: "default", eager: true })["../pages/Pomodoro.tsx"] as string;
 const cssSource = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
+const studySource = readFileSync(resolve(process.cwd(), "shared/study.ts"), "utf8");
 
 describe("Experience Studio requirements", () => {
   it("keeps a broad emotion catalog with encouragement and mascot mapping", () => {
@@ -191,6 +192,21 @@ describe("Experience Studio requirements", () => {
     expect(audioCenterEnhancementsSource).toContain("voice");
     expect(studioSource).toContain("AudioCenterEnhancements");
     expect(studioSource).toContain("setChannelPlaying");
+  });
+
+  it("supports a separate audio trash, waveform metadata, duration, groups, and drag ordering", () => {
+    expect(audioCenterEnhancementsSource).toContain('storageKey="audio-center-trash"');
+    expect(audioCenterEnhancementsSource).toContain("Khôi phục tất cả");
+    expect(audioCenterEnhancementsSource).toContain("softDeleteAsset");
+    expect(audioCenterEnhancementsSource).toContain("Waveform");
+    expect(audioCenterEnhancementsSource).toContain("durationSeconds");
+    expect(audioCenterEnhancementsSource).toContain("draggable");
+    expect(audioCenterEnhancementsSource).toContain("reorderAssets");
+    expect(audioCenterEnhancementsSource).toContain("assignGroup");
+    expect(studySource).toContain("personalAudioTrash");
+    expect(studySource).toContain("waveform");
+    expect(studySource).toContain("sortOrder");
+    expect(studySource).toContain("group");
   });
 
   it("does not retain purchasable cosmetic theme selectors after switching to emotion-based colors", () => {
