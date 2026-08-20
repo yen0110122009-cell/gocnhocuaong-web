@@ -647,17 +647,17 @@
 - [x] Viết regression contract cho toàn bộ ma trận môi trường; chạy TypeScript, Vitest, build, QA desktop/mobile và phát hành checkpoint.
 
 ## StudyCorner — diễn biến môi trường, cửa sổ, cây sống và nhớ không gian
-- [ ] Thêm mô hình diễn biến thời tiết có kiểm soát, gồm các giai đoạn mưa và chuyển mây/ánh sáng, không random gây mất tập trung.
-- [ ] Thêm cảnh ngoài cửa sổ thay đổi theo thời gian và trạng thái môi trường, có các lựa chọn cây, thành phố, vườn, khu dân cư, bình minh, hoàng hôn và đêm.
-- [ ] Thêm cây trong phòng với chuyển động gió nhẹ, biến đổi theo mùa, ánh sáng trên lá và giọt nước khi mưa.
-- [ ] Thêm cấu trúc lưu/khôi phục trạng thái “Góc học tập nhớ không gian”, tương thích hồ sơ cũ và không trộn dữ liệu ngoài StudyCorner.
-- [ ] Thiết kế hệ thống âm thanh phân lớp ngoài cửa sổ, trong phòng và trên bàn; có gain/volume riêng, mute và không tự phát ngoài user gesture.
-- [ ] Bổ sung regression cho weather timeline, window scene, living plant, room snapshot restore và distance audio graph; chạy TypeScript, Vitest, build và QA responsive.
+- [x] CANCELLED theo yêu cầu người dùng: gỡ StudyCorner, không tiếp tục triển khai mô hình diễn biến thời tiết trong màn hình đã loại bỏ.
+- [x] CANCELLED theo yêu cầu người dùng: gỡ StudyCorner, không tiếp tục triển khai cảnh cửa sổ trong màn hình đã loại bỏ.
+- [x] CANCELLED theo yêu cầu người dùng: gỡ StudyCorner, không tiếp tục triển khai cây sống trong màn hình đã loại bỏ.
+- [x] CANCELLED theo yêu cầu người dùng: gỡ StudyCorner, không tiếp tục mở rộng trạng thái nhớ không gian của màn hình đã loại bỏ.
+- [x] CANCELLED theo yêu cầu người dùng: hợp nhất âm thanh về trang chủ, không tiếp tục phân lớp audio theo StudyCorner.
+- [x] CANCELLED theo yêu cầu người dùng: không kiểm thử các tính năng StudyCorner đã bị gỡ; regression audio trang chủ đã được cập nhật riêng.
 
 ## Lỗi triển khai GitHub Pages
 - [x] Điều tra lỗi 404 tại GitHub Pages: kiểm tra branch, workflow, thư mục artifact và entry point index.html.
 - [x] Sửa cấu hình GitHub Pages hoặc hướng dẫn dùng đúng domain Manus nếu repository không được cấu hình để host trực tiếp.
-- [ ] Xác nhận URL root và deep-link sau khi sửa; không làm ảnh hưởng deployment Manus hiện tại.
+- [x] Xác nhận URL root và deep-link sau khi sửa; không làm ảnh hưởng deployment Manus hiện tại.
 
 ## Điều chỉnh phạm vi — gỡ Góc học tập, hợp nhất âm thanh
 - [x] Gỡ mục StudyCorner khỏi menu/route/luồng hiển thị theo yêu cầu mới, không xóa dữ liệu profile đã có.
