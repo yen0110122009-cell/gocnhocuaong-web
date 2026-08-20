@@ -806,3 +806,13 @@
 - [x] Bổ sung regression tests cho loading ghi âm/upload và accessibility mobile.
 - [x] Chạy typecheck, Vitest, production build và QA responsive sau thay đổi.
 - [x] Tổng hợp các góp ý UX ưu tiên cho website.
+
+## Companion media — tiến độ, nháp và onboarding
+- [x] Hiển thị tiến độ phần trăm khi tải tệp lớn lên storage.
+- [x] Lưu thông tin lần upload thất bại và cung cấp nút “Thử lại” không cần chọn tệp lại.
+- [x] Tự động lưu nháp trạng thái ghi âm và chỉnh sửa ảnh trong local storage an toàn.
+- [x] Khôi phục nháp khi người dùng quay lại và cho phép xóa nháp.
+- [x] Thêm onboarding ngắn giải thích quy trình ghi âm, gắn ảnh và phát lại.
+- [x] Bổ sung regression tests cho progress, retry, autosave và onboarding.
+- [x] Chạy typecheck, Vitest, production build và QA responsive.
+- [x] Đọc lại todo.md, đánh dấu hoàn tất trước checkpoint.

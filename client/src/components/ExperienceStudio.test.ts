@@ -168,6 +168,16 @@ describe("Experience Studio requirements", () => {
     expect(mediaControlsSource).toContain("disabled={Boolean(busy)}");
   });
 
+  it("supports upload progress, retry, autosaved drafts and first-use onboarding", () => {
+    expect(mediaControlsSource).toContain("uploadProgress");
+    expect(mediaControlsSource).toContain("Thử lại");
+    expect(mediaControlsSource).toContain("companion-media-draft:v1");
+    expect(mediaControlsSource).toContain("localStorage.setItem");
+    expect(mediaControlsSource).toContain("Bắt đầu với Lumi trong 3 bước");
+    expect(mediaControlsSource).toContain("Ghi âm lời động viên bằng micro");
+    expect(mediaControlsSource).toContain("Đã hiểu");
+  });
+
   it("offers validated JSON export and merge-or-replace import without embedding media files", () => {
     expect(mediaControlsSource).toContain("exportLibrary");
     expect(mediaControlsSource).toContain("importLibrary");
