@@ -645,3 +645,16 @@
 - [x] Thêm preset môi trường, lưu thiết lập người dùng, khôi phục mặc định, Auto Environment và điều khiển bật/tắt hiệu ứng/âm thanh/animation.
 - [x] Bổ sung checklist accessibility, mobile, hiệu năng, không tự phát audio ngoài user gesture và không hiển thị nhân vật người học trong StudyCorner.
 - [x] Viết regression contract cho toàn bộ ma trận môi trường; chạy TypeScript, Vitest, build, QA desktop/mobile và phát hành checkpoint.
+
+## StudyCorner — diễn biến môi trường, cửa sổ, cây sống và nhớ không gian
+- [ ] Thêm mô hình diễn biến thời tiết có kiểm soát, gồm các giai đoạn mưa và chuyển mây/ánh sáng, không random gây mất tập trung.
+- [ ] Thêm cảnh ngoài cửa sổ thay đổi theo thời gian và trạng thái môi trường, có các lựa chọn cây, thành phố, vườn, khu dân cư, bình minh, hoàng hôn và đêm.
+- [ ] Thêm cây trong phòng với chuyển động gió nhẹ, biến đổi theo mùa, ánh sáng trên lá và giọt nước khi mưa.
+- [ ] Thêm cấu trúc lưu/khôi phục trạng thái “Góc học tập nhớ không gian”, tương thích hồ sơ cũ và không trộn dữ liệu ngoài StudyCorner.
+- [ ] Thiết kế hệ thống âm thanh phân lớp ngoài cửa sổ, trong phòng và trên bàn; có gain/volume riêng, mute và không tự phát ngoài user gesture.
+- [ ] Bổ sung regression cho weather timeline, window scene, living plant, room snapshot restore và distance audio graph; chạy TypeScript, Vitest, build và QA responsive.
+
+## Lỗi triển khai GitHub Pages
+- [x] Điều tra lỗi 404 tại GitHub Pages: kiểm tra branch, workflow, thư mục artifact và entry point index.html.
+- [x] Sửa cấu hình GitHub Pages hoặc hướng dẫn dùng đúng domain Manus nếu repository không được cấu hình để host trực tiếp.
+- [ ] Xác nhận URL root và deep-link sau khi sửa; không làm ảnh hưởng deployment Manus hiện tại.
