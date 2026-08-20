@@ -554,6 +554,39 @@ export type StudyCornerSettings = {
   ambientVolume: number;
 };
 
+export type StudyCornerSeason = "spring" | "summer" | "autumn" | "winter";
+export type StudyCornerWeather = "sunny" | "partlyCloudy" | "cloudy" | "rain" | "storm" | "fog" | "snow";
+export type StudyCornerAdaptiveEmotion = "neutral" | "calm" | "happy" | "motivated" | "focused" | "sad" | "tired" | "relaxed" | "energetic";
+export type StudyCornerColorProfile = "auto" | "spring" | "summer" | "autumn" | "winter" | "calm" | "happy" | "motivated" | "focused" | "sad" | "tired";
+export type StudyCornerEnvironment = {
+  mode: "auto" | "manual";
+  season: StudyCornerSeason;
+  weather: StudyCornerWeather;
+  emotion: StudyCornerAdaptiveEmotion;
+  colorProfile: StudyCornerColorProfile;
+  lightOverride: "auto" | "day" | "sunset" | "night";
+  soundEnabled: boolean;
+  soundVolume: number;
+  thunderEnabled: boolean;
+  effectsEnabled: boolean;
+  reduceMotion: boolean;
+  selectedPresetId?: string;
+};
+
+export const DEFAULT_STUDY_CORNER_ENVIRONMENT: StudyCornerEnvironment = {
+  mode: "auto",
+  season: "spring",
+  weather: "sunny",
+  emotion: "neutral",
+  colorProfile: "auto",
+  lightOverride: "auto",
+  soundEnabled: false,
+  soundVolume: 35,
+  thunderEnabled: false,
+  effectsEnabled: true,
+  reduceMotion: false,
+};
+
 export type ProfileState = {
   xp: number;
   level: number;
@@ -592,6 +625,7 @@ export type ProfileState = {
   personalStudyPresetHistory?: PersonalStudyPresetHistory[];
   activePersonalStudyPresetId?: string;
   studyCornerSettings?: StudyCornerSettings;
+  studyCornerEnvironment?: StudyCornerEnvironment;
   companionMode?: PersonalStudyPreset["companionMode"];
   autoNightMode?: boolean;
   focusMode?: boolean;
@@ -767,6 +801,7 @@ export const emptyProfile = (): ProfileState => ({
   personalStudyPresets: [],
   activePersonalStudyPresetId: undefined,
   studyCornerSettings: { lightMode: "day", lampOn: false, lampIntensity: 62, windowOpen: true, curtainOpen: true, laptopOpen: true, bookOpen: true, ambientEnabled: false, ambientVolume: 35 },
+  studyCornerEnvironment: { ...DEFAULT_STUDY_CORNER_ENVIRONMENT },
   companionMode: "both",
   autoNightMode: false,
   focusMode: false,
@@ -1400,6 +1435,22 @@ export function normalizeProfile(value: unknown): ProfileState {
       return [{ id, presetId, presetName, snapshot, changedAt, reason: typeof item?.reason === "string" && item.reason.trim() ? item.reason.trim().slice(0, 160) : undefined }];
     }).filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index).sort((a, b) => Date.parse(b.changedAt) - Date.parse(a.changedAt)).slice(0, 100) : [],
     activePersonalStudyPresetId: typeof source.activePersonalStudyPresetId === "string" && source.personalStudyPresets?.some((preset) => preset && typeof preset === "object" && (preset as Partial<PersonalStudyPreset>).id === source.activePersonalStudyPresetId) ? source.activePersonalStudyPresetId : undefined,
+    studyCornerEnvironment: {
+      ...DEFAULT_STUDY_CORNER_ENVIRONMENT,
+      ...(source.studyCornerEnvironment && typeof source.studyCornerEnvironment === "object" ? source.studyCornerEnvironment : {}),
+      mode: source.studyCornerEnvironment?.mode === "manual" ? "manual" : "auto",
+      season: ["spring", "summer", "autumn", "winter"].includes(String(source.studyCornerEnvironment?.season)) ? source.studyCornerEnvironment!.season as StudyCornerSeason : DEFAULT_STUDY_CORNER_ENVIRONMENT.season,
+      weather: ["sunny", "partlyCloudy", "cloudy", "rain", "storm", "fog", "snow"].includes(String(source.studyCornerEnvironment?.weather)) ? source.studyCornerEnvironment!.weather as StudyCornerWeather : DEFAULT_STUDY_CORNER_ENVIRONMENT.weather,
+      emotion: ["neutral", "calm", "happy", "motivated", "focused", "sad", "tired", "relaxed", "energetic"].includes(String(source.studyCornerEnvironment?.emotion)) ? source.studyCornerEnvironment!.emotion as StudyCornerAdaptiveEmotion : "neutral",
+      colorProfile: ["auto", "spring", "summer", "autumn", "winter", "calm", "happy", "motivated", "focused", "sad", "tired"].includes(String(source.studyCornerEnvironment?.colorProfile)) ? source.studyCornerEnvironment!.colorProfile as StudyCornerColorProfile : "auto",
+      lightOverride: ["auto", "day", "sunset", "night"].includes(String(source.studyCornerEnvironment?.lightOverride)) ? source.studyCornerEnvironment!.lightOverride as StudyCornerEnvironment["lightOverride"] : "auto",
+      soundEnabled: source.studyCornerEnvironment?.soundEnabled === true,
+      soundVolume: Math.max(0, Math.min(100, Number(source.studyCornerEnvironment?.soundVolume ?? 35) || 0)),
+      thunderEnabled: source.studyCornerEnvironment?.thunderEnabled === true,
+      effectsEnabled: source.studyCornerEnvironment?.effectsEnabled !== false,
+      reduceMotion: source.studyCornerEnvironment?.reduceMotion === true,
+      selectedPresetId: typeof source.studyCornerEnvironment?.selectedPresetId === "string" ? source.studyCornerEnvironment.selectedPresetId : undefined,
+    },
     companionMode: ["lumi", "ong", "both", "hidden"].includes(String(source.companionMode)) ? source.companionMode as PersonalStudyPreset["companionMode"] : "both",
     autoNightMode: source.autoNightMode === true,
     focusMode: source.focusMode === true,

@@ -165,7 +165,7 @@ function EmotionThemeController({ profile, onProfile, children }: { profile: Pro
 function Views({ view, account, profile, config, token, onView, onProfile, onConfig, onLogout }: { view: View; account: StudyAccount; profile: ProfileState; config: AppConfig; token: string; onView: (v: View) => void; onProfile: (p: ProfileState, m?: string) => void; onConfig: (c: AppConfig, m?: string) => void; onLogout: () => void }) {
   let content: React.ReactNode;
   if (view === "dashboard") { content = <Dashboard account={account} profile={profile} config={config} onView={onView} onProfile={onProfile} />; }
-  else if (view === "study-corner") { content = <StudyCorner profile={profile} />; }
+  else if (view === "study-corner") { content = <StudyCorner profile={profile} onProfile={onProfile} />; }
   else if (view === "special111") { content = isUnlimitedAccountCode(account.code) ? <Special111Dashboard account={account} profile={profile} onView={onView} /> : <Dashboard account={account} profile={profile} config={config} onView={onView} onProfile={onProfile} />; }
   else if (view === "focus") { content = <FocusHub profile={profile} config={config} onView={onView} onProfile={onProfile} />; }
   else if (view === "pomodoro") { content = <Pomodoro profile={profile} config={config} onProfile={onProfile} onView={onView} />; }

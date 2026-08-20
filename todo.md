@@ -632,3 +632,16 @@
 - [x] Thêm chuyển cảnh Sáng/Chiều/Tối nhẹ, giữ bố cục first-person trên desktop/tablet/mobile.
 - [x] Giới hạn phạm vi Góc học tập, không đưa Todo, Journal, Achievement, Badge, Streak, lịch học, môn học, cửa hàng, nhân vật lịch sử hoặc phần thưởng vào module mới.
 - [x] Kiểm thử module StudyCorner độc lập, regression dữ liệu/cài đặt, TypeScript, Vitest, build và QA responsive.
+
+## Đặc tả mở rộng — Môi trường thích ứng theo pasted_content_3.txt
+- [x] Bổ sung lớp môi trường liên kết thời gian, mùa, thời tiết, cảm xúc, màu sắc, âm thanh và ánh sáng trong StudyCorner.
+- [x] Hỗ trợ bốn mùa Spring/Summer/Autumn/Winter với palette, ambience, ánh sáng và mô tả cảm giác riêng.
+- [x] Hỗ trợ thời tiết Nắng, Có mây, Nhiều mây, Mưa, Mưa lớn/Bão, Sương mù và Tuyết mô phỏng; có Auto/Manual, không giả định dữ liệu thời tiết thật.
+- [x] Hỗ trợ các trạng thái cảm xúc Neutral/Bình thường, Bình yên, Vui vẻ, Có động lực, Tập trung, Buồn, Mệt, Cần thư giãn và Cần năng lượng; người dùng tự chọn, không tự gán cảm xúc.
+- [x] Triển khai phối hợp Weather × Emotion và Weather × Season, bảo đảm cảm xúc chỉ điều chỉnh chứ không ghi đè thời tiết/mùa.
+- [x] Triển khai adaptive color profile cho background, light, accent, button, icon, border, secondary text, glow và ambience với tương phản dễ đọc.
+- [x] Tách sound profile theo thời tiết, mùa và cảm xúc; mute, âm lượng, fade in/out và trạng thái placeholder khi chưa có asset thật.
+- [x] Bổ sung ánh sáng tự nhiên/đèn bàn theo time-of-day, weather, season và emotion; chuyển cảnh 1.5–4 giây, tôn trọng reduced motion.
+- [x] Thêm preset môi trường, lưu thiết lập người dùng, khôi phục mặc định, Auto Environment và điều khiển bật/tắt hiệu ứng/âm thanh/animation.
+- [x] Bổ sung checklist accessibility, mobile, hiệu năng, không tự phát audio ngoài user gesture và không hiển thị nhân vật người học trong StudyCorner.
+- [x] Viết regression contract cho toàn bộ ma trận môi trường; chạy TypeScript, Vitest, build, QA desktop/mobile và phát hành checkpoint.
