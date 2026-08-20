@@ -223,7 +223,6 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     const allowed = isAudio ? ["audio/webm", "audio/ogg", "audio/wav", "audio/mpeg"] : ["image/png", "image/jpeg", "image/webp", "image/gif"];
     const limit = isAudio ? 8 * 1024 * 1024 : 3 * 1024 * 1024;
     if (!allowed.includes(file.type) || file.size > limit) { alert(isAudio ? "Chỉ nhận WebM, OGG, WAV hoặc MP3, tối đa 8 MB." : "Chỉ nhận PNG, JPG, WEBP hoặc GIF, tối đa 3 MB."); return; }
-    if (kind === "lumi-image" && voiceRecordings.length === 0) { alert("Hãy tự ghi ít nhất một bản thu Lumi trước, rồi mới gắn ảnh vào lời thoại."); return; }
     setBusy(kind);
     setUploadProgress(8);
     setFailedUpload(null);

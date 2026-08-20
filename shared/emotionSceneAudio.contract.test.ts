@@ -65,11 +65,13 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain("profile?.showLumi !== false");
   });
 
-  it("starts companion media without default images and requires a recorded Lumi voice before image upload", () => {
+  it("starts companion media without default images and validates independent image upload", () => {
     expect(defaultCompanionMedia()).toContain("getDefaultMascotImage");
     expect(defaultCompanionMedia()).toContain("getDefaultLumiImage");
     expect(companionControls()).toContain("Chưa có ảnh");
-    expect(companionControls()).toContain("kind === \"lumi-image\" && voiceRecordings.length === 0");
+    expect(companionControls()).not.toContain("kind === \"lumi-image\" && voiceRecordings.length === 0");
+    expect(companionControls()).toContain("Chỉ nhận WebM, OGG, WAV hoặc MP3, tối đa 8 MB.");
+    expect(companionControls()).toContain("Chỉ nhận PNG, JPG, WEBP hoặc GIF, tối đa 3 MB.");
     expect(companionControls()).not.toContain("getDefaultLumiImage(emotion)");
   });
 
@@ -146,6 +148,7 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain("track.pause(); track.removeAttribute(\"src\"); track.load()");
     expect(studio()).toContain("Hãy thêm tệp thật vào Audio Center");
     expect(studio()).toContain('audio.preload = "auto"');
+    expect(studio()).toContain("Phát thử âm nền");
     expect(studio()).toContain("Thử lại âm nền");
     expect(studio()).not.toContain("ambientGenerationRef.current);");
   });

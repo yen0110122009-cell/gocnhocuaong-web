@@ -876,3 +876,14 @@
 - [x] Bổ sung regression tests cho liên kết lời thoại-bản ghi, quyền micro và playback.
 - [x] Chạy typecheck, Vitest, production build và QA responsive.
 - [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.
+
+## Âm nền và validation media
+- [x] Thêm nút “Phát thử âm nền” nổi bật để người dùng chủ động kích hoạt audio khi autoplay bị chặn.
+- [x] Hiển thị trạng thái đang thử phát, phát thành công, bị chặn và lỗi nguồn âm thanh.
+- [x] Kiểm tra định dạng ảnh trước khi tải/lưu, chỉ chấp nhận các định dạng an toàn đã công bố.
+- [x] Kiểm tra dung lượng ảnh tối đa và hiển thị giới hạn cụ thể khi tệp vượt quá.
+- [x] Kiểm tra định dạng bản ghi âm trước khi lưu.
+- [x] Kiểm tra dung lượng bản ghi âm tối đa và hiển thị lỗi có thể khắc phục.
+- [x] Bổ sung regression tests cho nút phát thử và các validator media.
+- [x] Chạy typecheck, Vitest, production build và QA responsive.
+- [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.
