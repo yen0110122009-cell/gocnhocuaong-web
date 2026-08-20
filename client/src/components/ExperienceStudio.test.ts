@@ -175,6 +175,10 @@ describe("Experience Studio requirements", () => {
 
   it("adds real environment-file upload, voice filtering, and channel playback status to Audio Center", () => {
     expect(audioCenterEnhancementsSource).toContain("Tải âm thanh môi trường thật");
+    expect(audioCenterEnhancementsSource).toContain("Thư viện asset đã tải lên");
+    expect(audioCenterEnhancementsSource).toContain("Nghe thử");
+    expect(audioCenterEnhancementsSource).toContain("Đổi tên");
+    expect(audioCenterEnhancementsSource).toContain("deletedAt");
     expect(audioCenterEnhancementsSource).toContain("uploadEnvironment");
     expect(audioCenterEnhancementsSource).toContain("audio/mpeg");
     expect(audioCenterEnhancementsSource).toContain("không tạo âm tổng hợp");

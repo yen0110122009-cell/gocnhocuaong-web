@@ -1,4 +1,4 @@
-import { CheckCircle2, Filter, Pause, Play, Radio, Search, Upload, Volume2 } from "lucide-react";
+import { CheckCircle2, Filter, Pause, Play, Radio, Search, Trash2, Upload, Volume2 } from "lucide-react";
 import React, { useMemo, useRef, useState } from "react";
 import type { MascotVoiceLine, PersonalAudioAsset, ProfileState } from "../../../shared/study";
 import { trpc } from "../lib/trpc";
@@ -45,16 +45,17 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   const [voiceEvent, setVoiceEvent] = useState("all");
   const [busyTarget, setBusyTarget] = useState<string | null>(null);
   const assets = profile.personalAudioAssets ?? [];
+  const activeAssets = assets.filter((asset) => !asset.deletedAt);
 
   const emotionOptions = useMemo(() => Array.from(new Set([
     ...voiceLines.map((item) => item.emotion).filter(Boolean),
-    ...assets.filter((item) => ["lumi", "ong", "member"].includes(item.category)).map((item) => item.target).filter((target) => target !== "general"),
+    ...activeAssets.filter((item) => ["lumi", "ong", "member"].includes(item.category)).map((item) => item.target).filter((target) => target !== "general"),
   ])).sort((a, b) => String(a).localeCompare(String(b), "vi")), [assets, voiceLines]);
   const eventOptions = useMemo(() => Array.from(new Set(voiceLines.map((item) => item.state).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi")), [voiceLines]);
 
   const filteredVoices = useMemo(() => {
     const normalizedQuery = voiceSearch.trim().toLocaleLowerCase("vi-VN");
-    const personal = assets.filter((asset) => ["lumi", "ong", "member"].includes(asset.category) && asset.enabled).map((asset) => ({
+    const personal = activeAssets.filter((asset) => ["lumi", "ong", "member"].includes(asset.category) && asset.enabled).map((asset) => ({
       id: asset.id,
       label: asset.category === "lumi" ? "Lumi" : asset.category === "ong" ? "Ong" : "Thành viên",
       name: asset.name,
@@ -79,6 +80,15 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
       return (!normalizedQuery || haystack.includes(normalizedQuery)) && (voiceCategory === "all" || item.label.toLocaleLowerCase("vi-VN").includes(voiceCategory === "member" ? "thành viên" : voiceCategory)) && (voiceEmotion === "all" || item.emotion === voiceEmotion) && (voiceEvent === "all" || item.event === voiceEvent);
     });
   }, [assets, voiceCategory, voiceEmotion, voiceEvent, voiceLines, voiceSearch]);
+
+  function patchAsset(id: string, patch: Partial<PersonalAudioAsset>, message?: string) {
+    onProfile({ ...profile, personalAudioAssets: assets.map((asset) => asset.id === id ? { ...asset, ...patch, updatedAt: new Date().toISOString() } : asset) }, message);
+  }
+
+  function renameAsset(asset: PersonalAudioAsset) {
+    const nextName = window.prompt("Tên mới cho asset âm thanh", asset.name)?.trim();
+    if (nextName && nextName !== asset.name) patchAsset(asset.id, { name: nextName.slice(0, 100) }, `Đã đổi tên “${asset.name}”.`);
+  }
 
   async function uploadEnvironment(file: File, target: (typeof environmentTargets)[number]["id"]) {
     if (!acceptedMime.includes(file.type as AcceptedAudioMime)) { onProfile(profile, "Chỉ hỗ trợ MP3, WAV, OGG, WEBM hoặc M4A cho âm thanh môi trường."); return; }
@@ -106,6 +116,11 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
           return <div key={target.id} className="rounded-xl border border-[#2e7d32]/15 bg-[#f8fff8] p-3"><div className="flex items-center justify-between gap-2"><div><b className="text-sm text-[#25582c]">{target.label}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">{current ? `Đang dùng: ${current.name}` : "Chưa có bản thu thật"}</span></div><input ref={(node) => { inputRefs.current[target.id] = node; }} type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/webm,audio/mp4,audio/x-m4a" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadEnvironment(file, target.id); event.target.value = ""; }} /><button type="button" disabled={busyTarget === target.id} onClick={() => inputRefs.current[target.id]?.click()} className="inline-flex items-center gap-1 rounded-lg bg-[#c62828] px-2.5 py-2 text-xs font-black text-white disabled:opacity-60"><Upload className="h-3.5 w-3.5" />{busyTarget === target.id ? "Đang tải…" : "Tải file"}</button></div></div>;
         })}
       </div>
+    </PersistentCollapsible>
+
+    <PersistentCollapsible storageKey="audio-center-library" eyebrow="Audio Center" title="Thư viện asset đã tải lên" className="border-[#2e7d32]/20 bg-white/90">
+      <p className="text-xs leading-5 text-[#35523a]">Nghe thử, đổi tên, bật/tắt hoặc chuyển asset vào thùng rác mềm. Asset bị xóa vẫn còn trong hồ sơ để có thể khôi phục ở luồng quản lý dữ liệu.</p>
+      <div className="mt-3 grid gap-2 md:grid-cols-2">{activeAssets.filter((asset) => asset.category === "background").length ? activeAssets.filter((asset) => asset.category === "background").map((asset) => <div key={asset.id} className="rounded-xl border border-[#2e7d32]/15 bg-[#f8fff8] p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><b className="block truncate text-xs text-[#25582c]">{asset.name}</b><span className="mt-1 block text-[11px] text-[#5a6d5d]">{asset.target === "rain" ? "Mưa rơi" : "Lật sách"} · {asset.enabled ? "Đang bật" : "Đang tắt"}</span><span className="mt-1 block text-[10px] text-[#7f1d1d]">{asset.source === "user_upload" ? "Tệp đã tải lên" : "URL bên ngoài"}</span></div><div className="flex shrink-0 gap-1"><button type="button" onClick={() => onPlayAsset(asset.url, "environment", asset.name, asset.volume)} className="rounded-lg bg-[#2e7d32] p-2 text-white" aria-label={`Nghe thử ${asset.name}`}><Play className="h-3.5 w-3.5" /></button><button type="button" onClick={() => patchAsset(asset.id, { enabled: !asset.enabled }, `${asset.enabled ? "Đã tắt" : "Đã bật"} “${asset.name}”.`)} className="rounded-lg border border-[#2e7d32]/20 bg-white p-2 text-[#2e7d32]" aria-label={asset.enabled ? `Tắt ${asset.name}` : `Bật ${asset.name}`}><Volume2 className="h-3.5 w-3.5" /></button><button type="button" onClick={() => renameAsset(asset)} className="rounded-lg border border-[#c62828]/20 bg-white px-2 text-[10px] font-black text-[#c62828]">Đổi tên</button><button type="button" onClick={() => patchAsset(asset.id, { deletedAt: new Date().toISOString(), enabled: false }, `Đã chuyển “${asset.name}” vào thùng rác.`)} className="rounded-lg border border-[#c62828]/20 bg-white p-2 text-[#c62828]" aria-label={`Xóa mềm ${asset.name}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div></div>) : <div className="rounded-xl border border-dashed border-[#2e7d32]/20 p-4 text-center text-xs text-[#5a6d5d]">Chưa có asset môi trường nào được tải lên.</div>}</div>
     </PersistentCollapsible>
 
     <PersistentCollapsible storageKey="audio-center-status" eyebrow="Audio Center" title="Trạng thái đang phát" className="border-[#2e7d32]/20 bg-white/90">

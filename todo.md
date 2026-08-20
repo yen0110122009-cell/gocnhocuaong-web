@@ -675,11 +675,11 @@
 - [x] Bổ sung regression cho volume độc lập, fade, chống phát chồng, chất lượng nguồn âm và nguồn lời thoại; chạy TypeScript, Vitest, build và QA.
 
 ## Audio Center — upload asset, lọc thoại và trạng thái phát
-- [ ] Cho phép tải lên file audio môi trường/nhạc/hiệu ứng như tiếng mưa và tiếng lật sách, xác thực định dạng/kích thước và lưu file qua storage.
-- [ ] Hiển thị thư viện asset đã tải lên với nghe thử, dùng làm ambience, đổi tên, bật/tắt và xóa mềm nếu phù hợp.
-- [ ] Thêm bộ lọc thoại Lumi/Ong/thành viên theo nguồn, cảm xúc và sự kiện; giữ lựa chọn bản ghi yêu thích.
-- [ ] Tạo trạng thái phát trực quan riêng cho môi trường, nhạc nền và thoại, gồm đang phát/tạm dừng/tắt, tên asset và mức âm lượng.
-- [ ] Bổ sung regression upload, lọc thoại, trạng thái phát; chạy TypeScript, Vitest, build và QA responsive.
+- [x] Cho phép tải lên file audio môi trường/nhạc/hiệu ứng như tiếng mưa và tiếng lật sách, xác thực định dạng/kích thước và lưu file qua storage.
+- [x] Hiển thị thư viện asset đã tải lên với nghe thử, dùng làm ambience, đổi tên, bật/tắt và xóa mềm nếu phù hợp.
+- [x] Thêm bộ lọc thoại Lumi/Ong/thành viên theo nguồn, cảm xúc và sự kiện; giữ lựa chọn bản ghi yêu thích.
+- [x] Tạo trạng thái phát trực quan riêng cho môi trường, nhạc nền và thoại, gồm đang phát/tạm dừng/tắt, tên asset và mức âm lượng.
+- [x] Bổ sung regression upload, lọc thoại, trạng thái phát; chạy TypeScript, Vitest, build và QA responsive.
 
 - [x] Audio Center: cho phép tải MP3/WAV cho âm thanh môi trường mưa và lật sách qua storage, kiểm tra định dạng/dung lượng và lưu metadata vào hồ sơ.
 - [x] Audio Center: thêm bộ lọc thư viện lời thoại Lumi/Ong/Thành viên theo cảm xúc và sự kiện, giữ trạng thái bản ghi phù hợp.
