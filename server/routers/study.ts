@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
   createAccountForToken,
@@ -19,6 +20,8 @@ import { invokeLLM } from "../_core/llm";
 import { publicProcedure, router } from "../_core/trpc";
 import { achievementCatalogRows, titleCatalogRows, validateMasterCatalog } from "../../shared/masterBuild";
 import { adjustPieceBalanceForToken, getPieceBalanceForToken } from "../pieceLedger";
+import { getDb } from "../db";
+import { studyCompanionDraftVersions, studyCompanionDrafts } from "../../drizzle/schema";
 
 function asTrpcError(error: unknown): never {
   throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Không thể xử lý yêu cầu." });
@@ -51,6 +54,53 @@ export const studyRouter = router({
     }),
     import: publicProcedure.input(tokenInput.extend({ profile: z.unknown() })).mutation(async ({ input }) => {
       try { return await saveProfileForToken(input.token, input.profile); } catch (error) { return asTrpcError(error); }
+    }),
+    getCompanionDraft: publicProcedure.input(tokenInput).query(async ({ input }) => {
+      try {
+        const { account } = await getStudySession(input.token);
+        const db = await getDb();
+        if (!db) throw new Error("Database chưa sẵn sàng để đồng bộ nháp.");
+        const current = await db.select().from(studyCompanionDrafts).where(eq(studyCompanionDrafts.accountId, account.id)).limit(1);
+        const versions = await db.select({ id: studyCompanionDraftVersions.id, version: studyCompanionDraftVersions.version, deviceLabel: studyCompanionDraftVersions.deviceLabel, createdAt: studyCompanionDraftVersions.createdAt }).from(studyCompanionDraftVersions).where(eq(studyCompanionDraftVersions.accountId, account.id)).orderBy(desc(studyCompanionDraftVersions.version)).limit(20);
+        return { current: current[0] ?? null, versions };
+      } catch (error) { return asTrpcError(error); }
+    }),
+    saveCompanionDraft: publicProcedure.input(tokenInput.extend({ data: z.string().min(2).max(1_500_000), expectedVersion: z.number().int().nonnegative().optional(), deviceLabel: z.string().max(120).optional() })).mutation(async ({ input }) => {
+      try {
+        const { account } = await getStudySession(input.token);
+        const db = await getDb();
+        if (!db) throw new Error("Database chưa sẵn sàng để đồng bộ nháp.");
+        const currentRows = await db.select().from(studyCompanionDrafts).where(eq(studyCompanionDrafts.accountId, account.id)).limit(1);
+        const current = currentRows[0];
+        if (input.expectedVersion !== undefined && (current?.version ?? 0) !== input.expectedVersion) throw new TRPCError({ code: "CONFLICT", message: "Nháp đã được cập nhật trên thiết bị khác. Hãy tải lại bản mới trước khi ghi đè." });
+        const nextVersion = (current?.version ?? 0) + 1;
+        const id = `${account.id}-${nextVersion}-${Date.now()}`.slice(0, 64);
+        await db.transaction(async (tx) => {
+          await tx.insert(studyCompanionDraftVersions).values({ id, accountId: account.id, version: nextVersion, data: input.data, deviceLabel: input.deviceLabel ?? "Thiết bị hiện tại", createdAt: new Date() });
+          await tx.insert(studyCompanionDrafts).values({ accountId: account.id, version: nextVersion, data: input.data, deviceLabel: input.deviceLabel ?? "Thiết bị hiện tại", updatedAt: new Date() }).onDuplicateKeyUpdate({ set: { version: nextVersion, data: input.data, deviceLabel: input.deviceLabel ?? "Thiết bị hiện tại", updatedAt: new Date() } });
+        });
+        return { version: nextVersion, savedAt: new Date().toISOString(), deviceLabel: input.deviceLabel ?? "Thiết bị hiện tại" };
+      } catch (error) { return asTrpcError(error); }
+    }),
+    restoreCompanionDraft: publicProcedure.input(tokenInput.extend({ version: z.number().int().positive(), expectedVersion: z.number().int().nonnegative().optional(), deviceLabel: z.string().max(120).optional() })).mutation(async ({ input }) => {
+      try {
+        const { account } = await getStudySession(input.token);
+        const db = await getDb();
+        if (!db) throw new Error("Database chưa sẵn sàng để khôi phục nháp.");
+        const currentRows = await db.select().from(studyCompanionDrafts).where(eq(studyCompanionDrafts.accountId, account.id)).limit(1);
+        const current = currentRows[0];
+        if (input.expectedVersion !== undefined && (current?.version ?? 0) !== input.expectedVersion) throw new TRPCError({ code: "CONFLICT", message: "Nháp hiện tại đã thay đổi trên thiết bị khác." });
+        const sourceRows = await db.select().from(studyCompanionDraftVersions).where(eq(studyCompanionDraftVersions.accountId, account.id)).limit(100);
+        const source = sourceRows.find((row) => row.version === input.version);
+        if (!source) throw new TRPCError({ code: "NOT_FOUND", message: "Không tìm thấy phiên bản nháp cần khôi phục." });
+        const nextVersion = (current?.version ?? 0) + 1;
+        const id = `${account.id}-${nextVersion}-${Date.now()}`.slice(0, 64);
+        await db.transaction(async (tx) => {
+          await tx.insert(studyCompanionDraftVersions).values({ id, accountId: account.id, version: nextVersion, data: source.data, deviceLabel: input.deviceLabel ?? "Khôi phục trên thiết bị hiện tại", createdAt: new Date() });
+          await tx.insert(studyCompanionDrafts).values({ accountId: account.id, version: nextVersion, data: source.data, deviceLabel: input.deviceLabel ?? "Khôi phục trên thiết bị hiện tại", updatedAt: new Date() }).onDuplicateKeyUpdate({ set: { version: nextVersion, data: source.data, deviceLabel: input.deviceLabel ?? "Khôi phục trên thiết bị hiện tại", updatedAt: new Date() } });
+        });
+        return { version: nextVersion, data: source.data, restoredFromVersion: source.version, savedAt: new Date().toISOString() };
+      } catch (error) { return asTrpcError(error); }
     }),
     uploadCompanionMedia: publicProcedure.input(tokenInput.extend({
       fileName: z.string().min(1).max(160),

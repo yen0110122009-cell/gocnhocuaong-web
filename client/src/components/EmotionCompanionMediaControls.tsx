@@ -49,11 +49,18 @@ function validImportedRecording(value: unknown, index: number): LumiVoiceRecordi
 
 export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: Props) {
   const upload = trpc.study.profile.uploadCompanionMedia.useMutation();
+  const token = getToken();
+  const draftQuery = trpc.study.profile.getCompanionDraft.useQuery({ token }, { enabled: Boolean(token), staleTime: 15_000 });
+  const saveDraftMutation = trpc.study.profile.saveCompanionDraft.useMutation();
+  const restoreDraftMutation = trpc.study.profile.restoreCompanionDraft.useMutation();
   const [busy, setBusy] = useState<MediaKind | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [failedUpload, setFailedUpload] = useState<{ file: File; kind: MediaKind; recordingId?: string; targetEmotion?: EmotionThemeId } | null>(null);
   const [recording, setRecording] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "synced" | "conflict" | "error">("idle");
+  const [showCloudHistory, setShowCloudHistory] = useState(false);
+  const syncInitializedRef = useRef(false);
   const [availableDraft, setAvailableDraft] = useState<{ savedAt: string; companionEmotionMedia?: ProfileState["companionEmotionMedia"] } | null>(() => { try { const raw = localStorage.getItem("companion-media-draft:v1"); if (!raw) return null; const parsed = JSON.parse(raw) as { savedAt?: string; companionEmotionMedia?: ProfileState["companionEmotionMedia"] }; return parsed.savedAt ? { savedAt: parsed.savedAt, companionEmotionMedia: parsed.companionEmotionMedia } : null; } catch { return null; } });
   const [showOnboarding, setShowOnboarding] = useState(() => { try { return localStorage.getItem("companion-media-onboarding-v1") !== "done"; } catch { return true; } });
   const [search, setSearch] = useState("");
@@ -75,14 +82,30 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const trashedRecordings = useMemo(() => emotionThemes.flatMap((theme) => (profile.lumiVoiceRecordingTrash?.[theme.id] ?? []).map((entry) => ({ ...entry, emotion: theme.id, emotionLabel: theme.label, linkedImage: entry.recording.imageUrl || profile.companionEmotionMedia?.[theme.id]?.lumiImageUrl || "" }))), [profile.companionEmotionMedia, profile.lumiVoiceRecordingTrash]);
   const emotionLabel = emotionThemes.find((item) => item.id === emotion)?.label ?? emotion;
   const draftStorageKey = "companion-media-draft:v1";
+  const deviceLabel = typeof navigator !== "undefined" ? `${/Mobi|Android/i.test(navigator.userAgent) ? "Thiết bị di động" : "Máy tính"} · ${navigator.platform || "trình duyệt"}` : "Thiết bị hiện tại";
   useEffect(() => {
+    let cancelled = false;
+    const savedAt = new Date().toISOString();
     try {
-      const draft = { savedAt: new Date().toISOString(), emotion, recording, companionEmotionMedia: profile.companionEmotionMedia };
+      const draft = { savedAt, emotion, recording, companionEmotionMedia: profile.companionEmotionMedia };
       localStorage.setItem(draftStorageKey, JSON.stringify(draft));
-      setDraftSavedAt(draft.savedAt);
-      setAvailableDraft({ savedAt: draft.savedAt, companionEmotionMedia: draft.companionEmotionMedia });
+      setDraftSavedAt(savedAt);
+      setAvailableDraft({ savedAt, companionEmotionMedia: draft.companionEmotionMedia });
     } catch { /* localStorage may be unavailable in private browsing */ }
-  }, [draftStorageKey, emotion, profile.companionEmotionMedia, recording]);
+    if (!token || !syncInitializedRef.current) {
+      syncInitializedRef.current = true;
+      return () => { cancelled = true; };
+    }
+    setSyncStatus("syncing");
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      saveDraftMutation.mutate({ token, data: JSON.stringify({ savedAt, emotion, recording, companionEmotionMedia: profile.companionEmotionMedia }), expectedVersion: draftQuery.data?.current?.version ?? 0, deviceLabel }, {
+        onSuccess: () => { if (!cancelled) { setSyncStatus("synced"); void draftQuery.refetch(); } },
+        onError: (error) => { if (!cancelled) setSyncStatus(error.message.includes("thiết bị khác") ? "conflict" : "error"); },
+      });
+    }, 900);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [deviceLabel, emotion, profile.companionEmotionMedia, recording, saveDraftMutation, token]);
   useEffect(() => () => { if (uploadProgressTimerRef.current) window.clearInterval(uploadProgressTimerRef.current); }, []);
 
   const libraryItems = useMemo<LibraryItem[]>(() => emotionThemes.flatMap((theme) => {
@@ -414,8 +437,9 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
 
   return <section className="relative z-10 mt-4 rounded-2xl border border-[#2e7d32]/20 bg-white/85 p-4 shadow-sm" aria-label="Ảnh và giọng Lumi theo cảm xúc">
     {showOnboarding ? <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-950" role="note"><div className="flex items-start justify-between gap-3"><div><p className="font-black">Bắt đầu với Lumi trong 3 bước</p><p className="mt-1 leading-5">① Ghi âm lời động viên bằng micro của bạn. ② Tải ảnh Lumi lên để gắn với bản thu. ③ Nhấn vào ảnh hoặc nút phát để nghe lại.</p></div><button type="button" onClick={() => { setShowOnboarding(false); try { localStorage.setItem("companion-media-onboarding-v1", "done"); } catch { /* ignore */ } }} className="shrink-0 rounded-lg border border-emerald-300 bg-white px-2 py-1 text-[11px] font-black text-emerald-800">Đã hiểu</button></div></div> : null}
-    {draftSavedAt ? <p className="mb-3 text-[10px] font-bold text-slate-500" role="status" aria-live="polite">Nháp tự động đã lưu {new Date(draftSavedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}.</p> : null}
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-[10px] font-bold" role="status" aria-live="polite"><span className="text-slate-500">{draftSavedAt ? `Nháp cục bộ đã lưu ${new Date(draftSavedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}.` : "Nháp cục bộ đang sẵn sàng."}</span>{token ? <span className={syncStatus === "synced" ? "text-emerald-700" : syncStatus === "conflict" || syncStatus === "error" ? "text-rose-700" : "text-sky-700"}>{syncStatus === "syncing" ? "Đang đồng bộ…" : syncStatus === "synced" ? "Đã đồng bộ tài khoản" : syncStatus === "conflict" ? "Có thay đổi trên thiết bị khác" : syncStatus === "error" ? "Đồng bộ lỗi · vẫn giữ nháp cục bộ" : "Đang chờ đồng bộ"}</span> : <span className="text-amber-700">Đăng nhập để đồng bộ đa thiết bị</span>}</div>
     {availableDraft?.companionEmotionMedia ? <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-950" role="status"><span>Có nháp cục bộ từ {new Date(availableDraft.savedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}. Bạn có muốn khôi phục không?</span><div className="flex gap-2"><button type="button" onClick={() => { onProfile({ ...profile, companionEmotionMedia: availableDraft.companionEmotionMedia }); setAvailableDraft(null); }} className="rounded-lg bg-sky-700 px-3 py-1.5 font-black text-white">Khôi phục nháp</button><button type="button" onClick={() => { try { localStorage.removeItem(draftStorageKey); } catch { /* ignore */ } setAvailableDraft(null); }} className="rounded-lg border border-sky-300 bg-white px-3 py-1.5 font-black text-sky-800">Bỏ nháp</button></div></div> : null}
+    {draftQuery.data?.current?.data ? <div className="mb-3 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-xs text-indigo-950" role="region" aria-label="Nháp đã đồng bộ trên tài khoản"><div className="flex flex-wrap items-center justify-between gap-2"><span><strong>Nháp tài khoản phiên bản {draftQuery.data.current.version}</strong> · {draftQuery.data.current.deviceLabel || "thiết bị khác"}</span><button type="button" onClick={() => { try { const cloud = JSON.parse(draftQuery.data?.current?.data || "{}"); if (cloud.companionEmotionMedia) onProfile({ ...profile, companionEmotionMedia: cloud.companionEmotionMedia }, "Đã khôi phục nháp từ tài khoản."); } catch { setSyncStatus("error"); } }} className="rounded-lg bg-indigo-700 px-3 py-1.5 font-black text-white">Dùng nháp tài khoản</button></div><button type="button" onClick={() => setShowCloudHistory((value) => !value)} className="mt-2 font-black text-indigo-800 underline underline-offset-2">{showCloudHistory ? "Ẩn lịch sử phiên bản" : "Xem lịch sử phiên bản"}</button>{showCloudHistory ? <div className="mt-2 grid gap-2">{draftQuery.data.versions.map((version) => <div key={version.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-indigo-100 bg-white p-2"><span>Phiên bản {version.version} · {version.deviceLabel || "thiết bị"} · {new Date(version.createdAt).toLocaleString("vi-VN")}</span><button type="button" onClick={() => { if (!token || !window.confirm(`Khôi phục phiên bản ${version.version}? Nháp hiện tại sẽ được lưu thành một phiên bản mới trước khi thay thế.`)) return; restoreDraftMutation.mutate({ token, version: version.version, expectedVersion: draftQuery.data?.current?.version ?? 0, deviceLabel }, { onSuccess: (result) => { try { const restored = JSON.parse(result.data) as { companionEmotionMedia?: ProfileState["companionEmotionMedia"] }; if (restored.companionEmotionMedia) onProfile({ ...profile, companionEmotionMedia: restored.companionEmotionMedia }, `Đã khôi phục phiên bản ${version.version}.`); } catch { setSyncStatus("error"); } void draftQuery.refetch(); setSyncStatus("synced"); }, onError: (error) => { setSyncStatus(error.message.includes("thiết bị khác") ? "conflict" : "error"); } }); }} disabled={restoreDraftMutation.isPending} className="rounded-lg border border-indigo-300 px-2 py-1 font-black text-indigo-800 disabled:opacity-50">{restoreDraftMutation.isPending ? "Đang khôi phục…" : "Khôi phục"}</button></div>)}</div> : null}</div> : null}
     {busy ? <div className="mb-3 rounded-xl border border-violet-200 bg-violet-50 p-3" role="status" aria-live="polite"><div className="flex items-center justify-between gap-3 text-xs font-black text-violet-900"><span>Đang tải {busy === "lumi-voice" ? "bản thu" : "ảnh"}…</span><span>{uploadProgress}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-violet-100"><div className="h-full rounded-full bg-violet-600 transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} /></div><p className="mt-1 text-[10px] text-violet-700">Vui lòng giữ nguyên trang cho đến khi hoàn tất.</p></div> : null}
     {failedUpload ? <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900" role="alert"><span>Không tải được “{failedUpload.file.name}”.</span><button type="button" onClick={() => { const retry = failedUpload; setFailedUpload(null); if (retry.recordingId) void uploadRecordingImage(retry.file, retry.recordingId, retry.targetEmotion); else void uploadFile(retry.file, retry.kind); }} className="rounded-lg bg-red-700 px-3 py-1.5 font-black text-white">Thử lại</button></div> : null}
     <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">Đồng hành theo cảm xúc</p><h3 className="mt-1 font-display text-lg font-black text-[#7f1d1d]">Mascot & Lumi · {emotionLabel}</h3><p className="mt-1 max-w-2xl text-xs leading-5 text-[#35523a]">Ảnh và bản thu này thuộc riêng hồ sơ của Ong, chỉ dùng khi đang chọn cảm xúc hiện tại.</p></div><div className="flex gap-2"><button type="button" onClick={() => onProfile({ ...profile, showMascot: profile.showMascot === false })} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">{profile.showMascot === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}{profile.showMascot === false ? "Hiện Mascot" : "Ẩn Mascot"}</button><button type="button" onClick={() => onProfile({ ...profile, showLumi: profile.showLumi === false })} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">{profile.showLumi === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}{profile.showLumi === false ? "Hiện Lumi" : "Ẩn Lumi"}</button></div></div>

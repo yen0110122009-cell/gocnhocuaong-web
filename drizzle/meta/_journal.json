@@ -22,6 +22,13 @@
       "when": 1786955537243,
       "tag": "0002_great_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1787226900112,
+      "tag": "0003_lush_redwing",
+      "breakpoints": true
     }
   ]
 }

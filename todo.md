@@ -816,3 +816,16 @@
 - [x] Bổ sung regression tests cho progress, retry, autosave và onboarding.
 - [x] Chạy typecheck, Vitest, production build và QA responsive.
 - [x] Đọc lại todo.md, đánh dấu hoàn tất trước checkpoint.
+
+## Đồng bộ nháp đa thiết bị và lịch sử phiên bản
+- [x] Tạo mô hình dữ liệu nháp companion theo user_id, nội dung, phiên bản, thời điểm cập nhật và thiết bị.
+- [x] Tạo bảng lịch sử phiên bản nháp có metadata, snapshot và khả năng khôi phục.
+- [x] Áp dụng schema migration an toàn qua quy trình database.
+- [x] Thêm procedure được bảo vệ để đọc, tạo/cập nhật và khôi phục nháp của chính người dùng.
+- [x] Đồng bộ nháp với tài khoản sau khi đăng nhập, giữ fallback local khi offline.
+- [x] Hiển thị trạng thái đang đồng bộ, đã đồng bộ, offline và lỗi trên Account.
+- [x] Hiển thị lịch sử phiên bản với thời gian/thiết bị và xác nhận trước khi khôi phục.
+- [x] Chống ghi đè nhầm bằng optimistic concurrency/version check.
+- [x] Bổ sung regression tests cho phân quyền, đồng bộ và khôi phục phiên bản.
+- [x] Chạy typecheck, Vitest, production build và QA responsive.
+- [x] Đọc lại todo.md, đánh dấu hoàn tất trước checkpoint.

@@ -30,6 +30,26 @@ export const studyProfiles = mysqlTable("study_profiles", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull().onUpdateNow(),
 });
 
+export const studyCompanionDrafts = mysqlTable("study_companion_drafts", {
+  accountId: varchar("accountId", { length: 64 }).primaryKey().references(() => studyAccounts.id),
+  version: int("version").notNull().default(1),
+  data: text("data").notNull(),
+  deviceLabel: varchar("deviceLabel", { length: 120 }),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({ versionIdx: index("study_companion_drafts_version_idx").on(table.version) }));
+
+export const studyCompanionDraftVersions = mysqlTable("study_companion_draft_versions", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  accountId: varchar("accountId", { length: 64 }).notNull().references(() => studyAccounts.id),
+  version: int("version").notNull(),
+  data: text("data").notNull(),
+  deviceLabel: varchar("deviceLabel", { length: 120 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  accountVersionIdx: uniqueIndex("study_companion_draft_versions_account_version_idx").on(table.accountId, table.version),
+  accountCreatedIdx: index("study_companion_draft_versions_account_created_idx").on(table.accountId, table.createdAt),
+}));
+
 export const studySessions = mysqlTable("study_sessions", {
   tokenHash: varchar("tokenHash", { length: 64 }).primaryKey(),
   accountId: varchar("accountId", { length: 64 }).notNull(),
