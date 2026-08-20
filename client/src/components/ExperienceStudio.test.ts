@@ -159,6 +159,15 @@ describe("Experience Studio requirements", () => {
     expect(cssSource).toContain(':root[data-focus-mode="true"]');
   });
 
+  it("shows mobile-friendly loading states while recording and uploading companion media", () => {
+    expect(mediaControlsSource).toContain("LoaderCircle");
+    expect(mediaControlsSource).toContain("Đang ghi âm… Nhấn để dừng");
+    expect(mediaControlsSource).toContain("Đang tải ảnh…");
+    expect(mediaControlsSource).toContain("Đang tải bản thu…");
+    expect(mediaControlsSource).toContain("aria-live=\"polite\"");
+    expect(mediaControlsSource).toContain("disabled={Boolean(busy)}");
+  });
+
   it("offers validated JSON export and merge-or-replace import without embedding media files", () => {
     expect(mediaControlsSource).toContain("exportLibrary");
     expect(mediaControlsSource).toContain("importLibrary");

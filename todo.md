@@ -798,3 +798,11 @@
 - [x] Bổ sung regression tests cho relocation, no-image, audio-image linkage và click-to-play.
 - [x] Chạy Vitest, typecheck, production build và QA responsive desktop/mobile.
 - [x] Đọc lại todo.md, đánh dấu toàn bộ hạng mục hoàn tất trước checkpoint.
+
+## UX mobile — loading và cải thiện trải nghiệm
+- [x] Thêm trạng thái loading rõ ràng trong lúc ghi âm Lumi trên thiết bị di động.
+- [x] Thêm trạng thái loading/progress khi tải ảnh Mascot hoặc Lumi lên storage.
+- [x] Khóa thao tác trùng trong lúc ghi âm và upload, có trạng thái lỗi có thể thử lại.
+- [x] Bổ sung regression tests cho loading ghi âm/upload và accessibility mobile.
+- [x] Chạy typecheck, Vitest, production build và QA responsive sau thay đổi.
+- [x] Tổng hợp các góp ý UX ưu tiên cho website.
