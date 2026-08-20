@@ -769,3 +769,10 @@
 - [x] Bổ sung preset tốc độ mặc định theo loại tệp âm thanh, cho phép áp dụng nhanh nhưng vẫn chọn tốc độ thủ công.
 - [x] Viết regression tests cho volume status và speed presets theo loại tệp.
 - [x] Chạy typecheck, Vitest, production build và QA desktop/mobile; checkpoint `3a5acbf1` đã lưu.
+
+## Audio Center — tùy chỉnh tốc độ và biểu đồ âm lượng
+- [x] Cho phép người dùng tự chỉnh và lưu preset tốc độ mặc định riêng cho từng loại tệp âm thanh.
+- [x] Cho phép khôi phục preset tốc độ mặc định và áp dụng preset đã lưu vào waveform preview.
+- [x] Hiển thị thanh biểu đồ mức âm lượng trực quan cạnh từng kênh đang phát, phản ánh volume/mute hiện tại.
+- [x] Viết regression tests cho tùy chỉnh speed preset và volume meter.
+- [ ] Chạy typecheck, Vitest, production build và QA desktop/mobile; chờ checkpoint mới.

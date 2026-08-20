@@ -67,6 +67,22 @@ describe("Audio Center UX contracts", () => {
     expect(componentSource).toContain("playbackRate");
   });
 
+  it("supports user-customized speed presets per audio category", () => {
+    expect(componentSource).toContain("audioPreviewSpeedPresets");
+    expect(componentSource).toContain("speedPresetCategory");
+    expect(componentSource).toContain("speedPresetDraft");
+    expect(componentSource).toContain("Lưu preset");
+    expect(componentSource).toContain("Khôi phục");
+    expect(componentSource).toContain("changeSpeedPresetCategory");
+  });
+
+  it("renders an accessible volume meter beside every playback channel", () => {
+    expect(componentSource).toContain('role="meter"');
+    expect(componentSource).toContain("Mức âm lượng ${label}");
+    expect(componentSource).toContain("aria-valuenow");
+    expect(componentSource).toContain("style={{ width: `${status.active ? volume : 0}%` }}");
+  });
+
   it("renders an accessible skeleton while the Audio Center lazy module loads", () => {
     expect(homeSource).toContain("AudioCenterLoadingSkeleton");
     expect(homeSource).toContain('aria-busy="true"');

@@ -505,6 +505,7 @@ export type AudioMixerSettings = {
   memberVoice: number;
 };
 export type PersonalAudioCategory = "emotion" | "season" | "weather" | "pomodoro" | "lumi" | "ong" | "member" | "background";
+export type AudioPreviewSpeed = 0.5 | 1 | 1.5 | 2;
 export type PersonalAudioSource = "user_upload" | "external_url";
 export type PersonalAudioAsset = {
   id: string;
@@ -690,6 +691,8 @@ export type ProfileState = {
   showLumi?: boolean;
   defaultAmbientScene?: AmbientScenePreference;
   audioMixer?: AudioMixerSettings;
+  /** Các tốc độ preview do người dùng tùy chỉnh theo từng loại tệp. */
+  audioPreviewSpeedPresets?: Partial<Record<PersonalAudioCategory, AudioPreviewSpeed[]>>;
   personalAudioAssets?: PersonalAudioAsset[];
   personalAudioTrash?: PersonalAudioAsset[];
   audioGroupPresets?: AudioGroupPreset[];
@@ -873,6 +876,7 @@ export const emptyProfile = (): ProfileState => ({
   showLumi: true,
   defaultAmbientScene: "morning",
   audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
+  audioPreviewSpeedPresets: {},
   personalAudioAssets: [],
   personalAudioTrash: [],
   personalStudyPresets: [],
@@ -1475,6 +1479,12 @@ export function normalizeProfile(value: unknown): ProfileState {
       ong: Math.max(0, Math.min(100, Number(source.audioMixer?.ong ?? base.audioMixer!.ong) || 0)),
       memberVoice: Math.max(0, Math.min(100, Number(source.audioMixer?.memberVoice ?? base.audioMixer!.memberVoice) || 0)),
     },
+    audioPreviewSpeedPresets: Object.fromEntries((Object.keys({ emotion: true, season: true, weather: true, pomodoro: true, lumi: true, ong: true, member: true, background: true }) as PersonalAudioCategory[]).flatMap((category) => {
+      const values = source.audioPreviewSpeedPresets?.[category];
+      if (!Array.isArray(values)) return [];
+      const speeds = values.filter((value): value is AudioPreviewSpeed => [0.5, 1, 1.5, 2].includes(Number(value))).map(Number).filter((value, index, list) => list.indexOf(value) === index) as AudioPreviewSpeed[];
+      return speeds.length ? [[category, speeds]] : [];
+    })) as Partial<Record<PersonalAudioCategory, AudioPreviewSpeed[]>>,
     personalAudioAssets: Array.isArray(source.personalAudioAssets) ? source.personalAudioAssets.flatMap((value) => {
       const asset = value && typeof value === "object" ? value as Partial<PersonalAudioAsset> : null;
       const id = typeof asset?.id === "string" && asset.id.trim() ? asset.id.trim() : "";
