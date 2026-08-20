@@ -762,4 +762,4 @@
 - [x] Thêm nút điều chỉnh âm lượng và bật/tắt mute cho âm thanh nền, lưu preference và đồng bộ với playback hiện tại.
 - [x] Thêm lựa chọn tốc độ phát waveform preview: 0.5x, 1x, 1.5x, 2x; áp dụng cho audio đang nghe thử và giữ trạng thái dễ hiểu.
 - [x] Viết regression tests cho volume/mute và playback rate.
-- [ ] Chạy typecheck, Vitest, production build và QA desktop/mobile; chờ checkpoint mới.
+- [x] Chạy typecheck, Vitest, production build và QA desktop/mobile; checkpoint `7eb2bf4f` đã lưu.
