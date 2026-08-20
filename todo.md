@@ -887,3 +887,19 @@
 - [x] Bổ sung regression tests cho nút phát thử và các validator media.
 - [x] Chạy typecheck, Vitest, production build và QA responsive.
 - [x] Đọc lại todo.md và đánh dấu hoàn tất trước checkpoint.
+
+## GitHub Pages — sự cố đồng bộ và ảnh không hiển thị
+- [x] Xác minh repository, branch, commit và workflow GitHub Pages đang được phục vụ.
+- [x] Đối chiếu artifact GitHub Pages với checkpoint/source hiện tại để xác định bản đang chạy.
+- [x] Kiểm tra các đường dẫn asset, base path, fallback và cache khiến ảnh không hiển thị.
+- [x] Xác định cơ chế GitHub Pages lưu ảnh và giới hạn đồng bộ với storage/account của bản full-stack.
+- [x] Sửa pipeline hoặc static compatibility để bản GitHub nhận đúng mã mới.
+- [x] Sửa luồng ảnh để ảnh hiển thị ổn định và nêu rõ trạng thái chưa đồng bộ nếu không thể truy cập cloud.
+- [x] Bổ sung cơ chế đồng bộ metadata/ảnh phù hợp giữa GitHub Pages và bản full-stack, không làm lộ dữ liệu người dùng.
+- [ ] Kiểm thử trực tiếp URL GitHub Pages, ảnh, recording, Audio Center và responsive.
+- [ ] Đồng bộ branch GitHub và lưu checkpoint sau khi xác minh bản live.
+
+- [x] Sửa URL ảnh/âm thanh storage tương đối khi chạy trên GitHub Pages, có fallback preview an toàn.
+- [x] Bảo đảm metadata ảnh Mascot/Lumi và bản thu được đồng bộ đúng giữa frontend tĩnh, Supabase state và backend storage.
+- [x] Kiểm tra và sửa ambient playback trên GitHub Pages: URL asset, manual play, autoplay fallback, volume và cleanup.
+- [ ] Chạy regression Vitest, TypeScript, production build và QA live GitHub Pages sau các sửa đổi media.

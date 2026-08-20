@@ -39,7 +39,7 @@
   body:has(#root > main) main .text-slate-300 { color: #eadbc3 !important; }
   #root > div.min-h-screen aside .from-blue-600.to-violet-600, #root > div.min-h-screen aside nav .from-blue-600.to-violet-600 { background-image: linear-gradient(135deg, #b7791f, #e0a32b) !important; }
   #root > div.min-h-screen header .from-cyan-300.to-violet-500 { background-image: linear-gradient(135deg, #f5cf73, #d99a28) !important; color: #3c2a16 !important; }
-  body:has(#root > main) .flex.items-center.gap-3 > span.from-cyan-300.to-violet-500, #root > div.min-h-screen aside .flex.items-center.gap-3 > span.from-cyan-300.to-violet-500 { background: url('/manus-storage/ong-human_8377d607.png') center / contain no-repeat !important; }
+  body:has(#root > main) .flex.items-center.gap-3 > span.from-cyan-300.to-violet-500, #root > div.min-h-screen aside .flex.items-center.gap-3 > span.from-cyan-300.to-violet-500 { background-image: linear-gradient(135deg, #f5cf73, #d99a28) !important; }
   body:has(#root > main) .flex.items-center.gap-3 > span.from-cyan-300.to-violet-500 > svg, #root > div.min-h-screen aside .flex.items-center.gap-3 > span.from-cyan-300.to-violet-500 > svg { opacity: 0; }
   button, input, select, textarea { font: inherit; }
   button { cursor: pointer; }

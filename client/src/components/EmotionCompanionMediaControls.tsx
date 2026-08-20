@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CompanionEmotionMedia, EmotionThemeId, LumiVoiceRecording, LumiVoiceRecordingTrashEntry, ProfileState } from "../../../shared/study";
 import { emotionThemes } from "../lib/emotionThemes";
 import { trpc } from "../lib/trpc";
+import { isGitHubPages, resolveMediaUrl } from "../lib/runtime";
 import { companionDraftDiff, mergeCompanionDrafts, parseCompanionDraft, type CompanionDraftPayload, type DraftSource } from "../../../shared/companionDraftMerge";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 
@@ -83,7 +84,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const uploadProgressTimerRef = useRef<number | null>(null);
   const media = profile.companionEmotionMedia?.[emotion] ?? {};
   const voiceRecordings = recordingsFromMedia(media, emotion);
-  const trashedRecordings = useMemo(() => emotionThemes.flatMap((theme) => (profile.lumiVoiceRecordingTrash?.[theme.id] ?? []).map((entry) => ({ ...entry, emotion: theme.id, emotionLabel: theme.label, linkedImage: entry.recording.imageUrl || profile.companionEmotionMedia?.[theme.id]?.lumiImageUrl || "" }))), [profile.companionEmotionMedia, profile.lumiVoiceRecordingTrash]);
+  const trashedRecordings = useMemo(() => emotionThemes.flatMap((theme) => (profile.lumiVoiceRecordingTrash?.[theme.id] ?? []).map((entry) => ({ ...entry, emotion: theme.id, emotionLabel: theme.label, linkedImage: resolveMediaUrl(entry.recording.imageUrl || profile.companionEmotionMedia?.[theme.id]?.lumiImageUrl || "") }))), [profile.companionEmotionMedia, profile.lumiVoiceRecordingTrash]);
   const emotionLabel = emotionThemes.find((item) => item.id === emotion)?.label ?? emotion;
   const draftStorageKey = "companion-media-draft:v1";
   const deviceLabel = typeof navigator !== "undefined" ? `${/Mobi|Android/i.test(navigator.userAgent) ? "Thiết bị di động" : "Máy tính"} · ${navigator.platform || "trình duyệt"}` : "Thiết bị hiện tại";
@@ -153,9 +154,11 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     const themeMedia = profile.companionEmotionMedia?.[theme.id];
     return recordingsFromMedia(themeMedia, theme.id).map((item) => ({
       ...item,
+      url: resolveMediaUrl(item.url),
+      imageUrl: resolveMediaUrl(item.imageUrl),
       emotion: theme.id,
       emotionLabel: theme.label,
-      linkedImage: item.imageUrl || themeMedia?.lumiImageUrl || "",
+      linkedImage: resolveMediaUrl(item.imageUrl || themeMedia?.lumiImageUrl || ""),
     }));
   }), [profile.companionEmotionMedia]);
 
@@ -217,8 +220,6 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   }
 
   async function uploadFile(file: File, kind: MediaKind) {
-    const token = getToken();
-    if (!token) { alert("Phiên đăng nhập đã hết. Hãy đăng nhập lại trước khi tải tệp."); return; }
     const isAudio = kind === "lumi-voice";
     const allowed = isAudio ? ["audio/webm", "audio/ogg", "audio/wav", "audio/mpeg"] : ["image/png", "image/jpeg", "image/webp", "image/gif"];
     const limit = isAudio ? 8 * 1024 * 1024 : 3 * 1024 * 1024;
@@ -229,14 +230,21 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     if (uploadProgressTimerRef.current) window.clearInterval(uploadProgressTimerRef.current);
     uploadProgressTimerRef.current = window.setInterval(() => setUploadProgress((value) => Math.min(value + (value < 45 ? 12 : 4), 88)), 260);
     try {
-      const result = await upload.mutateAsync({ token, fileName: file.name, contentType: file.type as "image/png", dataUrl: await toDataUrl(file), mediaType: kind });
+      const dataUrl = await toDataUrl(file);
+      const token = getToken();
+      // GitHub Pages không có /api/trpc và không thể gọi storage proxy cùng origin.
+      // Lưu data URL vào cloud-state để ảnh/âm thanh vẫn phát được trên bản tĩnh.
+      const mediaUrl = isGitHubPages ? dataUrl : resolveMediaUrl((await (async () => {
+        if (!token) throw new Error("Phiên đăng nhập đã hết. Hãy đăng nhập lại trước khi tải tệp.");
+        return upload.mutateAsync({ token, fileName: file.name, contentType: file.type as "image/png", dataUrl, mediaType: kind });
+      })()).url);
       setUploadProgress(100);
       if (kind === "lumi-voice") {
         const id = crypto.randomUUID();
         const createdAt = new Date().toISOString();
-        const item: LumiVoiceRecording = { id, url: result.url, label: file.name.replace(/\.[^/.]+$/, "").slice(0, 80) || "Bản thu Lumi", createdAt, updatedAt: createdAt, imageUrl: media.lumiImageUrl || undefined };
+        const item: LumiVoiceRecording = { id, url: mediaUrl, label: file.name.replace(/\.[^/.]+$/, "").slice(0, 80) || "Bản thu Lumi", createdAt, updatedAt: createdAt, imageUrl: media.lumiImageUrl || undefined };
         updateVoiceRecordings([...voiceRecordings, item], media.favoriteLumiVoiceId ?? id, `Đã thêm bản thu Lumi cho cảm xúc “${emotionLabel}”.`);
-      } else update(kind === "mascot-image" ? { mascotImageUrl: result.url } : { lumiImageUrl: result.url }, `Đã lưu ảnh cho cảm xúc “${emotionLabel}”.`);
+      } else update(kind === "mascot-image" ? { mascotImageUrl: mediaUrl } : { lumiImageUrl: mediaUrl }, `Đã lưu ảnh cho cảm xúc “${emotionLabel}”.`);
     } catch (error) { setFailedUpload({ file, kind }); alert(error instanceof Error ? error.message : "Không thể tải tệp. Bạn có thể thử lại."); }
     finally { if (uploadProgressTimerRef.current) window.clearInterval(uploadProgressTimerRef.current); uploadProgressTimerRef.current = null; setBusy(null); setUploadProgress(0); }
   }
@@ -252,9 +260,14 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     if (uploadProgressTimerRef.current) window.clearInterval(uploadProgressTimerRef.current);
     uploadProgressTimerRef.current = window.setInterval(() => setUploadProgress((value) => Math.min(value + (value < 45 ? 12 : 4), 88)), 260);
     try {
-      const result = await upload.mutateAsync({ token, fileName: file.name, contentType: file.type as "image/png", dataUrl: await toDataUrl(file), mediaType: "lumi-image" });
+      const dataUrl = await toDataUrl(file);
+      const token = getToken();
+      const imageUrl = isGitHubPages ? dataUrl : resolveMediaUrl((await (async () => {
+        if (!token) throw new Error("Phiên đăng nhập đã hết. Hãy đăng nhập lại trước khi tải ảnh.");
+        return upload.mutateAsync({ token, fileName: file.name, contentType: file.type as "image/png", dataUrl, mediaType: "lumi-image" });
+      })()).url);
       setUploadProgress(100);
-      updateRecordingImage(recordingId, result.url, targetEmotion, "Đã đổi ảnh đi kèm bản thu Lumi.");
+      updateRecordingImage(recordingId, imageUrl, targetEmotion, "Đã đổi ảnh đi kèm bản thu Lumi.");
     } catch (error) { setFailedUpload({ file, kind: "lumi-image", recordingId, targetEmotion }); alert(error instanceof Error ? error.message : "Không thể tải ảnh. Bạn có thể thử lại."); }
     finally { if (uploadProgressTimerRef.current) window.clearInterval(uploadProgressTimerRef.current); uploadProgressTimerRef.current = null; setBusy(null); setUploadProgress(0); }
   }
@@ -486,8 +499,8 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     {failedUpload ? <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900" role="alert"><span>Không tải được “{failedUpload.file.name}”.</span><button type="button" onClick={() => { const retry = failedUpload; setFailedUpload(null); if (retry.recordingId) void uploadRecordingImage(retry.file, retry.recordingId, retry.targetEmotion); else void uploadFile(retry.file, retry.kind); }} className="rounded-lg bg-red-700 px-3 py-1.5 font-black text-white">Thử lại</button></div> : null}
     <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">Đồng hành theo cảm xúc</p><h3 className="mt-1 font-display text-lg font-black text-[#7f1d1d]">Mascot & Lumi · {emotionLabel}</h3><p className="mt-1 max-w-2xl text-xs leading-5 text-[#35523a]">Ảnh và bản thu này thuộc riêng hồ sơ của Ong, chỉ dùng khi đang chọn cảm xúc hiện tại.</p></div><div className="flex gap-2"><button type="button" onClick={() => onProfile({ ...profile, showMascot: profile.showMascot === false })} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">{profile.showMascot === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}{profile.showMascot === false ? "Hiện Mascot" : "Ẩn Mascot"}</button><button type="button" onClick={() => onProfile({ ...profile, showLumi: profile.showLumi === false })} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700">{profile.showLumi === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}{profile.showLumi === false ? "Hiện Lumi" : "Ẩn Lumi"}</button></div></div>
     <div className="mt-4 grid gap-3 sm:grid-cols-3">
-      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3"><p className="text-xs font-black text-amber-800">Mascot của Ong</p>{profile.showMascot === false ? <p className="mt-3 text-xs text-amber-800">Đang ẩn theo lựa chọn.</p> : media.mascotImageUrl ? <img src={media.mascotImageUrl} alt={`Mascot khi ${emotionLabel}`} className="mt-3 h-14 w-12 rounded-xl object-cover object-top" /> : <div className="mt-3 flex h-14 w-12 items-center justify-center rounded-xl border border-dashed border-amber-300 bg-white text-center text-[9px] font-black text-amber-800">Chưa có ảnh</div>}<p className="mt-2 text-[11px] leading-4 text-amber-800">Mascot chỉ hiển thị ảnh khi bạn tự tải lên.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="mascot-image" label="Tải ảnh" />{media.mascotImageUrl ? <button type="button" onClick={() => remove("mascotImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Mascot"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
-      <div className="rounded-xl border border-red-200 bg-red-50/60 p-3"><p className="text-xs font-black text-[#8e1b1b]">Lumi</p>{profile.showLumi === false ? <p className="mt-3 text-xs text-[#8e1b1b]">Đang ẩn theo lựa chọn.</p> : media.lumiImageUrl ? <img src={media.lumiImageUrl} alt={`Lumi khi ${emotionLabel}`} className="mt-3 h-14 w-12 rounded-xl object-cover object-top" /> : <div className="mt-3 flex h-14 w-12 items-center justify-center rounded-xl border border-dashed border-red-300 bg-white text-center text-[9px] font-black text-red-700">Chưa có ảnh</div>}<p className="mt-2 text-[11px] leading-4 text-[#8e1b1b]">Chưa có ảnh Lumi. Hãy ghi âm trước rồi tải ảnh để gắn vào lời thoại.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="lumi-image" label="Tải ảnh" />{media.lumiImageUrl ? <button type="button" onClick={() => remove("lumiImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Lumi"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
+      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3"><p className="text-xs font-black text-amber-800">Mascot của Ong</p>{profile.showMascot === false ? <p className="mt-3 text-xs text-amber-800">Đang ẩn theo lựa chọn.</p> : media.mascotImageUrl ? <img src={resolveMediaUrl(media.mascotImageUrl)} alt={`Mascot khi ${emotionLabel}`} className="mt-3 h-14 w-12 rounded-xl object-cover object-top" /> : <div className="mt-3 flex h-14 w-12 items-center justify-center rounded-xl border border-dashed border-amber-300 bg-white text-center text-[9px] font-black text-amber-800">Chưa có ảnh</div>}<p className="mt-2 text-[11px] leading-4 text-amber-800">Mascot chỉ hiển thị ảnh khi bạn tự tải lên.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="mascot-image" label="Tải ảnh" />{media.mascotImageUrl ? <button type="button" onClick={() => remove("mascotImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Mascot"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
+      <div className="rounded-xl border border-red-200 bg-red-50/60 p-3"><p className="text-xs font-black text-[#8e1b1b]">Lumi</p>{profile.showLumi === false ? <p className="mt-3 text-xs text-[#8e1b1b]">Đang ẩn theo lựa chọn.</p> : media.lumiImageUrl ? <img src={resolveMediaUrl(media.lumiImageUrl)} alt={`Lumi khi ${emotionLabel}`} className="mt-3 h-14 w-12 rounded-xl object-cover object-top" /> : <div className="mt-3 flex h-14 w-12 items-center justify-center rounded-xl border border-dashed border-red-300 bg-white text-center text-[9px] font-black text-red-700">Chưa có ảnh</div>}<p className="mt-2 text-[11px] leading-4 text-[#8e1b1b]">Chưa có ảnh Lumi. Hãy ghi âm trước rồi tải ảnh để gắn vào lời thoại.</p><div className="mt-3 flex flex-wrap gap-2"><ImageInput kind="lumi-image" label="Tải ảnh" />{media.lumiImageUrl ? <button type="button" onClick={() => remove("lumiImageUrl")} className="rounded-xl border border-red-200 p-2 text-red-700" aria-label="Gỡ ảnh Lumi"><Trash2 className="h-4 w-4" /></button> : null}</div></div>
       <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-3 sm:col-span-2"><p className="text-xs font-black text-violet-800">Thêm bản thu cho {emotionLabel}</p><p className="mt-1 text-xs leading-5 text-violet-800">Bản thu mới sẽ giữ ảnh Lumi đang chọn; sau đó Ong có thể đổi ảnh riêng ngay trong lưới.</p>{recording ? <p className="mt-2 rounded-lg bg-red-100 px-2.5 py-2 text-[11px] font-black text-red-800" role="status" aria-live="polite">Đang thu âm từ micro của thiết bị. Hãy nói lời động viên, rồi nhấn nút đỏ để lưu.</p> : busy ? <p className="mt-2 rounded-lg bg-violet-100 px-2.5 py-2 text-[11px] font-black text-violet-800" role="status" aria-live="polite">Đang xử lý tệp, vui lòng giữ nguyên trang trong giây lát.</p> : null}<div className="mt-3 flex flex-wrap gap-2"><VoiceInput /><button type="button" onClick={() => void toggleRecord()} disabled={Boolean(busy)} aria-pressed={recording} aria-busy={recording} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white transition active:scale-[.98] ${recording ? "animate-pulse bg-red-600" : "bg-violet-700"}`}>{recording ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}{recording ? "Đang ghi âm… Nhấn để dừng" : "Ghi âm Lumi"}</button></div></div>
     </div>
 
