@@ -45,6 +45,21 @@ describe("Audio Center UX contracts", () => {
     expect(experienceStudioSource).toContain("autoplay");
   });
 
+  it("supports ambient volume and mute controls", () => {
+    expect(experienceStudioSource).toContain("audioChannelVolumes.environment");
+    expect(experienceStudioSource).toContain("toggleAmbientMute");
+    expect(experienceStudioSource).toContain("ambientMuted");
+    expect(experienceStudioSource).toContain("Âm lượng âm nền");
+  });
+
+  it("supports waveform preview playback rates", () => {
+    expect(componentSource).toContain("previewRate");
+    expect(componentSource).toContain('value="0.5"');
+    expect(componentSource).toContain('value="1.5"');
+    expect(componentSource).toContain('value="2"');
+    expect(componentSource).toContain("playbackRate");
+  });
+
   it("renders an accessible skeleton while the Audio Center lazy module loads", () => {
     expect(homeSource).toContain("AudioCenterLoadingSkeleton");
     expect(homeSource).toContain('aria-busy="true"');

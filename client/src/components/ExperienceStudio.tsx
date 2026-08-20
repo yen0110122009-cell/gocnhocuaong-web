@@ -54,6 +54,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const [ambientScene, setAmbientScene] = useState<AmbientScene>(() => profile?.defaultAmbientScene ?? "morning");
   const [ambientVolumes, setAmbientVolumes] = useState<AmbientVolumes>(() => ({ ...defaultAmbientVolumes, ...profile?.audioMixer?.ambientSceneVolumes }));
   const [ambientPlaying, setAmbientPlaying] = useState(false);
+  const [ambientMuted, setAmbientMuted] = useState(false);
   const [playbackStatus, setPlaybackStatus] = useState<AudioPlaybackStatus>({ environment: { active: false, label: "" }, music: { active: false, label: "" }, voice: { active: false, label: "" } });
   const attentionPreferences: AttentionPreferences = { animationsEnabled: profile?.animationsEnabled !== false, popupsEnabled: profile?.popupsEnabled !== false, soundEnabled: profile?.soundEnabled !== false };
   const restoredEmotionRef = useRef(false);
@@ -121,11 +122,19 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     return () => { if (playbackTickerRef.current) window.cancelAnimationFrame(playbackTickerRef.current); };
   }, []);
   useEffect(() => {
+    try { setAmbientMuted(window.localStorage.getItem("study-empire:ambient-muted") === "true"); } catch { /* localStorage có thể bị chặn trong private mode. */ }
+  }, []);
+  useEffect(() => {
     if (!attentionPreferences.soundEnabled) {
       stopAmbient();
       lumiAudioRef.current?.pause();
     }
   }, [attentionPreferences.soundEnabled]);
+  useEffect(() => {
+    try { window.localStorage.setItem("study-empire:ambient-muted", String(ambientMuted)); } catch { /* không làm gián đoạn phát audio nếu storage bị chặn. */ }
+    const track = ambientTrackRef.current;
+    if (track) track.volume = ambientMuted ? 0 : Math.max(0, Math.min(1, audioChannelVolumes.environment / 100));
+  }, [ambientMuted, audioChannelVolumes.environment]);
 
   function setScene(next: AmbientScene) {
     setAmbientScene(next);
@@ -143,7 +152,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     setAmbientVolumes(next);
     if (ambientPlaying && ambientScene === scene && ambientMasterRef.current) {
       const context = audioContextRef.current;
-      const target = Math.min(.32, Math.max(.008, level / 100 * .32));
+      const target = ambientMuted ? 0 : Math.min(.32, Math.max(.008, level / 100 * .32));
       if (context?.state === "running") {
         ambientMasterRef.current.gain.cancelScheduledValues(context.currentTime);
         ambientMasterRef.current.gain.linearRampToValueAtTime(target, context.currentTime + .12);
@@ -157,6 +166,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const safeLevel = Math.max(0, Math.min(100, level));
     onProfile?.({ ...profile, audioMixer: { ...(profile.audioMixer ?? { ambientSceneVolumes: defaultAmbientVolumes, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 }), [channel]: safeLevel } });
     if (channel === "lumi" && lumiAudioRef.current) lumiAudioRef.current.volume = safeLevel / 100;
+    if (channel === "environment" && ambientTrackRef.current) ambientTrackRef.current.volume = ambientMuted ? 0 : safeLevel / 100;
   }
   function updateLumiVolume(level: number) { updateAudioChannelVolume("lumi", level); }
 
@@ -214,7 +224,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     if (personalAmbientAudio) {
       const audio = new Audio(personalAmbientAudio.url);
       audio.loop = true;
-      const targetVolume = Math.max(0, Math.min(1, ambientVolumes[scene] / 100 * audioChannelVolumes.environment / 100));
+      const targetVolume = ambientMuted ? 0 : Math.max(0, Math.min(1, ambientVolumes[scene] / 100 * audioChannelVolumes.environment / 100));
       audio.volume = 0;
       ambientTrackRef.current = audio;
       void audio.play().then(() => {
@@ -332,6 +342,11 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     }).catch(() => setMessage("Không thể phát bản ghi của thành viên này."));
   }
 
+  function toggleAmbientMute() {
+    setAmbientMuted((muted) => !muted);
+    setMessage(ambientMuted ? "Đã bật lại âm nền." : "Đã tắt tiếng âm nền; các kênh thoại vẫn giữ nguyên.");
+  }
+
   function playCleanAmbientAsset(url: string, label: string) {
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
     ambientTrackRef.current?.pause();
@@ -341,7 +356,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     ambientTrackRef.current = audio;
     void audio.play().then(() => {
       const startedAt = performance.now();
-      const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = audioChannelVolumes.environment / 100 * progress; if (progress < 1 && ambientTrackRef.current === audio) window.requestAnimationFrame(fadeIn); };
+      const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = ambientMuted ? 0 : audioChannelVolumes.environment / 100 * progress; if (progress < 1 && ambientTrackRef.current === audio) window.requestAnimationFrame(fadeIn); };
       window.requestAnimationFrame(fadeIn);
       setChannelPlaying("environment", true, label);
       setMessage(`Đang nghe thử âm thanh sạch: ${label}.`);
@@ -366,7 +381,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     <div className="relative z-10 mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{emotionThemes.map((item) => <div key={item.id} className={`relative rounded-2xl border ${item.id === selected ? "border-[var(--emotion-primary)] bg-[var(--emotion-soft)] shadow-md" : "border-[#2e7d32]/15 bg-white/75"}`}><button type="button" aria-pressed={item.id === selected} onClick={() => selectEmotion(item.id)} className="w-full p-3 pr-10 text-left text-[var(--emotion-ink)]"><span className="text-xl" aria-hidden="true">{item.emoji}</span><b className="mt-1 block text-sm">{item.label}</b><small className="mt-1 block text-[11px] leading-4 opacity-75">{item.description}</small></button><button type="button" aria-label={`Phát âm nền cho cảm xúc ${item.label}`} onClick={() => toggleAmbient(item.id === "sad" || item.id === "tired" ? "rain" : item.id === "happy" || item.id === "proud" ? "morning" : item.id === "stressed" ? "storm" : "leaves")} className="absolute bottom-2 right-2 rounded-lg border border-[#c62828]/20 bg-white/95 p-1.5 text-[#c62828] shadow-sm"><Volume2 className="h-3.5 w-3.5" /></button></div>)}</div>
     <PersistentCollapsible storageKey="experience-ambient-audio" eyebrow="Không gian cảm xúc" title="Âm thanh và cảnh nền" className="relative z-10 mt-4 border-[#2e7d32]/20 bg-white/85">
     <section className="rounded-2xl" aria-label="Âm thanh và cảnh nền">
-      <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Âm thanh và cảnh nền</p><p className="mt-1 text-xs text-[#35523a]">Cảnh nền sẽ tự phát từ khi mở web đến khi đóng web nếu trình duyệt cho phép; nếu autoplay bị chặn, chỉ cần chạm hoặc nhấn phím một lần để tiếp tục.</p></div><button type="button" onClick={() => toggleAmbient()} className="rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">{ambientPlaying ? <><Pause className="mr-1 inline h-3.5 w-3.5" />Dừng âm nền</> : <><Play className="mr-1 inline h-3.5 w-3.5" />Nghe âm nền</>}</button></div>
+      <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Âm thanh và cảnh nền</p><p className="mt-1 text-xs text-[#35523a]">Cảnh nền sẽ tự phát từ khi mở web đến khi đóng web nếu trình duyệt cho phép; nếu autoplay bị chặn, chỉ cần chạm hoặc nhấn phím một lần để tiếp tục.</p></div><div className="flex flex-wrap items-center gap-2"><button type="button" aria-pressed={ambientMuted} onClick={toggleAmbientMute} className="rounded-xl border border-[#c62828]/25 bg-white px-3 py-2 text-xs font-black text-[#c62828]">{ambientMuted ? <><VolumeX className="mr-1 inline h-3.5 w-3.5" />Bật tiếng âm nền</> : <><Volume2 className="mr-1 inline h-3.5 w-3.5" />Mute âm nền</>}</button><button type="button" onClick={() => toggleAmbient()} className="rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">{ambientPlaying ? <><Pause className="mr-1 inline h-3.5 w-3.5" />Dừng âm nền</> : <><Play className="mr-1 inline h-3.5 w-3.5" />Nghe âm nền</>}</button></div></div>
+      <div className="mt-3 rounded-xl border border-[#c62828]/15 bg-[#fff8f5] px-3 py-2"><label className="block text-xs font-black text-[#7f1d1d]">Âm lượng âm nền <span className="float-right">{audioChannelVolumes.environment}%</span><input type="range" min="0" max="100" value={audioChannelVolumes.environment} onChange={(event) => updateAudioChannelVolume("environment", Number(event.target.value))} className="mt-2 w-full accent-[#c62828]" aria-label="Âm lượng âm nền" /></label></div>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">{sceneOptions.map((scene) => { const Icon = scene.icon; return <button key={scene.id} type="button" aria-pressed={ambientScene === scene.id} onClick={() => setScene(scene.id)} className={`rounded-xl border p-2 text-left text-xs ${ambientScene === scene.id ? "border-[#c62828] bg-[#fff0eb] text-[#7f1d1d]" : "border-[#2e7d32]/15 bg-white text-[#35523a]"}`}><Icon className="h-4 w-4" /><b className="mt-1 block">{scene.label}</b><span className="text-[10px] opacity-75">{scene.detail}</span></button>; })}</div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#eff9ef] p-2"><p className="text-xs font-bold text-[#35523a]">Mặc định hiện tại: <b>{sceneOptions.find((item) => item.id === favoriteScene)?.label}</b></p><button type="button" onClick={saveFavoriteScene} className="rounded-lg border border-[#2e7d32]/30 bg-white px-2.5 py-1.5 text-xs font-black text-[#2e7d32]">Lưu cảnh này làm mặc định</button></div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Mixer âm lượng cảnh nền">
@@ -383,7 +399,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     </PersistentCollapsible>
     <PersistentCollapsible storageKey="experience-emotion-command" eyebrow="Tùy chỉnh cảm xúc" title="Câu lệnh đổi giao diện" className="relative z-10 mt-4 border-[#c62828]/15 bg-white/85"><div><label htmlFor="emotion-command" className="text-sm font-black text-[#7f1d1d]">Nhập cảm xúc hoặc câu lệnh</label><div className="mt-2 flex flex-col gap-2 sm:flex-row"><input id="emotion-command" value={command} onChange={(event) => setCommand(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") selectEmotion(emotionFromCommand(command).id); }} placeholder={safeCommandHint} className="field flex-1 border-[#2e7d32]/25 bg-white" /><button type="button" onClick={() => selectEmotion(emotionFromCommand(command).id)} className="primary-button justify-center bg-[#c62828] hover:bg-[#a91f1f]">Áp dụng</button></div>{message ? <p className="mt-2 text-xs font-bold text-[#2e7d32]" role="status">{message}</p> : null}</div></PersistentCollapsible>
     <PersistentCollapsible storageKey="experience-lumi-speech-library" eyebrow="Đồng hành cùng Lumi" title="Lời an ủi và động viên" className="relative z-10 mt-5 border-2 border-[#2e7d32]/15 bg-[#f5fff5]/95"><section aria-labelledby="speech-library-title"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Lời an ủi và động viên từ Lumi</p><h3 id="speech-library-title" className="mt-1 text-lg font-black text-[#7f1d1d]">Lumi ở đây để đồng hành cùng Ong</h3></div><span className="rounded-full bg-[#c62828] px-3 py-1 text-xs font-black text-white">{speechGroupLabels[speechGroup]}</span></div><div className="mt-3 flex flex-wrap gap-2">{(Object.entries(speechGroupLabels) as [SpeechGroup, string][]).map(([group, label]) => <button key={group} type="button" onClick={() => chooseSpeechGroup(group)} className={`rounded-xl px-3 py-2 text-xs font-black ${speechGroup === group ? "bg-[#c62828] text-white" : "bg-white text-[#2e7d32]"}`}>{label}</button>)}</div><div className="mt-3 flex gap-3 rounded-2xl bg-[#fff0eb] p-4"><img src={CLASSIC_LUMI_IMAGE} alt="Lumi đang động viên Ong" className="h-20 w-16 rounded-xl object-cover object-top" /><div className="min-w-0 flex-1"><p className="text-[11px] font-black uppercase tracking-wider text-[#2e7d32]">Thư viện Lumi · {weekdayLumi.label}</p><p className="mt-1 text-sm font-bold leading-6 text-[#6f2424]">{lumiVoiceText}</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={playLumiVoice} className="rounded-xl bg-[#2e7d32] px-3 py-2 text-xs font-black text-white"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản thu Lumi</button>{profile?.companionMode === "ong" || profile?.companionMode === "both" || !profile?.companionMode ? <button type="button" onClick={playOngVoice} className="rounded-xl border border-[#c62828]/25 bg-white px-3 py-2 text-xs font-black text-[#c62828]"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản thu Ong</button> : null}{preferredMemberVoice ? <button type="button" onClick={playMemberVoice} className="rounded-xl border border-[#7f1d1d]/20 bg-white px-3 py-2 text-xs font-black text-[#7f1d1d]"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản ghi thành viên</button> : null}</div>{matchingVoiceLine?.audioUrl ? <span className="mt-2 block text-[11px] font-bold text-[#2e7d32]">Dùng bản thu đã lưu</span> : <span className="mt-2 block text-[11px] text-[#6f5a53]">Chưa có bản thu; Ong có thể tự thêm trong thư viện.</span>}</div></div><div className="mt-3 grid gap-3 md:grid-cols-2"><div className="rounded-2xl border border-[#2e7d32]/20 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">🫠 Chống trì hoãn</p><div className="mt-2 flex flex-wrap gap-2">{antiProcrastinationChoices.map((choice) => <button key={choice.id} type="button" onClick={() => chooseAntiProcrastination(choice.id)} className="rounded-xl border border-[#2e7d32]/20 bg-[#eff9ef] px-3 py-2 text-left text-xs font-black text-[#2e7d32]"><span className="block">{choice.label}</span><small className="mt-1 block font-medium text-[#35523a]">{choice.description}</small></button>)}</div></div><div className="rounded-2xl border border-[#c62828]/15 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#c62828]">🎯 Nhiệm vụ siêu nhỏ</p><p className="mt-2 text-sm font-black text-[#35523a]">{microTask}</p><button type="button" onClick={() => setMicroTask(randomMicroTask())} className="mt-3 rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">Đổi nhiệm vụ</button></div></div></section></PersistentCollapsible>
-    {profile && onProfile ? <AudioCenterEnhancements profile={profile} onProfile={onProfile} voiceLines={voiceLines} playbackStatus={playbackStatus} onPlayAsset={(url, channel, label, volume) => { if (channel === "voice") stopVoicePlayback(); if (channel === "environment") stopAmbient(); const audio = new Audio(url); audio.volume = 0; audio.onended = () => setChannelPlaying(channel, false); if (channel === "voice") lumiAudioRef.current = audio; else ambientTrackRef.current = audio; void audio.play().then(() => { setChannelPlaying(channel, true, label, url); const target = Math.max(0, Math.min(1, (volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment)) / 100)); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = target * progress; if (progress < 1 && !audio.paused) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage(`Không thể phát ${label}.`)); }} onStopPlayback={(channel) => { if (!channel || channel === "voice") stopVoicePlayback(); if (!channel || channel === "environment") stopAmbient(); }} onSeekPlayback={seekPlayback} /> : null}
+    {profile && onProfile ? <AudioCenterEnhancements profile={profile} onProfile={onProfile} voiceLines={voiceLines} playbackStatus={playbackStatus} onPlayAsset={(url: string, channel: PlaybackChannel, label: string, volume?: number, playbackRate?: number) => { if (channel === "voice") stopVoicePlayback(); if (channel === "environment") stopAmbient(); const audio = new Audio(url); audio.volume = 0; audio.playbackRate = playbackRate ?? 1; audio.onended = () => setChannelPlaying(channel, false); if (channel === "voice") lumiAudioRef.current = audio; else ambientTrackRef.current = audio; void audio.play().then(() => { setChannelPlaying(channel, true, label, url); const target = Math.max(0, Math.min(1, (volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment)) / 100)); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = target * progress; if (progress < 1 && !audio.paused) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage(`Không thể phát ${label}.`)); }} onStopPlayback={(channel) => { if (!channel || channel === "voice") stopVoicePlayback(); if (!channel || channel === "environment") stopAmbient(); }} onSeekPlayback={seekPlayback} /> : null}
     <aside className={`relative z-10 mt-4 rounded-2xl border p-3 text-sm ${matchingVoiceLine?.audioUrl ? "border-[#2e7d32]/25 bg-[#eff9ef] text-[#25582c]" : "border-amber-200 bg-amber-50 text-amber-900"}`} aria-live="polite"><b className="block text-xs uppercase tracking-wider">Giọng Lumi theo cảm xúc</b><span className="mt-1 block">{voiceMatchLabel}{matchingVoiceLine?.audioUrl ? " — nhấn “Nghe bản thu Lumi” để phát." : " — chưa có bản thu; Lumi vẫn hiển thị lời nhắn bên cạnh."}</span></aside>
     <div className="relative z-10 mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       <div className="rounded-2xl bg-[#fff0eb]/95 p-4">

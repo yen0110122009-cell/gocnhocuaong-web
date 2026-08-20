@@ -757,3 +757,9 @@
 - [x] Cải thiện tự phát âm nền liên tục từ khi mở trang đến khi đóng web; xử lý autoplay policy, mute preference, cleanup và không phát chồng.
 - [x] Viết regression tests cho waveform preview, bulk actions, tag suggestions và autoplay-safe audio lifecycle.
 - [x] Chạy typecheck, Vitest, production build và QA desktop/mobile; checkpoint đang được đồng bộ GitHub/Pages.
+
+## Audio Center — volume/mute và tốc độ waveform
+- [x] Thêm nút điều chỉnh âm lượng và bật/tắt mute cho âm thanh nền, lưu preference và đồng bộ với playback hiện tại.
+- [x] Thêm lựa chọn tốc độ phát waveform preview: 0.5x, 1x, 1.5x, 2x; áp dụng cho audio đang nghe thử và giữ trạng thái dễ hiểu.
+- [x] Viết regression tests cho volume/mute và playback rate.
+- [ ] Chạy typecheck, Vitest, production build và QA desktop/mobile; chờ checkpoint mới.
