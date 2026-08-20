@@ -5,7 +5,8 @@ import { emotionThemes, emotionFromCommand } from "../lib/emotionThemes";
 
 const studioSource = await import.meta.glob("./ExperienceStudio.tsx", { query: "?raw", import: "default", eager: true })["./ExperienceStudio.tsx"] as string;
 const mediaControlsSource = await import.meta.glob("./EmotionCompanionMediaControls.tsx", { query: "?raw", import: "default", eager: true })["./EmotionCompanionMediaControls.tsx"] as string;
-const personalStudySpaceSource = await import.meta.glob("./PersonalStudySpaceControls.tsx", { query: "?raw", import: "default", eager: true })["./PersonalStudySpaceControls.tsx"] as string;
+  const personalStudySpaceSource = await import.meta.glob("./PersonalStudySpaceControls.tsx", { query: "?raw", import: "default", eager: true })["./PersonalStudySpaceControls.tsx"] as string;
+  const audioCenterEnhancementsSource = await import.meta.glob("./AudioCenterEnhancements.tsx", { query: "?raw", import: "default", eager: true })["./AudioCenterEnhancements.tsx"] as string;
 const homeSource = await import.meta.glob("../pages/Home.tsx", { query: "?raw", import: "default", eager: true })["../pages/Home.tsx"] as string;
 const pomodoroSource = await import.meta.glob("../pages/Pomodoro.tsx", { query: "?raw", import: "default", eager: true })["../pages/Pomodoro.tsx"] as string;
 const cssSource = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
@@ -170,6 +171,22 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("companionMedia?.lumiImageUrl");
     expect(studioSource).toContain("profile?.showMascot !== false");
     expect(studioSource).toContain("profile?.showLumi !== false");
+  });
+
+  it("adds real environment-file upload, voice filtering, and channel playback status to Audio Center", () => {
+    expect(audioCenterEnhancementsSource).toContain("Tải âm thanh môi trường thật");
+    expect(audioCenterEnhancementsSource).toContain("uploadEnvironment");
+    expect(audioCenterEnhancementsSource).toContain("audio/mpeg");
+    expect(audioCenterEnhancementsSource).toContain("không tạo âm tổng hợp");
+    expect(audioCenterEnhancementsSource).toContain("Lọc thư viện lời thoại");
+    expect(audioCenterEnhancementsSource).toContain("voiceEmotion");
+    expect(audioCenterEnhancementsSource).toContain("voiceEvent");
+    expect(audioCenterEnhancementsSource).toContain("Trạng thái đang phát");
+    expect(audioCenterEnhancementsSource).toContain("environment");
+    expect(audioCenterEnhancementsSource).toContain("music");
+    expect(audioCenterEnhancementsSource).toContain("voice");
+    expect(studioSource).toContain("AudioCenterEnhancements");
+    expect(studioSource).toContain("setChannelPlaying");
   });
 
   it("does not retain purchasable cosmetic theme selectors after switching to emotion-based colors", () => {
