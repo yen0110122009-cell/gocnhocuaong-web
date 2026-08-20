@@ -10,11 +10,19 @@ import { Award, BarChart3, BookOpen, BrainCircuit, Check, ChevronLeft, ChevronRi
 import React, { ChangeEvent, FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 const ExperienceStudio = React.lazy(() => import("@/components/ExperienceStudio").then((module) => ({ default: module.ExperienceStudio })));
 type ExperienceStudioProps = React.ComponentProps<typeof ExperienceStudio>;
+function AudioCenterLoadingSkeleton() {
+  return <section className="panel mb-5 space-y-4 p-5 sm:p-6" aria-label="Audio Center đang tải" aria-busy="true">
+    <div className="flex items-start justify-between gap-4"><div className="min-w-0 flex-1 space-y-3"><div className="h-3 w-32 animate-pulse rounded-full bg-slate-200" /><div className="h-7 max-w-sm animate-pulse rounded-xl bg-slate-200" /><div className="h-4 max-w-xl animate-pulse rounded-full bg-slate-100" /></div><div className="h-12 w-24 animate-pulse rounded-2xl bg-slate-200" /></div>
+    <div className="grid gap-3 sm:grid-cols-3">{["environment", "music", "voice"].map((key) => <div key={key} className="h-24 animate-pulse rounded-2xl border border-slate-100 bg-slate-50" />)}</div>
+    <div className="grid gap-3 sm:grid-cols-2">{["library", "mixer"].map((key) => <div key={key} className="h-28 animate-pulse rounded-2xl border border-slate-100 bg-slate-50" />)}</div>
+    <p className="text-sm font-bold text-slate-500" role="status">Đang mở Audio Center…</p>
+  </section>;
+}
 function ExperienceStudioDeferred(props: ExperienceStudioProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted) return <div className="panel mb-5 min-h-32 p-6" aria-label="Audio Center đang tải"><p className="font-display text-lg font-bold">Đang mở Audio Center…</p><p className="mt-2 text-sm text-slate-500">Chỉ tải thư viện âm thanh khi cần để trang chủ nhẹ hơn.</p></div>;
-  return <Suspense fallback={<div className="panel mb-5 min-h-32 p-6" aria-label="Audio Center đang tải"><p className="font-display text-lg font-bold">Đang tải Audio Center…</p></div>}><ExperienceStudio {...props} /></Suspense>;
+  if (!mounted) return <AudioCenterLoadingSkeleton />;
+  return <Suspense fallback={<AudioCenterLoadingSkeleton />}><ExperienceStudio {...props} /></Suspense>;
 }
 const AdminEnhanced = React.lazy(() => import("./AdminContentHub"));
 const MuseumEnhanced = React.lazy(() => import("./MuseumJourney"));

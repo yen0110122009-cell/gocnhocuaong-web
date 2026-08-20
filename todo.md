@@ -740,3 +740,12 @@
 - [x] Viết regression tests cho redaction và permanent-delete semantics.
 - [x] Chạy typecheck, Vitest, production build và QA responsive sau bản sửa.
 - [x] Lưu checkpoint sau khi mọi kiểm tra đạt; checkpoint cuối cùng là `3529acb9`, đã tự động publish.
+
+## Audio Center — skeleton, tìm kiếm nâng cao và xác nhận xóa
+- [x] Thêm loading skeleton trong lúc lazy-load Audio Center, có fallback accessible và không tự mở lại các mục đã thu gọn.
+- [x] Bổ sung tìm kiếm/lọc nâng cao cho thư viện âm thanh theo tên, nguồn, cảm xúc, sự kiện, nhóm, nhãn và trạng thái.
+- [x] Hiển thị toast rõ ràng sau permanent delete, nêu rằng metadata/key đã bị loại bỏ và tệp không còn truy cập được theo storage contract.
+- [x] Viết regression tests cho skeleton, bộ lọc nâng cao và toast permanent delete.
+- [x] Chạy typecheck, Vitest, production build và QA desktop/mobile.
+- [x] Xác minh GitHub remote/branch, workflow Pages và URL web; trước checkpoint, main vẫn đang ở commit `0205ee9` và workflow gần nhất thành công là bản audit trước.
+- [ ] Lưu checkpoint và xác nhận đồng bộ sau khi mọi kiểm tra đạt.
