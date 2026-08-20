@@ -621,3 +621,14 @@
 - [x] Bổ sung lịch sử thay đổi preset, hiển thị chi tiết và cho phép khôi phục cấu hình cũ.
 - [x] Kiểm thử hồi quy cho dữ liệu, giao diện, lịch preset, lịch sử khôi phục, Tóm tắt website và Góc học tập; chạy TypeScript, Vitest, build và QA responsive.
 - [x] Đồng bộ checkpoint hoàn thiện lên GitHub user_github/main.
+
+## Đặc tả mới — Góc học tập độc lập theo tệp pasted_content_3.txt
+- [x] Tái cấu trúc thành một mục duy nhất “🏠 Góc học tập”, không trình bày như dashboard nhiều thẻ.
+- [x] Tách module StudyCorner gồm cảnh first-person, bàn học, laptop, sách/vở, đèn bàn, cửa sổ, âm thanh môi trường, bộ điều khiển ánh sáng và controls.
+- [x] Xây dựng góc nhìn eye-level/seated perspective với mặt bàn tiền cảnh, trung cảnh laptop/đèn/sách và hậu cảnh phòng; không hiển thị nhân vật người học.
+- [x] Thêm ánh sáng Ban ngày/Chiều/Ban đêm chuyển mượt, đèn bàn bật/tắt và cường độ sáng.
+- [x] Thêm tương tác trang trí nhẹ cho đèn, laptop, sách và cửa sổ/rèm, không biến thành hệ thống quản lý.
+- [x] Tách âm thanh môi trường khỏi nhạc nền; có mute, âm lượng ghi nhớ, trạng thái rõ ràng và placeholder minh bạch nếu chưa có file thật.
+- [x] Thêm chuyển cảnh Sáng/Chiều/Tối nhẹ, giữ bố cục first-person trên desktop/tablet/mobile.
+- [x] Giới hạn phạm vi Góc học tập, không đưa Todo, Journal, Achievement, Badge, Streak, lịch học, môn học, cửa hàng, nhân vật lịch sử hoặc phần thưởng vào module mới.
+- [x] Kiểm thử module StudyCorner độc lập, regression dữ liệu/cài đặt, TypeScript, Vitest, build và QA responsive.

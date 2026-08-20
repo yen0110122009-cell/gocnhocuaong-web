@@ -542,6 +542,18 @@ export type PersonalStudyPresetHistory = {
   reason?: string;
 };
 
+export type StudyCornerSettings = {
+  lightMode: "day" | "sunset" | "night";
+  lampOn: boolean;
+  lampIntensity: number;
+  windowOpen: boolean;
+  curtainOpen: boolean;
+  laptopOpen: boolean;
+  bookOpen: boolean;
+  ambientEnabled: boolean;
+  ambientVolume: number;
+};
+
 export type ProfileState = {
   xp: number;
   level: number;
@@ -579,6 +591,7 @@ export type ProfileState = {
   personalStudyPresetSchedule?: PersonalStudyPresetSchedule[];
   personalStudyPresetHistory?: PersonalStudyPresetHistory[];
   activePersonalStudyPresetId?: string;
+  studyCornerSettings?: StudyCornerSettings;
   companionMode?: PersonalStudyPreset["companionMode"];
   autoNightMode?: boolean;
   focusMode?: boolean;
@@ -753,6 +766,7 @@ export const emptyProfile = (): ProfileState => ({
   personalAudioTrash: [],
   personalStudyPresets: [],
   activePersonalStudyPresetId: undefined,
+  studyCornerSettings: { lightMode: "day", lampOn: false, lampIntensity: 62, windowOpen: true, curtainOpen: true, laptopOpen: true, bookOpen: true, ambientEnabled: false, ambientVolume: 35 },
   companionMode: "both",
   autoNightMode: false,
   focusMode: false,
