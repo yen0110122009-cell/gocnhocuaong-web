@@ -1086,4 +1086,4 @@
 - [x] Tăng độ rõ của nắng Mùa hè và làm Mùa xuân thoáng, ít lớp minh họa hơn.
 - [x] Thêm slider mật độ lá/tuyết/nước, vị trí người tuyết có thể thay đổi và lịch cảnh cá nhân theo giờ/ngày lễ.
 - [x] Bổ sung regression tests, kiểm thử responsive, TypeScript, Vitest và production build.
-- [ ] Lưu checkpoint phát hành cảnh tái thiết kế cùng điều khiển cá nhân.
+- [x] Lưu checkpoint phát hành cảnh tái thiết kế cùng điều khiển cá nhân.
