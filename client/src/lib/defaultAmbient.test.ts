@@ -8,6 +8,7 @@ describe("default ambient asset", () => {
     expect(DEFAULT_AMBIENT_ASSET.target).toBe("rain");
     expect(DEFAULT_AMBIENT_RAIN_URL).toMatch(/^https:\/\/[^/]+\/manus-storage\/ambient-rain-default_[a-z0-9]+\.wav$/);
     expect(DEFAULT_AMBIENT_ASSET.url).toBe(DEFAULT_AMBIENT_RAIN_URL);
+    expect(DEFAULT_AMBIENT_RAIN_URL).toContain("gocnhocuaong-dtezjgqf.manus.space/manus-storage/");
   });
 
   it("provides morning and light-storm defaults for the ambient library", () => {
@@ -18,6 +19,8 @@ describe("default ambient asset", () => {
     expect(DEFAULT_AMBIENT_STORM_ASSET.target).toBe("storm");
     expect(DEFAULT_AMBIENT_STORM_ASSET.name).toBe("Bão nhẹ");
     expect(DEFAULT_AMBIENT_STORM_ASSET.url).toMatch(/^https:\/\/[^/]+\/manus-storage\/ambient-storm-default_[a-z0-9]+\.mp3$/);
+    expect(DEFAULT_AMBIENT_MORNING_ASSET.url).toContain("gocnhocuaong-dtezjgqf.manus.space/manus-storage/");
+    expect(DEFAULT_AMBIENT_STORM_ASSET.url).toContain("gocnhocuaong-dtezjgqf.manus.space/manus-storage/");
   });
 
   it("defines a Pomodoro preset combining morning and light storm", () => {

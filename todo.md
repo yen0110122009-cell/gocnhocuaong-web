@@ -964,3 +964,10 @@
 - [x] Kiểm tra trạng thái remote GitHub, workflow Pages và bundle live sau checkpoint gần nhất; remote `user_github` đúng repository và workflow gần nhất thành công tại checkpoint `9258979a`.
 - [x] Rà soát các lỗi đã nêu: asset 404, ảnh/audio trên Pages, autoplay/rate-limit, ghi âm mobile và đồng bộ hồ sơ; 404/resolver và hồ sơ 111 đã có evidence đạt, autoplay/rate-limit và microphone vật lý phụ thuộc trình duyệt/thiết bị.
 - [x] Bổ sung regression tests, TypeScript, production build và QA trước checkpoint; 62 file/258 tests đạt, TypeScript và production build đạt.
+
+## Sửa lỗi live Audio Center và ảnh Lumi
+- [x] Điều tra vì sao bốn ambient bị kẹt ở trạng thái “Đang kiểm tra URL” và không phát được; preview storage proxy trả 429, còn production storage trả HTTP 200.
+- [x] Sửa health-check để luôn kết thúc bằng trạng thái thành công/lỗi/rate-limit rõ ràng, không treo vô hạn; ổn định dependency asset và thêm timeout fallback.
+- [x] Sửa playback ambient trên GitHub Pages, gồm resolver URL, fallback và autoplay-policy messaging; bốn asset mặc định đã chuyển sang production storage proxy.
+- [x] Điều tra và sửa lỗi ảnh Lumi hiển thị broken image trên GitHub Pages; ExperienceStudio resolve ảnh và audio qua resolver thống nhất.
+- [x] Bổ sung regression tests, chạy TypeScript, production build và live smoke test trước checkpoint; 62 file/258 tests đạt, build đạt, bốn asset production trả HTTP 200.

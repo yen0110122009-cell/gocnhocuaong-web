@@ -139,7 +139,7 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   const [busyTarget, setBusyTarget] = useState<string | null>(null);
   const assets = profile.personalAudioAssets ?? [];
   const trash = profile.personalAudioTrash ?? [];
-  const activeAssets = assets.filter((asset) => !asset.deletedAt).sort((a, b) => (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999));
+  const activeAssets = useMemo(() => assets.filter((asset) => !asset.deletedAt).sort((a, b) => (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999)), [assets]);
   const [draggedAssetId, setDraggedAssetId] = useState<string | null>(null);
   const [groupFilter, setGroupFilter] = useState("all");
   const [audioSearch, setAudioSearch] = useState("");
@@ -224,7 +224,10 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
         attempt += 1;
         setHealthByAssetId((current) => ({ ...current, [asset.id]: { status: "checking", message: `Đang kiểm tra lần ${attempt}/${maxAttempts}…` } }));
         try {
-          const response = await fetch(resolveMediaUrl(asset.url), { method: "HEAD", cache: "no-store" });
+          const controller = new AbortController();
+          const requestTimeout = window.setTimeout(() => controller.abort(), 5000);
+          const response = await fetch(resolveMediaUrl(asset.url), { method: "HEAD", cache: "no-store", signal: controller.signal });
+          window.clearTimeout(requestTimeout);
           if (response.status === 429) {
             if (attempt < maxAttempts) {
               const retryAt = Date.now();
@@ -248,7 +251,7 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
           }
           inspectWithAudio();
         } catch {
-          // Một số trình duyệt chặn HEAD cross-origin; vẫn xác minh bằng metadata Audio.
+          // Một số trình duyệt chặn hoặc treo HEAD cross-origin; vẫn xác minh bằng metadata Audio.
           inspectWithAudio();
         }
       };

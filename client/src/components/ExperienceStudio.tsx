@@ -81,6 +81,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     .filter((asset) => [theme.id, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")))
     .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
   const voiceLinkedLumiImage = resolveMediaUrl(companionMedia?.lumiImageUrl);
+  const resolvedLumiImage = resolveMediaUrl(configuredLumiImage);
+  const resolvedMascotImage = resolveMediaUrl(configuredMascotImage);
   const matchingVoiceLine = [...voiceLines].reverse().find((item) => item.enabled && !item.deletedAt && (item.emotion === theme.id || item.state === `emotion-${theme.id}` || (!item.emotion && emotionVoiceStates[theme.id].includes(item.state))));
   const preferredMemberVoice = (profile?.personalAudioAssets ?? [])
     .filter((asset) => asset.enabled && asset.category === "member")
@@ -230,7 +232,13 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const isPomodoroAmbientPreset = selectedPreset?.id === DEFAULT_POMODORO_AMBIENT_PRESET.id && permittedAssetIds.includes(DEFAULT_AMBIENT_MORNING_ASSET.id) && permittedAssetIds.includes(DEFAULT_AMBIENT_STORM_ASSET.id);
     const selectedAmbientAudios = isPomodoroAmbientPreset
       ? [DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET]
-      : [personalAmbientAudio ?? (scene === "rain" ? DEFAULT_AMBIENT_ASSET : scene === "leaves" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET : undefined)].filter((asset): asset is NonNullable<typeof asset> => Boolean(asset));
+      : [personalAmbientAudio ?? (
+        scene === "morning" ? DEFAULT_AMBIENT_MORNING_ASSET
+          : scene === "rain" ? DEFAULT_AMBIENT_ASSET
+            : scene === "leaves" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET
+              : scene === "storm" ? DEFAULT_AMBIENT_STORM_ASSET
+                : DEFAULT_AMBIENT_ASSET
+      )].filter((asset): asset is NonNullable<typeof asset> => Boolean(asset));
     const selectedAmbientAudio = selectedAmbientAudios[0];
     if (selectedAmbientAudio) {
       setAmbientError(null);
@@ -364,7 +372,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
     const voiceUrl = preferredCompanionAudio("lumi")?.url || preferredPersonalVoice?.url || companionMedia?.lumiVoiceUrl || matchingVoiceLine?.audioUrl;
     if (voiceUrl) {
-      stopVoicePlayback(); const audio = new Audio(voiceUrl); audio.volume = 0; audio.onended = () => { if (lumiAudioRef.current === audio) { lumiAudioRef.current = null; setChannelPlaying("voice", false); } }; lumiAudioRef.current = audio; void audio.play().then(() => { setChannelPlaying("voice", true, "Lumi · lời động viên"); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = lumiVolume / 100 * progress; if (progress < 1 && lumiAudioRef.current === audio) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage("Không thể phát bản thu này. Lumi vẫn để lại lời nhắn ở bên cạnh.")); return;
+      stopVoicePlayback(); const audio = new Audio(resolveMediaUrl(voiceUrl)); audio.volume = 0; audio.onended = () => { if (lumiAudioRef.current === audio) { lumiAudioRef.current = null; setChannelPlaying("voice", false); } }; lumiAudioRef.current = audio; void audio.play().then(() => { setChannelPlaying("voice", true, "Lumi · lời động viên"); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = lumiVolume / 100 * progress; if (progress < 1 && lumiAudioRef.current === audio) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage("Không thể phát bản thu này. Lumi vẫn để lại lời nhắn ở bên cạnh.")); return;
     }
     setMessage("Chưa có bản thu Lumi cho lời nhắn này. Ong có thể thêm bản thu trong thư viện rồi chủ động nhấn nghe.");
   }
@@ -373,14 +381,14 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
     const voiceUrl = preferredCompanionAudio("ong")?.url;
     if (!voiceUrl) { setMessage("Chưa có bản thu Ong cho cảm xúc này. Ong có thể thêm loại “Lời Ong” trong thư viện âm thanh cá nhân."); return; }
-    stopVoicePlayback(); const audio = new Audio(voiceUrl); audio.volume = 0; audio.onended = () => { if (lumiAudioRef.current === audio) { lumiAudioRef.current = null; setChannelPlaying("voice", false); } }; lumiAudioRef.current = audio; void audio.play().then(() => { setChannelPlaying("voice", true, "Ong · lời động lực"); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = audioChannelVolumes.ong / 100 * progress; if (progress < 1 && lumiAudioRef.current === audio) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage("Không thể phát bản thu Ong này."));
+    stopVoicePlayback(); const audio = new Audio(resolveMediaUrl(voiceUrl)); audio.volume = 0; audio.onended = () => { if (lumiAudioRef.current === audio) { lumiAudioRef.current = null; setChannelPlaying("voice", false); } }; lumiAudioRef.current = audio; void audio.play().then(() => { setChannelPlaying("voice", true, "Ong · lời động lực"); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = audioChannelVolumes.ong / 100 * progress; if (progress < 1 && lumiAudioRef.current === audio) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage("Không thể phát bản thu Ong này."));
   }
 
   function playMemberVoice() {
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
     if (!preferredMemberVoice?.url) { setMessage("Chưa có bản ghi của thành viên cho cảm xúc này. Hãy thêm bản ghi loại “Thành viên” trong Audio Center."); return; }
     stopVoicePlayback();
-    const audio = new Audio(preferredMemberVoice.url);
+    const audio = new Audio(resolveMediaUrl(preferredMemberVoice.url));
     audio.volume = 0;
     audio.onended = () => { if (lumiAudioRef.current === audio) { lumiAudioRef.current = null; setChannelPlaying("voice", false); } };
     lumiAudioRef.current = audio;
@@ -424,7 +432,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   return <section className="panel emotion-studio relative overflow-hidden border-2 border-[#c62828]/15 bg-[linear-gradient(135deg,#fff7f2_0%,#f5fff5_100%)] p-5 sm:p-6" aria-labelledby="emotion-studio-title">
     <div className={`ambient-scene ambient-scene-${ambientScene}`} aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
-    <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-[#c62828]">Không gian cảm xúc của Lumi</p><h2 id="emotion-studio-title" className="mt-2 font-display text-2xl font-black text-[#7f1d1d]">Hôm nay Ong đang cảm thấy thế nào?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#3f513f]">Chọn cảm xúc để đổi màu toàn ứng dụng và nhận lời đồng hành phù hợp. Âm nền chỉ phát khi Ong chủ động nhấn nút.</p></div><div className="flex items-center gap-3 rounded-2xl border border-[#2e7d32]/20 bg-white/85 px-3 py-3 shadow-sm">{profile?.showLumi !== false ? configuredLumiImage ? <img key={theme.id} src={configuredLumiImage} alt={`Lumi khi ${theme.label}`} className={`h-20 w-16 rounded-2xl object-cover object-top ${transitioningEmotion === theme.id ? "lumi-emotion-transition" : ""}`} /> : <div className="flex h-20 w-16 items-center justify-center rounded-2xl border border-dashed border-[#c62828]/30 bg-[#fff7ed] text-center text-[10px] font-bold text-[#9a3412]">Chưa có ảnh</div> : null}<div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Bạn đồng hành</p><p className="mt-1 text-sm font-black text-[#7f1d1d]">Lumi</p><span className="text-xs text-[#35523a]">{profile?.showLumi === false ? "Ảnh Lumi đang ẩn" : `Đang ở bên Ong · ${theme.label}`}</span></div>{profile?.showMascot !== false ? <OngLearnerAvatar size="sm" label imageUrl={configuredMascotImage} emotion={theme.id} /> : null}</div></div>
+    <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-[#c62828]">Không gian cảm xúc của Lumi</p><h2 id="emotion-studio-title" className="mt-2 font-display text-2xl font-black text-[#7f1d1d]">Hôm nay Ong đang cảm thấy thế nào?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#3f513f]">Chọn cảm xúc để đổi màu toàn ứng dụng và nhận lời đồng hành phù hợp. Âm nền chỉ phát khi Ong chủ động nhấn nút.</p></div><div className="flex items-center gap-3 rounded-2xl border border-[#2e7d32]/20 bg-white/85 px-3 py-3 shadow-sm">{profile?.showLumi !== false ? configuredLumiImage ? <img key={theme.id} src={resolvedLumiImage} alt={`Lumi khi ${theme.label}`} className={`h-20 w-16 rounded-2xl object-cover object-top ${transitioningEmotion === theme.id ? "lumi-emotion-transition" : ""}`} /> : <div className="flex h-20 w-16 items-center justify-center rounded-2xl border border-dashed border-[#c62828]/30 bg-[#fff7ed] text-center text-[10px] font-bold text-[#9a3412]">Chưa có ảnh</div> : null}<div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Bạn đồng hành</p><p className="mt-1 text-sm font-black text-[#7f1d1d]">Lumi</p><span className="text-xs text-[#35523a]">{profile?.showLumi === false ? "Ảnh Lumi đang ẩn" : `Đang ở bên Ong · ${theme.label}`}</span></div>{profile?.showMascot !== false ? <OngLearnerAvatar size="sm" label imageUrl={resolvedMascotImage} emotion={theme.id} /> : null}</div></div>
     <AttentionControls preferences={attentionPreferences} onToggle={(key) => profile && onProfile?.({ ...profile, [key]: !attentionPreferences[key] })} />
     {profile && onProfile ? <PersonalStudySpaceControls profile={profile} emotion={theme.id} onEmotion={onSelect} onProfile={onProfile} /> : null}
     {profile && onProfile ? <LumiCongratulationControls profile={profile} emotion={theme.id} emotionLabel={theme.label} onProfile={onProfile} /> : null}
