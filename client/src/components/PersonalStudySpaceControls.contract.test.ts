@@ -84,6 +84,19 @@ describe("StudyCorner contracts", () => {
     expect(home).not.toContain("<PersonalStudySpaceControls");
   });
 
+  it("supports personal Pomodoro ambient ratio presets with durable CRUD controls", () => {
+    const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
+    expect(study).toContain("PersonalPomodoroAmbientPreset");
+    expect(study).toContain("personalPomodoroAmbientPresets");
+    expect(study).toContain("morning: Math.max(0, Math.min(100");
+    expect(pomodoro).toContain("savePersonalAmbientPreset");
+    expect(pomodoro).toContain("applyPersonalAmbientPreset");
+    expect(pomodoro).toContain("editPersonalAmbientPreset");
+    expect(pomodoro).toContain("deletePersonalAmbientPreset");
+    expect(pomodoro).toContain("Preset tỷ lệ của tôi");
+    expect(pomodoro).toContain("personalPomodoroAmbientPresets: next");
+  });
+
   it("keeps Audio Center volumes separated by source and uses clean assets only", () => {
     const audio = readFileSync(resolve(process.cwd(), "client/src/components/ExperienceStudio.tsx"), "utf8");
     expect(study).toContain("memberVoice");

@@ -506,6 +506,7 @@ export type AudioMixerSettings = {
   ong: number;
   memberVoice: number;
 };
+export type PersonalPomodoroAmbientPreset = { id: string; name: string; morning: number; storm: number; createdAt: string; updatedAt: string };
 export type PersonalAudioCategory = "emotion" | "season" | "weather" | "pomodoro" | "lumi" | "ong" | "member" | "background";
 export type AudioPreviewSpeed = 0.5 | 1 | 1.5 | 2;
 export type PersonalAudioSource = "user_upload" | "external_url" | "built_in";
@@ -697,6 +698,8 @@ export type ProfileState = {
   showLumi?: boolean;
   defaultAmbientScene?: AmbientScenePreference;
   audioMixer?: AudioMixerSettings;
+  /** Các preset cá nhân lưu tỷ lệ hai ambient Pomodoro. */
+  personalPomodoroAmbientPresets?: PersonalPomodoroAmbientPreset[];
   /** Các tốc độ preview do người dùng tùy chỉnh theo từng loại tệp. */
   audioPreviewSpeedPresets?: Partial<Record<PersonalAudioCategory, AudioPreviewSpeed[]>>;
   personalAudioAssets?: PersonalAudioAsset[];
@@ -1527,6 +1530,13 @@ export function normalizeProfile(value: unknown): ProfileState {
       if (!id || !name) return [];
       return [{ id, name, audioAssetIds: Array.isArray(preset?.audioAssetIds) ? preset.audioAssetIds.filter((assetId): assetId is string => typeof assetId === "string" && assetId.trim().length > 0).slice(0, 120) : [], enabled: preset?.enabled !== false, createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
     }).filter((preset, index, presets) => presets.findIndex((candidate) => candidate.id === preset.id) === index).slice(0, 100) : [],
+    personalPomodoroAmbientPresets: Array.isArray(source.personalPomodoroAmbientPresets) ? source.personalPomodoroAmbientPresets.flatMap((value) => {
+      const preset = value && typeof value === "object" ? value as Partial<PersonalPomodoroAmbientPreset> : null;
+      const id = typeof preset?.id === "string" && preset.id.trim() ? preset.id.trim() : "";
+      const name = typeof preset?.name === "string" && preset.name.trim() ? preset.name.trim().slice(0, 60) : "";
+      if (!id || !name) return [];
+      return [{ id, name, morning: Math.max(0, Math.min(100, Math.round(Number(preset?.morning)))), storm: Math.max(0, Math.min(100, Math.round(Number(preset?.storm)))), createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
+    }).filter((preset, index, presets) => presets.findIndex((candidate) => candidate.id === preset.id) === index).slice(0, 50) : [],
     personalStudyPresets: Array.isArray(source.personalStudyPresets) ? source.personalStudyPresets.flatMap((value) => {
       const preset = value && typeof value === "object" ? value as Partial<PersonalStudyPreset> : null;
       const id = typeof preset?.id === "string" && preset.id.trim() ? preset.id.trim() : "";

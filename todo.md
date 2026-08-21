@@ -951,3 +951,9 @@
 - [x] Cho phép chỉnh tỷ lệ âm lượng giữa “Buổi sáng” và “Bão nhẹ” trong preset kết hợp.
 - [x] Lưu/khôi phục tỷ lệ âm lượng và áp dụng đúng khi phát đồng thời hai ambient.
 - [x] Bổ sung regression tests, chạy TypeScript, Vitest, production build và QA trước checkpoint; 62 file/257 test đạt, build đạt.
+
+## Preset âm lượng cá nhân
+- [x] Thêm model lưu các preset cá nhân gồm tên, tỷ lệ Buổi sáng/Bão nhẹ và thời điểm cập nhật.
+- [x] Cho phép tạo, áp dụng, chỉnh sửa và xóa preset âm lượng cá nhân.
+- [x] Đồng bộ preset cá nhân với hồ sơ/cloud-state và giữ tương thích dữ liệu cũ.
+- [x] Bổ sung regression tests, TypeScript, production build và QA trước checkpoint; 62 file/258 test đạt, build đạt.
