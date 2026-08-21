@@ -103,4 +103,27 @@ describe("bốn cảnh theo mùa và sự kiện", () => {
     expect(css).toContain(':root[data-ambient-scene="festival"] #root > div.min-h-screen::before');
     expect(css).toContain('@media (prefers-reduced-motion: reduce) { :root[data-ambient-scene="fireworks"]');
   });
+
+  it("dựng năm theme sáng tạo với token đồng bộ, lớp phủ thuần CSS/emoji và trợ năng chuyển động", () => {
+    for (const scene of ["volcano", "deepocean", "magicforest", "spacestation", "flowerfield"]) {
+      expect(css).toMatch(new RegExp(`:root\\[data-ambient-scene="${scene}"\\] \\{[^}]*--scene-page:[^}]*--scene-text:[^}]*--scene-accent:`));
+      expect(css).toContain(`:root[data-ambient-scene="${scene}"] #root > div.min-h-screen::before`);
+      expect(css).toContain(`:root[data-ambient-scene="${scene}"] body::after`);
+    }
+    expect(css).toContain('content:"🌋');
+    expect(css).toContain('content:"🐋');
+    expect(css).toContain('content:"🍄');
+    expect(css).toContain('content:"🌻');
+    expect(css).toContain("scene-new-theme-breathe");
+    expect(css).toContain(':root[data-ambient-scene="volcano"] #root > div.min-h-screen::before,:root[data-ambient-scene="deepocean"]');
+    expect(css).toContain("deepocean-whale-glide");
+    expect(css).toContain("deepocean-bubbles-rise");
+    expect(css).toContain("magicforest-butterfly-float");
+    expect(css).toContain("flowerfield-pollinator-flight");
+    expect(css).toContain("spacestation-scan-sweep");
+    expect(css).toContain("spacestation-orbit-drift");
+    expect(css).toContain("#ee896b");
+    expect(css).toContain(':root[data-ambient-scene="deepocean"] #root > div.min-h-screen::after');
+    expect(css).toContain('@media (prefers-reduced-motion: reduce) { :root[data-ambient-scene="deepocean"] #root > div.min-h-screen::after');
+  });
 });

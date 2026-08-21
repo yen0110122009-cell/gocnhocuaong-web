@@ -70,3 +70,14 @@
 - [x] Kiểm tra Không gian cảm xúc của Lumi có nút thu gọn/mở rộng rõ ràng và trạng thái được lưu độc lập.
 - [x] Kiểm tra linh vật emoji được chọn trong Giao diện & tone màu tự đi dạo toàn màn hình, kéo thả được và không che thao tác học.
 - [x] Bổ sung regression, kiểm tra TypeScript, production build, responsive; checkpoint phát hành sẽ được lưu sau cùng.
+
+## Năm theme sáng tạo theo tệp tham chiếu
+- [x] Thêm theme Núi lửa: palette than–đỏ, núi lửa cố định và tia lửa/đá lửa tiết chế.
+- [x] Thêm theme Đại dương sâu: palette biển sâu, san hô đáy, cá voi lướt ngang và bọt nước đi lên.
+- [x] Thêm theme Rừng phép thuật: palette xanh tím, nấm dạ quang góc đáy và bướm phát sáng thưa.
+- [x] Thêm theme Trạm vũ trụ: palette kim loại vũ trụ, hành tinh/đĩa bay cố định và tia quét tiết chế.
+- [x] Thêm theme Cánh đồng hoa: palette xanh cỏ, hàng hoa hướng dương đáy và ong/bọ cánh cam bay nhẹ.
+- [x] Đồng bộ hợp đồng scene, preset audio, bộ chọn có lưu, token toàn giao diện, reduced-motion, regression, TypeScript, build và responsive; checkpoint phát hành sẽ được lưu sau cùng.
+- [x] Hoàn thiện Đại dương sâu với san hô đáy rõ ràng, cá voi lướt ngang và bọt nước đi lên; thêm regression chuyên biệt.
+- [x] Hoàn thiện Rừng phép thuật cùng Cánh đồng hoa bằng chuyển động bay nhẹ riêng cho bướm, ong và bọ cánh cam.
+- [x] Hoàn thiện Trạm vũ trụ với hành tinh cố định và tia quét tiết chế có animation riêng; bổ sung regression cho các keyframe/selector.

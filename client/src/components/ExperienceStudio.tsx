@@ -64,8 +64,13 @@ const sceneOptions: Array<{ id: AmbientScene; label: string; detail: string; ico
   { id: "sakura", label: "Sakura", detail: "cánh đào · nắng hồng", icon: Flower2 },
   { id: "autumn", label: "Thu", detail: "cam đất · lá thưa", icon: Leaf },
   { id: "festival", label: "Lễ hội", detail: "cờ hoa · đèn sáng", icon: PartyPopper },
+  { id: "volcano", label: "Núi lửa", detail: "than đỏ · tia lửa nhẹ", icon: Zap },
+  { id: "deepocean", label: "Đại dương sâu", detail: "cá voi · bọt biển", icon: Cloud },
+  { id: "magicforest", label: "Rừng phép thuật", detail: "nấm sáng · bướm đêm", icon: Sparkles },
+  { id: "spacestation", label: "Trạm vũ trụ", detail: "quỹ đạo · tia quét", icon: Moon },
+  { id: "flowerfield", label: "Cánh đồng hoa", detail: "hoa vàng · ong bay", icon: Flower2 },
 ];
-const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38 };
+const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38, volcano: 34, deepocean: 32, magicforest: 31, spacestation: 29, flowerfield: 35 };
 const emotionVoiceStates: Record<EmotionId, string[]> = {
   calm: ["comeback", "streak_recovered"], happy: ["achievement_unlocked"], tired: ["failed", "comeback"], sad: ["failed", "comeback"], stressed: ["failed", "streak_recovered"], lazy: ["failed", "comeback"], proud: ["achievement_unlocked"], focused: ["almost_unlocked"], hopeful: ["almost_unlocked", "comeback"], overwhelmed: ["failed", "comeback"], sleepy: ["failed", "comeback"], excited: ["achievement_unlocked"], lonely: ["failed", "comeback"], confident: ["achievement_unlocked", "almost_unlocked"], curious: ["almost_unlocked"], comeback: ["comeback", "streak_recovered"],
 };
