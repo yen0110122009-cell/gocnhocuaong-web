@@ -87,3 +87,11 @@
 - [x] Bổ sung lồng đèn hai góc, cây hoa mai/đào góc đáy, cánh hoa rơi thưa, lì xì/pháo trang trí và bánh chưng/bánh tét cố định.
 - [x] Bảo đảm lớp phủ toàn màn hình không cản thao tác, reduced-motion, regression, TypeScript, production build và responsive; checkpoint phát hành sẽ được lưu sau cùng.
 - [x] Xác nhận bằng CSS và regression rằng lồng đèn neo ở hai góc, cây hoa neo góc đáy, icon bánh chưng/bánh tét cố định trong lớp phủ Tết.
+
+## Năm theme kể chuyện theo tệp tham chiếu
+- [x] Thêm Lâu đài cổ tích: nền tím hồng–xanh đêm, lâu đài góc đáy, tiên/bụi phép bay thưa và chữ vàng tương phản.
+- [x] Thêm Gánh xiếc: nền sọc đỏ đun–xanh hải quân, lều xiếc neo đáy, bóng bay bay lên và chữ trắng/vàng chanh.
+- [x] Thêm Thời tiền sử: nền xanh rêu, khủng long lấp ló cạnh trái, dấu chân mờ và chữ vàng cam tương phản.
+- [x] Thêm Đường đua Cyberpunk: nền kim loại tối, đèn giao thông cố định, xe đua/vệt neon chạy ở đáy và chữ cyan/hồng neon.
+- [x] Thêm Lễ hội ẩm thực: nền cam–nâu sô-cô-la, trà sữa/donut ở đáy, pizza/kem rơi nhẹ và chữ kem tương phản.
+- [x] Đồng bộ hợp đồng scene, preset audio, bộ chọn có lưu, reduced-motion, regression, TypeScript, build, responsive và checkpoint phát hành.

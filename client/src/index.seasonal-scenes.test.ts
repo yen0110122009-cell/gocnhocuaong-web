@@ -127,6 +127,35 @@ describe("bốn cảnh theo mùa và sự kiện", () => {
     expect(css).toContain('@media (prefers-reduced-motion: reduce) { :root[data-ambient-scene="deepocean"] #root > div.min-h-screen::after');
   });
 
+  it("dựng năm theme kể chuyện với palette, lớp phủ CSS/emoji và chuyển động có thể giảm", () => {
+    for (const scene of ["fairytale", "circus", "prehistoric", "cyberrace", "foodfestival"]) {
+      expect(css).toMatch(new RegExp(`:root\\[data-ambient-scene="${scene}"\\] \\{[^}]*--scene-page:[^}]*--scene-text:[^}]*--scene-accent:`));
+      expect(css).toContain(`:root[data-ambient-scene="${scene}"] #root > div.min-h-screen::before`);
+      expect(css).toContain(`:root[data-ambient-scene="${scene}"] body::after`);
+      expect(css).toContain(`:root[data-ambient-scene="${scene}"] #root > div.min-h-screen::after`);
+    }
+    expect(css).toContain('content:"🏰');
+    expect(css).toContain('content:"🎪');
+    expect(css).toContain('content:"🦕');
+    expect(css).toContain('content:"🏎️');
+    expect(css).toContain('content:"🧋');
+    expect(css).toContain('content:"🧚');
+    expect(css).toContain('content:"🎈');
+    expect(css).toContain('content:"🐾');
+    expect(css).toContain('content:"🚦');
+    expect(css).toContain('content:"🍕');
+    expect(css).toContain("🍦");
+    expect(css).toContain("--scene-text:#ffe79b");
+    expect(css).toContain("--scene-page-alt:#173661");
+    expect(css).toContain("scene-story-sparkle");
+    expect(css).toContain("scene-story-balloons-rise");
+    expect(css).toContain("scene-story-dino-stroll");
+    expect(css).toContain("scene-story-race");
+    expect(css).toContain("scene-story-food-fall");
+    expect(css).toContain('@media (prefers-reduced-motion: reduce) {\n  :root[data-ambient-scene="fairytale"]');
+    expect(css).toContain("position:fixed; inset:0; z-index:54; pointer-events:none");
+  });
+
   it("nâng Tết Cổ Truyền bằng palette đỏ-vàng, lồng đèn, hoa rơi và reduced-motion", () => {
     expect(css).toContain("--scene-page: #b71c1c");
     expect(css).toContain("--scene-side: #4a0000");
