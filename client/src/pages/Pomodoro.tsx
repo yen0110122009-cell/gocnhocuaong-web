@@ -8,13 +8,14 @@ import { PersistentCollapsible } from "../components/PersistentCollapsible";
 import { comboLabel, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { DEFAULT_AMBIENT_BOOK_PAGES_URL, DEFAULT_AMBIENT_MORNING_URL, DEFAULT_AMBIENT_RAIN_URL, DEFAULT_AMBIENT_STORM_URL, DEFAULT_POMODORO_AMBIENT_PRESET } from "../lib/defaultAmbient";
 import { AVOIDANCE_REASONS, AVOIDANCE_REASON_LABELS, TASK_COMBOS, chooseMicroTask, comboProgress, createCombo, completeComboStep, procrastinationAnalytics } from "../lib/procrastination";
+import { clearPersistedPomodoro, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
 import type { AvoidanceReason, ProcrastinationEvent, TaskCombo } from "../../../shared/study";
 
 const KEY = "study_historia_pomodoro_v3";
 type Mode = "focus" | "shortBreak" | "longBreak";
 type Activity = "flashcards" | "quizzes" | "theory" | "deep" | "reading" | "exercise";
-type View = "flashcards" | "quizzes" | "achievements" | "museum" | "progress";
-type Props = { profile: ProfileState; config: AppConfig; onProfile: (profile: ProfileState, message?: string) => void; onView: (view: View) => void };
+type View = "pomodoro" | "flashcards" | "quizzes" | "achievements" | "museum" | "progress";
+type Props = { profile: ProfileState; config: AppConfig; onProfile: (profile: ProfileState, message?: string) => void; onView: (view: View) => void; isVisible?: boolean };
 
 type Preset = { label: string; note: string; focus: number; short: number; long: number };
 const presets: Preset[] = [
@@ -44,44 +45,37 @@ function calendarWeekKey(value: Date | string = new Date()) {
   return `${date.getFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 
-export default function Pomodoro({ profile, config, onProfile, onView }: Props) {
-  const [focus, setFocus] = useState(25);
-  const [shortBreak, setShortBreak] = useState(5);
-  const [longBreak, setLongBreak] = useState(15);
-  const [seconds, setSeconds] = useState(25 * 60);
-  const [mode, setMode] = useState<Mode>("focus");
-  const [running, setRunning] = useState(false);
-  const [autoAdvance, setAutoAdvance] = useState(true);
+export default function Pomodoro({ profile, config, onProfile, onView, isVisible = true }: Props) {
+  const restoredSession = useMemo(() => readPersistedPomodoro(), []);
+  const [focus, setFocus] = useState(restoredSession?.focus ?? 25);
+  const [shortBreak, setShortBreak] = useState(restoredSession?.shortBreak ?? 5);
+  const [longBreak, setLongBreak] = useState(restoredSession?.longBreak ?? 15);
+  const [seconds, setSeconds] = useState(() => restoredSession ? recoverRunningSeconds(restoredSession) : 25 * 60);
+  const [mode, setMode] = useState<Mode>(restoredSession?.mode ?? "focus");
+  const [running, setRunning] = useState(restoredSession?.running ?? false);
+  const [autoAdvance, setAutoAdvance] = useState(restoredSession?.autoAdvance ?? true);
   const [sound, setSound] = useState(profile.soundEnabled);
-  const [backgroundRequested, setBackgroundRequested] = useState(false);
+  const [backgroundRequested, setBackgroundRequested] = useState(restoredSession?.running ?? false);
   const [backgroundActive, setBackgroundActive] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [subject, setSubject] = useState("");
-  const [topic, setTopic] = useState("");
-  const [activity, setActivity] = useState<Activity>("theory");
-  const [totalSessions, setTotalSessions] = useState(4);
-  const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
-  const [backgroundSound, setBackgroundSound] = useState("Mưa nhẹ");
-  const [backgroundVolume, setBackgroundVolume] = useState(profile.audioMixer?.pomodoroBackground ?? 68);
-  const [layerVolumes, setLayerVolumes] = useState<Record<string, number>>(profile.audioMixer?.pomodoroLayers ?? {});
-  const [alertVolume, setAlertVolume] = useState(profile.audioMixer?.pomodoroBell ?? 85);
-  const [pomodoroAmbientMix, setPomodoroAmbientMix] = useState(profile.audioMixer?.pomodoroAmbientMix ?? { morning: 25, storm: 75 });
+  const [subject, setSubject] = useState(restoredSession?.subject ?? "");
+  const [topic, setTopic] = useState(restoredSession?.topic ?? "");
+  const [activity, setActivity] = useState<Activity>((restoredSession?.activity as Activity) ?? "theory");
+  const [totalSessions, setTotalSessions] = useState(restoredSession?.totalSessions ?? 4);
+  const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(restoredSession?.sessionStartedAt ?? null);
+  const [backgroundSound, setBackgroundSound] = useState(restoredSession?.backgroundSound ?? "Mưa nhẹ");
+  const [backgroundVolume, setBackgroundVolume] = useState(restoredSession?.backgroundVolume ?? profile.audioMixer?.pomodoroBackground ?? 68);
+  const [layerVolumes, setLayerVolumes] = useState<Record<string, number>>(restoredSession?.layerVolumes ?? profile.audioMixer?.pomodoroLayers ?? {});
+  const [alertVolume, setAlertVolume] = useState(restoredSession?.alertVolume ?? profile.audioMixer?.pomodoroBell ?? 85);
+  const [pomodoroAmbientMix, setPomodoroAmbientMix] = useState(restoredSession?.pomodoroAmbientMix ?? profile.audioMixer?.pomodoroAmbientMix ?? { morning: 25, storm: 75 });
   const [ambientPresetName, setAmbientPresetName] = useState("");
   const [editingAmbientPresetId, setEditingAmbientPresetId] = useState<string | null>(null);
   const [appliedAmbientPresetId, setAppliedAmbientPresetId] = useState<string | null>(null);
   const appliedAmbientPresetTimerRef = useRef<number | null>(null);
   const [miniPlayerVisible, setMiniPlayerVisible] = useState(true);
   const [miniPlayerExpanded, setMiniPlayerExpanded] = useState(false);
-  const [miniPlayerPinned, setMiniPlayerPinned] = useState(false);
-  const [compactMode, setCompactMode] = useState(() => {
-    try {
-      if (typeof window === "undefined") return false;
-      const saved = JSON.parse(window.localStorage.getItem(KEY) || "null");
-      return saved?.compactMode === true;
-    } catch {
-      return false;
-    }
-  });
+  const [miniPlayerPinned, setMiniPlayerPinned] = useState(restoredSession?.miniPlayerPinned ?? false);
+  const [compactMode, setCompactMode] = useState(restoredSession?.compactMode ?? false);
   const emotion: EmotionId = profile.emotionTheme ?? "calm";
   const [introAnimation, setIntroAnimation] = useState(false);
   useEffect(() => {
@@ -382,7 +376,10 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
       }
     } catch { /* ignore malformed preference */ }
   }, []);
-  useEffect(() => { localStorage.setItem(KEY, JSON.stringify({ focus, shortBreak, longBreak, autoAdvance, sound, backgroundSound, compactMode })); }, [focus, shortBreak, longBreak, autoAdvance, sound, backgroundSound, compactMode]);
+  useEffect(() => {
+    localStorage.setItem(KEY, JSON.stringify({ focus, shortBreak, longBreak, autoAdvance, sound, backgroundSound, compactMode }));
+    writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, subject, topic, activity, totalSessions, sessionStartedAt, backgroundSound, backgroundVolume, layerVolumes, alertVolume, pomodoroAmbientMix: audioAmbientMixSnapshot, compactMode, miniPlayerPinned });
+  }, [focus, shortBreak, longBreak, autoAdvance, sound, backgroundSound, compactMode, seconds, mode, running, subject, topic, activity, totalSessions, sessionStartedAt, backgroundVolume, layerVolumes, alertVolume, pomodoroAmbientMix, miniPlayerPinned]);
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -586,6 +583,10 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   }
   function handleMainAction() { if (mode !== "focus" && !running) void start(); else if (running) setRunning(false); else void start(); }
 
+  if (!isVisible) {
+    if (!(miniPlayerPinned && (running || compactMode))) return null;
+    return <aside className="fixed bottom-4 right-4 z-[80] w-[min(92vw,24rem)] rounded-2xl border border-emerald-300/40 bg-slate-950/95 p-4 text-white shadow-2xl backdrop-blur" aria-label="Mini player âm thanh và Pomodoro"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-emerald-300">Pomodoro đang chạy</p><p className="mt-1 font-mono text-3xl font-black" aria-live="polite">{display}</p><p className="text-xs text-slate-300">{modeLabels[mode]} · {backgroundActive ? "Âm nền đang phát" : "Đang giữ phiên"}</p></div><button type="button" className="rounded-lg px-2 py-1 text-xs font-bold text-emerald-200 hover:bg-white/10" onClick={() => onView("pomodoro")}>Mở</button></div><div className="mt-3 flex gap-2"><button type="button" className="primary-button flex-1" onClick={handleMainAction}>{running ? "Tạm dừng" : "Bắt đầu"}</button><button type="button" className="secondary-button" onClick={() => setMiniPlayerPinned(false)}>Bỏ ghim</button></div></aside>;
+  }
   return <div className="space-y-6">
     {weeklyGoalCelebrationOpen ? <section className="celebration-overlay celebration-overlay--animated" role="dialog" aria-modal="true" aria-labelledby="weekly-goal-celebration-title"><div className="celebration-card"><div className="celebration-confetti" aria-hidden="true">✦ • ✦ • ✦ • ✦ • ✦</div><div className="celebration-icon" aria-hidden="true">🏁</div><p className="relative z-10 text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">Cột mốc tuần</p><h2 id="weekly-goal-celebration-title" className="relative z-10 mt-2 font-display text-3xl font-black text-[#7f1d1d]">Ong đã chạm mục tiêu rồi!</h2><p className="relative z-10 mt-3 text-sm font-bold leading-6 text-[#35523a]">{weeklyMinutes} / {weeklyGoal} phút Pomodoro trong tuần {currentWeekKey}. Mỗi phiên hoàn thành đều là một bước vững vàng của Ong.</p><div className="relative z-10 mt-5 flex flex-wrap justify-center gap-2"><button type="button" className="primary-button bg-[#2e7d32]" onClick={() => setWeeklyGoalCelebrationOpen(false)}>Tuyệt vời · tiếp tục nhé</button><button type="button" className="secondary-button" onClick={() => { setWeeklyGoalCelebrationOpen(false); onView("progress"); }}>Xem tiến trình</button></div></div></section> : null}
     <header className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-red-700 dark:text-red-300">Tiến trình học tập · Góc học tập</p><h1 className="mt-2 font-display text-4xl font-bold">🍅 Pomodoro</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Một nhịp học vừa đủ tập trung, vừa đủ nghỉ. Pomodoro chỉ ghi nhận thời gian học, không phải danh sách công việc.</p></div><div className="flex flex-wrap gap-2"><button type="button" className="secondary-button" onClick={() => setCompactMode((value) => !value)} aria-pressed={compactMode} aria-keyshortcuts="Alt+M" title="Phím tắt: Alt + M">{compactMode ? "Mở đầy đủ Pomodoro" : "Thu nhỏ Pomodoro"}<span className="ml-1 text-[10px] opacity-70">Alt + M</span></button><button className="secondary-button" onClick={() => onView("progress")}><BarChart3 className="h-4 w-4" />Xem tiến trình</button></div></header>

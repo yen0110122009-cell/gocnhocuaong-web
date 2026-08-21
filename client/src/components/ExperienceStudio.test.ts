@@ -33,7 +33,7 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("#c62828");
     expect(studioSource).toContain("#2e7d32");
     expect(studioSource).toContain("OngLearnerAvatar");
-    expect(mediaControlsSource).toContain("Chưa có ảnh Lumi");
+    expect(mediaControlsSource).toContain("Bản thu vẫn có thể nghe");
     expect(mediaControlsSource).not.toContain("getDefaultLumiImage");
   });
 
@@ -63,12 +63,12 @@ describe("Experience Studio requirements", () => {
 
   it("keeps the original Lumi image for comfort copy and shows the paired image of the selected voice", () => {
     expect(mediaControlsSource).toContain("linkedImage");
-    expect(mediaControlsSource).toContain("aria-label={`Phát bản thu ${item.label} khi nhấn ảnh`}");
+    expect(mediaControlsSource).toContain("aria-label={`Phát bản thu ${item.label}`}");
     expect(mediaControlsSource).toContain("onClick={() => preview(item)}");
   });
 
   it("manages saved Lumi recordings as a visual image-voice grid with direct preview and per-recording image replacement", () => {
-    expect(mediaControlsSource).toContain("Bộ sưu tập ảnh–giọng Lumi");
+    expect(mediaControlsSource).toContain("Bộ sưu tập bản thu Lumi");
     expect(mediaControlsSource).toContain("sm:grid-cols-2 xl:grid-cols-3");
     expect(mediaControlsSource).toContain("uploadRecordingImage");
     expect(mediaControlsSource).toContain("updateRecordingImage");
@@ -81,12 +81,12 @@ describe("Experience Studio requirements", () => {
     expect(mediaControlsSource).toContain("updateRecordingImage");
     expect(mediaControlsSource).toContain("reorderWithinEmotion");
     expect(mediaControlsSource).toContain("draggable");
-    expect(mediaControlsSource).toContain("Tìm tên bản thu hoặc ảnh");
+    expect(mediaControlsSource).toContain("Tìm tên bản thu Lumi");
     expect(mediaControlsSource).toContain("Lọc bản thu theo cảm xúc");
-    expect(mediaControlsSource).toContain("Lọc bản thu theo ảnh đại diện");
+    expect(mediaControlsSource).not.toContain("Lọc bản thu theo ảnh đại diện");
     expect(mediaControlsSource).toContain("duplicateVoice");
     expect(mediaControlsSource).toContain("Nhân bản");
-    expect(mediaControlsSource).toContain("Chưa có ảnh Lumi");
+    expect(mediaControlsSource).toContain("Bản thu vẫn có thể nghe");
   });
 
   it("protects accidental library edits with a short undo history and visual color labels", () => {

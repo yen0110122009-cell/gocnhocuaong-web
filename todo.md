@@ -1011,3 +1011,11 @@
 - [x] Nối slider riêng cho mưa, tuyết, lá rơi và sấm chớp vào các audio layer thực tế
 - [x] DEFERRED do hạ tầng preview/live: đã thử BY/BYBYBY/111; trang đăng nhập live từng treo “Đang xử lý…”, preview sau restart trả “Too many requests. Please try again later.” Cần chạy lại khi CloudRun/preview hết 429 để xác nhận dashboard authenticated.
 - [x] Chạy regression, TypeScript và build kiểm tra sau khi hoàn tất
+
+## Lumi audio, Pomodoro persistence và QA mới
+- [x] Bỏ hiển thị ảnh khỏi lời động viên/an ủi Lumi nhưng giữ nút phát bản thu theo cảm xúc
+- [x] Bảo toàn timer, thời lượng, trạng thái ghim và audio khi chuyển giữa các mục menu bằng một instance Pomodoro persistent
+- [x] Khôi phục phiên Pomodoro đang chạy sau reload/khởi tạo lại bằng localStorage persistence helper
+- [x] Đã kiểm tra live/preview với tài khoản 111; 429 vẫn là giới hạn hạ tầng, ghi bằng chứng trong qa-live-111-lumi-pomodoro-2026-08-21.md
+- [x] Thêm chuyển động nhẹ cho chim/cây/người tuyết và reduced-motion fallback
+- [x] TypeScript, Vitest và production build đạt; regression audio-only/persistence đã cập nhật; sẵn sàng checkpoint

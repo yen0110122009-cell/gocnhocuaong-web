@@ -1,0 +1,87 @@
+export type PersistedPomodoroMode = "focus" | "shortBreak" | "longBreak";
+
+export type PersistedPomodoroSession = {
+  focus: number;
+  shortBreak: number;
+  longBreak: number;
+  seconds: number;
+  mode: PersistedPomodoroMode;
+  running: boolean;
+  autoAdvance: boolean;
+  subject: string;
+  topic: string;
+  activity: string;
+  totalSessions: number;
+  sessionStartedAt: string | null;
+  backgroundSound: string;
+  backgroundVolume: number;
+  layerVolumes: Record<string, number>;
+  alertVolume: number;
+  pomodoroAmbientMix: { morning: number; storm: number };
+  compactMode: boolean;
+  miniPlayerPinned: boolean;
+  savedAt: number;
+};
+
+export const POMODORO_SESSION_KEY = "study_pomodoro_session_v4";
+
+function finiteNumber(value: unknown, fallback: number, min: number, max: number) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
+}
+
+export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null = typeof window === "undefined" ? null : window.localStorage): PersistedPomodoroSession | null {
+  if (!storage) return null;
+  try {
+    const raw = storage.getItem(POMODORO_SESSION_KEY);
+    if (!raw) return null;
+    const value = JSON.parse(raw) as Partial<PersistedPomodoroSession>;
+    if (!value || (value.mode !== "focus" && value.mode !== "shortBreak" && value.mode !== "longBreak")) return null;
+    return {
+      focus: finiteNumber(value.focus, 25, 1, 120),
+      shortBreak: finiteNumber(value.shortBreak, 5, 1, 30),
+      longBreak: finiteNumber(value.longBreak, 15, 1, 45),
+      seconds: finiteNumber(value.seconds, 25 * 60, 0, 120 * 60),
+      mode: value.mode,
+      running: value.running === true,
+      autoAdvance: value.autoAdvance !== false,
+      subject: typeof value.subject === "string" ? value.subject : "",
+      topic: typeof value.topic === "string" ? value.topic : "",
+      activity: typeof value.activity === "string" ? value.activity : "theory",
+      totalSessions: finiteNumber(value.totalSessions, 4, 1, 20),
+      sessionStartedAt: typeof value.sessionStartedAt === "string" ? value.sessionStartedAt : null,
+      backgroundSound: typeof value.backgroundSound === "string" ? value.backgroundSound : "Mưa nhẹ",
+      backgroundVolume: finiteNumber(value.backgroundVolume, 68, 0, 100),
+      layerVolumes: value.layerVolumes && typeof value.layerVolumes === "object" ? value.layerVolumes as Record<string, number> : {},
+      alertVolume: finiteNumber(value.alertVolume, 85, 0, 100),
+      pomodoroAmbientMix: {
+        morning: finiteNumber(value.pomodoroAmbientMix?.morning, 25, 0, 100),
+        storm: finiteNumber(value.pomodoroAmbientMix?.storm, 75, 0, 100),
+      },
+      compactMode: value.compactMode === true,
+      miniPlayerPinned: value.miniPlayerPinned === true,
+      savedAt: finiteNumber(value.savedAt, Date.now(), 0, Number.MAX_SAFE_INTEGER),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function writePersistedPomodoro(session: Omit<PersistedPomodoroSession, "savedAt">, storage: Pick<Storage, "setItem"> | null = typeof window === "undefined" ? null : window.localStorage) {
+  if (!storage) return;
+  try {
+    storage.setItem(POMODORO_SESSION_KEY, JSON.stringify({ ...session, savedAt: Date.now() }));
+  } catch {
+    // Storage may be disabled or full; the in-memory timer remains usable.
+  }
+}
+
+export function clearPersistedPomodoro(storage: Pick<Storage, "removeItem"> | null = typeof window === "undefined" ? null : window.localStorage) {
+  try { storage?.removeItem(POMODORO_SESSION_KEY); } catch { /* ignore unavailable storage */ }
+}
+
+export function recoverRunningSeconds(session: PersistedPomodoroSession, now = Date.now()) {
+  if (!session.running) return session.seconds;
+  const elapsed = Math.max(0, Math.floor((now - session.savedAt) / 1000));
+  return Math.max(0, session.seconds - elapsed);
+}
