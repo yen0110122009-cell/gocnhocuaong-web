@@ -6,7 +6,7 @@ import { COMPLETE_ALERT_PROFILE, SOUND_EVENTS, SOUNDSCAPE_LAYERS, SOUNDSCAPE_PRE
 import { ExperienceStudio } from "../components/ExperienceStudio";
 import { PersistentCollapsible } from "../components/PersistentCollapsible";
 import { comboLabel, emotionThemes, type EmotionId } from "../lib/emotionThemes";
-import { DEFAULT_AMBIENT_MORNING_URL, DEFAULT_AMBIENT_STORM_URL, DEFAULT_POMODORO_AMBIENT_PRESET } from "../lib/defaultAmbient";
+import { DEFAULT_AMBIENT_BOOK_PAGES_URL, DEFAULT_AMBIENT_MORNING_URL, DEFAULT_AMBIENT_RAIN_URL, DEFAULT_AMBIENT_STORM_URL, DEFAULT_POMODORO_AMBIENT_PRESET } from "../lib/defaultAmbient";
 import { AVOIDANCE_REASONS, AVOIDANCE_REASON_LABELS, TASK_COMBOS, chooseMicroTask, comboProgress, createCombo, completeComboStep, procrastinationAnalytics } from "../lib/procrastination";
 import type { AvoidanceReason, ProcrastinationEvent, TaskCombo } from "../../../shared/study";
 
@@ -62,10 +62,10 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const [totalSessions, setTotalSessions] = useState(4);
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
   const [backgroundSound, setBackgroundSound] = useState("Mưa nhẹ");
-  const [backgroundVolume, setBackgroundVolume] = useState(profile.audioMixer?.pomodoroBackground ?? 40);
+  const [backgroundVolume, setBackgroundVolume] = useState(profile.audioMixer?.pomodoroBackground ?? 68);
   const [layerVolumes, setLayerVolumes] = useState<Record<string, number>>(profile.audioMixer?.pomodoroLayers ?? {});
-  const [alertVolume, setAlertVolume] = useState(profile.audioMixer?.pomodoroBell ?? 70);
-  const [pomodoroAmbientMix, setPomodoroAmbientMix] = useState(profile.audioMixer?.pomodoroAmbientMix ?? { morning: 55, storm: 45 });
+  const [alertVolume, setAlertVolume] = useState(profile.audioMixer?.pomodoroBell ?? 85);
+  const [pomodoroAmbientMix, setPomodoroAmbientMix] = useState(profile.audioMixer?.pomodoroAmbientMix ?? { morning: 25, storm: 75 });
   const [ambientPresetName, setAmbientPresetName] = useState("");
   const [editingAmbientPresetId, setEditingAmbientPresetId] = useState<string | null>(null);
   const [appliedAmbientPresetId, setAppliedAmbientPresetId] = useState<string | null>(null);
@@ -73,7 +73,15 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
   const [miniPlayerVisible, setMiniPlayerVisible] = useState(true);
   const [miniPlayerExpanded, setMiniPlayerExpanded] = useState(false);
   const [miniPlayerPinned, setMiniPlayerPinned] = useState(false);
-  const [compactMode, setCompactMode] = useState(false);
+  const [compactMode, setCompactMode] = useState(() => {
+    try {
+      if (typeof window === "undefined") return false;
+      const saved = JSON.parse(window.localStorage.getItem(KEY) || "null");
+      return saved?.compactMode === true;
+    } catch {
+      return false;
+    }
+  });
   const emotion: EmotionId = profile.emotionTheme ?? "calm";
   const [introAnimation, setIntroAnimation] = useState(false);
   useEffect(() => {
@@ -205,10 +213,12 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         return true;
       }
       const personalBackground = matchingPersonalAudio("background", backgroundSound) ?? matchingPersonalAudio("weather", backgroundSound);
-      if (personalBackground) {
-        const audio = new Audio(personalBackground.url);
+      const builtInBackgroundUrl = backgroundSound === "Mưa" || backgroundSound === "Mưa nhẹ" ? DEFAULT_AMBIENT_RAIN_URL : backgroundSound === "Mưa giông" || backgroundSound === "Bão nhẹ" ? DEFAULT_AMBIENT_STORM_URL : backgroundSound === "Thư viện" ? DEFAULT_AMBIENT_BOOK_PAGES_URL : backgroundSound === "Buổi sáng" ? DEFAULT_AMBIENT_MORNING_URL : null;
+      if (personalBackground || builtInBackgroundUrl) {
+        const audio = new Audio(personalBackground?.url ?? builtInBackgroundUrl!);
         audio.loop = true;
-        audio.volume = Math.min(1, Math.max(0, personalBackground.volume / 100 * backgroundVolume / 100));
+        audio.preload = "auto";
+        audio.volume = Math.min(1, Math.max(0, (personalBackground?.volume ?? 48) / 100 * backgroundVolume / 100));
         personalBackgroundRef.current = audio;
         await audio.play();
         if (generation !== backgroundGenerationRef.current) { audio.pause(); return false; }
@@ -369,7 +379,6 @@ export default function Pomodoro({ profile, config, onProfile, onView }: Props) 
         setLongBreak(clamp(Number(saved.longBreak) || 15, 1, 45));
         setAutoAdvance(saved.autoAdvance !== false);
         setBackgroundSound(saved.backgroundSound || "Mưa nhẹ");
-        setCompactMode(saved.compactMode === true);
       }
     } catch { /* ignore malformed preference */ }
   }, []);

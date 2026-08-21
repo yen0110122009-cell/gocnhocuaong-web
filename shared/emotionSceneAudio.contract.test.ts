@@ -31,7 +31,7 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(pomodoro()).toContain("audioMixerHydratedRef");
     expect(pomodoro()).toContain("pomodoroLayers: layerVolumes");
     expect(pomodoro()).toContain("pomodoroBell: alertVolume");
-    expect(pomodoro()).toContain("profile.audioMixer?.pomodoroBell ?? 70");
+    expect(pomodoro()).toContain("profile.audioMixer?.pomodoroBell ?? 85");
   });
 
   it("uses the profile emotion when Pomodoro opens Experience Studio", () => {

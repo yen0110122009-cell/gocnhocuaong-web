@@ -971,3 +971,25 @@
 - [x] Sửa playback ambient trên GitHub Pages, gồm resolver URL, fallback và autoplay-policy messaging; bốn asset mặc định đã chuyển sang production storage proxy.
 - [x] Điều tra và sửa lỗi ảnh Lumi hiển thị broken image trên GitHub Pages; ExperienceStudio resolve ảnh và audio qua resolver thống nhất.
 - [x] Bổ sung regression tests, chạy TypeScript, production build và live smoke test trước checkpoint; 62 file/258 tests đạt, build đạt, bốn asset production trả HTTP 200.
+
+## Tái cấu trúc menu và sửa Audio Center
+- [x] HỦY theo yêu cầu mới: Không gian cảm xúc của Lumi vẫn nằm trong Pomodoro.
+- [x] HỦY theo yêu cầu mới: giữ Không gian cảm xúc của Lumi trong Pomodoro.
+- [x] Đã bỏ phần giới thiệu thừa của Sổ lỗi thông minh; mục Ôn từ lỗi thật không còn trong menu.
+- [x] Bổ sung cơ chế thu nhỏ/mở rộng Pomodoro và giữ trạng thái thu nhỏ ổn định.
+- [x] Sửa asset âm nền Pomodoro bằng URL storage tuyệt đối và fallback bản thu mặc định thật.
+- [x] Đã chạy TypeScript, Vitest và production build đạt.
+
+## Tái cấu trúc Lumi, Pomodoro và Audio Center
+- [x] HỦY theo yêu cầu mới: Không gian cảm xúc của Lumi được giữ trong Pomodoro, không tách thành mục menu riêng.
+- [x] Đã xử lý theo yêu cầu mới: giữ phần Không gian cảm xúc của Lumi trong Pomodoro.
+- [x] Đã bỏ khối giới thiệu dư thừa của Sổ lỗi thông minh và giữ giao diện dữ liệu độc lập.
+- [x] Bổ sung thu nhỏ/mở rộng Pomodoro, phím tắt Alt+M và khởi tạo trạng thái thu nhỏ bền vững.
+- [x] Sửa luồng asset âm nền Pomodoro bằng URL storage tuyệt đối, preload và phát bản thu mặc định thật.
+- [x] Đã chạy TypeScript, Vitest và production build đạt.
+
+- [x] Bỏ Sổ lỗi thông minh, Học theo năng lượng, Sức khỏe học tập và Thí nghiệm kiến thức khỏi menu chính
+- [x] Giữ Chế độ lười, Boss Trì hoãn và Ong vs Trì hoãn trong Pomodoro
+- [x] HỦY theo yêu cầu mới: giữ Không gian cảm xúc của Lumi trong Pomodoro
+- [x] Cân bằng mặc định âm thanh Pomodoro: tăng chuông, tăng nền vừa phải, ưu tiên lớp bão và nối asset thật
+- [x] Xác nhận Không gian cảm xúc của Lumi vẫn được render trong Pomodoro, không tạo menu riêng

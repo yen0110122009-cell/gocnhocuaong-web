@@ -11,10 +11,11 @@ describe("bốn module học tập mới", () => {
     expect(home).toContain('import { EnergyStudyMode } from "@/components/EnergyStudyMode"');
     expect(home).toContain('import { StudyHealthDashboard } from "@/components/StudyHealthDashboard"');
     expect(home).toContain('import { KnowledgeLab } from "@/components/KnowledgeLab"');
-    expect(home).toContain('id: "mistakes"');
-    expect(home).toContain('id: "energy"');
-    expect(home).toContain('id: "health"');
-    expect(home).toContain('id: "lab"');
+    expect(home).not.toContain('label: "Sổ lỗi thông minh"');
+    expect(home).not.toContain('label: "Học theo năng lượng"');
+    expect(home).not.toContain('label: "Sức khỏe học tập"');
+    expect(home).not.toContain('label: "Thí nghiệm kiến thức"');
+    expect(home).toContain('id: "pomodoro"');
   });
 
   it("sổ lỗi có trạng thái, lọc, lịch ôn và thao tác xóa", () => {
