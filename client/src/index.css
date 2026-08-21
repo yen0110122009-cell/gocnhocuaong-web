@@ -581,3 +581,12 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
 @keyframes storm-flash { 0%, 88%, 100% { opacity: .24; } 89% { opacity: .95; background: linear-gradient(105deg, transparent 45%, rgba(255, 235, 125, .95) 46% 48%, transparent 49%); } 91% { opacity: .24; } }
 @keyframes leaf-drift { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: 40px 100vh, -80px 100vh, 55px 100vh, -30px 100vh; } }
 @media (prefers-reduced-motion: reduce) { :root[data-ambient-scene] #root > div.min-h-screen::before, :root[data-ambient-scene="storm"] #root > div.min-h-screen::after { animation: none !important; } }
+
+
+/* Asset minh họa thật cho các cảnh thời tiết; animation gradient vẫn phủ lên trên để tạo chiều sâu. */
+:root[data-ambient-scene="morning"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(255,249,220,.16), rgba(227,246,228,.26)), url("/manus-storage/study-scene-morning_f6b8968e.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; }
+:root[data-ambient-scene="rain"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(30,42,55,.32), rgba(46,67,80,.25)), url("/manus-storage/study-scene-rain_8224ae90.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; background-blend-mode: multiply; }
+:root[data-ambient-scene="snow"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(217,236,250,.18), rgba(225,240,250,.32)), url("/manus-storage/study-scene-snow_7068a43f.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; }
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(255,232,180,.18), rgba(126,76,35,.2)), url("/manus-storage/study-scene-leaves_bb6c6f6c.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; }
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(21,28,40,.42), rgba(40,53,66,.32)), url("/manus-storage/study-scene-storm_0f557d3d.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; background-blend-mode: multiply; }
+.dark #root > div.min-h-screen::before { opacity: .34; }

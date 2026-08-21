@@ -1003,3 +1003,11 @@
 - [x] Đã có và giữ nguyên controls thêm, sửa, xóa, ghi âm và lưu câu chúc Lumi trong Không gian cảm xúc
 - [x] Thêm nền tảng celebration animation sau khi hoàn thành phiên Pomodoro; giữ vùng Boss Trì hoãn để kết nối hiệu ứng
 - [x] Regression đạt 62 file/258 tests, TypeScript/build đạt, smoke test desktop/mobile hoàn tất
+
+## Cảnh nền minh họa và QA tài khoản 111
+- [x] Tích hợp hình minh họa cảnh sáng gồm mặt trời, chim và cây cối bằng asset ổn định trên GitHub Pages
+- [x] Tích hợp hình minh họa cảnh tuyết gồm bông tuyết, tuyết đọng và người tuyết
+- [x] Tích hợp minh họa mây mưa, tán cây lá rơi và tia chớp cho các cảnh tương ứng
+- [x] Nối slider riêng cho mưa, tuyết, lá rơi và sấm chớp vào các audio layer thực tế
+- [ ] QA sau đăng nhập tài khoản 111: dark mode, cảnh nền cố định, animation, audio volume và responsive
+- [x] Chạy regression, TypeScript và build kiểm tra sau khi hoàn tất

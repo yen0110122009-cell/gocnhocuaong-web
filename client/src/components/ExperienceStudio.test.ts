@@ -245,4 +245,16 @@ describe("Experience Studio requirements", () => {
     expect(cssSource).toContain("interface-primary");
     expect(cssSource).toContain("prefers-reduced-motion");
   });
+
+  it("keeps real illustrated weather assets fixed behind the app and maps one volume slider to each scene", () => {
+    expect(cssSource).toContain("study-scene-morning_f6b8968e.jpg");
+    expect(cssSource).toContain("study-scene-rain_8224ae90.jpg");
+    expect(cssSource).toContain("study-scene-snow_7068a43f.jpg");
+    expect(cssSource).toContain("study-scene-leaves_bb6c6f6c.jpg");
+    expect(cssSource).toContain("study-scene-storm_0f557d3d.jpg");
+    expect(cssSource).toContain("#root > div.min-h-screen::before");
+    expect(studioSource).toContain("ambientSceneVolumes");
+    expect(studioSource).toContain("aria-label={`Âm lượng ${scene.label}`}");
+    expect(studioSource).toContain("updateAmbientVolume(scene.id");
+  });
 });
