@@ -661,3 +661,62 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
   :root[data-ambient-scene="snow"] #root > div.min-h-screen::before,
   :root[data-ambient-scene="snow"] #root > div.min-h-screen::after { animation: none !important; }
 }
+
+/* Cảnh Lá rơi mùa thu: nền giữ ấm và nhẹ; lá rơi ở lớp tiền cảnh đi xuyên qua chữ/menu
+   nhưng không nhận thao tác. Các mảng lá tích ở chân trang tạo cảm giác khung cảnh khép lại. */
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::before {
+  z-index: 19;
+  opacity: .5;
+  background-image:
+    radial-gradient(ellipse 18% 6% at 7% 101%, rgba(181, 76, 25, .72) 0 60%, transparent 63%),
+    radial-gradient(ellipse 26% 7% at 30% 102%, rgba(221, 126, 28, .76) 0 60%, transparent 63%),
+    radial-gradient(ellipse 22% 6% at 57% 101%, rgba(243, 173, 45, .78) 0 60%, transparent 63%),
+    radial-gradient(ellipse 30% 8% at 91% 102%, rgba(176, 61, 30, .76) 0 60%, transparent 63%),
+    radial-gradient(ellipse 38% 20% at 0% 0%, rgba(210, 103, 25, .36) 0 27%, transparent 28%),
+    radial-gradient(ellipse 29% 17% at 100% 0%, rgba(245, 181, 44, .4) 0 27%, transparent 28%),
+    linear-gradient(145deg, rgba(255, 236, 174, .22), rgba(126, 76, 35, .18)),
+    url("/manus-storage/study-scene-leaves_bb6c6f6c.jpg");
+  background-size: auto, auto, auto, auto, auto, auto, cover, cover;
+  background-position: left bottom, 27% bottom, 58% bottom, right bottom, left top, right top, center, center;
+  background-repeat: no-repeat;
+  animation: scene-landscape-breathe 16s ease-in-out infinite alternate;
+}
+
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 54;
+  pointer-events: none;
+  opacity: .88;
+  background-image:
+    radial-gradient(ellipse 7px 13px at 50% 50%, #d95627 0 60%, transparent 63%),
+    radial-gradient(ellipse 9px 5px at 50% 50%, #f2a62d 0 64%, transparent 67%),
+    radial-gradient(ellipse 6px 11px at 50% 50%, #a94224 0 62%, transparent 65%),
+    radial-gradient(ellipse 8px 5px at 50% 50%, #e57e22 0 64%, transparent 67%),
+    radial-gradient(ellipse 5px 9px at 50% 50%, #f7c54b 0 62%, transparent 65%);
+  background-size: 128px 170px, 174px 206px, 103px 146px, 218px 238px, 84px 122px;
+  background-position: 8px -154px, 67px -194px, -21px -121px, 113px -230px, 42px -96px;
+  filter: drop-shadow(0 2px 1px rgba(93, 53, 20, .2));
+  animation: autumn-frontfall 10.8s linear infinite;
+}
+
+@keyframes autumn-frontfall {
+  from { background-position: 8px -154px, 67px -194px, -21px -121px, 113px -230px, 42px -96px; }
+  to { background-position: 94px 286px, -48px 328px, 66px 244px, 30px 382px, 118px 202px; }
+}
+
+.dark :root[data-ambient-scene="leaves"] #root > div.min-h-screen::before { opacity: .35; }
+
+@media (max-width: 767px) {
+  :root[data-ambient-scene="leaves"] #root > div.min-h-screen::before { opacity: .58; }
+  :root[data-ambient-scene="leaves"] #root > div.min-h-screen::after {
+    opacity: .76;
+    background-size: 106px 148px, 142px 176px, 88px 128px, 174px 196px, 73px 108px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene="leaves"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="leaves"] #root > div.min-h-screen::after { animation: none !important; }
+}

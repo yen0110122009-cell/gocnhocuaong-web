@@ -1053,3 +1053,10 @@
 - [x] Giữ lớp cảnh nền, hỗ trợ dark mode và `prefers-reduced-motion` cho hiệu ứng tuyết.
 - [x] Cập nhật regression test, kiểm thử desktop/mobile, chạy TypeScript và production build.
 - [x] Lưu checkpoint phát hành bản cảnh tuyết mới.
+
+## Cảnh lá rơi mùa thu toàn giao diện
+- [x] Thêm tán lá vàng–cam–đỏ thơ mộng ở góc trên và ánh vàng nền nhẹ.
+- [x] Thêm các lớp lá rơi tiền cảnh xuyên qua chữ, menu và panel mà không chặn thao tác.
+- [x] Tạo lá tích ở chân/góc giao diện; giữ dark mode và `prefers-reduced-motion`.
+- [x] Cập nhật regression test, kiểm thử desktop/mobile, chạy TypeScript và production build.
+- [x] Lưu checkpoint phát hành bản cảnh mùa thu mới.
