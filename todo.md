@@ -1094,4 +1094,4 @@
 - [x] Đồng bộ màu khối Cấp hiện tại/Cấp 1 bắt đầu với tone giao diện đang chọn.
 - [x] Áp dụng token chữ có độ tương phản cao cho theme, cảnh và trạng thái dark mode.
 - [x] Bổ sung regression tests, xác minh responsive, TypeScript, Vitest và production build.
-- [ ] Lưu checkpoint phát hành cải tiến typography và tone giao diện.
+- [x] Lưu checkpoint phát hành cải tiến typography và tone giao diện.
