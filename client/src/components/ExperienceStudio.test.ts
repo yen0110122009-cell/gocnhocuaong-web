@@ -32,8 +32,10 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("Ong vs Trì hoãn");
     expect(studioSource).toContain("#c62828");
     expect(studioSource).toContain("#2e7d32");
-    expect(studioSource).toContain("OngLearnerAvatar");
-    expect(mediaControlsSource).toContain("Bản thu vẫn có thể nghe");
+    expect(studioSource).not.toContain("OngLearnerAvatar");
+    expect(studioSource).toContain("unlockAudio");
+    expect(studioSource).toContain("Mở khóa âm thanh trên thiết bị");
+    expect(mediaControlsSource).toContain("Audio Lumi · Nhấn để nghe");
     expect(mediaControlsSource).not.toContain("getDefaultLumiImage");
   });
 
@@ -51,42 +53,44 @@ describe("Experience Studio requirements", () => {
     expect(cssSource).toContain("transition: border-color 160ms");
   });
 
-  it("shows Lumi as a companion with an image, a direct listen control and environmental scenes", () => {
+  it("shows Lumi as an audio-only companion with direct listening and environmental scenes", () => {
     expect(studioSource).toContain("Lumi đang ở đây");
     expect(studioSource).toContain("Nghe lời thoại Lumi");
-    expect(studioSource).toContain("configuredLumiImage");
+    expect(studioSource).not.toContain("<img");
     expect(studioSource).toContain("ambientScene");
     expect(studioSource).toContain("Âm thanh và cảnh nền");
     expect(studioSource).toContain("profile?.defaultAmbientScene");
     expect(studioSource).toContain("defaultAmbientScene: ambientScene");
   });
 
-  it("keeps the original Lumi image for comfort copy and shows the paired image of the selected voice", () => {
+  it("keeps legacy media data compatible while rendering the selected voice as audio-only", () => {
     expect(mediaControlsSource).toContain("linkedImage");
     expect(mediaControlsSource).toContain("aria-label={`Phát bản thu ${item.label}`}");
     expect(mediaControlsSource).toContain("onClick={() => preview(item)}");
+    expect(mediaControlsSource).not.toContain("<img");
   });
 
-  it("manages saved Lumi recordings as a visual image-voice grid with direct preview and per-recording image replacement", () => {
+  it("manages saved Lumi recordings as an audio-only grid with direct preview", () => {
     expect(mediaControlsSource).toContain("Bộ sưu tập bản thu Lumi");
     expect(mediaControlsSource).toContain("sm:grid-cols-2 xl:grid-cols-3");
-    expect(mediaControlsSource).toContain("uploadRecordingImage");
-    expect(mediaControlsSource).toContain("updateRecordingImage");
+    expect(mediaControlsSource).not.toContain("uploadRecordingImage");
     expect(mediaControlsSource).toContain("Nghe thử");
-    expect(mediaControlsSource).toContain("ImagePlus");
+    expect(mediaControlsSource).not.toContain("ImagePlus");
+    expect(mediaControlsSource).not.toContain("getDefaultLumiImage");
+    expect(mediaControlsSource).not.toContain("Đổi ảnh");
   });
 
-  it("protects the classic comfort image and provides reorder, filter, and duplicate controls for saved pairs", () => {
+  it("keeps audio library reorder, filter, and duplicate controls without image management", () => {
     expect(mediaControlsSource).not.toContain("CLASSIC_LUMI_IMAGE");
-    expect(mediaControlsSource).toContain("updateRecordingImage");
     expect(mediaControlsSource).toContain("reorderWithinEmotion");
+    expect(mediaControlsSource).not.toContain("Đổi ảnh");
     expect(mediaControlsSource).toContain("draggable");
     expect(mediaControlsSource).toContain("Tìm tên bản thu Lumi");
     expect(mediaControlsSource).toContain("Lọc bản thu theo cảm xúc");
     expect(mediaControlsSource).not.toContain("Lọc bản thu theo ảnh đại diện");
     expect(mediaControlsSource).toContain("duplicateVoice");
     expect(mediaControlsSource).toContain("Nhân bản");
-    expect(mediaControlsSource).toContain("Bản thu vẫn có thể nghe");
+    expect(mediaControlsSource).toContain("Audio Lumi · Nhấn để nghe");
   });
 
   it("protects accidental library edits with a short undo history and visual color labels", () => {
@@ -159,10 +163,10 @@ describe("Experience Studio requirements", () => {
     expect(cssSource).toContain(':root[data-focus-mode="true"]');
   });
 
-  it("shows mobile-friendly loading states while recording and uploading companion media", () => {
+  it("shows mobile-friendly loading states while recording and uploading voice media", () => {
     expect(mediaControlsSource).toContain("LoaderCircle");
     expect(mediaControlsSource).toContain("Đang ghi âm… Nhấn để dừng");
-    expect(mediaControlsSource).toContain("Đang tải ảnh…");
+    expect(mediaControlsSource).not.toContain("Đang tải ảnh…");
     expect(mediaControlsSource).toContain("Đang tải bản thu…");
     expect(mediaControlsSource).toContain("aria-live=\"polite\"");
     expect(mediaControlsSource).toContain("disabled={Boolean(busy)}");
@@ -189,11 +193,13 @@ describe("Experience Studio requirements", () => {
     expect(mediaControlsSource).toContain("PersistentCollapsible");
   });
 
-  it("offers per-emotion companion media chosen by the learner and honors image visibility settings", () => {
+  it("offers per-emotion companion audio and keeps legacy image data hidden", () => {
     expect(homeSource).toContain("EmotionCompanionMediaControls");
     expect(mediaControlsSource).toContain("profile.showMascot === false");
     expect(mediaControlsSource).toContain("profile.showLumi === false");
-    expect(mediaControlsSource).toContain("Chưa có ảnh");
+    expect(mediaControlsSource).toContain("Khu vực này chỉ quản lý bản thu âm thanh");
+    expect(mediaControlsSource).toContain("Nhấn để nghe");
+    expect(mediaControlsSource).not.toContain("Đổi ảnh");
   });
 
   it("adds real environment-file upload, voice filtering, and channel playback status to Audio Center", () => {

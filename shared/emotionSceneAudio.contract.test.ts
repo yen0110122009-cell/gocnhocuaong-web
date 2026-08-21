@@ -58,21 +58,22 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(pomodoro()).toContain("Tiến độ mục tiêu tuần");
   });
 
-  it("uses learner-uploaded Mascot and Lumi images for the selected emotion and honors visibility choices", () => {
-    expect(studio()).toContain("companionMedia?.mascotImageUrl");
-    expect(studio()).toContain("companionMedia?.lumiImageUrl");
+  it("keeps legacy mascot/Lumi image data out of the rendered companion UI while preserving visibility state", () => {
+    expect(studio()).not.toContain("companionMedia?.mascotImageUrl");
+    expect(studio()).not.toContain("companionMedia?.lumiImageUrl");
     expect(studio()).toContain("profile?.showMascot !== false");
     expect(studio()).toContain("profile?.showLumi !== false");
   });
 
-  it("starts companion media without default images and validates independent image upload", () => {
+  it("keeps companion audio independent after removing mascot and Lumi images", () => {
     expect(defaultCompanionMedia()).toContain("getDefaultMascotImage");
     expect(defaultCompanionMedia()).toContain("getDefaultLumiImage");
-    expect(companionControls()).toContain("Chưa có ảnh");
+    expect(companionControls()).not.toContain("Chưa có ảnh");
     expect(companionControls()).not.toContain("kind === \"lumi-image\" && voiceRecordings.length === 0");
     expect(companionControls()).toContain("Chỉ nhận WebM, OGG, WAV hoặc MP3, tối đa 8 MB.");
-    expect(companionControls()).toContain("Chỉ nhận PNG, JPG, WEBP hoặc GIF, tối đa 3 MB.");
+    expect(companionControls()).not.toContain("Chỉ nhận PNG, JPG, WEBP hoặc GIF, tối đa 3 MB.");
     expect(companionControls()).not.toContain("getDefaultLumiImage(emotion)");
+    expect(companionControls()).toContain("Nhấn để nghe");
   });
 
   it("plays a favorite personal Lumi recording before legacy and approved recordings", () => {

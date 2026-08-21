@@ -1019,3 +1019,17 @@
 - [x] Đã kiểm tra live/preview với tài khoản 111; 429 vẫn là giới hạn hạ tầng, ghi bằng chứng trong qa-live-111-lumi-pomodoro-2026-08-21.md
 - [x] Thêm chuyển động nhẹ cho chim/cây/người tuyết và reduced-motion fallback
 - [x] TypeScript, Vitest và production build đạt; regression audio-only/persistence đã cập nhật; sẵn sàng checkpoint
+
+## Khôi phục Pomodoro, bỏ ảnh mascot và QA mobile
+- [x] Thêm nút “Khôi phục phiên Pomodoro” thủ công khi có snapshot đã lưu
+- [x] Xóa mọi ảnh Lumi và Ong khỏi giao diện hiển thị, không xóa bản thu âm/dữ liệu audio
+- [x] Tối ưu phát audio nền trên mobile: yêu cầu chạm, resume AudioContext, retry và thông báo rõ ràng
+- [x] Thử đăng nhập tài khoản 111 trên live, ghi nhận 429 và xác nhận dark mode/cảnh nền ổn định
+- [x] Chạy regression, TypeScript, build và checkpoint
+
+- [x] Thêm nút “Khôi phục phiên Pomodoro” thủ công và đảm bảo khôi phục cả phiên đang chạy sau reload.
+- [x] Xóa toàn bộ ảnh/avatar Ong và Lumi khỏi mọi vùng UI, giữ lại audio-only indicator và dữ liệu audio cũ.
+- [x] Tối ưu cơ chế unlock/resume AudioContext và phát ambient trên trình duyệt mobile sau user gesture.
+- [x] Kiểm thử dark mode, cảnh nền, Pomodoro persistence và audio trên preview/live; ghi nhận rõ giới hạn 429 nếu hạ tầng còn chặn.
+- [x] Chạy Vitest, typecheck, production build và tạo checkpoint phát hành bản cuối.
+- [x] Xác minh không còn thẻ ảnh mascot/Lumi trong source và bundle giao diện.
