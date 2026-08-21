@@ -1067,4 +1067,4 @@
 - [x] Đồng bộ tone màu nền, chữ, panel và điều khiển mỗi khi đổi chủ đề.
 - [x] Bảo đảm hiệu ứng không che thao tác, hỗ trợ dark mode và `prefers-reduced-motion`.
 - [x] Cập nhật regression tests, chạy TypeScript, Vitest, production build và kiểm thử responsive.
-- [ ] Lưu checkpoint phát hành các chủ đề mới.
+- [x] Lưu checkpoint phát hành các chủ đề mới.
