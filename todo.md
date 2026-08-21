@@ -993,3 +993,13 @@
 - [x] HỦY theo yêu cầu mới: giữ Không gian cảm xúc của Lumi trong Pomodoro
 - [x] Cân bằng mặc định âm thanh Pomodoro: tăng chuông, tăng nền vừa phải, ưu tiên lớp bão và nối asset thật
 - [x] Xác nhận Không gian cảm xúc của Lumi vẫn được render trong Pomodoro, không tạo menu riêng
+
+## Cải thiện giao diện, cảnh nền và động lực
+- [x] Đồng bộ dark mode để không còn các mảng trắng/chữ nhạt khó đọc ở mọi module
+- [x] Thêm mục menu Giao diện với các tone màu phối hợp, lưu và khôi phục lựa chọn
+- [x] Áp dụng cảnh nền thời tiết toàn trang, lớp phủ cố định khi cuộn, có animation sáng/mưa/tuyết/lá/sấm
+- [x] Bổ sung cảnh quan tương ứng bằng lớp gradient/animation cố định: mặt trời, cây, mây mưa, tuyết đọng, chớp toàn trang, tán cây và lá rơi
+- [x] Thêm và giữ thanh âm lượng riêng cho mưa, tuyết, lá rơi và sấm chớp trong Audio Center
+- [x] Đã có và giữ nguyên controls thêm, sửa, xóa, ghi âm và lưu câu chúc Lumi trong Không gian cảm xúc
+- [x] Thêm nền tảng celebration animation sau khi hoàn thành phiên Pomodoro; giữ vùng Boss Trì hoãn để kết nối hiệu ứng
+- [x] Regression đạt 62 file/258 tests, TypeScript/build đạt, smoke test desktop/mobile hoàn tất

@@ -551,3 +551,33 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
 @media (prefers-reduced-motion: reduce) {
   .preset-ambient-apply { animation: none; outline: 2px solid rgba(245, 158, 11, .45); outline-offset: 2px; }
 }
+
+
+/* Interface tone system: sắc nhấn thay đổi theo bộ phối màu, nền và chữ vẫn ưu tiên tương phản. */
+:root[data-cosmetic-theme="ong-red"] { --interface-primary: #c62828; --interface-secondary: #2e7d32; --interface-soft: #fff1eb; --interface-ink: #3c241f; }
+:root[data-cosmetic-theme="forest-green"] { --interface-primary: #1b5e20; --interface-secondary: #8e1b1b; --interface-soft: #edf8ed; --interface-ink: #193522; }
+:root[data-cosmetic-theme="sunset-amber"] { --interface-primary: #b45309; --interface-secondary: #6b21a8; --interface-soft: #fff7e6; --interface-ink: #432006; }
+:root[data-cosmetic-theme="ocean-blue"] { --interface-primary: #1d4ed8; --interface-secondary: #b45309; --interface-soft: #eaf6ff; --interface-ink: #172554; }
+:root[data-cosmetic-theme] #root > div.min-h-screen { background: radial-gradient(circle at 86% 10%, color-mix(in srgb, var(--interface-primary) 18%, transparent), transparent 28%), linear-gradient(135deg, var(--interface-soft), color-mix(in srgb, var(--interface-secondary) 8%, white)) !important; }
+:root[data-cosmetic-theme] #root > div.min-h-screen > aside { background: linear-gradient(180deg, color-mix(in srgb, var(--interface-primary) 12%, white), color-mix(in srgb, var(--interface-secondary) 12%, white)) !important; border-right-color: color-mix(in srgb, var(--interface-primary) 34%, transparent) !important; }
+:root[data-cosmetic-theme] #root > div.min-h-screen header { background: color-mix(in srgb, var(--interface-soft) 90%, transparent) !important; border-bottom-color: color-mix(in srgb, var(--interface-primary) 28%, transparent) !important; }
+:root[data-cosmetic-theme] .primary-button, :root[data-cosmetic-theme] button[class*="bg-red"], :root[data-cosmetic-theme] button[class*="bg-[#c62828"] { background: linear-gradient(135deg, var(--interface-primary), var(--interface-secondary)) !important; }
+:root[data-cosmetic-theme] .nav-item.active, :root[data-cosmetic-theme] #root > div.min-h-screen aside nav button[aria-current="page"] { background: var(--interface-primary) !important; }
+:root[data-cosmetic-theme] .panel, :root[data-cosmetic-theme] .study-card, :root[data-cosmetic-theme] article, :root[data-cosmetic-theme] section { border-color: color-mix(in srgb, var(--interface-primary) 18%, transparent) !important; }
+.dark :root[data-cosmetic-theme] #root > div.min-h-screen, .dark #root > div.min-h-screen { background: #151b18 !important; color: #f3f7f2 !important; }
+.dark :root[data-cosmetic-theme] #root > div.min-h-screen > aside, .dark #root > div.min-h-screen > aside { background: linear-gradient(180deg, #211b1a, #14251b) !important; }
+.dark :root[data-cosmetic-theme] #root > div.min-h-screen header, .dark #root > div.min-h-screen header { background: #1a241e !important; }
+.dark :root[data-cosmetic-theme] .panel, .dark :root[data-cosmetic-theme] .study-card, .dark :root[data-cosmetic-theme] article, .dark :root[data-cosmetic-theme] section, .dark [class*="bg-white"], .dark [class*="bg-[#fff"], .dark [class*="bg-[#eff"] { background-color: #202923 !important; color: #edf5ed !important; }
+.dark :root[data-cosmetic-theme] input, .dark :root[data-cosmetic-theme] textarea, .dark :root[data-cosmetic-theme] select { background-color: #101612 !important; color: #f3f7f2 !important; }
+
+/* Thời tiết là lớp cảnh cố định toàn trang, không che thao tác và vẫn tồn tại khi cuộn. */
+:root[data-ambient-scene] #root > div.min-h-screen::before { content: ""; position: fixed; inset: 0; z-index: 19; pointer-events: none; opacity: .42; }
+:root[data-ambient-scene="morning"] #root > div.min-h-screen::before { background: radial-gradient(circle at 84% 12%, rgba(255, 213, 80, .9) 0 2.8rem, rgba(255, 227, 135, .24) 2.9rem 8rem, transparent 8.1rem), radial-gradient(ellipse at 12% 74%, rgba(51, 116, 55, .5) 0 5rem, transparent 5.2rem), linear-gradient(175deg, transparent 0 67%, rgba(83, 138, 69, .22) 68% 100%); }
+:root[data-ambient-scene="rain"] #root > div.min-h-screen::before { background: radial-gradient(ellipse at 80% 12%, rgba(31, 42, 54, .76) 0 16%, transparent 17%), radial-gradient(ellipse at 22% 8%, rgba(58, 68, 78, .62) 0 18%, transparent 19%), repeating-linear-gradient(112deg, transparent 0 31px, rgba(81, 145, 184, .38) 32px 34px, transparent 35px 64px); animation: global-rain 1.2s linear infinite; }
+:root[data-ambient-scene="snow"] #root > div.min-h-screen::before { background: radial-gradient(circle at 78% 18%, rgba(255,255,255,.92) 0 3px, transparent 4px), radial-gradient(circle at 20% 36%, rgba(255,255,255,.84) 0 4px, transparent 5px), radial-gradient(ellipse at 86% 94%, rgba(231,241,249,.96) 0 12%, transparent 13%), radial-gradient(ellipse at 8% 92%, rgba(224,237,247,.96) 0 15%, transparent 16%); background-size: 83px 92px, 57px 72px, auto, auto; animation: global-snow 6s linear infinite; }
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::before { background: radial-gradient(ellipse at 94% 8%, rgba(116, 70, 26, .55) 0 10%, transparent 10.5%), radial-gradient(ellipse at 88% 12%, rgba(210, 129, 34, .86) 0 1.2rem, transparent 1.3rem), radial-gradient(ellipse at 78% 30%, rgba(192, 72, 35, .78) 0 .55rem, transparent .65rem), radial-gradient(ellipse at 20% 82%, rgba(214, 133, 36, .62) 0 12%, transparent 13%); animation: leaf-drift 9s linear infinite; }
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::before { background: radial-gradient(ellipse at 25% 10%, rgba(42, 49, 61, .78) 0 22%, transparent 23%), radial-gradient(ellipse at 78% 15%, rgba(45, 51, 64, .84) 0 25%, transparent 26%), repeating-linear-gradient(112deg, transparent 0 33px, rgba(81, 126, 155, .35) 34px 36px, transparent 37px 68px); animation: global-rain 1.15s linear infinite; }
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::after { animation: storm-flash 6.5s steps(1, end) infinite; }
+@keyframes storm-flash { 0%, 88%, 100% { opacity: .24; } 89% { opacity: .95; background: linear-gradient(105deg, transparent 45%, rgba(255, 235, 125, .95) 46% 48%, transparent 49%); } 91% { opacity: .24; } }
+@keyframes leaf-drift { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: 40px 100vh, -80px 100vh, 55px 100vh, -30px 100vh; } }
+@media (prefers-reduced-motion: reduce) { :root[data-ambient-scene] #root > div.min-h-screen::before, :root[data-ambient-scene="storm"] #root > div.min-h-screen::after { animation: none !important; } }

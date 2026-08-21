@@ -239,8 +239,10 @@ describe("Experience Studio requirements", () => {
     expect(studySource).toContain("AudioGroupPreset");
   });
 
-  it("does not retain purchasable cosmetic theme selectors after switching to emotion-based colors", () => {
-    expect(cssSource).not.toContain("data-cosmetic-theme");
-    expect(cssSource).not.toContain("data-cosmetic-background");
+  it("supports the dedicated interface tone system without confusing it with emotion scenes", () => {
+    expect(cssSource).toContain("data-cosmetic-theme");
+    expect(cssSource).toContain("data-ambient-scene");
+    expect(cssSource).toContain("interface-primary");
+    expect(cssSource).toContain("prefers-reduced-motion");
   });
 });
