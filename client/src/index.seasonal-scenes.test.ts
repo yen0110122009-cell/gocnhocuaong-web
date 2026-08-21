@@ -88,4 +88,19 @@ describe("bốn cảnh theo mùa và sự kiện", () => {
     expect(css).toContain("position:fixed; inset:0; z-index:54; pointer-events:none");
     expect(css).toContain('@media (prefers-reduced-motion: reduce) { :root[data-ambient-scene="naturepark"]');
   });
+
+  it("khai báo token và lớp phủ fixed cho chín cảnh thiên nhiên, không gian và lễ hội bổ sung", () => {
+    for (const scene of ["forest", "sunset", "space", "crescentmoon", "ocean", "neon", "sakura", "autumn", "festival"]) {
+      expect(css).toMatch(new RegExp(`:root\\[data-ambient-scene="${scene}"\\] \\{[^}]*--scene-page:[^}]*--scene-text:[^}]*--scene-accent:`));
+      expect(css).toContain(`:root[data-ambient-scene="${scene}"] #root > div.min-h-screen::before`);
+      expect(css).toContain(`:root[data-ambient-scene="${scene}"] body::after`);
+    }
+    expect(css).toContain("position:fixed; inset:0; z-index:54; pointer-events:none");
+  });
+
+  it("giới hạn tương tác ánh sáng cho pháo hoa và loại bỏ hiệu ứng theo con trỏ khi reduced-motion", () => {
+    expect(css).toContain("var(--scene-pointer-x,72%) var(--scene-pointer-y,19%)");
+    expect(css).toContain(':root[data-ambient-scene="festival"] #root > div.min-h-screen::before');
+    expect(css).toContain('@media (prefers-reduced-motion: reduce) { :root[data-ambient-scene="fireworks"]');
+  });
 });

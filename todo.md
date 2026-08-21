@@ -37,11 +37,11 @@
 - [x] Bổ sung regression, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.
 
 ## Bộ 14 theme Giao diện & tone màu
-- [ ] Chuẩn hóa 14 theme: Sa mạc, Rừng xanh, Cảnh đêm, Mưa giông, Tuyết, Hoàng hôn, Không gian, Trăng non, Biển, Neon, Sakura, Thu, Pháo hoa và Lễ hội.
-- [ ] Mở rộng kiểu scene, dữ liệu hồ sơ, preset và bộ chọn giao diện có lưu để dùng đủ các theme.
-- [ ] Tạo lớp phủ fixed theo theme với pointer-events:none, reduced-motion và token màu chữ/menu tương phản.
-- [ ] Thêm tương tác con trỏ tiết chế cho Pháo hoa và hiệu ứng thời gian thực nhẹ cho các cảnh có yêu cầu.
-- [ ] Bổ sung regression, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.
+- [x] Chuẩn hóa 14 theme: Sa mạc, Rừng xanh, Cảnh đêm, Mưa giông, Tuyết, Hoàng hôn, Không gian, Trăng non, Biển, Neon, Sakura, Thu, Pháo hoa và Lễ hội.
+- [x] Mở rộng kiểu scene, dữ liệu hồ sơ, preset và bộ chọn giao diện có lưu để dùng đủ các theme.
+- [x] Tạo lớp phủ fixed theo theme với pointer-events:none, reduced-motion và token màu chữ/menu tương phản.
+- [x] Thêm tương tác con trỏ tiết chế cho Pháo hoa và hiệu ứng thời gian thực nhẹ cho các cảnh có yêu cầu.
+- [x] Bổ sung regression, kiểm tra TypeScript, production build, responsive; checkpoint phát hành sẽ được lưu sau cùng.
 
 ## Linh vật người tuyết nguyên bản
 - [x] Tạo diện mạo người tuyết nguyên bản, không sao chép nhân vật phim, cho linh vật đang chọn.

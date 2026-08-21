@@ -30,4 +30,12 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
     expect(source).toContain("Math.max(18, Math.min(84");
     expect(source).toContain("appearanceEmojiPet: { ...pet, x: draft.x, y: draft.y, roam: true, roamingEnabled: true }");
   });
+
+  it("chỉ kích hoạt ánh sáng theo con trỏ ở cảnh Pháo hoa hoặc Lễ hội và luôn dọn dẹp listener", () => {
+    expect(source).toContain('profile.defaultAmbientScene === "fireworks" || profile.defaultAmbientScene === "festival"');
+    expect(source).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
+    expect(source).toContain('window.addEventListener("pointermove", updatePointerGlow, { passive: true })');
+    expect(source).toContain('window.removeEventListener("pointermove", updatePointerGlow)');
+    expect(source).toContain('root.style.removeProperty("--scene-pointer-x")');
+  });
 });

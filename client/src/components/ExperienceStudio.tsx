@@ -55,8 +55,17 @@ const sceneOptions: Array<{ id: AmbientScene; label: string; detail: string; ico
   { id: "urbanfog", label: "Sương mờ đô thị", detail: "phố mờ · yên tĩnh", icon: Cloud },
   { id: "sparklers", label: "Pháo hoa que", detail: "tia sáng · lung linh", icon: Sparkles },
   { id: "fireworks", label: "Pháo hoa rực rỡ", detail: "bầu trời lễ hội", icon: PartyPopper },
+  { id: "forest", label: "Rừng xanh", detail: "tán cây · gió rừng", icon: Leaf },
+  { id: "sunset", label: "Hoàng hôn", detail: "nắng mật · mây xa", icon: Sun },
+  { id: "space", label: "Không gian", detail: "tinh vân · quỹ đạo", icon: Moon },
+  { id: "crescentmoon", label: "Trăng non", detail: "trăng khuyết · sao nhỏ", icon: Moon },
+  { id: "ocean", label: "Biển", detail: "sóng êm · chân trời", icon: Cloud },
+  { id: "neon", label: "Neon", detail: "ánh sáng · nhịp đêm", icon: Sparkles },
+  { id: "sakura", label: "Sakura", detail: "cánh đào · nắng hồng", icon: Flower2 },
+  { id: "autumn", label: "Thu", detail: "cam đất · lá thưa", icon: Leaf },
+  { id: "festival", label: "Lễ hội", detail: "cờ hoa · đèn sáng", icon: PartyPopper },
 ];
-const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38 };
+const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38 };
 const emotionVoiceStates: Record<EmotionId, string[]> = {
   calm: ["comeback", "streak_recovered"], happy: ["achievement_unlocked"], tired: ["failed", "comeback"], sad: ["failed", "comeback"], stressed: ["failed", "streak_recovered"], lazy: ["failed", "comeback"], proud: ["achievement_unlocked"], focused: ["almost_unlocked"], hopeful: ["almost_unlocked", "comeback"], overwhelmed: ["failed", "comeback"], sleepy: ["failed", "comeback"], excited: ["achievement_unlocked"], lonely: ["failed", "comeback"], confident: ["achievement_unlocked", "almost_unlocked"], curious: ["almost_unlocked"], comeback: ["comeback", "streak_recovered"],
 };
