@@ -19,20 +19,20 @@ describe("tinh chỉnh cảnh mưa, lá rơi, tuyết và dark mode theo mùa", 
     expect(css).toContain("pointer-events: none");
   });
 
-  it("giảm lá rơi về trục dọc, dùng lá nhỏ nhiều sắc độ và bỏ thảm lá đáy", () => {
-    expect(css).toContain("autumn-sparse-vertical-fall");
-    expect(css).toContain("background-position: 18% 118vh, 76% 112vh");
+  it("giảm lá rơi, tạo khoảng cách không đều và giữ chuyển động gần trục dọc", () => {
+    expect(css).toContain("autumn-spaced-fall");
+    expect(css).toContain("background-position: 10.5% 118vh, 50.5% 111vh, 92% 125vh");
     expect(css).toContain('data-ambient-scene="leaves"] body::after');
     expect(css).toContain('body::after { content: none; }');
     expect(css).toContain("%23e69a9d");
   });
 
-  it("đặt người tuyết SVG ở góc dưới nhưng không nhận thao tác", () => {
+  it("dùng emoji người tuyết ở góc dưới nhưng không nhận thao tác", () => {
     expect(css).toContain('data-ambient-scene="snow"] body::after');
-    expect(css).toContain("snowman-gentle-bob");
+    expect(css).toContain('content: "⛄"');
     expect(css).toContain("--snowman-x");
     expect(css).toContain("--snowman-y");
-    expect(css).toContain("width: 7.3rem");
+    expect(css).toContain("font-family: \"Apple Color Emoji\"");
   });
 
   it("áp dụng token tối riêng cho tất cả scene lên nền, menu, panel và thành tích", () => {
@@ -48,5 +48,17 @@ describe("tinh chỉnh cảnh mưa, lá rơi, tuyết và dark mode theo mùa", 
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain('data-ambient-scene="snow"] body::after');
     expect(css).toContain("animation: none !important");
+  });
+
+  it("giảm kích thước hạt mưa, giãn vũng nước và làm tia sét dễ nhìn hơn", () => {
+    expect(css).toContain("13.5rem 17rem, 19rem 23rem");
+    expect(css).toContain("height: 5.25rem");
+    expect(css).toContain("lightning-strike-visible");
+    expect(css).toContain("34rem 14.5rem");
+  });
+
+  it("thêm điểm nhấn nắng và chim cho Buổi sáng", () => {
+    expect(css).toContain('data-ambient-scene="morning"] body::before');
+    expect(css).toContain("morning-sunrise-breathe");
   });
 });

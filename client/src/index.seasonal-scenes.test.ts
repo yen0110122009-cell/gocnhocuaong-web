@@ -24,6 +24,8 @@ describe("bốn cảnh theo mùa và sự kiện", () => {
     expect(css).toContain('data-ambient-scene="tet"] #root > div.min-h-screen::after');
     expect(css).toContain("tet-lantern-glow");
     expect(css).toContain("tet-sparkle");
+    expect(css).toContain("--scene-page: #fff0f5");
+    expect(css).toContain("height: 6.4rem");
   });
 
   it("đặt ma và dơi Halloween trên nội dung, không chặn thao tác và chỉ xuất hiện theo nhịp thưa", () => {
@@ -33,11 +35,33 @@ describe("bốn cảnh theo mùa và sự kiện", () => {
     expect(css).toContain("halloween-flyby 26s");
     expect(css).toContain("0%, 10%, 24%, 60%, 74%, 100%");
     expect(css).toContain("data:image/svg+xml");
+    expect(css).toContain("height: 8rem");
+    expect(css).toContain("background-size: cover");
   });
 
   it("giữ responsive và respects prefers-reduced-motion cho lớp cảnh mới", () => {
     expect(css).toContain("@media (max-width: 767px)");
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain('data-ambient-scene="halloween"] #root > div.min-h-screen::after { animation: none !important; }');
+  });
+
+  it("dùng lớp phủ toàn giao diện, token màu mùa rõ ràng và không chặn thao tác", () => {
+    expect(css).toContain("z-index: 9999");
+    expect(css).toContain("z-index: 10000");
+    expect(css).toContain("pointer-events: none");
+    expect(css).toContain("--scene-page: #f4a460");
+    expect(css).toContain("--scene-page: #87ceeb");
+    expect(css).toContain("--scene-page: #2c003e");
+    expect(css).toContain("--scene-page: #d0e8f2");
+    expect(css).toContain("--scene-page: #4a5568");
+    expect(css).toContain("--scene-page: #fff0f5");
+    expect(css).toContain("🍂  🍁");
+    expect(css).toContain("border-top: 4px solid");
+  });
+
+  it("khai báo token cảnh và màu chữ tương phản cho đủ sáu cảnh được chuẩn hóa", () => {
+    for (const scene of ["leaves", "summer", "halloween", "snow", "rain", "spring"]) {
+      expect(css).toMatch(new RegExp(`:root\\[data-ambient-scene="${scene}"\\] \\{[^}]*--scene-page:[^}]*--scene-text:`));
+    }
   });
 });

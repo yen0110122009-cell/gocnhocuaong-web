@@ -1128,3 +1128,261 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root.dark[data-cosmetic-theme] { --cosmetic-text:#f4f7fc; --cosmetic-text-strong:#ffffff; --cosmetic-muted:#d5deea; --cosmetic-level-bg:linear-gradient(135deg, color-mix(in srgb, var(--interface-primary) 64%, #10131d), color-mix(in srgb, var(--interface-secondary) 57%, #10131d)); --cosmetic-level-ink:#ffffff; }
 :root.dark[data-cosmetic-theme] #root > div.min-h-screen :is(main h1, main h2, main h3, main h4, main h5, main b, main strong, aside b, header b) { color: var(--cosmetic-text-strong) !important; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
 :root.dark[data-cosmetic-theme] #root > div.min-h-screen :is(main p, main span, main small, main label, main li, aside p, aside span, header p, header span) { color: var(--cosmetic-text) !important; }
+
+/* Tinh chỉnh mật độ theo phản hồi: ít đối tượng hơn, khoảng trống lớn hơn để ưu tiên
+   khả năng đọc nội dung. Các lớp vẫn cố định và không nhận tương tác. */
+:root[data-ambient-scene="rain"] body::after,
+:root[data-ambient-scene="storm"] body::after {
+  opacity: .38;
+  background-size: 13.5rem 17rem, 19rem 23rem;
+  background-position: 10rem -14rem, 41rem -21rem;
+  animation-duration: 3.8s;
+}
+
+:root[data-ambient-scene="storm"] body::after { opacity: .44; }
+
+:root[data-ambient-scene="rain"] body::before,
+:root[data-ambient-scene="storm"] body::before {
+  height: 5.25rem;
+  opacity: calc(var(--scene-puddle-density, 64) * .0072) !important;
+  background-size: 17rem 5.8rem, 14rem 5rem, 20rem 6.6rem, cover;
+  background-position: left bottom, 48% bottom, right bottom, center;
+}
+
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::before {
+  opacity: .93;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 220'%3E%3Cg fill='%23212b35' fill-opacity='.98'%3E%3Cellipse cx='76' cy='124' rx='94' ry='55'/%3E%3Cellipse cx='168' cy='80' rx='78' ry='64'/%3E%3Cellipse cx='278' cy='118' rx='118' ry='66'/%3E%3Cellipse cx='400' cy='92' rx='101' ry='61'/%3E%3Cellipse cx='487' cy='133' rx='71' ry='43'/%3E%3C/g%3E%3Cg fill='%23556470' fill-opacity='.85'%3E%3Cellipse cx='123' cy='91' rx='68' ry='31'/%3E%3Cellipse cx='246' cy='80' rx='71' ry='34'/%3E%3Cellipse cx='377' cy='81' rx='63' ry='30'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 16% 0%, rgba(16, 23, 31, .62) 0 22%, transparent 23%),
+    linear-gradient(180deg, rgba(16, 22, 29, .49), rgba(38, 57, 72, .38) 58%, rgba(27, 46, 61, .18));
+  background-size: 34rem 14.5rem, auto, cover;
+  background-position: -2.4rem -1.7rem, left top, center;
+}
+
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::after {
+  z-index: 57;
+  background-size: 3.7rem 6.6rem;
+  animation: lightning-strike-visible 5.7s steps(1, end) infinite !important;
+}
+
+@keyframes lightning-strike-visible {
+  0%, 53%, 100% { opacity: 0; background-position: 82% -10rem; }
+  56% { opacity: 1; background-position: 82% 4.25rem; }
+  57% { opacity: .12; background-position: 82% -10rem; }
+  59% { opacity: .82; background-position: 24% 5.25rem; }
+  60% { opacity: 0; background-position: 24% -10rem; }
+  79% { opacity: .64; background-position: 66% 6rem; }
+  80% { opacity: 0; background-position: 66% -10rem; }
+}
+
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::after {
+  opacity: calc(var(--scene-leaf-density, 28) * .0065) !important;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 40'%3E%3Cpath fill='%23e69a9d' d='M14 1C3 9 3 27 14 39 25 27 25 9 14 1Z'/%3E%3Cpath d='M14 5v30M14 22 7 14m7 15 7-8' fill='none' stroke='%23ac5a63' stroke-width='1.5'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31 27'%3E%3Cpath fill='%23c96f79' d='M2 17C6 2 23 0 29 9 25 23 10 29 2 17Z'/%3E%3Cpath d='M5 17 27 10M14 14l-1-7m7 5 5 4' fill='none' stroke='%238b4751' stroke-width='1.5'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 40'%3E%3Cpath fill='%23f3ad58' d='M14 1C3 9 3 27 14 39 25 27 25 9 14 1Z'/%3E%3Cpath d='M14 5v30M14 22 7 14m7 15 7-8' fill='none' stroke='%23b96835' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-size: 1.1rem 1.62rem, 1.35rem 1.17rem, .95rem 1.4rem;
+  background-position: 9% -150px, 52% -470px, 91% -285px;
+  animation: autumn-spaced-fall 24s linear infinite !important;
+}
+
+@keyframes autumn-spaced-fall {
+  from { background-position: 9% -150px, 52% -470px, 91% -285px; }
+  to { background-position: 10.5% 118vh, 50.5% 111vh, 92% 125vh; }
+}
+
+@media (max-width: 767px) {
+  :root[data-ambient-scene="rain"] body::after,
+  :root[data-ambient-scene="storm"] body::after { background-size: 11rem 14rem, 16rem 20rem; }
+  :root[data-ambient-scene="storm"] #root > div.min-h-screen::before { background-size: 26rem 11rem, auto, cover; }
+}
+
+/* Khôi phục sắc xuân rõ hơn thay vì một lớp pastel bị bạc màu. */
+:root[data-ambient-scene="spring"] {
+  --scene-page: #eff8d6;
+  --scene-page-alt: #ffdced;
+  --scene-side: #e1f3cc;
+  --scene-header: #fff9fb;
+  --scene-card: #fffdfd;
+  --scene-text: #36543b;
+  --scene-muted: #5c7760;
+  --scene-border: #7eaf73;
+  --scene-accent: #347a58;
+  --scene-accent-alt: #d86a99;
+}
+:root[data-ambient-scene="spring"] #root > div.min-h-screen::before {
+  opacity: .64;
+  background-image:
+    radial-gradient(ellipse at 7% 6%, rgba(75, 142, 69, .55) 0 14%, transparent 14.5%),
+    radial-gradient(ellipse at 95% 5%, rgba(225, 111, 164, .58) 0 13%, transparent 13.5%),
+    radial-gradient(circle at 74% 82%, rgba(112, 180, 89, .34) 0 10%, transparent 10.5%),
+    linear-gradient(180deg, rgba(253, 218, 237, .28), rgba(196, 234, 173, .27));
+}
+:root[data-ambient-scene="spring"] #root > div.min-h-screen::after {
+  opacity: .42;
+  background-size: 10.5rem 13rem, 14rem 16rem, 17rem 20rem;
+  background-position: 12% -180px, 58% -340px, 89% -260px;
+  animation: spring-petal-fall 15.5s linear infinite !important;
+}
+
+/* Tết ưu tiên chữ đọc được: cành hoa, lồng đèn và bánh ở đáy chỉ là điểm nhấn nhẹ. */
+:root[data-ambient-scene="tet"] #root > div.min-h-screen::before {
+  opacity: .38;
+  background-size: 31rem 14.5rem, cover;
+  background-position: -1.5rem -1rem, center;
+}
+:root[data-ambient-scene="tet"] #root > div.min-h-screen::after { opacity: .18; }
+:root[data-ambient-scene="tet"] body::after {
+  z-index: 56;
+  height: 6.4rem;
+  opacity: 1;
+  background-size: 100% 100%;
+  background-position: center bottom;
+  filter: drop-shadow(0 -3px 5px rgba(87, 23, 17, .18));
+}
+
+/* Buổi sáng: mặt trời có tia, chim bay thưa, tán cây và sương ở đáy viewport. */
+:root[data-ambient-scene="morning"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 54;
+  pointer-events: none;
+  opacity: .76;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 100'%3E%3Cpath d='M18 42q10-13 20 0 10-13 20 0M100 25q8-11 16 0 8-11 16 0M158 48q9-12 18 0 9-12 18 0' fill='none' stroke='%2351704f' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 86% 13%, rgba(255, 205, 59, .98) 0 3.25rem, rgba(255, 226, 122, .44) 3.3rem 8.1rem, transparent 8.2rem),
+    repeating-conic-gradient(from -18deg at 86% 13%, rgba(255, 251, 210, .26) 0 4deg, transparent 5deg 13deg),
+    radial-gradient(ellipse at 13% 100%, rgba(45, 111, 66, .52) 0 16%, transparent 16.5%),
+    linear-gradient(180deg, rgba(255, 248, 209, .08), rgba(230, 248, 233, .25) 74%, rgba(191, 224, 198, .36));
+  background-size: 20rem 9rem, auto, auto, auto, cover;
+  background-position: 8% 18%, center, center, left bottom, center;
+  background-repeat: no-repeat;
+  animation: morning-sunrise-breathe 16s ease-in-out infinite alternate;
+}
+@keyframes morning-sunrise-breathe { from { opacity: .62; } to { opacity: .9; } }
+
+/* Emoji hệ thống giúp người tuyết thân thiện và rõ nét hơn thay cho hình SVG vẽ tay. */
+:root[data-ambient-scene="snow"] body::after {
+  content: "⛄";
+  display: grid;
+  place-items: center;
+  width: auto;
+  height: auto;
+  background: none;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: clamp(3.75rem, 7vw, 6.25rem);
+  line-height: 1;
+  filter: drop-shadow(0 9px 8px rgba(29, 69, 95, .22));
+}
+
+/* Khôi phục đúng đáy Halloween (đồi, cây và bí ngô) từ checkpoint trước khi bị lỗi crop. */
+:root[data-ambient-scene="halloween"] body::after {
+  height: 8rem;
+  background-size: cover;
+  background-position: center bottom;
+  filter: drop-shadow(0 -3px 4px rgba(0, 0, 0, .2));
+}
+
+@media (max-width: 767px) {
+  :root[data-ambient-scene="tet"] body::after { height: 5.25rem; }
+  :root[data-ambient-scene="halloween"] body::after { height: 5.8rem; }
+  :root[data-ambient-scene="morning"] body::before { background-size: 14rem 6.4rem, auto, auto, auto, cover; background-position: 4% 21%, center, center, left bottom, center; }
+  :root[data-ambient-scene="snow"] body::after { font-size: 4.3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene="morning"] body::before,
+  :root[data-ambient-scene="spring"] #root > div.min-h-screen::after { animation: none !important; }
+}
+
+/* Lớp phủ toàn giao diện: đi qua nội dung/menu nhưng tuyệt đối không cản click. */
+:root[data-ambient-scene] #root > div.min-h-screen::before,
+:root[data-ambient-scene] #root > div.min-h-screen::after,
+:root[data-ambient-scene] body::before,
+:root[data-ambient-scene] body::after { pointer-events: none; }
+:root[data-ambient-scene="rain"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="snow"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="spring"] #root > div.min-h-screen::after { z-index: 9999; }
+:root[data-ambient-scene="halloween"] #root > div.min-h-screen::after { z-index: 10000; }
+
+/* Token màu rõ ràng theo mùa; các biến scene vẫn được mọi panel, menu và chữ kế thừa. */
+:root[data-ambient-scene="leaves"] { --scene-page: #f4a460; --scene-page-alt: #efb579; --scene-side: #8b4513; --scene-header: #9b4d17; --scene-card: #fff8dc; --scene-text: #4a260d; --scene-muted: #774522; --scene-border: #a85e29; --scene-accent: #8b4513; --scene-accent-alt: #d76424; }
+:root[data-ambient-scene="summer"] { --scene-page: #87ceeb; --scene-page-alt: #b9e8f7; --scene-side: #f4a460; --scene-header: #f5bc78; --scene-card: #fff9e9; --scene-text: #1c39bb; --scene-muted: #315a92; --scene-border: #d99145; --scene-accent: #1c39bb; --scene-accent-alt: #ef9e27; }
+:root[data-ambient-scene="halloween"] { --scene-page: #2c003e; --scene-page-alt: #121212; --scene-side: #181020; --scene-header: #ff6600; --scene-card: #2b1737; --scene-text: #ffffff; --scene-muted: #d8bfe4; --scene-border: #ff6600; --scene-accent: #39ff14; --scene-accent-alt: #ff6600; }
+:root[data-ambient-scene="snow"] { --scene-page: #d0e8f2; --scene-page-alt: #eaf7fb; --scene-side: #0f4c81; --scene-header: #155a93; --scene-card: #f8fcff; --scene-text: #263744; --scene-muted: #516b7a; --scene-border: #79adc9; --scene-accent: #0f4c81; --scene-accent-alt: #5e9fc2; }
+:root[data-ambient-scene="rain"] { --scene-page: #4a5568; --scene-page-alt: #617086; --scene-side: #2d3748; --scene-header: #354254; --scene-card: #334155; --scene-text: #e2e8f0; --scene-muted: #c6d2df; --scene-border: #718096; --scene-accent: #9dc7e6; --scene-accent-alt: #6788a6; }
+:root[data-ambient-scene="spring"] { --scene-page: #fff0f5; --scene-page-alt: #f7dce9; --scene-side: #98fb98; --scene-header: #baf5b4; --scene-card: #fffdfd; --scene-text: #2e8b57; --scene-muted: #47795b; --scene-border: #78c979; --scene-accent: #2e8b57; --scene-accent-alt: #d86a99; }
+
+/* Thảm lá thấp, chỉ neo chân màn hình; không còn che phần nội dung. */
+:root[data-ambient-scene="leaves"] body::before {
+  content: "🍂  🍁   🍂  🍁   🍂  🍁   🍂  🍁";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -.25rem;
+  z-index: 9998;
+  overflow: hidden;
+  color: transparent;
+  font-size: clamp(1.45rem, 3vw, 2.25rem);
+  letter-spacing: clamp(.2rem, 2vw, 1.15rem);
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow: 0 .12rem 0 #b6542e, .22rem -.15rem 0 #ea9d31, .6rem .08rem 0 #c86a2d;
+  opacity: .92;
+}
+
+/* Tuyết bám mảnh ở đầu các khu điều hướng/cấp độ, đủ nhận diện nhưng không lấn nội dung. */
+:root[data-ambient-scene="snow"] #root > div.min-h-screen :is(aside, header, .level-status-card) {
+  border-top: 4px solid rgba(255, 255, 255, .94) !important;
+  box-shadow: inset 0 5px 11px rgba(255, 255, 255, .6), 0 -2px 10px rgba(255, 255, 255, .56);
+}
+
+/* Shell ứng dụng được ép về token cảnh để các utility màu cứng cũ không làm theme bị lệch. */
+:root[data-ambient-scene] #root > .min-h-screen {
+  background: var(--scene-page) !important;
+  color: var(--scene-text) !important;
+}
+:root[data-ambient-scene] #root > .min-h-screen > aside {
+  background: color-mix(in srgb, var(--scene-side) 94%, transparent) !important;
+  border-color: var(--scene-border) !important;
+  color: var(--scene-text) !important;
+}
+:root[data-ambient-scene] #root > .min-h-screen > div > header {
+  background: color-mix(in srgb, var(--scene-header) 94%, transparent) !important;
+  border-color: var(--scene-border) !important;
+  color: var(--scene-text) !important;
+}
+:root[data-ambient-scene] #root > .min-h-screen :is(header, aside) input {
+  background: var(--scene-card) !important;
+  border-color: var(--scene-border) !important;
+  color: var(--scene-text) !important;
+}
+:root[data-ambient-scene] #root > .min-h-screen :is(header, aside, main) :is([class*="text-slate-"], [class*="text-amber-"]) {
+  color: var(--scene-muted) !important;
+}
+:root[data-ambient-scene] #root > .min-h-screen :is(header, aside, main) :is(h1, h2, h3, h4, b, strong) {
+  color: var(--scene-text) !important;
+}
+:root[data-ambient-scene="halloween"] #root > .min-h-screen :is(header, aside, main) :is(h1, h2, h3, h4, b, strong) {
+  color: #ffffff !important;
+}
+:root[data-ambient-scene="rain"] #root > .min-h-screen :is(header, aside, main) :is(h1, h2, h3, h4, b, strong) {
+  color: #e2e8f0 !important;
+}
+:root[data-ambient-scene] #root > .min-h-screen :is(aside, header) :is([class*="bg-[#"], [class*="bg-white"], [class*="bg-slate"]) {
+  background-color: var(--scene-card) !important;
+}
+:root[data-ambient-scene] #root > .min-h-screen :is(aside, header) :is([class*="text-[#"], [class*="text-slate-"], [class*="text-amber-"]) {
+  color: var(--scene-muted) !important;
+}
+:root[data-ambient-scene] #root > .min-h-screen > aside nav button[aria-current="page"] {
+  background: var(--scene-accent) !important;
+  color: #ffffff !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene="leaves"] body::before { text-shadow: 0 .12rem 0 #b6542e, .22rem -.15rem 0 #ea9d31; }
+}
