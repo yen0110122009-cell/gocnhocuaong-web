@@ -1035,11 +1035,11 @@
 - [x] Xác minh không còn thẻ ảnh mascot/Lumi trong source và bundle giao diện.
 
 ## Mini-player, lỗi đăng nhập 429 và phản hồi khôi phục
-- [ ] Hiển thị biểu tượng/trạng thái rõ ràng trong mini-player khi audio đã được mở khóa trên mobile.
-- [ ] Thêm thông báo lỗi đăng nhập thân thiện cho HTTP 429 và nút thử lại không lặp request vô hạn.
-- [ ] Thêm animation mượt và toast xác nhận khi nhấn “Khôi phục phiên Pomodoro”.
-- [ ] Cập nhật regression tests, chạy Vitest, typecheck và production build.
-- [ ] Lưu checkpoint phát hành bản cập nhật.
+- [x] Hiển thị biểu tượng/trạng thái rõ ràng trong mini-player khi audio đã được mở khóa trên mobile.
+- [x] Thêm thông báo lỗi đăng nhập thân thiện cho HTTP 429 và nút thử lại không lặp request vô hạn.
+- [x] Thêm animation mượt và toast xác nhận khi nhấn “Khôi phục phiên Pomodoro”.
+- [x] Cập nhật regression tests, chạy Vitest, typecheck và production build.
+- [x] Lưu checkpoint phát hành bản cập nhật.
 
 ## Yêu cầu mới: xóa hoàn toàn ảnh Lumi và Ong
 - [x] Xóa mọi thẻ ảnh, avatar hoặc hình minh họa Lumi/Ong còn được render trong toàn bộ UI.
