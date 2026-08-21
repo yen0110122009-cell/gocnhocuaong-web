@@ -1076,4 +1076,4 @@
 - [x] Đồng bộ tone tối theo từng mùa cho nền, menu, thành tích/cúp và các panel.
 - [x] Xóa mọi chỉ báo hoặc hình ảnh Lumi/Ong còn sót ở đăng nhập, header và điều hướng.
 - [x] Cập nhật regression tests, kiểm thử responsive, TypeScript, Vitest và production build.
-- [ ] Lưu checkpoint phát hành đợt tinh chỉnh cảnh và theme.
+- [x] Lưu checkpoint phát hành đợt tinh chỉnh cảnh và theme.
