@@ -357,13 +357,13 @@ function FloatingEmojiPet({ profile, onProfile, hidden = false }: { profile: Pro
   }, [pet?.emoji, pet?.x, pet?.y]);
   useEffect(() => {
     const roamingEnabled = pet?.roam === true || pet?.roamingEnabled === true;
-    if (!pet || !roamingEnabled || dragging || hidden || reducedMotion) return;
+    if (!pet || !roamingEnabled || dragging || reducedMotion) return;
     const walker = window.setInterval(() => setDraft((current) => ({ x: Math.max(8, Math.min(92, current.x + (Math.random() * 16 - 8))), y: Math.max(18, Math.min(84, current.y + (Math.random() * 8 - 4))) })), 5200);
     return () => window.clearInterval(walker);
-  }, [pet?.emoji, pet?.roam, pet?.roamingEnabled, dragging, hidden, reducedMotion]);
+  }, [pet?.emoji, pet?.roam, pet?.roamingEnabled, dragging, reducedMotion]);
   useEffect(() => {
     const roamingEnabled = pet?.roam === true || pet?.roamingEnabled === true;
-    if (!pet || !roamingEnabled || dragging || hidden) return;
+    if (!pet || !roamingEnabled || dragging) return;
     if (lastPersistedRoamPositionRef.current.x === draft.x && lastPersistedRoamPositionRef.current.y === draft.y) return;
     if (roamingSaveTimerRef.current) window.clearTimeout(roamingSaveTimerRef.current);
     roamingSaveTimerRef.current = window.setTimeout(() => {
@@ -371,8 +371,8 @@ function FloatingEmojiPet({ profile, onProfile, hidden = false }: { profile: Pro
       onProfile({ ...profile, appearanceEmojiPet: { ...pet, x: draft.x, y: draft.y, roam: true, roamingEnabled: true } });
     }, 700);
     return () => { if (roamingSaveTimerRef.current) window.clearTimeout(roamingSaveTimerRef.current); };
-  }, [draft.x, draft.y, dragging, hidden, onProfile, pet, profile]);
-  if (!pet || hidden) return null;
+  }, [draft.x, draft.y, dragging, onProfile, pet, profile]);
+  if (!pet) return null;
   const roamingEnabled = pet.roam === true || pet.roamingEnabled === true;
   const point = (event: React.PointerEvent<HTMLButtonElement>) => ({ x: Math.max(5, Math.min(95, event.clientX / window.innerWidth * 100)), y: Math.max(8, Math.min(90, event.clientY / window.innerHeight * 100)) });
   const commit = (next: { x: number; y: number }) => onProfile({ ...profile, appearanceEmojiPet: { ...pet, ...next } }, "Đã lưu vị trí linh vật.");

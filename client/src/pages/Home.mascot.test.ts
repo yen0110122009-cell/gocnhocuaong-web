@@ -22,8 +22,10 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
   });
 
   it("để linh vật đi dạo trong viewport nhưng không chặn menu hoặc thao tác học", () => {
+    expect(source).toContain('hidden={view === "appearance"}');
+    expect(source).toContain("if (!pet) return null;");
     expect(source).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
-    expect(source).toContain("if (!pet || !roamingEnabled || dragging || hidden || reducedMotion) return;");
+    expect(source).toContain("if (!pet || !roamingEnabled || dragging || reducedMotion) return;");
     expect(source).toContain('className="pointer-events-none fixed inset-0 z-40"');
     expect(source).toContain('"pointer-events-auto absolute');
     expect(source).toContain("Math.max(8, Math.min(92");

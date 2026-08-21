@@ -65,3 +65,8 @@
 - [x] Xác định sự kiện click/focus/blur hoặc cập nhật state làm điều khiển âm thanh giật và popup đóng sai.
 - [x] Ổn định vị trí popup, ngăn đóng khi thao tác bên trong và tránh re-render làm nhảy giao diện.
 - [x] Bổ sung regression cho mở/đóng popup âm thanh và kiểm tra TypeScript, production build, responsive.
+
+## Xác nhận lại Lumi và kho linh vật theo phản hồi
+- [x] Kiểm tra Không gian cảm xúc của Lumi có nút thu gọn/mở rộng rõ ràng và trạng thái được lưu độc lập.
+- [x] Kiểm tra linh vật emoji được chọn trong Giao diện & tone màu tự đi dạo toàn màn hình, kéo thả được và không che thao tác học.
+- [x] Bổ sung regression, kiểm tra TypeScript, production build, responsive; checkpoint phát hành sẽ được lưu sau cùng.

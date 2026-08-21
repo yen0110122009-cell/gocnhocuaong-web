@@ -131,6 +131,8 @@ describe("Audio Center UX contracts", () => {
 
   it("keeps the full Lumi emotion space independently collapsible", () => {
     expect(experienceStudioSource).toContain('storageKey="experience-lumi-emotion-space"');
-    expect(experienceStudioSource).toContain('title="Không gian cảm xúc của Lumi"');
+    expect(experienceStudioSource).toContain('title="Không gian cảm xúc của Lumi" defaultOpen');
+    const collapsibleSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/components/PersistentCollapsible.tsx"), "utf8");
+    expect(collapsibleSource).toContain('{open ? "Thu gọn" : "Mở rộng"}');
   });
 });
