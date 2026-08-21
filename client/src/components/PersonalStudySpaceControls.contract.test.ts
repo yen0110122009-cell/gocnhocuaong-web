@@ -95,6 +95,12 @@ describe("StudyCorner contracts", () => {
     expect(pomodoro).toContain("deletePersonalAmbientPreset");
     expect(pomodoro).toContain("Preset tỷ lệ của tôi");
     expect(pomodoro).toContain("personalPomodoroAmbientPresets: next");
+    expect(pomodoro).toContain("toast.success(`Đã áp dụng preset âm lượng");
+    expect(pomodoro).toContain("appliedAmbientPresetId");
+    expect(pomodoro).toContain("preset-ambient-apply");
+    const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
+    expect(css).toContain("@keyframes preset-ambient-apply");
+    expect(css).toContain("prefers-reduced-motion: reduce");
   });
 
   it("keeps Audio Center volumes separated by source and uses clean assets only", () => {

@@ -957,3 +957,10 @@
 - [x] Cho phép tạo, áp dụng, chỉnh sửa và xóa preset âm lượng cá nhân.
 - [x] Đồng bộ preset cá nhân với hồ sơ/cloud-state và giữ tương thích dữ liệu cũ.
 - [x] Bổ sung regression tests, TypeScript, production build và QA trước checkpoint; 62 file/258 test đạt, build đạt.
+
+## Animation preset và rà soát GitHub Pages
+- [x] Thêm animation mượt khi áp dụng preset âm lượng cá nhân.
+- [x] Hiển thị toast thành công khi áp dụng preset âm lượng cá nhân.
+- [x] Kiểm tra trạng thái remote GitHub, workflow Pages và bundle live sau checkpoint gần nhất; remote `user_github` đúng repository và workflow gần nhất thành công tại checkpoint `9258979a`.
+- [x] Rà soát các lỗi đã nêu: asset 404, ảnh/audio trên Pages, autoplay/rate-limit, ghi âm mobile và đồng bộ hồ sơ; 404/resolver và hồ sơ 111 đã có evidence đạt, autoplay/rate-limit và microphone vật lý phụ thuộc trình duyệt/thiết bị.
+- [x] Bổ sung regression tests, TypeScript, production build và QA trước checkpoint; 62 file/258 tests đạt, TypeScript và production build đạt.
