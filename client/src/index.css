@@ -610,3 +610,54 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
 @media (prefers-reduced-motion: reduce) {
   :root[data-ambient-scene] #root > div.min-h-screen::before { animation: none !important; transform: none !important; }
 }
+
+/* Cảnh tuyết cần có tiền cảnh riêng: bông tuyết rơi ngang qua chữ/menu và tuyết tích tại đáy viewport.
+   Các lớp đều pointer-events:none để không che thao tác học hoặc điều khiển Pomodoro. */
+:root[data-ambient-scene="snow"] #root > div.min-h-screen::before {
+  z-index: 19;
+  opacity: .48;
+  background-image:
+    radial-gradient(ellipse 30% 8% at 7% 101%, rgba(247, 252, 255, .98) 0 64%, transparent 66%),
+    radial-gradient(ellipse 38% 10% at 41% 102%, rgba(236, 246, 255, .98) 0 64%, transparent 66%),
+    radial-gradient(ellipse 34% 9% at 88% 101%, rgba(248, 253, 255, .99) 0 64%, transparent 66%),
+    linear-gradient(rgba(217, 236, 250, .12), rgba(225, 240, 250, .22)),
+    url("/manus-storage/study-scene-snow_7068a43f.jpg");
+  background-size: auto, auto, auto, cover, cover;
+  background-position: left bottom, center bottom, right bottom, center, center;
+  background-repeat: no-repeat;
+  animation: scene-landscape-breathe 24s ease-in-out infinite alternate;
+}
+
+:root[data-ambient-scene="snow"] #root > div.min-h-screen::after {
+  z-index: 54;
+  opacity: .92;
+  mix-blend-mode: normal;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.98) 0 2.8px, transparent 3.8px),
+    radial-gradient(circle, rgba(255,255,255,.94) 0 1.8px, transparent 2.8px),
+    radial-gradient(circle, rgba(242,249,255,.98) 0 4.4px, transparent 5.5px),
+    radial-gradient(circle, rgba(255,255,255,.86) 0 1.1px, transparent 2.1px),
+    radial-gradient(circle, rgba(233,244,255,.95) 0 3.1px, transparent 4.2px);
+  background-size: 74px 96px, 116px 138px, 179px 210px, 48px 62px, 143px 172px;
+  background-position: 0 -78px, 31px -126px, 72px -198px, -18px -38px, 108px -154px;
+  filter: drop-shadow(0 1px 1px rgba(103, 135, 164, .16));
+  animation: snow-frontfall 8.6s linear infinite;
+}
+
+@keyframes snow-frontfall {
+  from { background-position: 0 -78px, 31px -126px, 72px -198px, -18px -38px, 108px -154px; }
+  to { background-position: 38px 178px, -52px 220px, 118px 312px, 16px 148px, 44px 254px; }
+}
+
+@media (max-width: 767px) {
+  :root[data-ambient-scene="snow"] #root > div.min-h-screen::before { opacity: .68; }
+  :root[data-ambient-scene="snow"] #root > div.min-h-screen::after {
+    opacity: .82;
+    background-size: 58px 80px, 94px 118px, 146px 174px, 42px 56px, 118px 146px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene="snow"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="snow"] #root > div.min-h-screen::after { animation: none !important; }
+}

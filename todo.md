@@ -1046,3 +1046,10 @@
 - [x] Giữ nguyên bản thu âm, nút phát, trạng thái audio-only và các chức năng Pomodoro/audio.
 - [x] Cập nhật regression contract để xác nhận không còn render ảnh mascot.
 - [x] Chạy Vitest, typecheck, production build và lưu checkpoint mới.
+
+## Cảnh tuyết phủ toàn giao diện
+- [x] Thêm lớp tuyết phía trước nội dung để bông tuyết rơi xuyên qua chữ, menu và các panel.
+- [x] Tạo lớp tuyết tích ở cạnh dưới/góc giao diện, ưu tiên vẫn đọc được và không che thao tác.
+- [x] Giữ lớp cảnh nền, hỗ trợ dark mode và `prefers-reduced-motion` cho hiệu ứng tuyết.
+- [x] Cập nhật regression test, kiểm thử desktop/mobile, chạy TypeScript và production build.
+- [x] Lưu checkpoint phát hành bản cảnh tuyết mới.
