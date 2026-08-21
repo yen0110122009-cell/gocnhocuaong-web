@@ -53,3 +53,23 @@ describe("auth dashboard source accessibility", () => {
     expect(source).toContain("aria-label={loading ? \"Đang kiểm tra thông tin\"");
   });
 });
+
+
+describe("new resilience feedback contracts", () => {
+  it("renders a friendly retry action for rate-limited login", () => {
+    const markup = renderToStaticMarkup(React.createElement(Login, {
+      onSubmit: () => undefined,
+      loading: false,
+      error: "Hệ thống đang nhận quá nhiều yêu cầu đăng nhập. Vui lòng chờ khoảng một phút rồi thử lại.",
+      staticHost: true,
+    }));
+    expect(markup).toContain("Thử lại đăng nhập");
+    expect(markup).toContain("role=\"alert\"");
+  });
+
+  it("keeps the rate-limit and retry wording in the login implementation", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+    expect(source).toContain("friendlyLoginError");
+    expect(source).toContain("Thử lại đăng nhập");
+  });
+});

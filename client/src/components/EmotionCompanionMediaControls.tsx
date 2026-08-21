@@ -8,7 +8,7 @@ import { companionDraftDiff, mergeCompanionDrafts, parseCompanionDraft, type Com
 import { PersistentCollapsible } from "./PersistentCollapsible";
 
 type MediaKind = "lumi-voice";
-type LibraryItem = LumiVoiceRecording & { emotion: EmotionThemeId; emotionLabel: string; linkedImage: string };
+type LibraryItem = LumiVoiceRecording & { emotion: EmotionThemeId; emotionLabel: string };
 type Props = { profile: ProfileState; emotion: EmotionThemeId; onProfile: (profile: ProfileState, message?: string) => void };
 type UndoEntry = { emotion: EmotionThemeId; recordings: LumiVoiceRecording[]; favoriteId?: string; description: string; trashedRecordingId?: string };
 type ImportMode = "merge" | "replace";
@@ -31,7 +31,7 @@ function toDataUrl(file: File) { return new Promise<string>((resolve, reject) =>
 
 function recordingsFromMedia(media: CompanionEmotionMedia | undefined, targetEmotion: EmotionThemeId): LumiVoiceRecording[] {
   if (media?.lumiVoiceRecordings?.length) return media.lumiVoiceRecordings;
-  return media?.lumiVoiceUrl ? [{ id: `legacy-${targetEmotion}`, url: media.lumiVoiceUrl, label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString(), imageUrl: media.lumiImageUrl }] : [];
+  return media?.lumiVoiceUrl ? [{ id: `legacy-${targetEmotion}`, url: media.lumiVoiceUrl, label: "Bản thu Lumi đã lưu", createdAt: new Date(0).toISOString() }] : [];
 }
 
 function validImportedRecording(value: unknown, index: number): LumiVoiceRecording | null {
@@ -44,7 +44,6 @@ function validImportedRecording(value: unknown, index: number): LumiVoiceRecordi
     label: typeof candidate.label === "string" && candidate.label.trim() ? candidate.label.trim().slice(0, 80) : `Bản thu Lumi ${index + 1}`,
     createdAt: typeof candidate.createdAt === "string" && candidate.createdAt ? candidate.createdAt : new Date(0).toISOString(),
     updatedAt: typeof candidate.updatedAt === "string" && candidate.updatedAt ? candidate.updatedAt : undefined,
-    imageUrl: typeof candidate.imageUrl === "string" && candidate.imageUrl.trim() ? candidate.imageUrl.trim() : undefined,
     colorLabel: typeof candidate.colorLabel === "string" && COLOR_LABEL_IDS.has(candidate.colorLabel) ? candidate.colorLabel : undefined,
   };
 }
@@ -70,7 +69,6 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const [showOnboarding, setShowOnboarding] = useState(() => { try { return localStorage.getItem("companion-media-onboarding-v1") !== "done"; } catch { return true; } });
   const [search, setSearch] = useState("");
   const [emotionFilter, setEmotionFilter] = useState<EmotionThemeId | "all">(emotion);
-  const [imageFilter, setImageFilter] = useState("all");
   const [colorFilter, setColorFilter] = useState<string>("all");
   const [librarySort, setLibrarySort] = useState<LibrarySort>("manual");
   const [selectedTrashKeys, setSelectedTrashKeys] = useState<string[]>([]);
@@ -88,7 +86,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const uploadProgressTimerRef = useRef<number | null>(null);
   const media = profile.companionEmotionMedia?.[emotion] ?? {};
   const voiceRecordings = recordingsFromMedia(media, emotion);
-  const trashedRecordings = useMemo(() => emotionThemes.flatMap((theme) => (profile.lumiVoiceRecordingTrash?.[theme.id] ?? []).map((entry) => ({ ...entry, emotion: theme.id, emotionLabel: theme.label, linkedImage: resolveMediaUrl(entry.recording.imageUrl || profile.companionEmotionMedia?.[theme.id]?.lumiImageUrl || "") }))), [profile.companionEmotionMedia, profile.lumiVoiceRecordingTrash]);
+  const trashedRecordings = useMemo(() => emotionThemes.flatMap((theme) => (profile.lumiVoiceRecordingTrash?.[theme.id] ?? []).map((entry) => ({ ...entry, emotion: theme.id, emotionLabel: theme.label }))), [profile.lumiVoiceRecordingTrash]);
   const emotionLabel = emotionThemes.find((item) => item.id === emotion)?.label ?? emotion;
   const draftStorageKey = "companion-media-draft:v1";
   const deviceLabel = typeof navigator !== "undefined" ? `${/Mobi|Android/i.test(navigator.userAgent) ? "Thiết bị di động" : "Máy tính"} · ${navigator.platform || "trình duyệt"}` : "Thiết bị hiện tại";
@@ -166,10 +164,8 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     return recordingsFromMedia(themeMedia, theme.id).map((item) => ({
       ...item,
       url: resolveMediaUrl(item.url),
-      imageUrl: resolveMediaUrl(item.imageUrl),
       emotion: theme.id,
       emotionLabel: theme.label,
-      linkedImage: resolveMediaUrl(item.imageUrl || themeMedia?.lumiImageUrl || ""),
     }));
   }), [profile.companionEmotionMedia]);
 
@@ -178,7 +174,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     const filtered = libraryItems.filter((item) => {
       const matchesEmotion = emotionFilter === "all" || item.emotion === emotionFilter;
       const matchesColor = colorFilter === "all" || (colorFilter === "none" ? !item.colorLabel : item.colorLabel === colorFilter);
-      const haystack = `${item.label} ${item.emotionLabel} ${item.linkedImage}`.toLocaleLowerCase("vi-VN");
+      const haystack = `${item.label} ${item.emotionLabel}`.toLocaleLowerCase("vi-VN");
       return matchesEmotion && matchesColor && (!normalizedSearch || haystack.includes(normalizedSearch));
     });
     if (librarySort === "manual") return filtered;
@@ -222,11 +218,6 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     if (previous) undoTimerRef.current = window.setTimeout(() => setUndoMessage(""), 5_000);
   }
 
-  function updateRecordingImage(recordingId: string, imageUrl: string, targetEmotion = emotion, message = "Đã đổi ảnh đại diện cho bản thu Lumi.") {
-    const targetMedia = profile.companionEmotionMedia?.[targetEmotion] ?? {};
-    const targetRecordings = recordingsFromMedia(targetMedia, targetEmotion);
-    updateVoiceRecordingsForEmotion(targetEmotion, targetRecordings.map((voice) => voice.id === recordingId ? { ...voice, imageUrl, updatedAt: new Date().toISOString() } : voice), targetMedia.favoriteLumiVoiceId, message);
-  }
 
   async function uploadFile(file: File, kind: MediaKind) {
     const isAudio = kind === "lumi-voice";
@@ -251,7 +242,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
       if (kind === "lumi-voice") {
         const id = crypto.randomUUID();
         const createdAt = new Date().toISOString();
-        const item: LumiVoiceRecording = { id, url: mediaUrl, label: file.name.replace(/\.[^/.]+$/, "").slice(0, 80) || "Bản thu Lumi", createdAt, updatedAt: createdAt, imageUrl: media.lumiImageUrl || undefined };
+        const item: LumiVoiceRecording = { id, url: mediaUrl, label: file.name.replace(/\.[^/.]+$/, "").slice(0, 80) || "Bản thu Lumi", createdAt, updatedAt: createdAt };
         updateVoiceRecordings([...voiceRecordings, item], media.favoriteLumiVoiceId ?? id, `Đã thêm bản thu Lumi cho cảm xúc “${emotionLabel}”.`);
       }
     } catch (error) { setFailedUpload({ file, kind }); alert(error instanceof Error ? error.message : "Không thể tải tệp. Bạn có thể thử lại."); }
@@ -408,7 +399,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     const targetMedia = profile.companionEmotionMedia?.[item.emotion] ?? {};
     const createdAt = new Date().toISOString();
     const clone: LumiVoiceRecording = { ...item, id: crypto.randomUUID(), label: `${item.label} · bản sao`.slice(0, 80), createdAt, updatedAt: createdAt };
-    updateVoiceRecordingsForEmotion(item.emotion, [...recordingsFromMedia(targetMedia, item.emotion), clone], targetMedia.favoriteLumiVoiceId, `Đã nhân bản “${item.label}”. Bạn có thể đổi tên, ảnh hoặc đặt lại bản ưu tiên.`);
+    updateVoiceRecordingsForEmotion(item.emotion, [...recordingsFromMedia(targetMedia, item.emotion), clone], targetMedia.favoriteLumiVoiceId, `Đã nhân bản “${item.label}”. Bạn có thể đổi tên hoặc đặt lại bản ưu tiên.`);
   }
 
   function setColorLabel(recordingId: string, targetEmotion: EmotionThemeId, colorLabel?: string) {
@@ -457,7 +448,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     anchor.click();
     anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(href), 0);
-    setCollectionMessage(`Đã xuất ${libraryItems.length} bản thu. Tệp chỉ lưu liên kết ảnh/âm thanh hiện có, không sao chép tệp media.`);
+    setCollectionMessage(`Đã xuất ${libraryItems.length} bản thu. Tệp chỉ lưu liên kết âm thanh hiện có, không sao chép tệp media.`);
   }
 
   async function importLibrary(file: File) {
@@ -504,7 +495,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
       }
       if (!foundLibrary) throw new Error("Tệp sao lưu không chứa danh sách bản thu Lumi hợp lệ.");
       onProfile({ ...profile, companionEmotionMedia: nextMedia }, `Đã nhập ${imported} bản thu${skipped ? `; bỏ qua ${skipped} mục không hợp lệ hoặc bị trùng` : ""}.`);
-      setCollectionMessage(`Đã nhập ${imported} bản thu${skipped ? `, bỏ qua ${skipped} mục` : ""}. Liên kết ảnh và âm thanh được giữ nguyên từ tệp sao lưu.`);
+      setCollectionMessage(`Đã nhập ${imported} bản thu${skipped ? `, bỏ qua ${skipped} mục` : ""}. Liên kết âm thanh được giữ nguyên từ tệp sao lưu.`);
     } catch (error) {
       setCollectionMessage(error instanceof Error ? error.message : "Không thể đọc tệp sao lưu. Hãy chọn tệp JSON hợp lệ.");
     }

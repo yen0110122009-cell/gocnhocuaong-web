@@ -64,7 +64,7 @@ describe("Experience Studio requirements", () => {
   });
 
   it("keeps legacy media data compatible while rendering the selected voice as audio-only", () => {
-    expect(mediaControlsSource).toContain("linkedImage");
+    expect(mediaControlsSource).toContain("recordingsFromMedia");
     expect(mediaControlsSource).toContain("aria-label={`Phát bản thu ${item.label}`}");
     expect(mediaControlsSource).toContain("onClick={() => preview(item)}");
     expect(mediaControlsSource).not.toContain("<img");
