@@ -444,7 +444,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
 
   useEffect(() => {
     if (!audioMixerHydratedRef.current) { audioMixerHydratedRef.current = true; return; }
-    onProfile({ ...profile, audioMixer: { ...(profile.audioMixer ?? { ambientSceneVolumes: { morning: 55, rain: 50, snow: 45, leaves: 50, storm: 40, summer: 36, spring: 34, tet: 38, halloween: 30 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 }), pomodoroBackground: backgroundVolume, pomodoroLayers: layerVolumes, pomodoroBell: alertVolume } });
+    onProfile({ ...profile, audioMixer: { ...(profile.audioMixer ?? { ambientSceneVolumes: { morning: 55, rain: 50, snow: 45, leaves: 50, storm: 40, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30 }, pomodoroLayers: {}, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 }), pomodoroBackground: backgroundVolume, pomodoroLayers: layerVolumes, pomodoroBell: alertVolume } });
   }, [alertVolume, backgroundVolume, layerVolumes]);
   useEffect(() => {
     if (!running) return;

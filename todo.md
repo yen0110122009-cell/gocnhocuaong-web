@@ -27,3 +27,11 @@
 - [x] Cho phép kéo thả bằng chuột/cảm ứng, thả rơi về đáy và giới hạn vị trí trong màn hình.
 - [x] Lưu linh vật cùng vị trí cá nhân, có nút xóa/đặt lại và không cản các nút học tập.
 - [x] Bổ sung Vitest, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.
+
+## Theme Sa mạc và Cảnh đêm
+- [x] Rà soát loại scene, dữ liệu hồ sơ và lớp phủ fixed hiện có để mở rộng tương thích.
+- [x] Thêm cảnh Sa mạc với bảng màu cát/nâu, mặt trời và xương rồng cố định.
+- [x] Thêm cảnh Cảnh đêm với nền xanh than, đèn vàng và màn sương nhẹ.
+- [x] Chuẩn hóa lại cảnh Sấm chớp theo lớp mây tối, sét ngang và token chữ tương phản.
+- [x] Bổ sung lựa chọn trong Giao diện & tone màu, giữ reduced-motion và pointer-events:none.
+- [x] Bổ sung regression, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.

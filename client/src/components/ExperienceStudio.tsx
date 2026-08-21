@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bird, CloudRain, Eye, EyeOff, Flower2, Ghost, Leaf, Mic, PartyPopper, Pause, Play, Snowflake, Sun, Trash2, Upload, Volume2, VolumeX, Zap } from "lucide-react";
+import { Bird, CloudRain, Eye, EyeOff, Flower2, Ghost, Leaf, Mic, Moon, PartyPopper, Pause, Play, Snowflake, Sun, Trash2, Upload, Volume2, VolumeX, Zap } from "lucide-react";
 import { emotionFromCommand, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { lumiQuoteForDate } from "../lib/lumiDailyQuotes";
 import { activeContentFor, antiProcrastinationChoices, gentleReminders, randomAntiProcrastinationSpeech, randomMicroTask, speechForEvent, speechGroupLabels, type SpeechGroup } from "../lib/speechLibrary";
@@ -14,7 +14,7 @@ import { AudioCenterEnhancements, type AudioChannel as PlaybackChannel, type Pla
 import { resolveAutomatedScene } from "../lib/sceneAutomation";
 
 type AttentionPreferences = { animationsEnabled: boolean; popupsEnabled: boolean; soundEnabled: boolean };
-type AmbientScene = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween";
+type AmbientScene = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween" | "desert" | "night";
 type AmbientVolumes = Record<AmbientScene, number>;
 type AudioChannel = "environment" | "music" | "uiEffects" | "lumi" | "ong" | "memberVoice";
 type AudioChannelVolumes = Record<AudioChannel, number>;
@@ -40,8 +40,10 @@ const sceneOptions: Array<{ id: AmbientScene; label: string; detail: string; ico
   { id: "spring", label: "Mùa xuân", detail: "hoa rơi · mầm xanh", icon: Flower2 },
   { id: "tet", label: "Tết", detail: "đèn lồng · pháo hoa", icon: PartyPopper },
   { id: "halloween", label: "Halloween", detail: "dơi bay · bí ẩn", icon: Ghost },
+  { id: "desert", label: "Sa mạc", detail: "cát vàng · xương rồng", icon: Sun },
+  { id: "night", label: "Cảnh đêm", detail: "đèn vàng · sương nhẹ", icon: Moon },
 ];
-const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30 };
+const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30 };
 const emotionVoiceStates: Record<EmotionId, string[]> = {
   calm: ["comeback", "streak_recovered"], happy: ["achievement_unlocked"], tired: ["failed", "comeback"], sad: ["failed", "comeback"], stressed: ["failed", "streak_recovered"], lazy: ["failed", "comeback"], proud: ["achievement_unlocked"], focused: ["almost_unlocked"], hopeful: ["almost_unlocked", "comeback"], overwhelmed: ["failed", "comeback"], sleepy: ["failed", "comeback"], excited: ["achievement_unlocked"], lonely: ["failed", "comeback"], confident: ["achievement_unlocked", "almost_unlocked"], curious: ["almost_unlocked"], comeback: ["comeback", "streak_recovered"],
 };
@@ -298,10 +300,10 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const selectedAmbientAudios = isPomodoroAmbientPreset
       ? [DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET]
       : [personalAmbientAudio ?? (
-        scene === "morning" || scene === "summer" || scene === "spring" || scene === "tet" ? DEFAULT_AMBIENT_MORNING_ASSET
+        scene === "morning" || scene === "summer" || scene === "spring" || scene === "tet" || scene === "desert" ? DEFAULT_AMBIENT_MORNING_ASSET
           : scene === "rain" ? DEFAULT_AMBIENT_ASSET
             : scene === "leaves" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET
-              : scene === "storm" || scene === "halloween" ? DEFAULT_AMBIENT_STORM_ASSET
+              : scene === "storm" || scene === "halloween" || scene === "night" ? DEFAULT_AMBIENT_STORM_ASSET
                 : DEFAULT_AMBIENT_ASSET
       )].filter((asset): asset is NonNullable<typeof asset> => Boolean(asset));
     const selectedAmbientAudio = selectedAmbientAudios[0];

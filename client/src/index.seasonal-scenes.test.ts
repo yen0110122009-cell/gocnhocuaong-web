@@ -64,4 +64,11 @@ describe("bốn cảnh theo mùa và sự kiện", () => {
       expect(css).toMatch(new RegExp(`:root\\[data-ambient-scene="${scene}"\\] \\{[^}]*--scene-page:[^}]*--scene-text:`));
     }
   });
+
+  it("có Sa mạc, Cảnh đêm và sấm chớp với lớp phủ toàn giao diện không cản thao tác", () => {
+    expect(css).toContain(':root[data-ambient-scene="desert"] { --scene-page:');
+    expect(css).toContain(':root[data-ambient-scene="night"] { --scene-page:');
+    expect(css).toContain("storm-lightning-strike");
+    expect(css).toContain("pointer-events:none");
+  });
 });
