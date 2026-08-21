@@ -476,6 +476,9 @@ export type ProcrastinationEvent = {
 export type ComboStep = { id: string; label: string; minutes: number; completed: boolean };
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
 export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween";
+export type SceneEffectPreferences = { leaves: number; snow: number; puddles: number; snowmanX: number; snowmanY: number };
+export type SceneTimeRule = { id: string; label: string; scene: AmbientScenePreference; startHour: number; endHour: number };
+export type SceneAutomationSettings = { enabled: boolean; applyFixedHolidays: boolean; timeRules: SceneTimeRule[] };
 export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Thời điểm người học sửa tên, ảnh hoặc nhãn của bản thu. */ updatedAt?: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string; /** Nhãn màu trực quan do người học chọn để phân loại bản thu. */ colorLabel?: string };
 export type LumiVoiceRecordingTrashEntry = { recording: LumiVoiceRecording; deletedAt: string; originalIndex: number; previousFavoriteId?: string };
 export const LUMI_VOICE_TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -697,6 +700,8 @@ export type ProfileState = {
   showMascot?: boolean;
   showLumi?: boolean;
   defaultAmbientScene?: AmbientScenePreference;
+  sceneEffectPreferences?: SceneEffectPreferences;
+  sceneAutomation?: SceneAutomationSettings;
   audioMixer?: AudioMixerSettings;
   /** Các preset cá nhân lưu tỷ lệ hai ambient Pomodoro. */
   personalPomodoroAmbientPresets?: PersonalPomodoroAmbientPreset[];
@@ -888,6 +893,8 @@ export const emptyProfile = (): ProfileState => ({
   showMascot: true,
   showLumi: true,
   defaultAmbientScene: "morning",
+  sceneEffectPreferences: { leaves: 28, snow: 62, puddles: 64, snowmanX: 90, snowmanY: 5 },
+  sceneAutomation: { enabled: false, applyFixedHolidays: true, timeRules: [{ id: "morning", label: "Buổi sáng", scene: "morning", startHour: 5, endHour: 11 }, { id: "summer-day", label: "Ban ngày", scene: "summer", startHour: 11, endHour: 17 }, { id: "spring-evening", label: "Buổi tối", scene: "spring", startHour: 17, endHour: 22 }, { id: "night", label: "Đêm", scene: "halloween", startHour: 22, endHour: 5 }] },
   audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30 }, pomodoroLayers: {}, pomodoroAmbientMix: { morning: 55, storm: 45 }, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
   audioPreviewSpeedPresets: {},
   personalAudioAssets: [],
@@ -1480,6 +1487,23 @@ export function normalizeProfile(value: unknown): ProfileState {
     showMascot: source.showMascot !== false,
     showLumi: source.showLumi !== false,
     defaultAmbientScene: ["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween"].includes(String(source.defaultAmbientScene)) ? source.defaultAmbientScene as AmbientScenePreference : base.defaultAmbientScene,
+    sceneEffectPreferences: {
+      leaves: Math.max(0, Math.min(100, Number(source.sceneEffectPreferences?.leaves ?? base.sceneEffectPreferences!.leaves) || 0)),
+      snow: Math.max(0, Math.min(100, Number(source.sceneEffectPreferences?.snow ?? base.sceneEffectPreferences!.snow) || 0)),
+      puddles: Math.max(0, Math.min(100, Number(source.sceneEffectPreferences?.puddles ?? base.sceneEffectPreferences!.puddles) || 0)),
+      snowmanX: Math.max(4, Math.min(96, Number(source.sceneEffectPreferences?.snowmanX ?? base.sceneEffectPreferences!.snowmanX) || 0)),
+      snowmanY: Math.max(2, Math.min(35, Number(source.sceneEffectPreferences?.snowmanY ?? base.sceneEffectPreferences!.snowmanY) || 0)),
+    },
+    sceneAutomation: {
+      enabled: source.sceneAutomation?.enabled === true,
+      applyFixedHolidays: source.sceneAutomation?.applyFixedHolidays !== false,
+      timeRules: Array.isArray(source.sceneAutomation?.timeRules) ? source.sceneAutomation.timeRules.flatMap((rule, index) => {
+        if (!rule || typeof rule !== "object") return [];
+        const candidate = rule as Partial<SceneTimeRule>;
+        if (!candidate.id || !["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween"].includes(String(candidate.scene))) return [];
+        return [{ id: String(candidate.id).slice(0, 80), label: typeof candidate.label === "string" && candidate.label.trim() ? candidate.label.trim().slice(0, 60) : `Khung giờ ${index + 1}`, scene: candidate.scene as AmbientScenePreference, startHour: Math.max(0, Math.min(23, Math.floor(Number(candidate.startHour) || 0))), endHour: Math.max(0, Math.min(23, Math.floor(Number(candidate.endHour) || 0)))}];
+      }).slice(0, 12) : base.sceneAutomation!.timeRules,
+    },
     audioMixer: {
       ambientSceneVolumes: Object.fromEntries((["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween"] as AmbientScenePreference[]).map((scene) => [scene, Math.max(0, Math.min(100, Number(source.audioMixer?.ambientSceneVolumes?.[scene] ?? base.audioMixer!.ambientSceneVolumes[scene]) || 0))])) as AudioMixerSettings["ambientSceneVolumes"],
       pomodoroLayers: source.audioMixer?.pomodoroLayers && typeof source.audioMixer.pomodoroLayers === "object" ? Object.fromEntries(Object.entries(source.audioMixer.pomodoroLayers).map(([id, level]) => [id, Math.max(0, Math.min(100, Number(level) || 0))])) : {},

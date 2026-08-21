@@ -971,3 +971,132 @@ section[aria-labelledby="account-companion-title"] #account-companion-title { fo
 section[aria-labelledby="account-companion-title"] #account-companion-title::after { content: "Thư viện bản ghi âm"; font-size: 1.5rem; line-height: 2rem; }
 section[aria-labelledby="account-companion-title"] #account-companion-title + p { font-size: 0 !important; }
 section[aria-labelledby="account-companion-title"] #account-companion-title + p::after { content: "Tự ghi âm tại thiết bị của bạn, sau đó quản lý và nghe lại bản thu theo từng cảm xúc."; font-size: .875rem; line-height: 1.5rem; }
+
+/* Mưa và sấm: mây cố định ở góc trên, hạt mưa là giọt nước chóp nhọn–đáy tròn
+   tự dựng bằng SVG. Lớp giọt rơi qua nội dung nhưng không nhận thao tác. */
+:root[data-ambient-scene="rain"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::before {
+  z-index: 19;
+  opacity: .72;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 410 180'%3E%3Cg fill='%23bacbd5' fill-opacity='.9'%3E%3Cellipse cx='92' cy='103' rx='82' ry='47'/%3E%3Cellipse cx='174' cy='72' rx='66' ry='55'/%3E%3Cellipse cx='252' cy='102' rx='101' ry='53'/%3E%3Cellipse cx='330' cy='112' rx='70' ry='38'/%3E%3C/g%3E%3Cg fill='%23e4eef3' fill-opacity='.4'%3E%3Cellipse cx='111' cy='82' rx='54' ry='28'/%3E%3Cellipse cx='217' cy='63' rx='39' ry='27'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 10% 0%, rgba(165, 197, 213, .26) 0 17%, transparent 18%),
+    linear-gradient(180deg, rgba(64, 95, 112, .15), rgba(46, 93, 122, .22) 58%, rgba(46, 93, 122, .08));
+  background-size: 27rem 11.8rem, auto, cover;
+  background-position: -1rem -1.3rem, left top, center;
+  background-repeat: no-repeat;
+  animation: cloud-gentle-sway 14s ease-in-out infinite alternate !important;
+}
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::before {
+  opacity: .84;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 410 180'%3E%3Cg fill='%23151e2b' fill-opacity='.96'%3E%3Cellipse cx='92' cy='103' rx='82' ry='47'/%3E%3Cellipse cx='174' cy='72' rx='66' ry='55'/%3E%3Cellipse cx='252' cy='102' rx='101' ry='53'/%3E%3Cellipse cx='330' cy='112' rx='70' ry='38'/%3E%3C/g%3E%3Cg fill='%23394858' fill-opacity='.78'%3E%3Cellipse cx='115' cy='82' rx='55' ry='29'/%3E%3Cellipse cx='218' cy='65' rx='40' ry='29'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 12% 0%, rgba(20, 29, 42, .42) 0 18%, transparent 19%),
+    linear-gradient(180deg, rgba(10, 17, 28, .35), rgba(26, 53, 76, .34) 58%, rgba(24, 44, 62, .16));
+}
+
+:root[data-ambient-scene="rain"] body::after,
+:root[data-ambient-scene="storm"] body::after {
+  content: "";
+  position: fixed;
+  z-index: 55;
+  inset: 0;
+  pointer-events: none;
+  opacity: .58;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 38'%3E%3Cpath d='M10 1C8 9 2 15 2 24a8 8 0 0 0 16 0C18 15 12 9 10 1Z' fill='%238bd0ee' fill-opacity='.86'/%3E%3Cpath d='M10 4C7 12 5 16 5 23' fill='none' stroke='%23d9f5ff' stroke-opacity='.8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 31'%3E%3Cpath d='M8 1C6 8 1 13 1 20a7 7 0 0 0 14 0C15 13 10 8 8 1Z' fill='%236fb6da' fill-opacity='.78'/%3E%3C/svg%3E");
+  background-size: 7.7rem 9.8rem, 10.8rem 13.1rem;
+  background-position: 8rem -9.5rem, 38rem -17rem;
+  background-repeat: repeat;
+  filter: drop-shadow(0 1px 1px rgba(18, 72, 104, .14));
+  animation: raindrop-diagonal-fall 2.45s linear infinite;
+}
+:root[data-ambient-scene="storm"] body::after { opacity: .68; filter: drop-shadow(0 1px 2px rgba(5, 13, 26, .45)); }
+
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::after {
+  content: "";
+  position: fixed;
+  z-index: 56;
+  inset: 0;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 155'%3E%3Cpath fill='%23ffe15a' d='M51 0 10 76h30L26 155 81 67H51z'/%3E%3Cpath fill='%23fff5b5' d='m49 18-23 48h27l-12 44 26-48H41z' opacity='.78'/%3E%3C/svg%3E") 84% -10rem / 4.1rem 7.2rem no-repeat;
+  animation: lightning-strike 8.2s steps(1, end) infinite !important;
+}
+
+@keyframes cloud-gentle-sway { from { transform: translateX(0); } to { transform: translateX(1.4rem); } }
+@keyframes raindrop-diagonal-fall { from { background-position: 8rem -9.5rem, 38rem -17rem; } to { background-position: 3.6rem 128vh, 28rem 121vh; } }
+@keyframes lightning-strike { 0%, 81%, 100% { opacity: 0; background-position: 84% -10rem; } 83% { opacity: .96; background-position: 84% 5rem; } 84% { opacity: 0; background-position: 84% -10rem; } 86% { opacity: .7; background-position: 28% 7rem; } 87% { opacity: 0; background-position: 28% -10rem; } }
+
+@media (max-width: 767px) {
+  :root[data-ambient-scene="rain"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="storm"] #root > div.min-h-screen::before { background-size: 19rem 8.3rem, auto, cover; background-position: -2rem -1rem, left top, center; }
+  :root[data-ambient-scene="rain"] body::after,
+  :root[data-ambient-scene="storm"] body::after { background-size: 6.4rem 8.2rem, 9.2rem 11rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene="rain"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="storm"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="rain"] body::after,
+  :root[data-ambient-scene="storm"] body::after,
+  :root[data-ambient-scene="storm"] #root > div.min-h-screen::after { animation: none !important; }
+  :root[data-ambient-scene="rain"] body::after,
+  :root[data-ambient-scene="storm"] body::after { opacity: .24; background-position: 8rem 9rem, 38rem 18rem; }
+}
+
+/* Lá rơi: ít hơn, nhỏ hơn và chỉ rơi theo trục dọc; đáy giữ màu đỏ đất thay vì
+   một thảm lá phủ kín. */
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::before {
+  opacity: .64;
+  background-image: radial-gradient(ellipse at 95% 4%, rgba(116, 55, 24, .62) 0 12%, transparent 12.5%), linear-gradient(155deg, rgba(117, 47, 22, .24), rgba(223, 104, 39, .22) 62%, rgba(123, 45, 22, .3));
+  background-size: auto, cover;
+  background-position: right top, center;
+  animation: scene-landscape-breathe 18s ease-in-out infinite alternate !important;
+}
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::after {
+  opacity: .3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 40'%3E%3Cpath fill='%23e69a9d' d='M14 1C3 9 3 27 14 39 25 27 25 9 14 1Z'/%3E%3Cpath d='M14 5v30M14 22 7 14m7 15 7-8' fill='none' stroke='%23ac5a63' stroke-width='1.5'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31 27'%3E%3Cpath fill='%23c96f79' d='M2 17C6 2 23 0 29 9 25 23 10 29 2 17Z'/%3E%3Cpath d='M5 17 27 10M14 14l-1-7m7 5 5 4' fill='none' stroke='%238b4751' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-size: 1.45rem 2.1rem, 1.7rem 1.5rem;
+  background-position: 18% -100px, 76% -170px;
+  animation: autumn-sparse-vertical-fall 20s linear infinite !important;
+}
+:root[data-ambient-scene="leaves"] body::after { content: none; }
+@keyframes autumn-sparse-vertical-fall { from { background-position: 18% -100px, 76% -170px; } to { background-position: 18% 118vh, 76% 112vh; } }
+
+/* Tết: cành hoa có đèn/lồng treo từ góc trên, nền đỏ đất và cụm bánh chưng,
+   bánh tét, dưa hấu ở chân màn hình. */
+:root[data-ambient-scene="tet"] #root > div.min-h-screen::before {
+  opacity: .82;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 620 290'%3E%3Cpath d='M0 18C120 27 170 67 264 142' fill='none' stroke='%23633d23' stroke-width='25' stroke-linecap='round'/%3E%3Cpath d='M74 35c61 6 103 36 154 95M153 52c54 16 82 43 109 88M225 95c47 9 74 30 102 66' fill='none' stroke='%2378552d' stroke-width='12' stroke-linecap='round'/%3E%3Cg fill='%23ffb7c4'%3E%3Ccircle cx='92' cy='44' r='15'/%3E%3Ccircle cx='122' cy='65' r='14'/%3E%3Ccircle cx='170' cy='71' r='16'/%3E%3Ccircle cx='205' cy='109' r='14'/%3E%3Ccircle cx='252' cy='119' r='17'/%3E%3Ccircle cx='300' cy='152' r='15'/%3E%3C/g%3E%3Cg fill='%23e63334'%3E%3Cpath d='M290 122v64' stroke='%23e5b352' stroke-width='4'/%3E%3Cellipse cx='290' cy='193' rx='19' ry='25'/%3E%3Cpath d='M382 166v49' stroke='%23e5b352' stroke-width='4'/%3E%3Cellipse cx='382' cy='229' rx='16' ry='21'/%3E%3C/g%3E%3Cpath d='M275 193h30M366 229h32' stroke='%23f6d165' stroke-width='4'/%3E%3C/svg%3E"), linear-gradient(155deg, #8e2026, #c43d2f 58%, #751b24);
+  background-size: 38rem 17.8rem, cover;
+  background-position: -2rem -1rem, center;
+  background-repeat: no-repeat;
+  animation: tet-branch-sway 16s ease-in-out infinite alternate !important;
+}
+:root[data-ambient-scene="tet"] #root > div.min-h-screen::after { opacity: .24; background-image: radial-gradient(circle, #ffe6a1 0 2px, transparent 3px); background-size: 9rem 9rem; animation: tet-sparkle 7s ease-in-out infinite alternate !important; }
+:root[data-ambient-scene="tet"] body::after { content:""; position:fixed; z-index:54; left:0; right:0; bottom:0; height:7.5rem; pointer-events:none; opacity:.96; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 760 180'%3E%3Cpath fill='%239a2424' d='M0 93C150 72 270 105 403 86s216 1 357-22v116H0Z'/%3E%3Crect x='73' y='55' width='91' height='91' rx='8' fill='%235c963c' stroke='%23f3d36b' stroke-width='8'/%3E%3Cpath d='M119 55v91M73 101h91' stroke='%23f1dc70' stroke-width='8'/%3E%3Crect x='195' y='76' width='118' height='57' rx='29' fill='%235d9a43' stroke='%23f3d36b' stroke-width='7'/%3E%3Cpath d='M254 76v57' stroke='%23f1dc70' stroke-width='7'/%3E%3Cpath fill='%233e913e' d='m520 80 56-48 57 48-13 62h-87Z'/%3E%3Cpath fill='%23ef5060' d='m576 45 38 35h-76Z'/%3E%3Cpath d='M576 61v76M538 98h76' stroke='%23f7e395' stroke-width='4'/%3E%3C/svg%3E") center bottom / cover no-repeat; }
+@keyframes tet-branch-sway { from { transform: translateX(0); } to { transform: translateX(.8rem); } }
+
+/* Halloween: mặt trăng, mạng nhện và nghĩa địa/bí ngô cố định; ma/dơi vẫn bay
+   thưa ở lớp riêng phía trên. */
+:root[data-ambient-scene="halloween"] #root > div.min-h-screen::before { opacity:.8; background-image: radial-gradient(circle at 84% 15%, #ffe0a5 0 3.6rem, rgba(255,213,141,.2) 3.7rem 7rem, transparent 7.1rem), linear-gradient(160deg, rgba(39,20,69,.28), rgba(6,4,19,.7)); background-size:auto,cover; background-position:center; animation:halloween-moon-pulse 11s ease-in-out infinite alternate !important; }
+:root[data-ambient-scene="halloween"] body::before { content:""; position:fixed; inset:0; z-index:54; pointer-events:none; opacity:.72; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 180'%3E%3Cpath d='M0 0h175M0 0v135M0 0 175 135M38 0v106M83 0v82M0 38h143M0 82h95' stroke='%23d8c6e6' stroke-opacity='.72' stroke-width='2' fill='none'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 180'%3E%3Cpath d='M220 0H45M220 0v135M220 0 45 135M182 0v106M137 0v82M220 38H77M220 82h-95' stroke='%23d8c6e6' stroke-opacity='.72' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-size:12rem 10rem,12rem 10rem; background-position:left top,right top; background-repeat:no-repeat; }
+:root[data-ambient-scene="halloween"] body::after { content:""; position:fixed; z-index:54; left:0; right:0; bottom:0; height:8rem; pointer-events:none; opacity:.95; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 780 180'%3E%3Cpath fill='%230b0713' d='M0 102C132 82 225 112 351 94s271 1 429-27v113H0Z'/%3E%3Cpath d='M70 118V20m0 42-33-26m33 44 39-36M159 131V43m0 43-31-25m31 41 34-30M654 126V18m0 50-45-35m45 48 51-40' stroke='%230b0713' stroke-width='15' stroke-linecap='round'/%3E%3Cg fill='%23e67528' stroke='%23391a20' stroke-width='5'%3E%3Ccircle cx='264' cy='130' r='30'/%3E%3Ccircle cx='567' cy='137' r='34'/%3E%3C/g%3E%3Cpath d='M251 130h25m-12-12v24m290-5h27m-13-13v26' stroke='%23391a20' stroke-width='5'/%3E%3Cpath d='M377 132V72h42v60m-50 0h58' fill='none' stroke='%234a3a58' stroke-width='8'/%3E%3Ccircle cx='390' cy='96' r='5' fill='%23f7c970'/%3E%3C/svg%3E") center bottom / cover no-repeat; }
+
+/* Mùa hè sáng rõ hơn; mùa xuân giảm lớp nền, chỉ giữ sắc xanh–hồng nhẹ và cánh hoa thưa. */
+:root[data-ambient-scene="summer"] #root > div.min-h-screen::before { opacity:.84; background-image:radial-gradient(circle at 84% 13%, #ffe359 0 4.2rem, rgba(255,225,100,.6) 4.3rem 9rem, transparent 9.1rem), repeating-conic-gradient(from -14deg at 84% 13%, rgba(255,250,205,.33) 0 5deg, transparent 6deg 15deg), linear-gradient(180deg, rgba(255,237,155,.27), rgba(232,150,44,.14)); background-size:auto,auto,cover; background-repeat:no-repeat; animation:summer-sun-breathe 14s ease-in-out infinite alternate !important; }
+:root[data-ambient-scene="spring"] #root > div.min-h-screen::before { opacity:.38; background-image:radial-gradient(ellipse at 7% 6%, rgba(88,144,76,.36) 0 11%, transparent 11.5%), radial-gradient(ellipse at 95% 5%, rgba(238,151,189,.32) 0 10%, transparent 10.5%), linear-gradient(180deg, rgba(254,236,245,.16), rgba(209,240,190,.15)); background-size:auto,auto,cover; animation:scene-landscape-breathe 22s ease-in-out infinite alternate !important; }
+:root[data-ambient-scene="spring"] #root > div.min-h-screen::after { opacity:.28; background-size:12rem 15rem, 15rem 17rem; background-position:16% -210px, 78% -360px; animation:spring-sparse-petal-fall 17s linear infinite !important; }
+@keyframes spring-sparse-petal-fall { from { background-position:16% -210px,78% -360px; } to { background-position:16% 115vh,78% 104vh; } }
+
+@media (max-width:767px) { :root[data-ambient-scene="tet"] #root > div.min-h-screen::before { background-size:27rem 12.6rem,cover; } :root[data-ambient-scene="tet"] body::after,:root[data-ambient-scene="halloween"] body::after { height:5.8rem; } :root[data-ambient-scene="halloween"] body::before { background-size:8rem 6.5rem,8rem 6.5rem; } }
+@media (prefers-reduced-motion:reduce) { :root[data-ambient-scene="leaves"] #root > div.min-h-screen::after,:root[data-ambient-scene="tet"] #root > div.min-h-screen::before,:root[data-ambient-scene="tet"] #root > div.min-h-screen::after,:root[data-ambient-scene="halloween"] #root > div.min-h-screen::before,:root[data-ambient-scene="summer"] #root > div.min-h-screen::before,:root[data-ambient-scene="spring"] #root > div.min-h-screen::before,:root[data-ambient-scene="spring"] #root > div.min-h-screen::after { animation:none !important; } }
+
+/* Giá trị do người học điều chỉnh trong Audio Center. */
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::after { opacity: calc(var(--scene-leaf-density, 28) * .01) !important; }
+:root[data-ambient-scene="snow"] #root > div.min-h-screen::after { opacity: calc(var(--scene-snow-density, 62) * .011) !important; }
+:root[data-ambient-scene="rain"] body::before,
+:root[data-ambient-scene="storm"] body::before { opacity: calc(var(--scene-puddle-density, 64) * .0128) !important; }
+:root[data-ambient-scene="snow"] body::after { left: calc(var(--snowman-x, 88) * 1%); right: auto; bottom: calc(var(--snowman-y, 5) * 1%); transform: translateX(-50%); animation: snowman-positioned-bob 5.2s ease-in-out infinite alternate; }
+@keyframes snowman-positioned-bob { from { transform: translateX(-50%) translateY(0) rotate(-1deg); } to { transform: translateX(-50%) translateY(-5px) rotate(1deg); } }

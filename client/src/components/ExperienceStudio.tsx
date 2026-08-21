@@ -3,7 +3,7 @@ import { Bird, CloudRain, Eye, EyeOff, Flower2, Ghost, Leaf, Mic, PartyPopper, P
 import { emotionFromCommand, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { lumiQuoteForDate } from "../lib/lumiDailyQuotes";
 import { activeContentFor, antiProcrastinationChoices, gentleReminders, randomAntiProcrastinationSpeech, randomMicroTask, speechForEvent, speechGroupLabels, type SpeechGroup } from "../lib/speechLibrary";
-import type { AppConfig, ProfileState } from "../../../shared/study";
+import type { AppConfig, ProfileState, SceneEffectPreferences } from "../../../shared/study";
 import { LumiCongratulationControls } from "./LumiCongratulationControls";
 import { PersonalStudySpaceControls } from "./PersonalStudySpaceControls";
 import { PersistentCollapsible } from "./PersistentCollapsible";
@@ -11,6 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { resolveMediaUrl } from "../lib/runtime";
 import { DEFAULT_AMBIENT_ASSET, DEFAULT_AMBIENT_BOOK_PAGES_ASSET, DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET, DEFAULT_POMODORO_AMBIENT_PRESET } from "../lib/defaultAmbient";
 import { AudioCenterEnhancements, type AudioChannel as PlaybackChannel, type PlaybackStatus as AudioPlaybackStatus } from "./AudioCenterEnhancements";
+import { resolveAutomatedScene } from "../lib/sceneAutomation";
 
 type AttentionPreferences = { animationsEnabled: boolean; popupsEnabled: boolean; soundEnabled: boolean };
 type AmbientScene = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween";
@@ -58,6 +59,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const [ambientVolumes, setAmbientVolumes] = useState<AmbientVolumes>(() => ({ ...defaultAmbientVolumes, ...profile?.audioMixer?.ambientSceneVolumes }));
   const [ambientPlaying, setAmbientPlaying] = useState(false);
   const [ambientMuted, setAmbientMuted] = useState(false);
+  const [snowmanPosition, setSnowmanPosition] = useState(() => ({ x: profile?.sceneEffectPreferences?.snowmanX ?? 88, y: profile?.sceneEffectPreferences?.snowmanY ?? 5 }));
   const [ambientError, setAmbientError] = useState<string | null>(null);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [playbackStatus, setPlaybackStatus] = useState<AudioPlaybackStatus>({ environment: { active: false, label: "", volume: 0, muted: false }, music: { active: false, label: "", volume: 0, muted: false }, voice: { active: false, label: "", volume: 0, muted: false } });
@@ -72,6 +74,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const lumiAudioRef = useRef<HTMLAudioElement | null>(null);
   const emotionTransitionTimerRef = useRef<number | null>(null);
   const playbackTickerRef = useRef<number | null>(null);
+  const automatedSceneRef = useRef<AmbientScene | null>(null);
   const theme = emotionThemes.find((item) => item.id === selected) ?? emotionThemes[0];
   const companionMedia = profile?.companionEmotionMedia?.[theme.id];
   const preferredPersonalVoice = companionMedia?.lumiVoiceRecordings?.find((recording) => recording.id === companionMedia.favoriteLumiVoiceId) ?? companionMedia?.lumiVoiceRecordings?.[0];
@@ -96,6 +99,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const lumiVoiceText = matchingVoiceLine?.text || customCongratulation?.text || weekdayLumi.text;
   const audioChannelVolumes: AudioChannelVolumes = { ...defaultAudioChannelVolumes, environment: profile?.audioMixer?.environment ?? 35, music: profile?.audioMixer?.music ?? 30, uiEffects: profile?.audioMixer?.uiEffects ?? 28, lumi: profile?.audioMixer?.lumi ?? 75, ong: profile?.audioMixer?.ong ?? 75, memberVoice: profile?.audioMixer?.memberVoice ?? 75 };
   const lumiVolume = audioChannelVolumes.lumi;
+  const sceneEffects: SceneEffectPreferences = profile?.sceneEffectPreferences ?? { leaves: 28, snow: 62, puddles: 64, snowmanX: 88, snowmanY: 5 };
   const showMascot = profile?.showMascot !== false;
   const showLumi = profile?.showLumi !== false;
   const [transitioningEmotion, setTransitioningEmotion] = useState<EmotionId | null>(null);
@@ -113,6 +117,31 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const root = document.documentElement;
     root.dataset.ambientScene = ambientScene;
   }, [ambientScene]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--scene-leaf-density", String(sceneEffects.leaves));
+    root.style.setProperty("--scene-snow-density", String(sceneEffects.snow));
+    root.style.setProperty("--scene-puddle-density", String(sceneEffects.puddles));
+    root.style.setProperty("--snowman-x", String(snowmanPosition.x));
+    root.style.setProperty("--snowman-y", String(snowmanPosition.y));
+  }, [sceneEffects.leaves, sceneEffects.puddles, sceneEffects.snow, snowmanPosition.x, snowmanPosition.y]);
+
+  useEffect(() => {
+    const settings = profile?.sceneAutomation;
+    if (!settings?.enabled) { automatedSceneRef.current = null; return; }
+    const applySchedule = () => {
+      const next = resolveAutomatedScene(settings) as AmbientScene | null;
+      if (!next || next === automatedSceneRef.current) return;
+      automatedSceneRef.current = next;
+      setScene(next);
+      if (profile && profile.defaultAmbientScene !== next) onProfile?.({ ...profile, defaultAmbientScene: next });
+      setMessage(`Lịch cá nhân đã đổi cảnh sang ${sceneOptions.find((item) => item.id === next)?.label}.`);
+    };
+    applySchedule();
+    const timer = window.setInterval(applySchedule, 60_000);
+    return () => window.clearInterval(timer);
+  }, [profile?.sceneAutomation, profile?.defaultAmbientScene]);
 
   useEffect(() => () => { stopAmbient(); lumiAudioRef.current?.pause(); if (emotionTransitionTimerRef.current) window.clearTimeout(emotionTransitionTimerRef.current); if (playbackTickerRef.current) window.cancelAnimationFrame(playbackTickerRef.current); }, []);
   useEffect(() => {
@@ -192,6 +221,23 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     if (channel === "environment" && ambientTrackRef.current) { ambientTrackRef.current.volume = ambientMuted ? 0 : safeLevel / 100; setPlaybackStatus((current) => current.environment.active ? { ...current, environment: { ...current.environment, volume: ambientMuted ? 0 : safeLevel, muted: ambientMuted } } : current); }
   }
   function updateLumiVolume(level: number) { updateAudioChannelVolume("lumi", level); }
+
+  function updateSceneEffect<K extends keyof Pick<SceneEffectPreferences, "leaves" | "snow" | "puddles">>(key: K, value: number) {
+    if (!profile) return;
+    const next = { ...sceneEffects, [key]: Math.max(0, Math.min(100, value)) };
+    onProfile?.({ ...profile, sceneEffectPreferences: next });
+  }
+
+  function persistSnowmanPosition(position: { x: number; y: number }) {
+    const next = { x: Math.max(4, Math.min(96, Math.round(position.x))), y: Math.max(2, Math.min(35, Math.round(position.y))) };
+    setSnowmanPosition(next);
+    if (profile) onProfile?.({ ...profile, sceneEffectPreferences: { ...sceneEffects, snowmanX: next.x, snowmanY: next.y } });
+  }
+
+  function updateSceneAutomation(update: Partial<NonNullable<ProfileState["sceneAutomation"]>>) {
+    if (!profile) return;
+    onProfile?.({ ...profile, sceneAutomation: { ...(profile.sceneAutomation ?? { enabled: false, applyFixedHolidays: true, timeRules: [] }), ...update } });
+  }
 
   function setChannelPlaying(channel: PlaybackChannel, active: boolean, label = "", url?: string, volume = 0, muted = false) { setPlaybackStatus((current) => ({ ...current, [channel]: { active, label, url: active ? url : undefined, currentTime: active ? current[channel].currentTime ?? 0 : 0, duration: active ? current[channel].duration : undefined, volume: active ? Math.round(Math.max(0, Math.min(100, volume))) : 0, muted: active ? muted : false } })); }
   function seekPlayback(seconds: number) {
@@ -471,6 +517,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       <div className="mt-3 rounded-xl border border-[#c62828]/15 bg-[#fff8f5] px-3 py-2"><label className="block text-xs font-black text-[#7f1d1d]">Âm lượng âm nền <span className="float-right">{audioChannelVolumes.environment}%</span><input type="range" min="0" max="100" value={audioChannelVolumes.environment} onChange={(event) => updateAudioChannelVolume("environment", Number(event.target.value))} className="mt-2 w-full accent-[#c62828]" aria-label="Âm lượng âm nền" /></label></div>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">{sceneOptions.map((scene) => { const Icon = scene.icon; return <button key={scene.id} type="button" aria-pressed={ambientScene === scene.id} onClick={() => setScene(scene.id)} className={`rounded-xl border p-2 text-left text-xs ${ambientScene === scene.id ? "border-[#c62828] bg-[#fff0eb] text-[#7f1d1d]" : "border-[#2e7d32]/15 bg-white text-[#35523a]"}`}><Icon className="h-4 w-4" /><b className="mt-1 block">{scene.label}</b><span className="text-[10px] opacity-75">{scene.detail}</span></button>; })}</div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#eff9ef] p-2"><p className="text-xs font-bold text-[#35523a]">Mặc định hiện tại: <b>{sceneOptions.find((item) => item.id === favoriteScene)?.label}</b></p><button type="button" onClick={saveFavoriteScene} className="rounded-lg border border-[#2e7d32]/30 bg-white px-2.5 py-1.5 text-xs font-black text-[#2e7d32]">Lưu cảnh này làm mặc định</button></div>
+      {profile && onProfile ? <div className="mt-3 grid gap-3 rounded-2xl border border-[#2e7d32]/20 bg-[#f5fff5] p-3 lg:grid-cols-2" aria-label="Điều khiển hiệu ứng cảnh"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Mật độ hiệu ứng cảnh</p><p className="mt-1 text-xs text-[#35523a]">Tự điều chỉnh lượng lá, tuyết và nước đọng mà không làm che nội dung.</p><div className="mt-3 grid gap-2 sm:grid-cols-3">{([{ key: "leaves", label: "Lá rơi", value: sceneEffects.leaves }, { key: "snow", label: "Tuyết", value: sceneEffects.snow }, { key: "puddles", label: "Nước đọng", value: sceneEffects.puddles }] as const).map((control) => <label key={control.key} className="rounded-xl border border-[#2e7d32]/15 bg-white px-2.5 py-2 text-xs font-bold text-[#35523a]"><span className="flex justify-between"><span>{control.label}</span><span>{control.value}%</span></span><input type="range" min="0" max="100" value={control.value} onChange={(event) => updateSceneEffect(control.key, Number(event.target.value))} className="mt-2 w-full accent-[#2e7d32]" aria-label={`Mật độ ${control.label}`} /></label>)}</div></div><div className="rounded-xl border border-[#c62828]/15 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#7f1d1d]">Vị trí người tuyết</p><p className="mt-1 text-xs text-[#6f5a53]">Kéo hoặc chạm vào vùng bên dưới để đặt người tuyết ở góc bạn muốn.</p><div className="relative mt-3 h-24 touch-none overflow-hidden rounded-xl border border-dashed border-[#7bb6d1] bg-[linear-gradient(135deg,#dff4ff,#f9fdff)]" onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); const rect = event.currentTarget.getBoundingClientRect(); persistSnowmanPosition({ x: (event.clientX - rect.left) / rect.width * 100, y: (rect.bottom - event.clientY) / rect.height * 35 }); }} onPointerMove={(event) => { if (event.buttons !== 1) return; const rect = event.currentTarget.getBoundingClientRect(); const x = Math.max(4, Math.min(96, (event.clientX - rect.left) / rect.width * 100)); const y = Math.max(2, Math.min(35, (rect.bottom - event.clientY) / rect.height * 35)); setSnowmanPosition({ x: Math.round(x), y: Math.round(y) }); document.documentElement.style.setProperty("--snowman-x", String(Math.round(x))); document.documentElement.style.setProperty("--snowman-y", String(Math.round(y))); }} onPointerUp={(event) => { const rect = event.currentTarget.getBoundingClientRect(); persistSnowmanPosition({ x: (event.clientX - rect.left) / rect.width * 100, y: (rect.bottom - event.clientY) / rect.height * 35 }); }}><span className="absolute text-2xl" style={{ left: `${snowmanPosition.x}%`, bottom: `${snowmanPosition.y}%`, transform: "translateX(-50%)" }} aria-hidden="true">⛄</span><span className="absolute inset-x-2 bottom-1 text-center text-[10px] font-bold text-[#4b7891]">Kéo người tuyết đến vị trí mong muốn</span></div></div></div> : null}
+      {profile && onProfile ? <div className="mt-3 rounded-2xl border border-[#c62828]/20 bg-[#fff8f5] p-3" aria-label="Lịch tự đổi cảnh"><div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-black uppercase tracking-wider text-[#7f1d1d]">Lịch tự đổi cảnh cá nhân</p><p className="mt-1 text-xs text-[#6f5a53]">Khi web đang mở, lịch sẽ kiểm tra lại mỗi phút theo giờ trên thiết bị và các ngày lễ cố định.</p></div><label className="flex items-center gap-2 text-xs font-black text-[#7f1d1d]"><input type="checkbox" checked={profile.sceneAutomation?.enabled === true} onChange={(event) => updateSceneAutomation({ enabled: event.target.checked })} className="h-4 w-4 accent-[#c62828]" />Bật lịch</label></div><label className="mt-3 flex items-center gap-2 text-xs font-bold text-[#6f5a53]"><input type="checkbox" checked={profile.sceneAutomation?.applyFixedHolidays !== false} onChange={(event) => updateSceneAutomation({ applyFixedHolidays: event.target.checked })} className="h-4 w-4 accent-[#c62828]" />Ưu tiên ngày lễ cố định: 1/1, 30/4–1/5, 2/9 và Halloween</label><div className="mt-3 grid gap-2 md:grid-cols-2">{(profile.sceneAutomation?.timeRules ?? []).map((rule) => <div key={rule.id} className="grid grid-cols-[1fr_4rem_4rem] items-center gap-2 rounded-xl border border-[#c62828]/15 bg-white p-2"><select aria-label={`Cảnh ${rule.label}`} value={rule.scene} onChange={(event) => updateSceneAutomation({ timeRules: (profile.sceneAutomation?.timeRules ?? []).map((item) => item.id === rule.id ? { ...item, scene: event.target.value as AmbientScene } : item) })} className="rounded-lg border border-[#c62828]/20 bg-white px-2 py-1.5 text-xs font-bold text-[#7f1d1d]">{sceneOptions.map((scene) => <option key={scene.id} value={scene.id}>{scene.label}</option>)}</select><input aria-label={`Giờ bắt đầu ${rule.label}`} type="number" min="0" max="23" value={rule.startHour} onChange={(event) => updateSceneAutomation({ timeRules: (profile.sceneAutomation?.timeRules ?? []).map((item) => item.id === rule.id ? { ...item, startHour: Number(event.target.value) } : item) })} className="rounded-lg border border-[#c62828]/20 px-2 py-1.5 text-xs" /><input aria-label={`Giờ kết thúc ${rule.label}`} type="number" min="0" max="23" value={rule.endHour} onChange={(event) => updateSceneAutomation({ timeRules: (profile.sceneAutomation?.timeRules ?? []).map((item) => item.id === rule.id ? { ...item, endHour: Number(event.target.value) } : item) })} className="rounded-lg border border-[#c62828]/20 px-2 py-1.5 text-xs" /></div>)}</div></div> : null}
       <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Mixer âm lượng cảnh nền">
         {sceneOptions.map((scene) => <label key={`${scene.id}-volume`} className="rounded-xl border border-[#2e7d32]/15 bg-white px-3 py-2 text-xs text-[#35523a]"><span className="flex items-center justify-between font-bold"><span>{scene.label}</span><span>{ambientVolumes[scene.id]}%</span></span><input type="range" min="0" max="100" value={ambientVolumes[scene.id]} onChange={(event) => updateAmbientVolume(scene.id, Number(event.target.value))} className="mt-2 w-full accent-[#c62828]" aria-label={`Âm lượng ${scene.label}`} /></label>)}
         <label className="rounded-xl border border-[#c62828]/15 bg-white px-3 py-2 text-xs text-[#6f2424]"><span className="flex items-center justify-between font-bold"><span>Giọng Lumi</span><span>{lumiVolume}%</span></span><input type="range" min="0" max="100" value={lumiVolume} onChange={(event) => updateLumiVolume(Number(event.target.value))} className="mt-2 w-full accent-[#c62828]" aria-label="Âm lượng giọng Lumi" /></label>

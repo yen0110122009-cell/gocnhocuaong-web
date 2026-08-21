@@ -1077,3 +1077,13 @@
 - [x] Xóa mọi chỉ báo hoặc hình ảnh Lumi/Ong còn sót ở đăng nhập, header và điều hướng.
 - [x] Cập nhật regression tests, kiểm thử responsive, TypeScript, Vitest và production build.
 - [x] Lưu checkpoint phát hành đợt tinh chỉnh cảnh và theme.
+
+## Tái tạo bố cục cảnh theo phản hồi mới
+- [x] Tái dựng Mưa/Sấm với mây mù–mây đen cố định ở góc và giọt nước chóp nhọn, rơi chéo từ mây.
+- [x] Giảm mạnh và thu nhỏ lá rơi; giữ lá theo chiều dọc, bỏ lớp lá tích ở đáy và giữ nền đỏ đất–đỏ cam.
+- [x] Dựng lại cảnh Tết với cây hoa, đèn/lồng treo, bánh chưng/bánh tét, dưa hấu và nền đỏ đất.
+- [x] Dựng lại Halloween với mặt trăng, mạng nhện ở góc, cây đen/bí ngô cùng mộ/nhà ma ở phần đáy.
+- [x] Tăng độ rõ của nắng Mùa hè và làm Mùa xuân thoáng, ít lớp minh họa hơn.
+- [x] Thêm slider mật độ lá/tuyết/nước, vị trí người tuyết có thể thay đổi và lịch cảnh cá nhân theo giờ/ngày lễ.
+- [x] Bổ sung regression tests, kiểm thử responsive, TypeScript, Vitest và production build.
+- [ ] Lưu checkpoint phát hành cảnh tái thiết kế cùng điều khiển cá nhân.

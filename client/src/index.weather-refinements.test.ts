@@ -5,9 +5,13 @@ import { resolve } from "node:path";
 const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
 
 describe("tinh chỉnh cảnh mưa, lá rơi, tuyết và dark mode theo mùa", () => {
-  it("thêm lớp vũng nước và sét tự dựng cố định cho mưa/sấm", () => {
+  it("dựng mây cố định, giọt nước chóp nhọn, vũng nước và sét cho mưa/sấm", () => {
     expect(css).toContain('data-ambient-scene="rain"] body::before');
     expect(css).toContain('data-ambient-scene="storm"] body::before');
+    expect(css).toContain('data-ambient-scene="rain"] body::after');
+    expect(css).toContain("raindrop-diagonal-fall");
+    expect(css).toContain("cloud-gentle-sway");
+    expect(css).toContain("lightning-strike");
     expect(css).toContain("rain-puddles-shimmer");
     expect(css).toContain("storm-puddle-lightning");
     expect(css).toContain("repeating-radial-gradient(ellipse");
@@ -15,18 +19,19 @@ describe("tinh chỉnh cảnh mưa, lá rơi, tuyết và dark mode theo mùa", 
     expect(css).toContain("pointer-events: none");
   });
 
-  it("giảm lá rơi về trục dọc và dựng mô lá đậm ở đáy phủ qua menu", () => {
-    expect(css).toContain("autumn-vertical-fall");
-    expect(css).toContain("background-position: 12px 370px, 52% 396px");
+  it("giảm lá rơi về trục dọc, dùng lá nhỏ nhiều sắc độ và bỏ thảm lá đáy", () => {
+    expect(css).toContain("autumn-sparse-vertical-fall");
+    expect(css).toContain("background-position: 18% 118vh, 76% 112vh");
     expect(css).toContain('data-ambient-scene="leaves"] body::after');
-    expect(css).toContain("height: 8.3rem");
-    expect(css).toContain("background-repeat: repeat-x");
+    expect(css).toContain('body::after { content: none; }');
+    expect(css).toContain("%23e69a9d");
   });
 
   it("đặt người tuyết SVG ở góc dưới nhưng không nhận thao tác", () => {
     expect(css).toContain('data-ambient-scene="snow"] body::after');
     expect(css).toContain("snowman-gentle-bob");
-    expect(css).toContain("right: 5.2rem");
+    expect(css).toContain("--snowman-x");
+    expect(css).toContain("--snowman-y");
     expect(css).toContain("width: 7.3rem");
   });
 
