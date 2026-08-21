@@ -1087,3 +1087,11 @@
 - [x] Thêm slider mật độ lá/tuyết/nước, vị trí người tuyết có thể thay đổi và lịch cảnh cá nhân theo giờ/ngày lễ.
 - [x] Bổ sung regression tests, kiểm thử responsive, TypeScript, Vitest và production build.
 - [x] Lưu checkpoint phát hành cảnh tái thiết kế cùng điều khiển cá nhân.
+
+## Tương phản chữ và tone giao diện mở rộng
+- [x] Rà soát tên, nhãn, cấp độ và văn bản phụ bị mờ trên các cảnh sáng/tối.
+- [x] Thêm nhiều tone màu giao diện mới có lưu lựa chọn cá nhân.
+- [x] Đồng bộ màu khối Cấp hiện tại/Cấp 1 bắt đầu với tone giao diện đang chọn.
+- [x] Áp dụng token chữ có độ tương phản cao cho theme, cảnh và trạng thái dark mode.
+- [x] Bổ sung regression tests, xác minh responsive, TypeScript, Vitest và production build.
+- [ ] Lưu checkpoint phát hành cải tiến typography và tone giao diện.

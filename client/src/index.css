@@ -1100,3 +1100,31 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root[data-ambient-scene="storm"] body::before { opacity: calc(var(--scene-puddle-density, 64) * .0128) !important; }
 :root[data-ambient-scene="snow"] body::after { left: calc(var(--snowman-x, 88) * 1%); right: auto; bottom: calc(var(--snowman-y, 5) * 1%); transform: translateX(-50%); animation: snowman-positioned-bob 5.2s ease-in-out infinite alternate; }
 @keyframes snowman-positioned-bob { from { transform: translateX(-50%) translateY(0) rotate(-1deg); } to { transform: translateX(-50%) translateY(-5px) rotate(1deg); } }
+
+/* Tone mở rộng: mỗi bộ luôn có mực chữ đậm, chữ phụ và nền cấp độ riêng để tên
+   không chìm vào nền sáng hoặc cảnh đậm. */
+:root[data-cosmetic-theme="lavender-dream"] { --interface-primary:#7350ae; --interface-secondary:#d679ac; --interface-soft:#f6efff; --interface-ink:#27183e; }
+:root[data-cosmetic-theme="rose-garden"] { --interface-primary:#ad3c67; --interface-secondary:#567a47; --interface-soft:#fff1f5; --interface-ink:#401424; }
+:root[data-cosmetic-theme="midnight-indigo"] { --interface-primary:#29468d; --interface-secondary:#4d94bc; --interface-soft:#edf1ff; --interface-ink:#101a42; }
+:root[data-cosmetic-theme="mint-cocoa"] { --interface-primary:#247961; --interface-secondary:#8a593c; --interface-soft:#ebfaf2; --interface-ink:#123e32; }
+:root[data-cosmetic-theme="terracotta-cream"] { --interface-primary:#a94e38; --interface-secondary:#be8b43; --interface-soft:#fff3e9; --interface-ink:#4b211a; }
+:root[data-cosmetic-theme="berry-ice"] { --interface-primary:#924e9d; --interface-secondary:#488bae; --interface-soft:#f8f1ff; --interface-ink:#351546; }
+:root[data-cosmetic-theme="jade-ivory"] { --interface-primary:#176c5d; --interface-secondary:#b48a32; --interface-soft:#effaf5; --interface-ink:#0f3d35; }
+:root[data-cosmetic-theme="copper-night"] { --interface-primary:#9d5b26; --interface-secondary:#4b607f; --interface-soft:#fff5eb; --interface-ink:#3c2617; }
+:root[data-cosmetic-theme="coral-sky"] { --interface-primary:#c15855; --interface-secondary:#357f9a; --interface-soft:#fff1ef; --interface-ink:#481e24; }
+:root[data-cosmetic-theme="plum-gold"] { --interface-primary:#6f2f76; --interface-secondary:#ba8e2f; --interface-soft:#faf1fb; --interface-ink:#311437; }
+:root[data-cosmetic-theme="sakura-ink"] { --interface-primary:#a44670; --interface-secondary:#384661; --interface-soft:#fff2f7; --interface-ink:#3b1729; }
+:root[data-cosmetic-theme="neon-aurora"] { --interface-primary:#0d736d; --interface-secondary:#8b4ac7; --interface-soft:#ecfffc; --interface-ink:#083c40; }
+
+:root[data-cosmetic-theme] { --cosmetic-text: var(--interface-ink, #202a22); --cosmetic-text-strong: color-mix(in srgb, var(--interface-ink, #202a22) 92%, black); --cosmetic-muted: color-mix(in srgb, var(--interface-ink, #202a22) 76%, var(--interface-soft, white)); --cosmetic-level-bg: linear-gradient(135deg, color-mix(in srgb, var(--interface-primary) 95%, #171717), color-mix(in srgb, var(--interface-secondary) 88%, #171717)); --cosmetic-level-ink: #ffffff; }
+:root[data-cosmetic-theme] #root > div.min-h-screen :is(main h1, main h2, main h3, main h4, main h5, main b, main strong, aside b, header b) { color: var(--cosmetic-text-strong) !important; text-shadow: 0 1px 0 color-mix(in srgb, var(--interface-soft) 70%, transparent); }
+:root[data-cosmetic-theme] #root > div.min-h-screen :is(main p, main span, main small, main label, main li, aside p, aside span, header p, header span) { color: var(--cosmetic-text) !important; }
+:root[data-cosmetic-theme] #root > div.min-h-screen :is(.text-muted-foreground, [class*="text-slate-"], [class*="text-stone-"], [class*="text-gray-"]) { color: var(--cosmetic-muted) !important; opacity: 1 !important; }
+:root[data-cosmetic-theme] .level-status-card { background: var(--cosmetic-level-bg) !important; border: 1px solid color-mix(in srgb, var(--interface-secondary) 64%, white) !important; box-shadow: 0 16px 34px color-mix(in srgb, var(--interface-primary) 38%, transparent) !important; color: var(--cosmetic-level-ink) !important; }
+:root[data-cosmetic-theme] .level-status-card :is(p, span, b, small) { color: var(--cosmetic-level-ink) !important; text-shadow: 0 1px 2px rgba(0,0,0,.28); }
+:root[data-cosmetic-theme] .level-status-card .level-status-kicker { color: color-mix(in srgb, var(--cosmetic-level-ink) 88%, var(--interface-secondary)) !important; }
+:root[data-cosmetic-theme] .level-status-card .level-status-xp { color: color-mix(in srgb, var(--cosmetic-level-ink) 84%, var(--interface-secondary)) !important; }
+
+:root.dark[data-cosmetic-theme] { --cosmetic-text:#f4f7fc; --cosmetic-text-strong:#ffffff; --cosmetic-muted:#d5deea; --cosmetic-level-bg:linear-gradient(135deg, color-mix(in srgb, var(--interface-primary) 64%, #10131d), color-mix(in srgb, var(--interface-secondary) 57%, #10131d)); --cosmetic-level-ink:#ffffff; }
+:root.dark[data-cosmetic-theme] #root > div.min-h-screen :is(main h1, main h2, main h3, main h4, main h5, main b, main strong, aside b, header b) { color: var(--cosmetic-text-strong) !important; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+:root.dark[data-cosmetic-theme] #root > div.min-h-screen :is(main p, main span, main small, main label, main li, aside p, aside span, header p, header span) { color: var(--cosmetic-text) !important; }
