@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allAchievementsWithProgress, emptyAppConfig, emptyProfile, generateAchievements } from "./study";
+import { allAchievementsWithProgress, emptyAppConfig, emptyProfile, generateAchievements, normalizeProfile } from "./study";
 
 describe("achievement progress", () => {
   it("reports current value, percentage and remaining target for locked achievements", () => {
@@ -60,5 +60,11 @@ describe("achievement progress", () => {
     const config = { ...emptyAppConfig(), customAchievements: [{ id: "custom-1", name: "Bền bỉ", description: "Đạt 5 XP", metric: "xp" as const, threshold: 5, rewardXp: 10, rewardFragments: 0, enabled: true }] };
     const achievement = allAchievementsWithProgress({ ...emptyProfile(), xp: 3 }, config).find((item) => item.id === "custom-1");
     expect(achievement).toMatchObject({ currentValue: 3, threshold: 5, progress: 60, remaining: 2 });
+  });
+
+  it("lưu linh vật emoji hợp lệ và giới hạn vị trí trong vùng tương tác", () => {
+    const normalized = normalizeProfile({ appearanceEmojiPet: { emoji: "🐼", x: 120, y: 1 } });
+    expect(normalized.appearanceEmojiPet).toEqual({ emoji: "🐼", x: 96, y: 7 });
+    expect(normalizeProfile({ appearanceEmojiPet: { emoji: "🧪", x: 50, y: 50 } }).appearanceEmojiPet).toBeUndefined();
   });
 });

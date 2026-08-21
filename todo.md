@@ -20,3 +20,10 @@
 - [x] Đồng bộ các bảng màu Thu, Hè, Halloween, Tuyết, Mưa và Xuân theo hướng dẫn mới, có bảo đảm tương phản chữ.
 - [x] Giữ hiệu ứng tiết chế: lá/hoa/tuyết/mưa thưa, mặt trời và gợn nước cố định, ma bay theo nhịp thưa.
 - [x] Kiểm thử lại full suite, TypeScript, production build và phát hành checkpoint chuẩn hóa cảnh.
+
+## Kho linh vật emoji trong Giao diện & tone màu
+- [x] Rà soát dữ liệu hồ sơ, mục Giao diện & tone màu và các lớp phủ cảnh hiện có.
+- [x] Tạo kho emoji có danh sách cuộn, chọn linh vật và hỗ trợ bàn phím.
+- [x] Cho phép kéo thả bằng chuột/cảm ứng, thả rơi về đáy và giới hạn vị trí trong màn hình.
+- [x] Lưu linh vật cùng vị trí cá nhân, có nút xóa/đặt lại và không cản các nút học tập.
+- [x] Bổ sung Vitest, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.

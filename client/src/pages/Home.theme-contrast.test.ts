@@ -46,4 +46,12 @@ describe("tone giao diện và typography tương phản cao", () => {
     expect(home).toContain('linear-gradient(90deg,var(--scene-accent),var(--scene-accent-alt))');
     expect(home).not.toContain('active ? "bg-[#c62828]');
   });
+
+  it("cung cấp kho linh vật emoji có kéo thả và điểm lưu hồ sơ", () => {
+    expect(home).toContain("Kho linh vật emoji");
+    expect(home).toContain("FloatingEmojiPet");
+    expect(home).toContain("setPointerCapture");
+    expect(home).toContain("appearanceEmojiPet");
+    expect(study).toContain("AppearanceEmojiPet");
+  });
 });

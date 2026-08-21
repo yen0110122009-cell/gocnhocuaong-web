@@ -477,6 +477,7 @@ export type ComboStep = { id: string; label: string; minutes: number; completed:
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
 export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween";
 export type SceneEffectPreferences = { leaves: number; snow: number; puddles: number; snowmanX: number; snowmanY: number };
+export type AppearanceEmojiPet = { emoji: string; x: number; y: number };
 export type SceneTimeRule = { id: string; label: string; scene: AmbientScenePreference; startHour: number; endHour: number };
 export type SceneAutomationSettings = { enabled: boolean; applyFixedHolidays: boolean; timeRules: SceneTimeRule[] };
 export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Thời điểm người học sửa tên, ảnh hoặc nhãn của bản thu. */ updatedAt?: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string; /** Nhãn màu trực quan do người học chọn để phân loại bản thu. */ colorLabel?: string };
@@ -701,6 +702,8 @@ export type ProfileState = {
   showLumi?: boolean;
   defaultAmbientScene?: AmbientScenePreference;
   sceneEffectPreferences?: SceneEffectPreferences;
+  /** Linh vật emoji do người dùng chọn trong phần Giao diện & tone màu. */
+  appearanceEmojiPet?: AppearanceEmojiPet;
   sceneAutomation?: SceneAutomationSettings;
   audioMixer?: AudioMixerSettings;
   /** Các preset cá nhân lưu tỷ lệ hai ambient Pomodoro. */
@@ -1494,6 +1497,16 @@ export function normalizeProfile(value: unknown): ProfileState {
       snowmanX: Math.max(4, Math.min(96, Number(source.sceneEffectPreferences?.snowmanX ?? base.sceneEffectPreferences!.snowmanX) || 0)),
       snowmanY: Math.max(2, Math.min(35, Number(source.sceneEffectPreferences?.snowmanY ?? base.sceneEffectPreferences!.snowmanY) || 0)),
     },
+    appearanceEmojiPet: (() => {
+      const candidate = source.appearanceEmojiPet as Partial<AppearanceEmojiPet> | undefined;
+      const allowed = ["🐝", "🐼", "🦊", "🐱", "🐸", "🦄", "🐳", "🦉", "🐰", "🐯", "🦋", "🌵"];
+      if (!candidate || !allowed.includes(String(candidate.emoji))) return undefined;
+      return {
+        emoji: String(candidate.emoji),
+        x: Math.max(4, Math.min(96, Number(candidate.x) || 50)),
+        y: Math.max(7, Math.min(90, Number(candidate.y) || 72)),
+      };
+    })(),
     sceneAutomation: {
       enabled: source.sceneAutomation?.enabled === true,
       applyFixedHolidays: source.sceneAutomation?.applyFixedHolidays !== false,
