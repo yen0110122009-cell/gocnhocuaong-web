@@ -1068,3 +1068,12 @@
 - [x] Bảo đảm hiệu ứng không che thao tác, hỗ trợ dark mode và `prefers-reduced-motion`.
 - [x] Cập nhật regression tests, chạy TypeScript, Vitest, production build và kiểm thử responsive.
 - [x] Lưu checkpoint phát hành các chủ đề mới.
+
+## Tinh chỉnh cảnh mưa, lá rơi, tuyết và giao diện tối
+- [x] Thêm vũng nước/gợn sóng cố định ở đáy và góc màn hình cho cảnh Mưa và Sấm chớp.
+- [x] Giảm mật độ lá, buộc lá rơi theo trục dọc và làm lớp lá tích dày/rõ hơn trên cả menu.
+- [x] Bổ sung người tuyết ở góc dưới của cảnh Tuyết mà không che thao tác.
+- [x] Đồng bộ tone tối theo từng mùa cho nền, menu, thành tích/cúp và các panel.
+- [x] Xóa mọi chỉ báo hoặc hình ảnh Lumi/Ong còn sót ở đăng nhập, header và điều hướng.
+- [x] Cập nhật regression tests, kiểm thử responsive, TypeScript, Vitest và production build.
+- [ ] Lưu checkpoint phát hành đợt tinh chỉnh cảnh và theme.

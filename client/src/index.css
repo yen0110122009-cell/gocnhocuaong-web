@@ -820,3 +820,154 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
   :root[data-ambient-scene="halloween"] #root > div.min-h-screen::after { animation: none !important; }
   :root[data-ambient-scene="halloween"] #root > div.min-h-screen::after { opacity: .16; background-position: 76vw 21vh, 12vw 64vh; }
 }
+
+/* Tinh chỉnh cảnh thơ mộng: toàn bộ hình dưới đây là CSS/SVG tự dựng, không lấy
+   ảnh tham chiếu. Các lớp đáy luôn cố định khi cuộn và để pointer-events:none. */
+:root[data-ambient-scene="rain"] body::before,
+:root[data-ambient-scene="storm"] body::before {
+  content: "";
+  position: fixed;
+  z-index: 54;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 7.5rem;
+  pointer-events: none;
+  opacity: .82;
+  background-image:
+    repeating-radial-gradient(ellipse at 16% 74%, transparent 0 .42rem, rgba(195, 235, 252, .76) .45rem .5rem, transparent .54rem 1rem),
+    repeating-radial-gradient(ellipse at 48% 92%, transparent 0 .34rem, rgba(190, 232, 249, .7) .37rem .43rem, transparent .47rem .84rem),
+    repeating-radial-gradient(ellipse at 80% 66%, transparent 0 .54rem, rgba(225, 245, 255, .7) .57rem .64rem, transparent .68rem 1.2rem),
+    linear-gradient(180deg, transparent 0%, rgba(66, 143, 180, .13) 38%, rgba(49, 119, 156, .31) 100%);
+  background-size: 13rem 4.5rem, 10rem 3.8rem, 15rem 5.2rem, cover;
+  background-position: left bottom, center bottom, right bottom, center;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 -5px 10px rgba(22, 76, 111, .13));
+  animation: rain-puddles-shimmer 6.6s ease-in-out infinite alternate;
+}
+
+:root[data-ambient-scene="storm"] body::before {
+  opacity: .88;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 66 118'%3E%3Cpath fill='%23ffe65b' d='M38 0 7 57h22L19 118l40-67H37z'/%3E%3Cpath fill='%23fff9b0' opacity='.76' d='m36 13-19 39h20l-7 35 22-39H31z'/%3E%3C/svg%3E"),
+    repeating-radial-gradient(ellipse at 16% 74%, transparent 0 .42rem, rgba(182, 218, 240, .69) .45rem .5rem, transparent .54rem 1rem),
+    repeating-radial-gradient(ellipse at 48% 92%, transparent 0 .34rem, rgba(182, 221, 242, .62) .37rem .43rem, transparent .47rem .84rem),
+    repeating-radial-gradient(ellipse at 80% 66%, transparent 0 .54rem, rgba(206, 233, 248, .62) .57rem .64rem, transparent .68rem 1.2rem),
+    linear-gradient(180deg, transparent 0%, rgba(22, 48, 80, .14) 38%, rgba(17, 46, 77, .4) 100%);
+  background-size: 3.2rem 5.7rem, 13rem 4.5rem, 10rem 3.8rem, 15rem 5.2rem, cover;
+  background-position: 84% -7rem, left bottom, center bottom, right bottom, center;
+  background-repeat: no-repeat;
+  animation: storm-puddle-lightning 7.8s steps(1, end) infinite;
+}
+
+:root[data-ambient-scene="snow"] body::after {
+  content: "";
+  position: fixed;
+  z-index: 55;
+  right: 5.2rem;
+  bottom: 1rem;
+  width: 7.3rem;
+  height: 9.2rem;
+  pointer-events: none;
+  opacity: .96;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 176'%3E%3Cellipse cx='70' cy='161' rx='58' ry='10' fill='%238bb7d0' opacity='.32'/%3E%3Ccircle cx='70' cy='119' r='42' fill='%23f8fdff' stroke='%23b6d3e4' stroke-width='3'/%3E%3Ccircle cx='70' cy='73' r='31' fill='%23ffffff' stroke='%23b6d3e4' stroke-width='3'/%3E%3Ccircle cx='70' cy='38' r='23' fill='%23ffffff' stroke='%23b6d3e4' stroke-width='3'/%3E%3Cpath d='M91 41 118 48 91 51Z' fill='%23f3a739'/%3E%3Ccircle cx='62' cy='33' r='3' fill='%233b5062'/%3E%3Ccircle cx='78' cy='33' r='3' fill='%233b5062'/%3E%3Cpath d='M58 49q12 10 24 0' fill='none' stroke='%233b5062' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='72' r='3.5' fill='%233b5062'/%3E%3Ccircle cx='70' cy='92' r='3.5' fill='%233b5062'/%3E%3Ccircle cx='70' cy='112' r='3.5' fill='%233b5062'/%3E%3Cpath d='M40 78 12 60M100 78l28-18' stroke='%236b4b34' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M45 16c16-14 34-14 50 0' fill='none' stroke='%23514f92' stroke-width='10' stroke-linecap='round'/%3E%3Cpath d='M44 14h52' stroke='%23514f92' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 10px 12px rgba(29, 69, 95, .24));
+  animation: snowman-gentle-bob 5.2s ease-in-out infinite alternate;
+}
+
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::after {
+  opacity: .66;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 38 60'%3E%3Cpath fill='%23d95829' d='M19 2C4 13 3 36 18 56 34 37 34 14 19 2Z'/%3E%3Cpath d='M19 7v43M19 32 9 22M19 39l10-10' fill='none' stroke='%238b3e22' stroke-width='2'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 40'%3E%3Cpath fill='%23f0a52d' d='M4 25C10 3 34 0 45 12 39 33 18 42 4 25Z'/%3E%3Cpath d='M8 25 40 13M21 21l-2-10m11 6 7 7' fill='none' stroke='%23924e1d' stroke-width='2'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 56'%3E%3Cpath fill='%23a8442b' d='M18 2C4 12 4 38 18 54 32 38 32 12 18 2Z'/%3E%3Cpath d='M18 7v42M18 31 9 21m9 19 9-10' fill='none' stroke='%236d321e' stroke-width='2'/%3E%3C/svg%3E");
+  background-size: 2.25rem 3.55rem, 2.9rem 2.45rem, 2rem 3.25rem;
+  background-position: 12px -136px, 52% -212px, calc(100% - 38px) -174px;
+  filter: drop-shadow(0 2px 1px rgba(93, 53, 20, .2));
+  animation: autumn-vertical-fall 14.5s linear infinite;
+}
+
+:root[data-ambient-scene="leaves"] body::after {
+  content: "";
+  position: fixed;
+  z-index: 53;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 8.3rem;
+  pointer-events: none;
+  opacity: .96;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 38 60'%3E%3Cpath fill='%23c54e25' d='M19 2C4 13 3 36 18 56 34 37 34 14 19 2Z'/%3E%3Cpath d='M19 7v43M19 32 9 22M19 39l10-10' fill='none' stroke='%237a351f' stroke-width='2'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 40'%3E%3Cpath fill='%23f0a52d' d='M4 25C10 3 34 0 45 12 39 33 18 42 4 25Z'/%3E%3Cpath d='M8 25 40 13M21 21l-2-10m11 6 7 7' fill='none' stroke='%23924e1d' stroke-width='2'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 15% 120%, rgba(135, 61, 26, .95) 0 25%, transparent 26%),
+    radial-gradient(ellipse at 55% 116%, rgba(216, 116, 31, .96) 0 34%, transparent 35%),
+    radial-gradient(ellipse at 91% 118%, rgba(159, 57, 29, .95) 0 29%, transparent 30%);
+  background-size: 4rem 6rem, 5rem 4.2rem, auto, auto, auto;
+  background-position: 4% 58%, 25% 62%, left bottom, center bottom, right bottom;
+  background-repeat: repeat-x, repeat-x, no-repeat, no-repeat, no-repeat;
+  filter: drop-shadow(0 -3px 4px rgba(90, 44, 18, .18));
+}
+
+@keyframes rain-puddles-shimmer { from { opacity: .62; transform: translateY(3px); } to { opacity: .9; transform: translateY(0); } }
+@keyframes storm-puddle-lightning { 0%, 84%, 100% { opacity: .78; background-position: 84% -7rem, left bottom, center bottom, right bottom, center; } 86% { opacity: 1; background-position: 84% 5px, left bottom, center bottom, right bottom, center; } 88% { opacity: .76; background-position: 84% -7rem, left bottom, center bottom, right bottom, center; } 90% { opacity: .95; background-position: 27% 12px, left bottom, center bottom, right bottom, center; } }
+@keyframes snowman-gentle-bob { from { transform: translateY(0) rotate(-1deg); } to { transform: translateY(-5px) rotate(1deg); } }
+@keyframes autumn-vertical-fall { from { background-position: 12px -136px, 52% -212px, calc(100% - 38px) -174px; } to { background-position: 12px 370px, 52% 396px, calc(100% - 38px) 348px; } }
+
+@media (max-width: 767px) {
+  :root[data-ambient-scene="rain"] body::before,
+  :root[data-ambient-scene="storm"] body::before { height: 5.8rem; opacity: .7; }
+  :root[data-ambient-scene="snow"] body::after { right: 3.8rem; bottom: .6rem; width: 5.7rem; height: 7.2rem; }
+  :root[data-ambient-scene="leaves"] body::after { height: 6.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene="rain"] body::before,
+  :root[data-ambient-scene="storm"] body::before,
+  :root[data-ambient-scene="snow"] body::after,
+  :root[data-ambient-scene="leaves"] #root > div.min-h-screen::after { animation: none !important; }
+}
+
+/* Theme scene cũng chi phối dark mode: không để lại panel trắng hoặc cúp/thành tích
+   một màu khi người học đang chọn một mùa. */
+:root[data-ambient-scene="morning"] { --season-night-page: #202b25; --season-night-page-alt: #36412a; --season-night-side: #202c25; --season-night-header: #26342a; --season-night-card: #29362e; --season-night-ink: #f2f7df; --season-night-muted: #c7d8bc; --season-night-border: #8aa46a; --season-night-accent: #f0b842; --season-night-accent-alt: #689d57; }
+:root[data-ambient-scene="rain"] { --season-night-page: #182733; --season-night-page-alt: #274556; --season-night-side: #1c303e; --season-night-header: #213a4a; --season-night-card: #263f4d; --season-night-ink: #e8f6fb; --season-night-muted: #bed9e4; --season-night-border: #6da3ba; --season-night-accent: #79c7e5; --season-night-accent-alt: #477f9c; }
+:root[data-ambient-scene="snow"] { --season-night-page: #1c2631; --season-night-page-alt: #324556; --season-night-side: #23323e; --season-night-header: #293a48; --season-night-card: #304452; --season-night-ink: #f0f8ff; --season-night-muted: #c9dbe8; --season-night-border: #8bb6cf; --season-night-accent: #b8e0f5; --season-night-accent-alt: #719db9; }
+:root[data-ambient-scene="leaves"] { --season-night-page: #2a1d19; --season-night-page-alt: #56321e; --season-night-side: #35231b; --season-night-header: #42291d; --season-night-card: #493022; --season-night-ink: #fff1d6; --season-night-muted: #e7c49a; --season-night-border: #c37b37; --season-night-accent: #e09a3c; --season-night-accent-alt: #aa4a2b; }
+:root[data-ambient-scene="storm"] { --season-night-page: #141b29; --season-night-page-alt: #293746; --season-night-side: #192534; --season-night-header: #202e3c; --season-night-card: #263443; --season-night-ink: #eff7ff; --season-night-muted: #c0d1e2; --season-night-border: #718eac; --season-night-accent: #f4ce56; --season-night-accent-alt: #5b88b0; }
+:root[data-ambient-scene="summer"] { --season-night-page: #3a2412; --season-night-page-alt: #70411b; --season-night-side: #432914; --season-night-header: #53351b; --season-night-card: #5b3b20; --season-night-ink: #fff2d2; --season-night-muted: #f4d39e; --season-night-border: #d99740; --season-night-accent: #f2bd4a; --season-night-accent-alt: #d26d2d; }
+:root[data-ambient-scene="spring"] { --season-night-page: #1b3229; --season-night-page-alt: #355443; --season-night-side: #213c30; --season-night-header: #294a39; --season-night-card: #315540; --season-night-ink: #effde8; --season-night-muted: #c9e8bc; --season-night-border: #7fb98c; --season-night-accent: #efa6c3; --season-night-accent-alt: #75b77b; }
+:root[data-ambient-scene="tet"] { --season-night-page: #3f111d; --season-night-page-alt: #751f27; --season-night-side: #50131e; --season-night-header: #611a25; --season-night-card: #6e2327; --season-night-ink: #fff0c9; --season-night-muted: #f0cfa1; --season-night-border: #e2af45; --season-night-accent: #efc95c; --season-night-accent-alt: #c72f37; }
+:root[data-ambient-scene="halloween"] { --season-night-page: #10091f; --season-night-page-alt: #302047; --season-night-side: #171027; --season-night-header: #211633; --season-night-card: #2a1d40; --season-night-ink: #fff0dc; --season-night-muted: #e8cce9; --season-night-border: #a870cf; --season-night-accent: #f39a43; --season-night-accent-alt: #aa63cf; }
+
+:root.dark[data-ambient-scene] body,
+:root.dark[data-ambient-scene] #root > div.min-h-screen {
+  background: radial-gradient(circle at 82% 8%, color-mix(in srgb, var(--season-night-accent-alt) 24%, transparent), transparent 29%), linear-gradient(135deg, var(--season-night-page), var(--season-night-page-alt)) !important;
+  color: var(--season-night-ink) !important;
+}
+:root.dark[data-ambient-scene] #root > div.min-h-screen > aside { background: linear-gradient(180deg, color-mix(in srgb, var(--season-night-side) 97%, transparent), var(--season-night-page)) !important; border-right-color: color-mix(in srgb, var(--season-night-border) 48%, transparent) !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen header { background: color-mix(in srgb, var(--season-night-header) 96%, transparent) !important; border-bottom-color: color-mix(in srgb, var(--season-night-border) 44%, transparent) !important; }
+
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(main, main p, main span, main small, main label, main h1, main h2, main h3, main h4, main h5, main b, main strong, main li, aside p, aside span, header p, header span) { color: var(--season-night-ink) !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(.panel, .study-card, .emotion-studio, .pomodoro-journey, article, section, .achievement-card--locked, .achievement-card--unlocked, .fragment-assembly, [class*="bg-white"], [class*="bg-[#fff"], [class*="bg-[#eff"], [class*="bg-[#f5fff"], [class*="bg-amber"], [class*="bg-yellow"]) { background-color: color-mix(in srgb, var(--season-night-card) 95%, transparent) !important; background-image: none !important; border-color: color-mix(in srgb, var(--season-night-border) 46%, transparent) !important; box-shadow: 0 14px 32px rgba(0, 0, 0, .26) !important; }
+
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(input, textarea, select, .input, .textarea) { background-color: color-mix(in srgb, var(--season-night-page) 87%, black) !important; color: var(--season-night-ink) !important; border-color: color-mix(in srgb, var(--season-night-border) 64%, transparent) !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(input, textarea)::placeholder { color: var(--season-night-muted) !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(.nav-item, .tab, .secondary-button, .icon-button, .icon-text-button, .filter-pill) { color: var(--season-night-ink) !important; background-color: color-mix(in srgb, var(--season-night-card) 88%, transparent) !important; border-color: color-mix(in srgb, var(--season-night-border) 52%, transparent) !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(.nav-item:hover, .tab:hover, .secondary-button:hover, .icon-button:hover, .icon-text-button:hover, .filter-pill:hover) { background-color: color-mix(in srgb, var(--season-night-accent-alt) 38%, var(--season-night-card)) !important; color: var(--season-night-ink) !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(.primary-button, .nav-item.active, .tab.selected, .filter-pill.active, button[class*="bg-red"], button[class*="bg-emerald"], button[class*="bg-green"]) { background: linear-gradient(135deg, var(--season-night-accent), var(--season-night-accent-alt)) !important; color: #1b1510 !important; border-color: color-mix(in srgb, var(--season-night-accent) 75%, white) !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(.primary-button, .nav-item.active, .tab.selected, .filter-pill.active, button[class*="bg-red"], button[class*="bg-emerald"], button[class*="bg-green"]) * { color: #1b1510 !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(.text-muted-foreground, [class*="text-slate-"], [class*="text-stone-"], [class*="text-gray-"]) { color: var(--season-night-muted) !important; }
+:root.dark[data-ambient-scene] #root > div.min-h-screen :is(.achievement-card--locked, .achievement-card--unlocked, .fragment-tile, [class*="trophy"], [class*="cup"], [class*="medal"]) { background-color: color-mix(in srgb, var(--season-night-card) 96%, black) !important; border-color: color-mix(in srgb, var(--season-night-accent) 48%, transparent) !important; }
+
+@media (max-width: 767px) {
+  :root.dark[data-ambient-scene] #root > div.min-h-screen > aside { background: linear-gradient(180deg, var(--season-night-side), var(--season-night-page)) !important; }
+}
+
+/* Dữ liệu ghi âm Lumi/Ong được giữ, nhưng mọi khung minh họa/ảnh đồng hành cũ đều
+   bị loại khỏi shell để giao diện gọn và không gợi ý rằng có ảnh mặc định. */
+#root > div.min-h-screen > aside > .my-6 { display: none !important; }
+section[aria-labelledby="account-companion-title"] #account-companion-title { font-size: 0 !important; }
+section[aria-labelledby="account-companion-title"] #account-companion-title::after { content: "Thư viện bản ghi âm"; font-size: 1.5rem; line-height: 2rem; }
+section[aria-labelledby="account-companion-title"] #account-companion-title + p { font-size: 0 !important; }
+section[aria-labelledby="account-companion-title"] #account-companion-title + p::after { content: "Tự ghi âm tại thiết bị của bạn, sau đó quản lý và nghe lại bản thu theo từng cảm xúc."; font-size: .875rem; line-height: 1.5rem; }
