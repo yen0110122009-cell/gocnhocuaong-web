@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bird, CloudRain, Eye, EyeOff, Flower2, Ghost, Leaf, Mic, Moon, PartyPopper, Pause, Play, Snowflake, Sun, Trash2, Upload, Volume2, VolumeX, Zap } from "lucide-react";
+import { Bird, Building2, Cloud, CloudRain, CloudSun, Eye, EyeOff, Flower2, Ghost, Leaf, Mic, Moon, PartyPopper, Pause, Play, Snowflake, Sparkles, Sun, Trash2, Upload, Volume2, VolumeX, Zap } from "lucide-react";
 import { emotionFromCommand, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { lumiQuoteForDate } from "../lib/lumiDailyQuotes";
 import { activeContentFor, antiProcrastinationChoices, gentleReminders, randomAntiProcrastinationSpeech, randomMicroTask, speechForEvent, speechGroupLabels, type SpeechGroup } from "../lib/speechLibrary";
-import type { AppConfig, ProfileState, SceneEffectPreferences } from "../../../shared/study";
+import type { AmbientScenePreference, AppConfig, ProfileState, SceneEffectPreferences } from "../../../shared/study";
 import { LumiCongratulationControls } from "./LumiCongratulationControls";
 import { PersonalStudySpaceControls } from "./PersonalStudySpaceControls";
 import { PersistentCollapsible } from "./PersistentCollapsible";
@@ -14,7 +14,7 @@ import { AudioCenterEnhancements, type AudioChannel as PlaybackChannel, type Pla
 import { resolveAutomatedScene } from "../lib/sceneAutomation";
 
 type AttentionPreferences = { animationsEnabled: boolean; popupsEnabled: boolean; soundEnabled: boolean };
-type AmbientScene = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween" | "desert" | "night";
+type AmbientScene = AmbientScenePreference;
 type AmbientVolumes = Record<AmbientScene, number>;
 type AudioChannel = "environment" | "music" | "uiEffects" | "lumi" | "ong" | "memberVoice";
 type AudioChannelVolumes = Record<AudioChannel, number>;
@@ -42,8 +42,21 @@ const sceneOptions: Array<{ id: AmbientScene; label: string; detail: string; ico
   { id: "halloween", label: "Halloween", detail: "dơi bay · bí ẩn", icon: Ghost },
   { id: "desert", label: "Sa mạc", detail: "cát vàng · xương rồng", icon: Sun },
   { id: "night", label: "Cảnh đêm", detail: "đèn vàng · sương nhẹ", icon: Moon },
+  { id: "naturepark", label: "Công viên", detail: "cây xanh · gió dịu", icon: Leaf },
+  { id: "sunrise", label: "Bình minh", detail: "nắng hồng · chim bay", icon: Sun },
+  { id: "mountainsunset", label: "Núi hoàng hôn", detail: "đồi xa · mây cam", icon: Sun },
+  { id: "meteorice", label: "Sao băng & băng", detail: "trời lạnh · sao lướt", icon: Snowflake },
+  { id: "galaxy", label: "Dải Ngân Hà", detail: "tinh vân · sao sáng", icon: Moon },
+  { id: "cityday", label: "Đô thị ngày", detail: "phố sáng · nhịp sống", icon: Building2 },
+  { id: "citysunset", label: "Hoàng hôn thành phố", detail: "skyline · nắng cam", icon: Sun },
+  { id: "citydusk", label: "Chiều tà đô thị", detail: "mây tím · đèn lên", icon: CloudSun },
+  { id: "citynight", label: "Thành phố đêm", detail: "neon · cửa sổ sáng", icon: Building2 },
+  { id: "bridgefog", label: "Cầu đêm sương mờ", detail: "cầu xa · sương nhẹ", icon: Moon },
+  { id: "urbanfog", label: "Sương mờ đô thị", detail: "phố mờ · yên tĩnh", icon: Cloud },
+  { id: "sparklers", label: "Pháo hoa que", detail: "tia sáng · lung linh", icon: Sparkles },
+  { id: "fireworks", label: "Pháo hoa rực rỡ", detail: "bầu trời lễ hội", icon: PartyPopper },
 ];
-const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30 };
+const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38 };
 const emotionVoiceStates: Record<EmotionId, string[]> = {
   calm: ["comeback", "streak_recovered"], happy: ["achievement_unlocked"], tired: ["failed", "comeback"], sad: ["failed", "comeback"], stressed: ["failed", "streak_recovered"], lazy: ["failed", "comeback"], proud: ["achievement_unlocked"], focused: ["almost_unlocked"], hopeful: ["almost_unlocked", "comeback"], overwhelmed: ["failed", "comeback"], sleepy: ["failed", "comeback"], excited: ["achievement_unlocked"], lonely: ["failed", "comeback"], confident: ["achievement_unlocked", "almost_unlocked"], curious: ["almost_unlocked"], comeback: ["comeback", "streak_recovered"],
 };

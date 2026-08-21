@@ -475,7 +475,7 @@ export type ProcrastinationEvent = {
 };
 export type ComboStep = { id: string; label: string; minutes: number; completed: boolean };
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
-export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween" | "desert" | "night";
+export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween" | "desert" | "night" | "naturepark" | "sunrise" | "mountainsunset" | "meteorice" | "galaxy" | "cityday" | "citysunset" | "citydusk" | "citynight" | "bridgefog" | "urbanfog" | "sparklers" | "fireworks";
 export type SceneEffectPreferences = { leaves: number; snow: number; puddles: number; snowmanX: number; snowmanY: number };
 export type AppearanceEmojiPet = {
   emoji: string;
@@ -906,7 +906,7 @@ export const emptyProfile = (): ProfileState => ({
   defaultAmbientScene: "morning",
   sceneEffectPreferences: { leaves: 28, snow: 62, puddles: 64, snowmanX: 90, snowmanY: 5 },
   sceneAutomation: { enabled: false, applyFixedHolidays: true, timeRules: [{ id: "morning", label: "Buổi sáng", scene: "morning", startHour: 5, endHour: 11 }, { id: "summer-day", label: "Ban ngày", scene: "summer", startHour: 11, endHour: 17 }, { id: "spring-evening", label: "Buổi tối", scene: "spring", startHour: 17, endHour: 22 }, { id: "night", label: "Đêm", scene: "night", startHour: 22, endHour: 5 }] },
-  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30 }, pomodoroLayers: {}, pomodoroAmbientMix: { morning: 55, storm: 45 }, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
+  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38 }, pomodoroLayers: {}, pomodoroAmbientMix: { morning: 55, storm: 45 }, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
   audioPreviewSpeedPresets: {},
   personalAudioAssets: [],
   personalAudioTrash: [],
@@ -1497,7 +1497,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     })) as Partial<Record<EmotionThemeId, LumiVoiceRecordingTrashEntry[]>> : {},
     showMascot: source.showMascot !== false,
     showLumi: source.showLumi !== false,
-    defaultAmbientScene: ["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween", "desert", "night"].includes(String(source.defaultAmbientScene)) ? source.defaultAmbientScene as AmbientScenePreference : base.defaultAmbientScene,
+    defaultAmbientScene: ["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween", "desert", "night", "naturepark", "sunrise", "mountainsunset", "meteorice", "galaxy", "cityday", "citysunset", "citydusk", "citynight", "bridgefog", "urbanfog", "sparklers", "fireworks"].includes(String(source.defaultAmbientScene)) ? source.defaultAmbientScene as AmbientScenePreference : base.defaultAmbientScene,
     sceneEffectPreferences: {
       leaves: Math.max(0, Math.min(100, Number(source.sceneEffectPreferences?.leaves ?? base.sceneEffectPreferences!.leaves) || 0)),
       snow: Math.max(0, Math.min(100, Number(source.sceneEffectPreferences?.snow ?? base.sceneEffectPreferences!.snow) || 0)),
@@ -1524,12 +1524,12 @@ export function normalizeProfile(value: unknown): ProfileState {
       timeRules: Array.isArray(source.sceneAutomation?.timeRules) ? source.sceneAutomation.timeRules.flatMap((rule, index) => {
         if (!rule || typeof rule !== "object") return [];
         const candidate = rule as Partial<SceneTimeRule>;
-        if (!candidate.id || !["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween", "desert", "night"].includes(String(candidate.scene))) return [];
+        if (!candidate.id || !["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween", "desert", "night", "naturepark", "sunrise", "mountainsunset", "meteorice", "galaxy", "cityday", "citysunset", "citydusk", "citynight", "bridgefog", "urbanfog", "sparklers", "fireworks"].includes(String(candidate.scene))) return [];
         return [{ id: String(candidate.id).slice(0, 80), label: typeof candidate.label === "string" && candidate.label.trim() ? candidate.label.trim().slice(0, 60) : `Khung giờ ${index + 1}`, scene: candidate.scene as AmbientScenePreference, startHour: Math.max(0, Math.min(23, Math.floor(Number(candidate.startHour) || 0))), endHour: Math.max(0, Math.min(23, Math.floor(Number(candidate.endHour) || 0)))}];
       }).slice(0, 12) : base.sceneAutomation!.timeRules,
     },
     audioMixer: {
-      ambientSceneVolumes: Object.fromEntries((["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween", "desert", "night"] as AmbientScenePreference[]).map((scene) => [scene, Math.max(0, Math.min(100, Number(source.audioMixer?.ambientSceneVolumes?.[scene] ?? base.audioMixer!.ambientSceneVolumes[scene]) || 0))])) as AudioMixerSettings["ambientSceneVolumes"],
+      ambientSceneVolumes: Object.fromEntries((["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween", "desert", "night", "naturepark", "sunrise", "mountainsunset", "meteorice", "galaxy", "cityday", "citysunset", "citydusk", "citynight", "bridgefog", "urbanfog", "sparklers", "fireworks"] as AmbientScenePreference[]).map((scene) => [scene, Math.max(0, Math.min(100, Number(source.audioMixer?.ambientSceneVolumes?.[scene] ?? base.audioMixer!.ambientSceneVolumes[scene]) || 0))])) as AudioMixerSettings["ambientSceneVolumes"],
       pomodoroLayers: source.audioMixer?.pomodoroLayers && typeof source.audioMixer.pomodoroLayers === "object" ? Object.fromEntries(Object.entries(source.audioMixer.pomodoroLayers).map(([id, level]) => [id, Math.max(0, Math.min(100, Number(level) || 0))])) : {},
       pomodoroAmbientMix: {
         morning: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroAmbientMix?.morning ?? base.audioMixer!.pomodoroAmbientMix!.morning) || 0)),
@@ -1590,7 +1590,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       const id = typeof preset?.id === "string" && preset.id.trim() ? preset.id.trim() : "";
       const name = typeof preset?.name === "string" && preset.name.trim() ? preset.name.trim().slice(0, 80) : "";
       if (!id || !name) return [];
-      return [{ id, name, emotion: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(preset?.emotion)) ? preset?.emotion as EmotionThemeId : undefined, ambientScene: ["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween", "desert", "night"].includes(String(preset?.ambientScene)) ? preset?.ambientScene as AmbientScenePreference : undefined, audioAssetIds: Array.isArray(preset?.audioAssetIds) ? preset!.audioAssetIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0).slice(0, 80) : [], companionMode: ["lumi", "ong", "both", "hidden"].includes(String(preset?.companionMode)) ? preset?.companionMode as PersonalStudyPreset["companionMode"] : "both", focusMode: preset?.focusMode === true, createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
+      return [{ id, name, emotion: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(preset?.emotion)) ? preset?.emotion as EmotionThemeId : undefined, ambientScene: ["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween", "desert", "night", "naturepark", "sunrise", "mountainsunset", "meteorice", "galaxy", "cityday", "citysunset", "citydusk", "citynight", "bridgefog", "urbanfog", "sparklers", "fireworks"].includes(String(preset?.ambientScene)) ? preset?.ambientScene as AmbientScenePreference : undefined, audioAssetIds: Array.isArray(preset?.audioAssetIds) ? preset!.audioAssetIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0).slice(0, 80) : [], companionMode: ["lumi", "ong", "both", "hidden"].includes(String(preset?.companionMode)) ? preset?.companionMode as PersonalStudyPreset["companionMode"] : "both", focusMode: preset?.focusMode === true, createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
     }).filter((preset, index, presets) => presets.findIndex((candidate) => candidate.id === preset.id) === index).slice(0, 100) : [],
     personalStudyPresetSchedule: Array.isArray(source.personalStudyPresetSchedule) ? source.personalStudyPresetSchedule.flatMap((value) => {
       const item = value && typeof value === "object" ? value as Partial<PersonalStudyPresetSchedule> : null;

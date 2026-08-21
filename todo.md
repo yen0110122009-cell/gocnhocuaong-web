@@ -44,7 +44,7 @@
 - [ ] Bổ sung regression, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.
 
 ## Linh vật người tuyết nguyên bản
-- [ ] Tạo diện mạo người tuyết nguyên bản, không sao chép nhân vật phim, cho linh vật đang chọn.
+- [x] Tạo diện mạo người tuyết nguyên bản, không sao chép nhân vật phim, cho linh vật đang chọn.
 - [x] Bổ sung chế độ thả rông: tự đi dạo nhẹ trong vùng an toàn khi không kéo thả.
 - [x] Giữ kéo thả chuột/cảm ứng, điều khiển bàn phím, lưu vị trí và reduced-motion.
 - [x] Bổ sung regression, kiểm tra TypeScript, production build và responsive; checkpoint phát hành sẽ được lưu sau cùng.
@@ -57,9 +57,9 @@
 ## Thu gọn Lumi và 14 theme theo tài liệu tham chiếu
 - [x] Thêm Thu gọn/Mở rộng có lưu trạng thái riêng cho Không gian cảm xúc của Lumi.
 - [x] Giữ kho linh vật emoji/động vật độc lập trong Giao diện & tone màu, với chuyển động toàn màn hình như người tuyết cảnh Tuyết.
-- [ ] Chuẩn hóa 14 theme: Sa mạc, Công viên, Bình minh, Núi hoàng hôn, Sao băng & băng, Ngân hà, Đô thị ngày, Hoàng hôn đô thị, Chiều tà, Thành phố đêm, Cầu đêm, Sương mù đô thị, Pháo hoa que, Pháo hoa lớn.
-- [ ] Áp dụng token màu, lớp phủ fixed không chặn thao tác, reduced-motion và tương phản chữ/menu cho từng theme.
-- [ ] Bổ sung regression, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.
+- [x] Chuẩn hóa 14 theme: Sa mạc, Công viên, Bình minh, Núi hoàng hôn, Sao băng & băng, Ngân hà, Đô thị ngày, Hoàng hôn đô thị, Chiều tà, Thành phố đêm, Cầu đêm, Sương mù đô thị, Pháo hoa que, Pháo hoa lớn.
+- [x] Áp dụng token màu, lớp phủ fixed không chặn thao tác, reduced-motion và tương phản chữ/menu cho từng theme.
+- [x] Bổ sung regression, kiểm tra TypeScript, production build, responsive; checkpoint phát hành sẽ được lưu sau cùng.
 
 ## Lỗi tương tác popup âm thanh
 - [x] Xác định sự kiện click/focus/blur hoặc cập nhật state làm điều khiển âm thanh giật và popup đóng sai.

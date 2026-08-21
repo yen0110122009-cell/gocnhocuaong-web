@@ -6,5 +6,6 @@ export function SnowBuddy({ compact = false, roaming = false }: { compact?: bool
     <span className="snow-buddy__head"><i /><i /><b /></span>
     <span className="snow-buddy__body"><i /><i /><i /></span>
     <span className="snow-buddy__scarf" />
+    <span className="snow-buddy__arms" />
   </span>;
 }

@@ -71,4 +71,21 @@ describe("bốn cảnh theo mùa và sự kiện", () => {
     expect(css).toContain("storm-lightning-strike");
     expect(css).toContain("pointer-events:none");
   });
+
+  it("khai báo đủ 14 theme thiên nhiên và đô thị với token màu đồng bộ", () => {
+    for (const scene of ["desert", "naturepark", "sunrise", "mountainsunset", "meteorice", "galaxy", "cityday", "citysunset", "citydusk", "citynight", "bridgefog", "urbanfog", "sparklers", "fireworks"]) {
+      expect(css).toContain(`:root[data-ambient-scene="${scene}"]`);
+    }
+    expect(css).toContain("--scene-page:");
+    expect(css).toContain("--scene-text:");
+    expect(css).toContain("--scene-accent:");
+  });
+
+  it("giữ lớp phủ CSS toàn màn hình, thuần hiển thị và tôn trọng reduced-motion cho bộ cảnh mới", () => {
+    expect(css).toContain(':root[data-ambient-scene="naturepark"] #root > div.min-h-screen::before');
+    expect(css).toContain(':root[data-ambient-scene="fireworks"] #root > div.min-h-screen::before');
+    expect(css).toContain('content:"✹');
+    expect(css).toContain("position:fixed; inset:0; z-index:54; pointer-events:none");
+    expect(css).toContain('@media (prefers-reduced-motion: reduce) { :root[data-ambient-scene="naturepark"]');
+  });
 });
