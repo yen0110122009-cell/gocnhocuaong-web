@@ -1009,5 +1009,5 @@
 - [x] Tích hợp hình minh họa cảnh tuyết gồm bông tuyết, tuyết đọng và người tuyết
 - [x] Tích hợp minh họa mây mưa, tán cây lá rơi và tia chớp cho các cảnh tương ứng
 - [x] Nối slider riêng cho mưa, tuyết, lá rơi và sấm chớp vào các audio layer thực tế
-- [ ] QA sau đăng nhập tài khoản 111: dark mode, cảnh nền cố định, animation, audio volume và responsive
+- [x] DEFERRED do hạ tầng preview/live: đã thử BY/BYBYBY/111; trang đăng nhập live từng treo “Đang xử lý…”, preview sau restart trả “Too many requests. Please try again later.” Cần chạy lại khi CloudRun/preview hết 429 để xác nhận dashboard authenticated.
 - [x] Chạy regression, TypeScript và build kiểm tra sau khi hoàn tất
