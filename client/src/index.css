@@ -1312,6 +1312,98 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root[data-ambient-scene] #root > div.min-h-screen::after,
 :root[data-ambient-scene] body::before,
 :root[data-ambient-scene] body::after { pointer-events: none; }
+
+/* Tết Cổ Truyền: đỏ nhung–vàng kim phủ đồng bộ shell, hai lồng đèn ở góc,
+   cây mai/đào lớn ở đáy và các chi tiết chúc Tết luôn nằm trên toàn màn hình. */
+:root[data-ambient-scene="tet"] {
+  --scene-page: #b71c1c;
+  --scene-page-alt: #880e4f;
+  --scene-side: #4a0000;
+  --scene-header: #68080f;
+  --scene-card: #72171d;
+  --scene-text: #fffdd0;
+  --scene-muted: #ffe49a;
+  --scene-border: #ffd700;
+  --scene-accent: #ffd700;
+  --scene-accent-alt: #ffca58;
+  --scene-button-text: #4a0000;
+  --scene-shadow: rgba(52, 0, 8, .48);
+}
+:root[data-ambient-scene="tet"] #root > div.min-h-screen::before {
+  opacity: .53;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 620 290'%3E%3Cpath d='M0 18C120 27 170 67 264 142' fill='none' stroke='%23633d23' stroke-width='25' stroke-linecap='round'/%3E%3Cpath d='M74 35c61 6 103 36 154 95M153 52c54 16 82 43 109 88M225 95c47 9 74 30 102 66' fill='none' stroke='%2378552d' stroke-width='12' stroke-linecap='round'/%3E%3Cg fill='%23ffb7c4'%3E%3Ccircle cx='92' cy='44' r='15'/%3E%3Ccircle cx='122' cy='65' r='14'/%3E%3Ccircle cx='170' cy='71' r='16'/%3E%3Ccircle cx='205' cy='109' r='14'/%3E%3Ccircle cx='252' cy='119' r='17'/%3E%3Ccircle cx='300' cy='152' r='15'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 520'%3E%3Cpath d='M82 520c18-110 44-203 99-280 43-60 97-85 168-116M132 520c18-129 21-224-18-304M191 284c-33-69-58-112-104-152M185 273c45-71 99-121 171-153' fill='none' stroke='%23633422' stroke-width='25' stroke-linecap='round'/%3E%3Cg fill='%23ffd55a'%3E%3Ccircle cx='61' cy='117' r='26'/%3E%3Ccircle cx='101' cy='139' r='24'/%3E%3Ccircle cx='146' cy='99' r='29'/%3E%3Ccircle cx='195' cy='152' r='27'/%3E%3Ccircle cx='231' cy='92' r='30'/%3E%3Ccircle cx='275' cy='138' r='26'/%3E%3Ccircle cx='318' cy='77' r='30'/%3E%3Ccircle cx='351' cy='117' r='25'/%3E%3Ccircle cx='148' cy='208' r='24'/%3E%3Ccircle cx='240' cy='202' r='27'/%3E%3C/g%3E%3Cg fill='%23fff2a1'%3E%3Ccircle cx='61' cy='117' r='8'/%3E%3Ccircle cx='146' cy='99' r='9'/%3E%3Ccircle cx='231' cy='92' r='9'/%3E%3Ccircle cx='318' cy='77' r='9'/%3E%3Ccircle cx='240' cy='202' r='8'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(135deg, rgba(136, 14, 79, .38), rgba(183, 28, 28, .2));
+  background-size: 31rem 14.5rem, min(48vw, 31rem) min(64vh, 34rem), cover;
+  background-position: -1.5rem -1rem, -2.5rem calc(100% + 1rem), center;
+  background-repeat: no-repeat;
+  animation: tet-branch-sway 16s ease-in-out infinite alternate !important;
+}
+:root[data-ambient-scene="tet"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: .96;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 128'%3E%3Cpath d='M40 0v30' stroke='%23f7d363' stroke-width='3'/%3E%3Cpath d='M30 27h20' stroke='%23f7d363' stroke-width='4'/%3E%3Crect x='12' y='30' width='56' height='63' rx='24' fill='%23c91f2f' stroke='%23ffd700' stroke-width='4'/%3E%3Cpath d='M12 49h56M12 75h56' stroke='%23ffd700' stroke-width='3'/%3E%3Cpath d='M40 93v22' stroke='%23ffd700' stroke-width='5'/%3E%3Cpath d='M23 115h34' stroke='%23ffd700' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 128'%3E%3Cpath d='M40 0v30' stroke='%23f7d363' stroke-width='3'/%3E%3Cpath d='M30 27h20' stroke='%23f7d363' stroke-width='4'/%3E%3Crect x='12' y='30' width='56' height='63' rx='24' fill='%23c91f2f' stroke='%23ffd700' stroke-width='4'/%3E%3Cpath d='M12 49h56M12 75h56' stroke='%23ffd700' stroke-width='3'/%3E%3Cpath d='M40 93v22' stroke='%23ffd700' stroke-width='5'/%3E%3Cpath d='M23 115h34' stroke='%23ffd700' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 5rem 8rem, 5rem 8rem;
+  background-position: left 1rem top -.65rem, right 1rem top -.65rem;
+  background-repeat: no-repeat;
+  animation: tet-lantern-sway 3.6s ease-in-out infinite alternate;
+}
+:root[data-ambient-scene="tet"] #root > div.min-h-screen::after {
+  z-index: 9999;
+  opacity: .5;
+  mix-blend-mode: normal;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffd7df' d='M12 2c-3 4-8 8-8 13a8 8 0 0016 0c0-5-5-9-8-13Z'/%3E%3Ccircle cx='12' cy='15' r='2' fill='%23e979a1'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffe171' d='M12 2c-3 4-8 8-8 13a8 8 0 0016 0c0-5-5-9-8-13Z'/%3E%3Ccircle cx='12' cy='15' r='2' fill='%23e7a320'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 42'%3E%3Crect x='5' y='5' width='26' height='32' rx='3' fill='%23e0202d' stroke='%23ffd766' stroke-width='3'/%3E%3Cpath d='M8 13h20M18 8v25' stroke='%23ffd766' stroke-width='2'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 42 42'%3E%3Cpath d='M6 15h30M9 20h24M12 25h18' stroke='%23e5522c' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M5 12 0 2M37 12 42 2' stroke='%23f4cc54' stroke-width='2'/%3E%3C/svg%3E");
+  background-size: 1.35rem 1.35rem, 1.2rem 1.2rem, 1.85rem 2.15rem, 2.2rem 2.2rem;
+  background-position: 13% -4rem, 72% -9rem, 39% -8rem, 87% -15rem;
+  background-repeat: repeat-y, repeat-y, no-repeat, no-repeat;
+  animation: tet-petals-and-festival-fall 15s linear infinite !important;
+}
+:root[data-ambient-scene="tet"] body::after {
+  content: "🧧";
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: .25rem;
+  padding: 0 .8rem .28rem 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 76'%3E%3Crect x='8' y='12' width='56' height='56' rx='7' fill='%234d8d41' stroke='%23f7d363' stroke-width='5'/%3E%3Cpath d='M36 12v56M8 40h56' stroke='%23f7d363' stroke-width='4'/%3E%3Crect x='98' y='21' width='70' height='35' rx='17' fill='%235b9946' stroke='%23f7d363' stroke-width='5'/%3E%3Cpath d='M133 21v35' stroke='%23f7d363' stroke-width='4'/%3E%3C/svg%3E");
+  background-position: calc(100% - 3.35rem) calc(100% - .45rem);
+  background-repeat: no-repeat;
+  background-size: clamp(6rem, 12vw, 10.2rem) auto;
+  color: #fffdd0;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: clamp(2.1rem, 5vw, 4.1rem);
+  line-height: 1;
+  z-index: 9998;
+}
+@keyframes tet-lantern-sway {
+  from { background-position: left .65rem top -.65rem, right 1.35rem top -.65rem; }
+  to { background-position: left 1.35rem top -.15rem, right .65rem top -.15rem; }
+}
+@keyframes tet-petals-and-festival-fall {
+  from { background-position: 13% -4rem, 72% -9rem, 39% -8rem, 87% -15rem; }
+  to { background-position: 13% 108vh, 72% 115vh, 40% 56vh, 85% 72vh; }
+}
+@media (max-width: 767px) {
+  :root[data-ambient-scene="tet"] #root > div.min-h-screen::before { background-size: 25rem 11.7rem, 17rem 23rem, cover; background-position: -3rem -1rem, -3rem calc(100% + 1rem), center; }
+  :root[data-ambient-scene="tet"] body::before { background-size: 3.85rem 6.2rem, 3.85rem 6.2rem; background-position: left .3rem top -.45rem, right .3rem top -.45rem; }
+  :root[data-ambient-scene="tet"] body::after { font-size: 2.25rem; padding-right: .35rem; background-position: calc(100% - 2.8rem) calc(100% - .25rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene="tet"] body::before,
+  :root[data-ambient-scene="tet"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="tet"] #root > div.min-h-screen::after { animation: none !important; }
+}
 :root[data-ambient-scene="rain"] #root > div.min-h-screen::after,
 :root[data-ambient-scene="snow"] #root > div.min-h-screen::before,
 :root[data-ambient-scene="leaves"] #root > div.min-h-screen::after,

@@ -81,3 +81,9 @@
 - [x] Hoàn thiện Đại dương sâu với san hô đáy rõ ràng, cá voi lướt ngang và bọt nước đi lên; thêm regression chuyên biệt.
 - [x] Hoàn thiện Rừng phép thuật cùng Cánh đồng hoa bằng chuyển động bay nhẹ riêng cho bướm, ong và bọ cánh cam.
 - [x] Hoàn thiện Trạm vũ trụ với hành tinh cố định và tia quét tiết chế có animation riêng; bổ sung regression cho các keyframe/selector.
+
+## Tinh chỉnh Tết Cổ Truyền theo tệp tham chiếu
+- [x] Đồng bộ palette đỏ thắm–vàng kim cho nền, shell, menu, panel và chữ tương phản cao.
+- [x] Bổ sung lồng đèn hai góc, cây hoa mai/đào góc đáy, cánh hoa rơi thưa, lì xì/pháo trang trí và bánh chưng/bánh tét cố định.
+- [x] Bảo đảm lớp phủ toàn màn hình không cản thao tác, reduced-motion, regression, TypeScript, production build và responsive; checkpoint phát hành sẽ được lưu sau cùng.
+- [x] Xác nhận bằng CSS và regression rằng lồng đèn neo ở hai góc, cây hoa neo góc đáy, icon bánh chưng/bánh tét cố định trong lớp phủ Tết.

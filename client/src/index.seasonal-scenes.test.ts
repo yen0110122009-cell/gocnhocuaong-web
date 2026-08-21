@@ -126,4 +126,23 @@ describe("bốn cảnh theo mùa và sự kiện", () => {
     expect(css).toContain(':root[data-ambient-scene="deepocean"] #root > div.min-h-screen::after');
     expect(css).toContain('@media (prefers-reduced-motion: reduce) { :root[data-ambient-scene="deepocean"] #root > div.min-h-screen::after');
   });
+
+  it("nâng Tết Cổ Truyền bằng palette đỏ-vàng, lồng đèn, hoa rơi và reduced-motion", () => {
+    expect(css).toContain("--scene-page: #b71c1c");
+    expect(css).toContain("--scene-side: #4a0000");
+    expect(css).toContain("--scene-text: #fffdd0");
+    expect(css).toContain("tet-lantern-sway");
+    expect(css).toContain("tet-petals-and-festival-fall");
+    expect(css).toContain('content: "🧧"');
+    expect(css).toContain(':root[data-ambient-scene="tet"] body::before');
+  });
+
+  it("neo đủ chi tiết Tết: lồng đèn hai góc, cây hoa ở đáy và bánh chưng/bánh tét cố định", () => {
+    expect(css).toContain("background-position: left 1rem top -.65rem, right 1rem top -.65rem");
+    expect(css).toContain("-2.5rem calc(100% + 1rem)");
+    expect(css).toContain("background-position: calc(100% - 3.35rem) calc(100% - .45rem)");
+    expect(css).toContain("fill='%234d8d41'");
+    expect(css).toContain("fill='%235b9946'");
+    expect(css).toContain("z-index: 9998");
+  });
 });
