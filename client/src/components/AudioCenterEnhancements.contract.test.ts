@@ -119,4 +119,18 @@ describe("Audio Center UX contracts", () => {
     expect(homeSource).toContain("animate-pulse");
     expect(homeSource).toContain("<Suspense fallback={<AudioCenterLoadingSkeleton />}");
   });
+
+  it("isolates Audio Center interactions and limits high-frequency playback renders", () => {
+    expect(componentSource).toContain("onPointerDownCapture={(event) => event.stopPropagation()}");
+    expect(componentSource).toContain("onClickCapture={(event) => event.stopPropagation()}");
+    expect(experienceStudioSource).toContain("lastPlaybackUpdateRef");
+    expect(experienceStudioSource).toContain("now - lastPlaybackUpdateRef.current >= 250");
+    expect(experienceStudioSource).toContain("playAudioPreview");
+    expect(experienceStudioSource).toContain("stopAudioPreview");
+  });
+
+  it("keeps the full Lumi emotion space independently collapsible", () => {
+    expect(experienceStudioSource).toContain('storageKey="experience-lumi-emotion-space"');
+    expect(experienceStudioSource).toContain('title="Không gian cảm xúc của Lumi"');
+  });
 });

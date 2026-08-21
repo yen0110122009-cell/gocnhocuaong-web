@@ -1,5 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
+import { SnowBuddy } from "@/components/SnowBuddy";
 import { PersistentCollapsible as CollapsiblePanel } from "@/components/PersistentCollapsible";
 import { MenuHelpGuide } from "@/components/MenuHelpGuide";
 import ProfileTitleSelector from "@/components/ProfileTitleSelector";
@@ -11,7 +12,7 @@ import { KnowledgeLab } from "@/components/KnowledgeLab";
 import { emotionThemes, type EmotionId } from "@/lib/emotionThemes";
 import { BRAND } from "@/branding";
 import { Activity, AlertTriangle, Award, BarChart3, BatteryCharging, BookOpen, BrainCircuit, Check, ChevronLeft, ChevronRight, CircleHelp, Clock3, Dices, Download, FileUp, Flag, FlaskConical, GraduationCap, History, LayoutDashboard, LockKeyhole, Menu, Moon, Palette, Plus, Search, ShieldCheck, Sparkles, Sun, Trophy, UsersRound, Volume2, VolumeX, WandSparkles, X } from "lucide-react";
-import React, { ChangeEvent, FormEvent, Suspense, useEffect, useMemo, useState } from "react";
+import React, { ChangeEvent, FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 const ExperienceStudio = React.lazy(() => import("@/components/ExperienceStudio").then((module) => ({ default: module.ExperienceStudio })));
 type ExperienceStudioProps = React.ComponentProps<typeof ExperienceStudio>;
 function AudioCenterLoadingSkeleton() {
@@ -307,20 +308,54 @@ const interfaceToneOptions: Array<{ id: NonNullable<ProfileState["activeCosmetic
   { id: "jade-ivory", label: "Ngọc bích · Ngà", description: "Xanh ngọc tĩnh lặng, nền sáng sạch.", className: "from-teal-800 via-teal-300 to-amber-100", swatches: ["#115e59", "#5eead4", "#fffbeb"] },
   { id: "copper-night", label: "Đồng cổ · Đêm than", description: "Nền tối sâu với nhấn đồng sáng.", className: "from-stone-950 via-stone-700 to-orange-400", swatches: ["#211912", "#57534e", "#fb923c"] },
 ];
-const appearanceEmojiPets = ["🐝", "🐼", "🦊", "🐱", "🐸", "🦄", "🐳", "🦉", "🐰", "🐯", "🦋", "🌵"] as const;
+const appearanceEmojiPets = ["snowman", "🐝", "🐼", "🦊", "🐱", "🐸", "🦄", "🐳", "🦉", "🐰", "🐯", "🦋", "🌵"] as const;
+const petLabel = (pet: string) => pet === "snowman" ? "Người tuyết" : pet;
 function FloatingEmojiPet({ profile, onProfile, hidden = false }: { profile: ProfileState; onProfile: (profile: ProfileState, message?: string) => void; hidden?: boolean }) {
   const pet = profile.appearanceEmojiPet;
   const [dragging, setDragging] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [draft, setDraft] = useState(() => ({ x: pet?.x ?? 50, y: pet?.y ?? 72 }));
-  useEffect(() => setDraft({ x: pet?.x ?? 50, y: pet?.y ?? 72 }), [pet?.emoji, pet?.x, pet?.y]);
+  const roamingSaveTimerRef = useRef<number | null>(null);
+  const lastPersistedRoamPositionRef = useRef({ x: pet?.x ?? 50, y: pet?.y ?? 72 });
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncReducedMotion = () => setReducedMotion(media.matches);
+    syncReducedMotion();
+    media.addEventListener("change", syncReducedMotion);
+    return () => media.removeEventListener("change", syncReducedMotion);
+  }, []);
+  useEffect(() => {
+    const next = { x: pet?.x ?? 50, y: pet?.y ?? 72 };
+    lastPersistedRoamPositionRef.current = next;
+    setDraft(next);
+  }, [pet?.emoji, pet?.x, pet?.y]);
+  useEffect(() => {
+    const roamingEnabled = pet?.roam === true || pet?.roamingEnabled === true;
+    if (!pet || !roamingEnabled || dragging || hidden || reducedMotion) return;
+    const walker = window.setInterval(() => setDraft((current) => ({ x: Math.max(8, Math.min(92, current.x + (Math.random() * 16 - 8))), y: Math.max(18, Math.min(84, current.y + (Math.random() * 8 - 4))) })), 5200);
+    return () => window.clearInterval(walker);
+  }, [pet?.emoji, pet?.roam, pet?.roamingEnabled, dragging, hidden, reducedMotion]);
+  useEffect(() => {
+    const roamingEnabled = pet?.roam === true || pet?.roamingEnabled === true;
+    if (!pet || !roamingEnabled || dragging || hidden) return;
+    if (lastPersistedRoamPositionRef.current.x === draft.x && lastPersistedRoamPositionRef.current.y === draft.y) return;
+    if (roamingSaveTimerRef.current) window.clearTimeout(roamingSaveTimerRef.current);
+    roamingSaveTimerRef.current = window.setTimeout(() => {
+      lastPersistedRoamPositionRef.current = { x: draft.x, y: draft.y };
+      onProfile({ ...profile, appearanceEmojiPet: { ...pet, x: draft.x, y: draft.y, roam: true, roamingEnabled: true } });
+    }, 700);
+    return () => { if (roamingSaveTimerRef.current) window.clearTimeout(roamingSaveTimerRef.current); };
+  }, [draft.x, draft.y, dragging, hidden, onProfile, pet, profile]);
   if (!pet || hidden) return null;
+  const roamingEnabled = pet.roam === true || pet.roamingEnabled === true;
   const point = (event: React.PointerEvent<HTMLButtonElement>) => ({ x: Math.max(5, Math.min(95, event.clientX / window.innerWidth * 100)), y: Math.max(8, Math.min(90, event.clientY / window.innerHeight * 100)) });
   const commit = (next: { x: number; y: number }) => onProfile({ ...profile, appearanceEmojiPet: { ...pet, ...next } }, "Đã lưu vị trí linh vật.");
-  return <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="false"><button type="button" aria-label={`Kéo linh vật ${pet.emoji} trên màn hình`} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); setDragging(true); }} onPointerMove={(event) => { if (dragging) setDraft(point(event)); }} onPointerUp={(event) => { const next = point(event); event.currentTarget.releasePointerCapture(event.pointerId); setDraft(next); setDragging(false); commit(next); }} onPointerCancel={() => setDragging(false)} onKeyDown={(event) => { const delta = event.key === "ArrowLeft" ? { x: -3, y: 0 } : event.key === "ArrowRight" ? { x: 3, y: 0 } : event.key === "ArrowUp" ? { x: 0, y: -3 } : event.key === "ArrowDown" ? { x: 0, y: 3 } : null; if (!delta) return; event.preventDefault(); const next = { x: Math.max(5, Math.min(95, draft.x + delta.x)), y: Math.max(8, Math.min(90, draft.y + delta.y)) }; setDraft(next); commit(next); }} style={{ left: `${draft.x}%`, top: `${draft.y}%` }} className={cn("pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 cursor-grab select-none rounded-full p-1 text-4xl drop-shadow-[0_7px_5px_rgba(25,55,35,.30)] transition-transform focus:outline-none focus:ring-2 focus:ring-emerald-400 active:cursor-grabbing", dragging && "scale-110")}>{pet.emoji}</button></div>;
+  return <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="false"><button type="button" aria-label={`Kéo linh vật ${petLabel(pet.emoji)} trên màn hình`} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); setDragging(true); }} onPointerMove={(event) => { if (dragging) setDraft(point(event)); }} onPointerUp={(event) => { const next = point(event); event.currentTarget.releasePointerCapture(event.pointerId); setDraft(next); setDragging(false); commit(next); }} onPointerCancel={() => setDragging(false)} onKeyDown={(event) => { const delta = event.key === "ArrowLeft" ? { x: -3, y: 0 } : event.key === "ArrowRight" ? { x: 3, y: 0 } : event.key === "ArrowUp" ? { x: 0, y: -3 } : event.key === "ArrowDown" ? { x: 0, y: 3 } : null; if (!delta) return; event.preventDefault(); const next = { x: Math.max(5, Math.min(95, draft.x + delta.x)), y: Math.max(8, Math.min(90, draft.y + delta.y)) }; setDraft(next); commit(next); }} style={{ left: `${draft.x}%`, top: `${draft.y}%` }} className={cn("pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 cursor-grab select-none rounded-full p-1 transition-[left,top,transform] duration-[2400ms] ease-out motion-reduce:transition-none focus:outline-none focus:ring-2 focus:ring-emerald-400", pet.emoji === "snowman" ? "snow-buddy-button" : "text-4xl drop-shadow-[0_7px_5px_rgba(25,55,35,.30)]", dragging && "scale-110 cursor-grabbing", !dragging && "cursor-grab")}>{pet.emoji === "snowman" ? <SnowBuddy roaming={roamingEnabled && !dragging} /> : pet.emoji}</button></div>;
 }
 function EmojiPetCanvas({ profile, onProfile }: { profile: ProfileState; onProfile: (profile: ProfileState, message?: string) => void }) {
   const pet = profile.appearanceEmojiPet;
-  return <section className="panel p-5 sm:p-6" aria-labelledby="emoji-pet-title"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Linh vật cá nhân</p><h2 id="emoji-pet-title" className="mt-1 font-display text-2xl font-bold">Kho linh vật emoji</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-300">Chọn một linh vật. Linh vật sẽ nổi nhẹ ở các mục học, có thể kéo trên toàn màn hình và tự lưu vị trí.</p></div>{pet && <button type="button" className="secondary-button text-rose-700" onClick={() => onProfile({ ...profile, appearanceEmojiPet: undefined }, "Đã cất linh vật khỏi giao diện.")}>Cất linh vật</button>}</div><div className="mt-4 flex max-h-32 gap-2 overflow-x-auto pb-2" role="list" aria-label="Danh sách linh vật emoji">{appearanceEmojiPets.map((emoji) => <button key={emoji} type="button" role="listitem" aria-pressed={pet?.emoji === emoji} onClick={() => onProfile({ ...profile, appearanceEmojiPet: { emoji, x: 50, y: 72 } }, `Đã chọn linh vật ${emoji}.`)} className={cn("grid h-14 w-14 shrink-0 place-items-center rounded-2xl border text-3xl transition hover:-translate-y-0.5", pet?.emoji === emoji ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200 dark:bg-emerald-950/40" : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/60")}>{emoji}</button>)}</div><div className="relative mt-4 h-32 overflow-hidden rounded-3xl border border-emerald-200 bg-[linear-gradient(180deg,#bcecff_0%,#f7f6d8_63%,#8fd37d_64%,#65ad59_100%)] dark:border-emerald-400/30"><span className="absolute left-6 top-5 text-3xl opacity-80" aria-hidden="true">☀️</span><span className="absolute right-8 top-6 text-2xl opacity-70" aria-hidden="true">☁️</span><span className="absolute inset-x-0 bottom-0 h-8 bg-emerald-700/25" aria-hidden="true" />{pet ? <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-5xl drop-shadow-[0_7px_5px_rgba(25,55,35,.30)]" aria-label={`Đang dùng ${pet.emoji}`}>{pet.emoji}</span> : <p className="absolute inset-0 grid place-items-center px-6 text-center text-sm font-bold text-emerald-950/65">Chọn linh vật bên trên để bắt đầu.</p>}</div><p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-300">Dùng chuột hoặc chạm để kéo. Khi linh vật đang được chọn, dùng phím mũi tên để điều chỉnh chính xác. Linh vật luôn ở dưới menu và không chặn nút học tập.</p></section>;
+  const roamingEnabled = pet?.roam === true || pet?.roamingEnabled === true;
+  return <section className="panel p-5 sm:p-6" aria-labelledby="emoji-pet-title"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Linh vật cá nhân</p><h2 id="emoji-pet-title" className="mt-1 font-display text-2xl font-bold">Kho linh vật emoji</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-300">Chọn một linh vật. Linh vật sẽ tự đi dạo ở các mục học, có thể kéo trên toàn màn hình và tự lưu vị trí.</p></div>{pet && <div className="flex flex-wrap gap-2"><button type="button" className="secondary-button" onClick={() => onProfile({ ...profile, appearanceEmojiPet: { ...pet, roam: !roamingEnabled, roamingEnabled: !roamingEnabled } }, roamingEnabled ? "Đã tạm dừng linh vật đi dạo." : "Linh vật đã bắt đầu đi dạo tự do.")}>{roamingEnabled ? "Tạm dừng đi dạo" : "Bật đi dạo"}</button><button type="button" className="secondary-button text-rose-700" onClick={() => onProfile({ ...profile, appearanceEmojiPet: undefined }, "Đã cất linh vật khỏi giao diện.")}>Cất linh vật</button></div>}</div><div className="mt-4 flex max-h-32 gap-2 overflow-x-auto pb-2" role="list" aria-label="Danh sách linh vật emoji">{appearanceEmojiPets.map((emoji) => <button key={emoji} type="button" role="listitem" aria-pressed={pet?.emoji === emoji} onClick={() => onProfile({ ...profile, appearanceEmojiPet: { emoji, x: 50, y: 72, roam: true, roamingEnabled: true } }, `Đã chọn linh vật ${emoji}; linh vật đã bắt đầu đi dạo.`)} className={cn("grid h-14 w-14 shrink-0 place-items-center rounded-2xl border text-3xl transition hover:-translate-y-0.5", pet?.emoji === emoji ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200 dark:bg-emerald-950/40" : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/60")}>{emoji}</button>)}</div><div className="relative mt-4 h-32 overflow-hidden rounded-3xl border border-emerald-200 bg-[linear-gradient(180deg,#bcecff_0%,#f7f6d8_63%,#8fd37d_64%,#65ad59_100%)] dark:border-emerald-400/30"><span className="absolute left-6 top-5 text-3xl opacity-80" aria-hidden="true">☀️</span><span className="absolute right-8 top-6 text-2xl opacity-70" aria-hidden="true">☁️</span><span className="absolute inset-x-0 bottom-0 h-8 bg-emerald-700/25" aria-hidden="true" />{pet ? <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-5xl drop-shadow-[0_7px_5px_rgba(25,55,35,.30)]" aria-label={`Đang dùng ${pet.emoji}`}>{pet.emoji}</span> : <p className="absolute inset-0 grid place-items-center px-6 text-center text-sm font-bold text-emerald-950/65">Chọn linh vật bên trên để bắt đầu.</p>}</div><p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-300">Dùng chuột hoặc chạm để kéo. Khi linh vật đang được chọn, dùng phím mũi tên để điều chỉnh chính xác. Chế độ đi dạo vẫn cho phép kéo lại vị trí. Linh vật luôn ở dưới menu và không chặn nút học tập.</p></section>;
 }
 function AppearanceStudio({ profile, onProfile }: { profile: ProfileState; onProfile: (profile: ProfileState, message?: string) => void }) {
   const selected = profile.activeCosmeticTheme ?? "ong-red";

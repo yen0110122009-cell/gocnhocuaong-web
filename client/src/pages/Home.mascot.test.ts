@@ -20,4 +20,14 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
     expect(source).not.toContain('<svg viewBox="0 0 64 64"');
     expect(css).toContain("#root > div.min-h-screen > aside > .my-6 { display: none !important; }");
   });
+
+  it("để linh vật đi dạo trong viewport nhưng không chặn menu hoặc thao tác học", () => {
+    expect(source).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
+    expect(source).toContain("if (!pet || !roamingEnabled || dragging || hidden || reducedMotion) return;");
+    expect(source).toContain('className="pointer-events-none fixed inset-0 z-40"');
+    expect(source).toContain('"pointer-events-auto absolute');
+    expect(source).toContain("Math.max(8, Math.min(92");
+    expect(source).toContain("Math.max(18, Math.min(84");
+    expect(source).toContain("appearanceEmojiPet: { ...pet, x: draft.x, y: draft.y, roam: true, roamingEnabled: true }");
+  });
 });

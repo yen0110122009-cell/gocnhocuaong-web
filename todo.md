@@ -35,3 +35,33 @@
 - [x] Chuẩn hóa lại cảnh Sấm chớp theo lớp mây tối, sét ngang và token chữ tương phản.
 - [x] Bổ sung lựa chọn trong Giao diện & tone màu, giữ reduced-motion và pointer-events:none.
 - [x] Bổ sung regression, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.
+
+## Bộ 14 theme Giao diện & tone màu
+- [ ] Chuẩn hóa 14 theme: Sa mạc, Rừng xanh, Cảnh đêm, Mưa giông, Tuyết, Hoàng hôn, Không gian, Trăng non, Biển, Neon, Sakura, Thu, Pháo hoa và Lễ hội.
+- [ ] Mở rộng kiểu scene, dữ liệu hồ sơ, preset và bộ chọn giao diện có lưu để dùng đủ các theme.
+- [ ] Tạo lớp phủ fixed theo theme với pointer-events:none, reduced-motion và token màu chữ/menu tương phản.
+- [ ] Thêm tương tác con trỏ tiết chế cho Pháo hoa và hiệu ứng thời gian thực nhẹ cho các cảnh có yêu cầu.
+- [ ] Bổ sung regression, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.
+
+## Linh vật người tuyết nguyên bản
+- [ ] Tạo diện mạo người tuyết nguyên bản, không sao chép nhân vật phim, cho linh vật đang chọn.
+- [x] Bổ sung chế độ thả rông: tự đi dạo nhẹ trong vùng an toàn khi không kéo thả.
+- [x] Giữ kéo thả chuột/cảm ứng, điều khiển bàn phím, lưu vị trí và reduced-motion.
+- [x] Bổ sung regression, kiểm tra TypeScript, production build và responsive; checkpoint phát hành sẽ được lưu sau cùng.
+
+## Phạm vi kho linh vật độc lập
+- [x] Xác nhận và giữ nguyên Không gian cảm xúc của Lumi, không gắn linh vật vào khu vực này.
+- [x] Đặt kho linh vật và điều khiển tự do chuyển động chỉ trong Giao diện & tone màu.
+- [x] Kiểm thử regression để bảo đảm linh vật nổi dùng toàn màn hình nhưng không che menu/nút học tập.
+
+## Thu gọn Lumi và 14 theme theo tài liệu tham chiếu
+- [x] Thêm Thu gọn/Mở rộng có lưu trạng thái riêng cho Không gian cảm xúc của Lumi.
+- [x] Giữ kho linh vật emoji/động vật độc lập trong Giao diện & tone màu, với chuyển động toàn màn hình như người tuyết cảnh Tuyết.
+- [ ] Chuẩn hóa 14 theme: Sa mạc, Công viên, Bình minh, Núi hoàng hôn, Sao băng & băng, Ngân hà, Đô thị ngày, Hoàng hôn đô thị, Chiều tà, Thành phố đêm, Cầu đêm, Sương mù đô thị, Pháo hoa que, Pháo hoa lớn.
+- [ ] Áp dụng token màu, lớp phủ fixed không chặn thao tác, reduced-motion và tương phản chữ/menu cho từng theme.
+- [ ] Bổ sung regression, kiểm tra TypeScript, production build, responsive và lưu checkpoint phát hành.
+
+## Lỗi tương tác popup âm thanh
+- [x] Xác định sự kiện click/focus/blur hoặc cập nhật state làm điều khiển âm thanh giật và popup đóng sai.
+- [x] Ổn định vị trí popup, ngăn đóng khi thao tác bên trong và tránh re-render làm nhảy giao diện.
+- [x] Bổ sung regression cho mở/đóng popup âm thanh và kiểm tra TypeScript, production build, responsive.

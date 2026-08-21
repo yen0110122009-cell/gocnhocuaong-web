@@ -64,7 +64,12 @@ describe("achievement progress", () => {
 
   it("lưu linh vật emoji hợp lệ và giới hạn vị trí trong vùng tương tác", () => {
     const normalized = normalizeProfile({ appearanceEmojiPet: { emoji: "🐼", x: 120, y: 1 } });
-    expect(normalized.appearanceEmojiPet).toEqual({ emoji: "🐼", x: 96, y: 7 });
+    expect(normalized.appearanceEmojiPet).toEqual({ emoji: "🐼", x: 96, y: 7, roam: false, roamingEnabled: false });
     expect(normalizeProfile({ appearanceEmojiPet: { emoji: "🧪", x: 50, y: 50 } }).appearanceEmojiPet).toBeUndefined();
+  });
+
+  it("giữ tương thích cờ roamingEnabled của các bản hồ sơ đã lưu trước đó", () => {
+    const normalized = normalizeProfile({ appearanceEmojiPet: { emoji: "🦊", x: 48, y: 71, roamingEnabled: true } });
+    expect(normalized.appearanceEmojiPet).toEqual({ emoji: "🦊", x: 48, y: 71, roam: true, roamingEnabled: true });
   });
 });

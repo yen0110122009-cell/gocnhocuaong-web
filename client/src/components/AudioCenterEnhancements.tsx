@@ -461,7 +461,7 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
     const hasPreset = presets.some((preset) => preset.id === DEFAULT_POMODORO_AMBIENT_PRESET.id);
     onProfile({ ...profile, personalStudyPresets: hasPreset ? presets : [...presets, DEFAULT_POMODORO_AMBIENT_PRESET], activePersonalStudyPresetId: DEFAULT_POMODORO_AMBIENT_PRESET.id }, `Đã áp dụng preset “${DEFAULT_POMODORO_AMBIENT_PRESET.name}”.`);
   }
-  return <div className="relative z-10 mt-4 grid gap-3">
+  return <div className="relative z-10 mt-4 grid gap-3" onPointerDownCapture={(event) => event.stopPropagation()} onClickCapture={(event) => event.stopPropagation()}>
     <div className="rounded-2xl border border-[#2e7d32]/20 bg-gradient-to-r from-[#f6fff2] to-[#fff8ed] p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c62828]">Preset Pomodoro mới</p><h3 className="mt-1 text-sm font-black text-[#25582c]">{DEFAULT_POMODORO_AMBIENT_PRESET.name}</h3><p className="mt-1 max-w-2xl text-xs leading-5 text-[#5a6d5d]">Phối hai lớp âm thanh Buổi sáng và Bão nhẹ ở mức dịu, phù hợp khi muốn đổi không gian tập trung.</p></div><button type="button" onClick={applyPomodoroAmbientPreset} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#2e7d32] px-3 py-2 text-xs font-black text-white shadow-sm transition-transform active:scale-[.98]" aria-label="Áp dụng preset Pomodoro Bình minh và Bão nhẹ"><Play className="h-3.5 w-3.5" />Áp dụng preset</button></div>
     </div>

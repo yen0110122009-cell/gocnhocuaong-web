@@ -76,6 +76,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const lumiAudioRef = useRef<HTMLAudioElement | null>(null);
   const emotionTransitionTimerRef = useRef<number | null>(null);
   const playbackTickerRef = useRef<number | null>(null);
+  const lastPlaybackUpdateRef = useRef(0);
   const automatedSceneRef = useRef<AmbientScene | null>(null);
   const theme = emotionThemes.find((item) => item.id === selected) ?? emotionThemes[0];
   const companionMedia = profile?.companionEmotionMedia?.[theme.id];
@@ -150,8 +151,16 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const tick = () => {
       const voice = lumiAudioRef.current && !lumiAudioRef.current.paused ? lumiAudioRef.current : null;
       const environment = ambientTrackRef.current && !ambientTrackRef.current.paused ? ambientTrackRef.current : null;
-      if (voice) setPlaybackStatus((current) => ({ ...current, voice: { ...current.voice, currentTime: voice.currentTime, duration: Number.isFinite(voice.duration) ? voice.duration : current.voice.duration, volume: Math.round(voice.volume * 100), muted: voice.muted } }));
-      if (environment) setPlaybackStatus((current) => ({ ...current, environment: { ...current.environment, currentTime: environment.currentTime, duration: Number.isFinite(environment.duration) ? environment.duration : current.environment.duration, volume: Math.round(environment.volume * 100), muted: environment.muted } }));
+      const now = performance.now();
+      if ((voice || environment) && now - lastPlaybackUpdateRef.current >= 250) {
+        lastPlaybackUpdateRef.current = now;
+        setPlaybackStatus((current) => {
+          let next = current;
+          if (voice) next = { ...next, voice: { ...next.voice, currentTime: voice.currentTime, duration: Number.isFinite(voice.duration) ? voice.duration : next.voice.duration, volume: Math.round(voice.volume * 100), muted: voice.muted } };
+          if (environment) next = { ...next, environment: { ...next.environment, currentTime: environment.currentTime, duration: Number.isFinite(environment.duration) ? environment.duration : next.environment.duration, volume: Math.round(environment.volume * 100), muted: environment.muted } };
+          return next;
+        });
+      }
       playbackTickerRef.current = window.requestAnimationFrame(tick);
     };
     playbackTickerRef.current = window.requestAnimationFrame(tick);
@@ -250,6 +259,48 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     setPlaybackStatus((current) => ({ ...current, [channel]: { ...current[channel], currentTime: audio.currentTime } }));
   }
   function stopVoicePlayback() { lumiAudioRef.current?.pause(); lumiAudioRef.current = null; setChannelPlaying("voice", false); }
+
+  function playAudioPreview(url: string, channel: PlaybackChannel, label: string, volume?: number, playbackRate?: number) {
+    const activeAudio = channel === "voice" ? lumiAudioRef.current : ambientTrackRef.current;
+    if (activeAudio && !activeAudio.paused && playbackStatus[channel].url === url) {
+      if (channel === "voice") stopVoicePlayback(); else stopAmbient();
+      return;
+    }
+    if (channel === "voice") stopVoicePlayback();
+    if (channel === "environment") stopAmbient();
+    const audio = new Audio(resolveMediaUrl(url));
+    audio.preload = "auto";
+    audio.setAttribute("playsinline", "true");
+    audio.setAttribute("webkit-playsinline", "true");
+    audio.volume = 0;
+    audio.playbackRate = playbackRate ?? 1;
+    audio.onended = () => {
+      const isCurrent = channel === "voice" ? lumiAudioRef.current === audio : ambientTrackRef.current === audio;
+      if (isCurrent) setChannelPlaying(channel, false);
+    };
+    if (channel === "voice") lumiAudioRef.current = audio; else ambientTrackRef.current = audio;
+    void audio.play().then(() => {
+      setChannelPlaying(channel, true, label, url, volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment), false);
+      const target = Math.max(0, Math.min(1, (volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment)) / 100));
+      const startedAt = performance.now();
+      const fadeIn = () => {
+        const progress = Math.min(1, (performance.now() - startedAt) / 220);
+        audio.volume = target * progress;
+        if (progress < 1 && !audio.paused) window.requestAnimationFrame(fadeIn);
+      };
+      window.requestAnimationFrame(fadeIn);
+    }).catch(() => {
+      if (channel === "voice" && lumiAudioRef.current === audio) lumiAudioRef.current = null;
+      if (channel === "environment" && ambientTrackRef.current === audio) ambientTrackRef.current = null;
+      setChannelPlaying(channel, false);
+      setMessage(`Không thể phát ${label}.`);
+    });
+  }
+
+  function stopAudioPreview(channel?: PlaybackChannel) {
+    if (!channel || channel === "voice") stopVoicePlayback();
+    if (!channel || channel === "environment") stopAmbient();
+  }
 
   function stopAmbient() {
     ambientGenerationRef.current += 1;
@@ -505,7 +556,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   function chooseAntiProcrastination(id: "five" | "review" | "lumi") { if (id === "five") onStartTwoMinutes?.(); if (id === "review") setSpeech({ ...speechForEvent("ineffective", "understanding"), text: "Lumi chọn cho Ong: mở lại một phần bài cũ trong 5 phút thôi nhé." }); if (id === "lumi") { setSpeech(randomAntiProcrastinationSpeech()); setMicroTask(randomMicroTask()); setReminder(gentleReminders[Math.floor(Math.random() * gentleReminders.length)] ?? gentleReminders[0]); } setMessage(id === "five" ? "Lumi ở đây. Mình bắt đầu thật nhẹ nhé." : "Lumi đã chọn một nhiệm vụ nhỏ cho Ong."); }
   function chooseLazy(level: "mild" | "very" | "none") { if (lazyLevel === level) { setLazyLevel(null); setMessage("Đã bỏ chọn Chế độ lười."); return; } setLazyLevel(level); setMessage("Không ép buộc. Ong chỉ cần một bước nhỏ khi sẵn sàng."); }
 
-  return <section className="panel emotion-studio relative overflow-hidden border-2 border-[#c62828]/15 bg-[linear-gradient(135deg,#fff7f2_0%,#f5fff5_100%)] p-5 sm:p-6" aria-labelledby="emotion-studio-title">
+  return <PersistentCollapsible storageKey="experience-lumi-emotion-space" eyebrow="Không gian cá nhân" title="Không gian cảm xúc của Lumi" className="relative z-10 border-2 border-[#c62828]/15 bg-[linear-gradient(135deg,#fff7f2_0%,#f5fff5_100%)]"><section className="emotion-studio relative overflow-hidden" aria-labelledby="emotion-studio-title">
     <div className={`ambient-scene ambient-scene-${ambientScene}`} aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
     <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-[#c62828]">Không gian cảm xúc của Lumi</p><h2 id="emotion-studio-title" className="mt-2 font-display text-2xl font-black text-[#7f1d1d]">Hôm nay Ong đang cảm thấy thế nào?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#3f513f]">Chọn cảm xúc để đổi màu toàn ứng dụng và nhận lời đồng hành phù hợp. Âm nền chỉ phát khi Ong chủ động nhấn nút.</p></div><div className="flex items-center gap-3 rounded-2xl border border-[#2e7d32]/20 bg-white/85 px-3 py-3 shadow-sm">{showMascot && showLumi ? <div className={`flex h-20 w-16 shrink-0 items-center justify-center rounded-2xl border border-[#c62828]/20 bg-[#fff7ed] text-center text-[10px] font-bold text-[#9a3412] ${transitioningEmotion === theme.id ? "lumi-emotion-transition" : ""}`}>Audio<br />Lumi</div> : null}<div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Bạn đồng hành</p><p className="mt-1 text-sm font-black text-[#7f1d1d]">Lumi</p><span className="text-xs text-[#35523a]">{!showLumi ? "Lumi chỉ phát âm thanh khi Ong chọn nghe" : `Đang ở bên Ong · ${theme.label}`}</span></div><span className="rounded-full border border-[#2e7d32]/20 bg-white px-2 py-1 text-[10px] font-black text-[#2e7d32]">Audio-only</span></div></div>
     <AttentionControls preferences={attentionPreferences} onToggle={(key) => profile && onProfile?.({ ...profile, [key]: !attentionPreferences[key] })} />
@@ -535,7 +586,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     </PersistentCollapsible>
     <PersistentCollapsible storageKey="experience-emotion-command" eyebrow="Tùy chỉnh cảm xúc" title="Câu lệnh đổi giao diện" className="relative z-10 mt-4 border-[#c62828]/15 bg-white/85"><div><label htmlFor="emotion-command" className="text-sm font-black text-[#7f1d1d]">Nhập cảm xúc hoặc câu lệnh</label><div className="mt-2 flex flex-col gap-2 sm:flex-row"><input id="emotion-command" value={command} onChange={(event) => setCommand(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") selectEmotion(emotionFromCommand(command).id); }} placeholder={safeCommandHint} className="field flex-1 border-[#2e7d32]/25 bg-white" /><button type="button" onClick={() => selectEmotion(emotionFromCommand(command).id)} className="primary-button justify-center bg-[#c62828] hover:bg-[#a91f1f]">Áp dụng</button></div>{message ? <p className="mt-2 text-xs font-bold text-[#2e7d32]" role="status">{message}</p> : null}</div></PersistentCollapsible>
     <PersistentCollapsible storageKey="experience-lumi-speech-library" eyebrow="Đồng hành cùng Lumi" title="Lời an ủi và động viên" className="relative z-10 mt-5 border-2 border-[#2e7d32]/15 bg-[#f5fff5]/95"><section aria-labelledby="speech-library-title"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Lời an ủi và động viên từ Lumi</p><h3 id="speech-library-title" className="mt-1 text-lg font-black text-[#7f1d1d]">Lumi ở đây để đồng hành cùng Ong</h3></div><span className="rounded-full bg-[#c62828] px-3 py-1 text-xs font-black text-white">{speechGroupLabels[speechGroup]}</span></div><div className="mt-3 flex flex-wrap gap-2">{(Object.entries(speechGroupLabels) as [SpeechGroup, string][]).map(([group, label]) => <button key={group} type="button" onClick={() => chooseSpeechGroup(group)} className={`rounded-xl px-3 py-2 text-xs font-black ${speechGroup === group ? "bg-[#c62828] text-white" : "bg-white text-[#2e7d32]"}`}>{label}</button>)}</div><div className="mt-3 flex gap-3 rounded-2xl bg-[#fff0eb] p-4"><div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-xl border border-[#c62828]/20 bg-white text-center text-[10px] font-black text-[#8e1b1b]">Audio<br />Lumi</div><div className="min-w-0 flex-1"><p className="text-[11px] font-black uppercase tracking-wider text-[#2e7d32]">Thư viện Lumi · {weekdayLumi.label}</p><p className="mt-1 text-sm font-bold leading-6 text-[#6f2424]">{lumiVoiceText}</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={playLumiVoice} className="rounded-xl bg-[#2e7d32] px-3 py-2 text-xs font-black text-white"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản thu Lumi</button>{profile?.companionMode === "ong" || profile?.companionMode === "both" || !profile?.companionMode ? <button type="button" onClick={playOngVoice} className="rounded-xl border border-[#c62828]/25 bg-white px-3 py-2 text-xs font-black text-[#c62828]"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản thu Ong</button> : null}{preferredMemberVoice ? <button type="button" onClick={playMemberVoice} className="rounded-xl border border-[#7f1d1d]/20 bg-white px-3 py-2 text-xs font-black text-[#7f1d1d]"><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe bản ghi thành viên</button> : null}</div>{matchingVoiceLine?.audioUrl ? <span className="mt-2 block text-[11px] font-bold text-[#2e7d32]">Dùng bản thu đã lưu</span> : <span className="mt-2 block text-[11px] text-[#6f5a53]">Chưa có bản thu; Ong có thể tự thêm trong thư viện.</span>}</div></div><div className="mt-3 grid gap-3 md:grid-cols-2"><div className="rounded-2xl border border-[#2e7d32]/20 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">🫠 Chống trì hoãn</p><div className="mt-2 flex flex-wrap gap-2">{antiProcrastinationChoices.map((choice) => <button key={choice.id} type="button" onClick={() => chooseAntiProcrastination(choice.id)} className="rounded-xl border border-[#2e7d32]/20 bg-[#eff9ef] px-3 py-2 text-left text-xs font-black text-[#2e7d32]"><span className="block">{choice.label}</span><small className="mt-1 block font-medium text-[#35523a]">{choice.description}</small></button>)}</div></div><div className="rounded-2xl border border-[#c62828]/15 bg-white p-3"><p className="text-xs font-black uppercase tracking-wider text-[#c62828]">🎯 Nhiệm vụ siêu nhỏ</p><p className="mt-2 text-sm font-black text-[#35523a]">{microTask}</p><button type="button" onClick={() => setMicroTask(randomMicroTask())} className="mt-3 rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white">Đổi nhiệm vụ</button></div></div></section></PersistentCollapsible>
-    {profile && onProfile ? <AudioCenterEnhancements profile={profile} onProfile={onProfile} voiceLines={voiceLines} playbackStatus={playbackStatus} onPlayAsset={(url: string, channel: PlaybackChannel, label: string, volume?: number, playbackRate?: number) => { if (channel === "voice") stopVoicePlayback(); if (channel === "environment") stopAmbient(); const audio = new Audio(resolveMediaUrl(url)); audio.volume = 0; audio.playbackRate = playbackRate ?? 1; audio.onended = () => setChannelPlaying(channel, false); if (channel === "voice") lumiAudioRef.current = audio; else ambientTrackRef.current = audio; void audio.play().then(() => { setChannelPlaying(channel, true, label, url, volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment), false); const target = Math.max(0, Math.min(1, (volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment)) / 100)); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = target * progress; if (progress < 1 && !audio.paused) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage(`Không thể phát ${label}.`)); }} onStopPlayback={(channel) => { if (!channel || channel === "voice") stopVoicePlayback(); if (!channel || channel === "environment") stopAmbient(); }} onSeekPlayback={seekPlayback} /> : null}
+    {profile && onProfile ? <AudioCenterEnhancements profile={profile} onProfile={onProfile} voiceLines={voiceLines} playbackStatus={playbackStatus} onPlayAsset={playAudioPreview} onStopPlayback={stopAudioPreview} onSeekPlayback={seekPlayback} /> : null}
     <aside className={`relative z-10 mt-4 rounded-2xl border p-3 text-sm ${matchingVoiceLine?.audioUrl ? "border-[#2e7d32]/25 bg-[#eff9ef] text-[#25582c]" : "border-amber-200 bg-amber-50 text-amber-900"}`} aria-live="polite"><b className="block text-xs uppercase tracking-wider">Giọng Lumi theo cảm xúc</b><span className="mt-1 block">{voiceMatchLabel}{matchingVoiceLine?.audioUrl ? " — nhấn “Nghe bản thu Lumi” để phát." : " — chưa có bản thu; Lumi vẫn hiển thị lời nhắn bên cạnh."}</span></aside>
     <div className="relative z-10 mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       <div className="rounded-2xl bg-[#fff0eb]/95 p-4">
@@ -547,7 +598,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       <div className="rounded-2xl bg-[#fff9e8]/95 p-4"><p className="text-xs font-black uppercase tracking-wider text-[#9a5b00]">Boss Trì hoãn</p><p className="mt-2 text-sm font-bold text-[#6b4a1f]">👾 HP 100% · Mỗi phiên hoàn thành: −20 HP</p><div className="mt-3 h-2 rounded-full bg-[#ead9b3]"><div className="h-full w-full rounded-full bg-[#c62828]" /></div><p className="mt-2 text-xs text-[#6b4a1f]">Metaphor vui, không phải bảng phạt.</p></div>
       <div className="rounded-2xl bg-[#f5fff5]/95 p-4"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Ong vs Trì hoãn</p><div className="mt-3 flex items-center justify-between text-center"><div><div className="text-2xl">🐝</div><b className="text-xs text-[#2e7d32]">Ong +1</b></div><span className="text-xs font-black text-[#c62828]">VS</span><div><div className="text-2xl">🫠</div><b className="text-xs text-[#9a5b00]">Trì hoãn</b></div></div><p className="mt-3 text-xs leading-5 text-[#35523a]">Mỗi lần bắt đầu là Ong đang thắng một chút.</p></div>
     </div>
-  </section>;
+  </section></PersistentCollapsible>;
 }
 
 function AttentionControls({ preferences, onToggle }: { preferences: AttentionPreferences; onToggle: (key: keyof AttentionPreferences) => void }) {

@@ -477,7 +477,15 @@ export type ComboStep = { id: string; label: string; minutes: number; completed:
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
 export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween" | "desert" | "night";
 export type SceneEffectPreferences = { leaves: number; snow: number; puddles: number; snowmanX: number; snowmanY: number };
-export type AppearanceEmojiPet = { emoji: string; x: number; y: number };
+export type AppearanceEmojiPet = {
+  emoji: string;
+  x: number;
+  y: number;
+  /** Trường chuẩn hiện tại cho chế độ đi dạo tự do. */
+  roam?: boolean;
+  /** Tương thích bản lưu cũ/bản thử nghiệm từng dùng tên này. */
+  roamingEnabled?: boolean;
+};
 export type SceneTimeRule = { id: string; label: string; scene: AmbientScenePreference; startHour: number; endHour: number };
 export type SceneAutomationSettings = { enabled: boolean; applyFixedHolidays: boolean; timeRules: SceneTimeRule[] };
 export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Thời điểm người học sửa tên, ảnh hoặc nhãn của bản thu. */ updatedAt?: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string; /** Nhãn màu trực quan do người học chọn để phân loại bản thu. */ colorLabel?: string };
@@ -1499,12 +1507,15 @@ export function normalizeProfile(value: unknown): ProfileState {
     },
     appearanceEmojiPet: (() => {
       const candidate = source.appearanceEmojiPet as Partial<AppearanceEmojiPet> | undefined;
-      const allowed = ["🐝", "🐼", "🦊", "🐱", "🐸", "🦄", "🐳", "🦉", "🐰", "🐯", "🦋", "🌵"];
+      const allowed = ["snowman", "🐝", "🐼", "🦊", "🐱", "🐸", "🦄", "🐳", "🦉", "🐰", "🐯", "🦋", "🌵"];
       if (!candidate || !allowed.includes(String(candidate.emoji))) return undefined;
+      const roamingEnabled = candidate.roam === true || candidate.roamingEnabled === true;
       return {
         emoji: String(candidate.emoji),
         x: Math.max(4, Math.min(96, Number(candidate.x) || 50)),
         y: Math.max(7, Math.min(90, Number(candidate.y) || 72)),
+        roam: roamingEnabled,
+        roamingEnabled,
       };
     })(),
     sceneAutomation: {
