@@ -63,6 +63,17 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("defaultAmbientScene: ambientScene");
   });
 
+  it("lists and persists the four seasonal or event scenes with a safe built-in ambience fallback", () => {
+    expect(studioSource).toContain('id: "summer"');
+    expect(studioSource).toContain('id: "spring"');
+    expect(studioSource).toContain('id: "tet"');
+    expect(studioSource).toContain('id: "halloween"');
+    expect(studioSource).toContain('scene === "summer" || scene === "spring" || scene === "tet"');
+    expect(studioSource).toContain('scene === "storm" || scene === "halloween"');
+    expect(studySource).toContain('"summer" | "spring" | "tet" | "halloween"');
+    expect(studySource).toContain('summer: 36, spring: 34, tet: 38, halloween: 30');
+  });
+
   it("keeps legacy media data compatible while rendering the selected voice as audio-only", () => {
     expect(mediaControlsSource).toContain("recordingsFromMedia");
     expect(mediaControlsSource).toContain("aria-label={`Phát bản thu ${item.label}`}");

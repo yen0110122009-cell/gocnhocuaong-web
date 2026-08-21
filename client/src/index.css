@@ -720,3 +720,103 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
   :root[data-ambient-scene="leaves"] #root > div.min-h-screen::before,
   :root[data-ambient-scene="leaves"] #root > div.min-h-screen::after { animation: none !important; }
 }
+
+/* Bốn chủ đề mới là theme hoàn chỉnh, không chỉ là một lớp minh họa.  Mỗi scene
+   cấp token riêng cho nền, chữ, panel, viền và điều khiển để menu lẫn nội dung
+   luôn đồng bộ khi người học đổi cảnh. */
+:root[data-ambient-scene="summer"] { --scene-page: #fff0bc; --scene-page-alt: #ffcf82; --scene-side: #ffe3a3; --scene-header: #fff7d3; --scene-card: #fffdf3; --scene-text: #5d3410; --scene-muted: #805224; --scene-border: #df8f22; --scene-accent: #c75b16; --scene-accent-alt: #e68a1c; --scene-button-text: #fffdf6; --scene-shadow: rgba(203, 113, 19, .22); }
+:root[data-ambient-scene="spring"] { --scene-page: #eff8d6; --scene-page-alt: #ffdced; --scene-side: #e1f3cc; --scene-header: #fff9fb; --scene-card: #fffefe; --scene-text: #36543b; --scene-muted: #5c7760; --scene-border: #7eaf73; --scene-accent: #347a58; --scene-accent-alt: #d86a99; --scene-button-text: #ffffff; --scene-shadow: rgba(91, 154, 91, .19); }
+:root[data-ambient-scene="tet"] { --scene-page: #e6322d; --scene-page-alt: #a71024; --scene-side: #bf1729; --scene-header: #cf1f2d; --scene-card: #fff6db; --scene-text: #5d190e; --scene-muted: #7c3018; --scene-border: #edb33b; --scene-accent: #a80f1d; --scene-accent-alt: #e5a72d; --scene-button-text: #fff9e9; --scene-shadow: rgba(78, 5, 17, .3); }
+:root[data-ambient-scene="halloween"] { --scene-page: #160d2d; --scene-page-alt: #34204e; --scene-side: #21133a; --scene-header: #261741; --scene-card: #2a1b46; --scene-text: #fff1de; --scene-muted: #e7c8ef; --scene-border: #a96bd7; --scene-accent: #e77724; --scene-accent-alt: #a255c7; --scene-button-text: #fffaf0; --scene-shadow: rgba(0, 0, 0, .38); }
+
+:root[data-ambient-scene="summer"] body,
+:root[data-ambient-scene="spring"] body,
+:root[data-ambient-scene="tet"] body,
+:root[data-ambient-scene="halloween"] body,
+:root[data-ambient-scene="summer"] #root > div.min-h-screen,
+:root[data-ambient-scene="spring"] #root > div.min-h-screen,
+:root[data-ambient-scene="tet"] #root > div.min-h-screen,
+:root[data-ambient-scene="halloween"] #root > div.min-h-screen {
+  background: radial-gradient(circle at 82% 10%, color-mix(in srgb, var(--scene-accent-alt) 23%, transparent), transparent 26%), linear-gradient(135deg, var(--scene-page), var(--scene-page-alt)) !important;
+  color: var(--scene-text) !important;
+}
+
+:root[data-ambient-scene="summer"] #root > div.min-h-screen > aside,
+:root[data-ambient-scene="spring"] #root > div.min-h-screen > aside,
+:root[data-ambient-scene="tet"] #root > div.min-h-screen > aside,
+:root[data-ambient-scene="halloween"] #root > div.min-h-screen > aside { background: linear-gradient(180deg, color-mix(in srgb, var(--scene-side) 96%, transparent), var(--scene-page)) !important; border-right-color: var(--scene-border) !important; }
+
+:root[data-ambient-scene="summer"] #root > div.min-h-screen header,
+:root[data-ambient-scene="spring"] #root > div.min-h-screen header,
+:root[data-ambient-scene="tet"] #root > div.min-h-screen header,
+:root[data-ambient-scene="halloween"] #root > div.min-h-screen header { background: color-mix(in srgb, var(--scene-header) 94%, transparent) !important; border-bottom-color: var(--scene-border) !important; }
+
+:root[data-ambient-scene="summer"] #root > div.min-h-screen main :is(p, span, small, label, h1, h2, h3, h4, li, b, strong),
+:root[data-ambient-scene="spring"] #root > div.min-h-screen main :is(p, span, small, label, h1, h2, h3, h4, li, b, strong),
+:root[data-ambient-scene="tet"] #root > div.min-h-screen main :is(p, span, small, label, h1, h2, h3, h4, li, b, strong),
+:root[data-ambient-scene="halloween"] #root > div.min-h-screen main :is(p, span, small, label, h1, h2, h3, h4, li, b, strong) { color: var(--scene-text) !important; }
+
+:root[data-ambient-scene="summer"] :is(.panel, .study-card, .emotion-studio, .pomodoro-journey, article, section, [class*="bg-white"], [class*="bg-[#fff"], [class*="bg-[#eff"], [class*="bg-[#f5fff"]),
+:root[data-ambient-scene="spring"] :is(.panel, .study-card, .emotion-studio, .pomodoro-journey, article, section, [class*="bg-white"], [class*="bg-[#fff"], [class*="bg-[#eff"], [class*="bg-[#f5fff"]),
+:root[data-ambient-scene="tet"] :is(.panel, .study-card, .emotion-studio, .pomodoro-journey, article, section, [class*="bg-white"], [class*="bg-[#fff"], [class*="bg-[#eff"], [class*="bg-[#f5fff"]),
+:root[data-ambient-scene="halloween"] :is(.panel, .study-card, .emotion-studio, .pomodoro-journey, article, section, [class*="bg-white"], [class*="bg-[#fff"], [class*="bg-[#eff"], [class*="bg-[#f5fff"]) { background-color: color-mix(in srgb, var(--scene-card) 93%, transparent) !important; border-color: color-mix(in srgb, var(--scene-border) 50%, transparent) !important; box-shadow: 0 16px 38px var(--scene-shadow) !important; }
+
+:root[data-ambient-scene="summer"] :is(input, textarea, select, .input, .textarea),
+:root[data-ambient-scene="spring"] :is(input, textarea, select, .input, .textarea),
+:root[data-ambient-scene="tet"] :is(input, textarea, select, .input, .textarea),
+:root[data-ambient-scene="halloween"] :is(input, textarea, select, .input, .textarea) { background-color: color-mix(in srgb, var(--scene-card) 95%, transparent) !important; color: var(--scene-text) !important; border-color: var(--scene-border) !important; }
+
+:root[data-ambient-scene="summer"] :is(.nav-item, .tab, .secondary-button, .icon-button, .icon-text-button, .filter-pill),
+:root[data-ambient-scene="spring"] :is(.nav-item, .tab, .secondary-button, .icon-button, .icon-text-button, .filter-pill),
+:root[data-ambient-scene="tet"] :is(.nav-item, .tab, .secondary-button, .icon-button, .icon-text-button, .filter-pill),
+:root[data-ambient-scene="halloween"] :is(.nav-item, .tab, .secondary-button, .icon-button, .icon-text-button, .filter-pill) { color: var(--scene-text) !important; background-color: color-mix(in srgb, var(--scene-card) 88%, transparent) !important; border-color: color-mix(in srgb, var(--scene-border) 62%, transparent) !important; }
+
+:root[data-ambient-scene="summer"] :is(.primary-button, .nav-item.active, .tab.selected, .filter-pill.active, button[class*="bg-red"], button[class*="bg-emerald"], button[class*="bg-green"]),
+:root[data-ambient-scene="spring"] :is(.primary-button, .nav-item.active, .tab.selected, .filter-pill.active, button[class*="bg-red"], button[class*="bg-emerald"], button[class*="bg-green"]),
+:root[data-ambient-scene="tet"] :is(.primary-button, .nav-item.active, .tab.selected, .filter-pill.active, button[class*="bg-red"], button[class*="bg-emerald"], button[class*="bg-green"]),
+:root[data-ambient-scene="halloween"] :is(.primary-button, .nav-item.active, .tab.selected, .filter-pill.active, button[class*="bg-red"], button[class*="bg-emerald"], button[class*="bg-green"]) { background: linear-gradient(135deg, var(--scene-accent), var(--scene-accent-alt)) !important; color: var(--scene-button-text) !important; }
+
+:root[data-ambient-scene] :is(.primary-button, .nav-item.active, .tab.selected, .filter-pill.active, button[class*="bg-red"], button[class*="bg-emerald"], button[class*="bg-green"]) * { color: var(--scene-button-text) !important; }
+
+/* Cảnh quan thuần CSS, không dùng ảnh tham chiếu: nắng và đom đóm, hoa rơi, đèn Tết/
+   pháo hoa, rồi trăng ma quái của Halloween. */
+:root[data-ambient-scene="summer"] #root > div.min-h-screen::before { z-index: 19; opacity: .62; background-image: radial-gradient(circle at 84% 13%, rgba(255, 210, 49, .98) 0 3.4rem, rgba(255, 224, 111, .42) 3.5rem 8.5rem, transparent 8.6rem), repeating-conic-gradient(from -14deg at 84% 13%, rgba(255, 249, 204, .22) 0 5deg, transparent 6deg 15deg), radial-gradient(circle at 19% 81%, rgba(69, 144, 72, .42) 0 9%, transparent 9.5%), linear-gradient(180deg, rgba(255, 242, 170, .18), rgba(230, 156, 51, .16)); background-size: auto, auto, auto, cover; background-repeat: no-repeat; animation: summer-sun-breathe 16s ease-in-out infinite alternate; }
+:root[data-ambient-scene="spring"] #root > div.min-h-screen::before { z-index: 19; opacity: .58; background-image: radial-gradient(ellipse at 6% 6%, rgba(92, 148, 76, .45) 0 15%, transparent 15.5%), radial-gradient(ellipse at 96% 4%, rgba(222, 129, 170, .45) 0 14%, transparent 14.5%), radial-gradient(circle at 75% 82%, rgba(130, 187, 100, .26) 0 11%, transparent 11.5%), linear-gradient(180deg, rgba(251, 229, 240, .16), rgba(208, 239, 185, .22)); background-size: auto, auto, auto, cover; background-repeat: no-repeat; animation: scene-landscape-breathe 19s ease-in-out infinite alternate; }
+:root[data-ambient-scene="tet"] #root > div.min-h-screen::before { z-index: 19; opacity: .66; background-image: radial-gradient(circle at 18% 16%, rgba(255, 221, 105, .94) 0 .24rem, transparent .27rem), radial-gradient(circle at 82% 20%, rgba(255, 225, 126, .95) 0 .22rem, transparent .25rem), radial-gradient(ellipse at 17% 11%, rgba(194, 15, 37, .92) 0 2.3rem, transparent 2.4rem), radial-gradient(ellipse at 83% 14%, rgba(194, 15, 37, .92) 0 2.3rem, transparent 2.4rem), repeating-conic-gradient(from 0deg at 50% 22%, rgba(255, 220, 104, .52) 0 3deg, transparent 4deg 14deg); background-size: auto, auto, auto, auto, 19rem 19rem; background-repeat: no-repeat; animation: tet-lantern-glow 5.8s ease-in-out infinite alternate; }
+:root[data-ambient-scene="halloween"] #root > div.min-h-screen::before { z-index: 19; opacity: .72; background-image: radial-gradient(circle at 82% 16%, rgba(255, 231, 176, .92) 0 2.7rem, rgba(192, 163, 232, .18) 2.8rem 6rem, transparent 6.1rem), radial-gradient(ellipse at 22% 90%, rgba(18, 8, 38, .88) 0 18%, transparent 18.5%), radial-gradient(ellipse at 78% 94%, rgba(20, 8, 38, .84) 0 22%, transparent 22.5%), linear-gradient(180deg, rgba(48, 28, 80, .18), rgba(5, 3, 14, .42)); background-size: auto, auto, auto, cover; background-repeat: no-repeat; animation: halloween-moon-pulse 12s ease-in-out infinite alternate; }
+
+:root[data-ambient-scene="summer"] #root > div.min-h-screen::after { z-index: 54; opacity: .72; mix-blend-mode: normal; background-image: radial-gradient(circle, rgba(255, 239, 101, .98) 0 2px, transparent 3px), radial-gradient(circle, rgba(255, 246, 173, .86) 0 1px, transparent 2px); background-size: 105px 132px, 173px 184px; background-position: 5px 10px, 70px 58px; filter: drop-shadow(0 0 5px rgba(255, 228, 67, .72)); animation: summer-fireflies 8.4s ease-in-out infinite alternate; }
+:root[data-ambient-scene="spring"] #root > div.min-h-screen::after { z-index: 54; opacity: .8; mix-blend-mode: normal; background-image: radial-gradient(ellipse 7px 4px at 50% 50%, rgba(255, 190, 215, .96) 0 66%, transparent 69%), radial-gradient(ellipse 5px 8px at 50% 50%, rgba(255, 220, 234, .92) 0 64%, transparent 67%), radial-gradient(ellipse 6px 4px at 50% 50%, rgba(238, 137, 182, .84) 0 66%, transparent 69%); background-size: 138px 174px, 97px 129px, 204px 236px; background-position: 8px -142px, 58px -92px, -38px -208px; filter: drop-shadow(0 1px 1px rgba(181, 78, 124, .16)); animation: spring-petal-fall 11.5s linear infinite; }
+:root[data-ambient-scene="tet"] #root > div.min-h-screen::after { z-index: 54; opacity: .74; mix-blend-mode: screen; background-image: radial-gradient(circle, rgba(255, 235, 146, .95) 0 2px, transparent 3px), linear-gradient(90deg, transparent 48%, rgba(255, 214, 91, .68) 49% 51%, transparent 52%), linear-gradient(0deg, transparent 48%, rgba(255, 214, 91, .52) 49% 51%, transparent 52%); background-size: 127px 150px, 164px 164px, 164px 164px; background-position: 17px -86px, 24px 12px, 24px 12px; animation: tet-sparkle 6.8s ease-in-out infinite alternate; }
+
+/* Bóng ma và dơi là lớp tiền cảnh nằm trên chữ/menu (z-index 54), không nhận thao tác.
+   Animation chỉ làm chúng hiện trong hai đoạn ngắn của mỗi chu kỳ 26 giây để tránh gây xao nhãng. */
+:root[data-ambient-scene="halloween"] #root > div.min-h-screen::after { z-index: 54; opacity: 0; mix-blend-mode: normal; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 88'%3E%3Cpath fill='%23fff4dc' d='M60 8C36 8 24 28 24 55v22l12-8 12 8 12-8 12 8 12-8V55C96 28 84 8 60 8Z'/%3E%3Ccircle cx='48' cy='43' r='4' fill='%23201338'/%3E%3Ccircle cx='72' cy='43' r='4' fill='%23201338'/%3E%3Cpath d='M50 59q10 7 20 0' fill='none' stroke='%23201338' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 80'%3E%3Cpath fill='%23110825' d='M70 42c-13-18-29-21-44-14l9 12-25-4 15 16-22 5c24 11 44 3 57-7 13 10 33 18 57 7l-22-5 15-16-25 4 9-12c-15-7-31-4-44 14Z'/%3E%3Ccircle cx='63' cy='40' r='2' fill='%23ffb347'/%3E%3Ccircle cx='77' cy='40' r='2' fill='%23ffb347'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-size: 8.8rem 6.5rem, 10.5rem 6rem; background-position: -11rem 20vh, calc(100vw + 11rem) 65vh; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .35)); animation: halloween-flyby 26s linear infinite; }
+
+@keyframes summer-sun-breathe { from { transform: scale(1); filter: saturate(1); } to { transform: scale(1.025); filter: saturate(1.12); } }
+@keyframes summer-fireflies { from { opacity: .28; background-position: 5px 10px, 70px 58px; } to { opacity: .86; background-position: 38px 42px, 24px 104px; } }
+@keyframes spring-petal-fall { from { background-position: 8px -142px, 58px -92px, -38px -208px; } to { background-position: 94px 304px, -42px 338px, 70px 252px; } }
+@keyframes tet-lantern-glow { from { opacity: .48; filter: saturate(.92); } to { opacity: .78; filter: saturate(1.16); } }
+@keyframes tet-sparkle { from { opacity: .3; background-position: 17px -86px, 24px 12px, 24px 12px; } to { opacity: .84; background-position: 46px 168px, 50px 33px, 50px 33px; } }
+@keyframes halloween-moon-pulse { from { opacity: .56; filter: saturate(.84); } to { opacity: .78; filter: saturate(1.12); } }
+@keyframes halloween-flyby { 0%, 10%, 24%, 60%, 74%, 100% { opacity: 0; background-position: -11rem 20vh, calc(100vw + 11rem) 65vh; } 13%, 20% { opacity: .9; background-position: 16vw 27vh, 67vw 57vh; } 63%, 70% { opacity: .82; background-position: 38vw 61vh, 12vw 18vh; } 23% { background-position: calc(100vw + 12rem) 34vh, -12rem 46vh; } 73% { background-position: calc(100vw + 12rem) 52vh, -12rem 30vh; } }
+
+@media (max-width: 767px) {
+  :root[data-ambient-scene="summer"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="spring"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="tet"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="halloween"] #root > div.min-h-screen::before { opacity: .48; }
+  :root[data-ambient-scene="halloween"] #root > div.min-h-screen::after { background-size: 6.8rem 5rem, 8.2rem 4.7rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-ambient-scene="summer"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="summer"] #root > div.min-h-screen::after,
+  :root[data-ambient-scene="spring"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="spring"] #root > div.min-h-screen::after,
+  :root[data-ambient-scene="tet"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="tet"] #root > div.min-h-screen::after,
+  :root[data-ambient-scene="halloween"] #root > div.min-h-screen::before,
+  :root[data-ambient-scene="halloween"] #root > div.min-h-screen::after { animation: none !important; }
+  :root[data-ambient-scene="halloween"] #root > div.min-h-screen::after { opacity: .16; background-position: 76vw 21vh, 12vw 64vh; }
+}

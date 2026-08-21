@@ -475,7 +475,7 @@ export type ProcrastinationEvent = {
 };
 export type ComboStep = { id: string; label: string; minutes: number; completed: boolean };
 export type TaskCombo = { id: string; title: string; description: string; steps: ComboStep[]; startedAt?: string; completedAt?: string };
-export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm";
+export type AmbientScenePreference = "morning" | "rain" | "snow" | "leaves" | "storm" | "summer" | "spring" | "tet" | "halloween";
 export type LumiVoiceRecording = { id: string; url: string; label: string; createdAt: string; /** Thời điểm người học sửa tên, ảnh hoặc nhãn của bản thu. */ updatedAt?: string; /** Ảnh Lumi được gắn với bản thu khi lưu. */ imageUrl?: string; /** Nhãn màu trực quan do người học chọn để phân loại bản thu. */ colorLabel?: string };
 export type LumiVoiceRecordingTrashEntry = { recording: LumiVoiceRecording; deletedAt: string; originalIndex: number; previousFavoriteId?: string };
 export const LUMI_VOICE_TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -888,7 +888,7 @@ export const emptyProfile = (): ProfileState => ({
   showMascot: true,
   showLumi: true,
   defaultAmbientScene: "morning",
-  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38 }, pomodoroLayers: {}, pomodoroAmbientMix: { morning: 55, storm: 45 }, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
+  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30 }, pomodoroLayers: {}, pomodoroAmbientMix: { morning: 55, storm: 45 }, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
   audioPreviewSpeedPresets: {},
   personalAudioAssets: [],
   personalAudioTrash: [],
@@ -1479,9 +1479,9 @@ export function normalizeProfile(value: unknown): ProfileState {
     })) as Partial<Record<EmotionThemeId, LumiVoiceRecordingTrashEntry[]>> : {},
     showMascot: source.showMascot !== false,
     showLumi: source.showLumi !== false,
-    defaultAmbientScene: ["morning", "rain", "snow", "leaves", "storm"].includes(String(source.defaultAmbientScene)) ? source.defaultAmbientScene as AmbientScenePreference : base.defaultAmbientScene,
+    defaultAmbientScene: ["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween"].includes(String(source.defaultAmbientScene)) ? source.defaultAmbientScene as AmbientScenePreference : base.defaultAmbientScene,
     audioMixer: {
-      ambientSceneVolumes: Object.fromEntries((["morning", "rain", "snow", "leaves", "storm"] as AmbientScenePreference[]).map((scene) => [scene, Math.max(0, Math.min(100, Number(source.audioMixer?.ambientSceneVolumes?.[scene] ?? base.audioMixer!.ambientSceneVolumes[scene]) || 0))])) as AudioMixerSettings["ambientSceneVolumes"],
+      ambientSceneVolumes: Object.fromEntries((["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween"] as AmbientScenePreference[]).map((scene) => [scene, Math.max(0, Math.min(100, Number(source.audioMixer?.ambientSceneVolumes?.[scene] ?? base.audioMixer!.ambientSceneVolumes[scene]) || 0))])) as AudioMixerSettings["ambientSceneVolumes"],
       pomodoroLayers: source.audioMixer?.pomodoroLayers && typeof source.audioMixer.pomodoroLayers === "object" ? Object.fromEntries(Object.entries(source.audioMixer.pomodoroLayers).map(([id, level]) => [id, Math.max(0, Math.min(100, Number(level) || 0))])) : {},
       pomodoroAmbientMix: {
         morning: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroAmbientMix?.morning ?? base.audioMixer!.pomodoroAmbientMix!.morning) || 0)),
@@ -1542,7 +1542,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       const id = typeof preset?.id === "string" && preset.id.trim() ? preset.id.trim() : "";
       const name = typeof preset?.name === "string" && preset.name.trim() ? preset.name.trim().slice(0, 80) : "";
       if (!id || !name) return [];
-      return [{ id, name, emotion: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(preset?.emotion)) ? preset?.emotion as EmotionThemeId : undefined, ambientScene: ["morning", "rain", "snow", "leaves", "storm"].includes(String(preset?.ambientScene)) ? preset?.ambientScene as AmbientScenePreference : undefined, audioAssetIds: Array.isArray(preset?.audioAssetIds) ? preset!.audioAssetIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0).slice(0, 80) : [], companionMode: ["lumi", "ong", "both", "hidden"].includes(String(preset?.companionMode)) ? preset?.companionMode as PersonalStudyPreset["companionMode"] : "both", focusMode: preset?.focusMode === true, createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
+      return [{ id, name, emotion: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(preset?.emotion)) ? preset?.emotion as EmotionThemeId : undefined, ambientScene: ["morning", "rain", "snow", "leaves", "storm", "summer", "spring", "tet", "halloween"].includes(String(preset?.ambientScene)) ? preset?.ambientScene as AmbientScenePreference : undefined, audioAssetIds: Array.isArray(preset?.audioAssetIds) ? preset!.audioAssetIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0).slice(0, 80) : [], companionMode: ["lumi", "ong", "both", "hidden"].includes(String(preset?.companionMode)) ? preset?.companionMode as PersonalStudyPreset["companionMode"] : "both", focusMode: preset?.focusMode === true, createdAt: typeof preset?.createdAt === "string" && preset.createdAt ? preset.createdAt : new Date(0).toISOString(), updatedAt: typeof preset?.updatedAt === "string" && preset.updatedAt ? preset.updatedAt : new Date(0).toISOString() }];
     }).filter((preset, index, presets) => presets.findIndex((candidate) => candidate.id === preset.id) === index).slice(0, 100) : [],
     personalStudyPresetSchedule: Array.isArray(source.personalStudyPresetSchedule) ? source.personalStudyPresetSchedule.flatMap((value) => {
       const item = value && typeof value === "object" ? value as Partial<PersonalStudyPresetSchedule> : null;

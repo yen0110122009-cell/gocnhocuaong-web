@@ -1060,3 +1060,11 @@
 - [x] Tạo lá tích ở chân/góc giao diện; giữ dark mode và `prefers-reduced-motion`.
 - [x] Cập nhật regression test, kiểm thử desktop/mobile, chạy TypeScript và production build.
 - [x] Lưu checkpoint phát hành bản cảnh mùa thu mới.
+
+## Chủ đề mùa hè, mùa xuân, Tết và Halloween
+- [x] Mở rộng model cảnh nền và lưu hồ sơ cho Mùa hè, Mùa xuân, Tết và Halloween.
+- [x] Tạo hiệu ứng nền/lớp tiền cảnh riêng cho bốn chủ đề, bao gồm bóng ma và dơi Halloween bay ngang ở tần suất thưa.
+- [x] Đồng bộ tone màu nền, chữ, panel và điều khiển mỗi khi đổi chủ đề.
+- [x] Bảo đảm hiệu ứng không che thao tác, hỗ trợ dark mode và `prefers-reduced-motion`.
+- [x] Cập nhật regression tests, chạy TypeScript, Vitest, production build và kiểm thử responsive.
+- [ ] Lưu checkpoint phát hành các chủ đề mới.

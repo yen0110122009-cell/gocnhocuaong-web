@@ -151,10 +151,10 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain("DEFAULT_AMBIENT_BOOK_PAGES_ASSET");
     expect(studio()).toContain("DEFAULT_AMBIENT_MORNING_ASSET");
     expect(studio()).toContain("DEFAULT_AMBIENT_STORM_ASSET");
-    expect(studio()).toContain('scene === "morning" ? DEFAULT_AMBIENT_MORNING_ASSET');
+    expect(studio()).toContain('scene === "morning" || scene === "summer" || scene === "spring" || scene === "tet" ? DEFAULT_AMBIENT_MORNING_ASSET');
     expect(studio()).toContain('scene === "rain" ? DEFAULT_AMBIENT_ASSET');
     expect(studio()).toContain('scene === "leaves" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET');
-    expect(studio()).toContain('scene === "storm" ? DEFAULT_AMBIENT_STORM_ASSET');
+    expect(studio()).toContain('scene === "storm" || scene === "halloween" ? DEFAULT_AMBIENT_STORM_ASSET');
     expect(studio()).toContain('audio.preload = "auto"');
     expect(studio()).toContain("Phát thử âm nền");
     expect(studio()).toContain("Thử lại âm nền");
