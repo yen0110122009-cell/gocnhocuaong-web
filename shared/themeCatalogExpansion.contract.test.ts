@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AMBIENT_SCENE_IDS, emptyProfile, normalizeProfile } from "./study";
+import { FESTIVE_THEME_CONFIGS } from "../client/src/lib/festiveThemes";
+import { festiveAmbientFor } from "../client/src/lib/festiveAmbient";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -39,6 +41,16 @@ describe("expanded theme catalog contract", () => {
     expect(normalized.audioMixer?.ambientSceneVolumes.pixel).toBe(63);
   });
 
+  it("keeps all 14 festive themes in the shared catalog and restores festive presets", () => {
+    expect(FESTIVE_THEME_CONFIGS).toHaveLength(14);
+    for (const theme of FESTIVE_THEME_CONFIGS) {
+      expect(AMBIENT_SCENE_IDS).toContain(theme.id);
+      expect(festiveAmbientFor(theme.id)).toMatchObject({ url: theme.bgm.url, volume: theme.bgm.volume * 100 });
+    }
+    const normalized = normalizeProfile({ ...emptyProfile(), personalStudyPresets: [{ id: "holiday", name: "Quốc khánh", ambientScene: "quoc-khanh-2-9" }] });
+    expect(normalized.personalStudyPresets[0]?.ambientScene).toBe("quoc-khanh-2-9");
+  });
+
   it("maps only directly supplied audio URLs and keeps the rest metadata-only", () => {
     expect(ambient()).toContain("rain_heavy_loud.ogg");
     expect(ambient()).toContain("heavy_wind_storm.ogg");
@@ -60,6 +72,15 @@ describe("expanded theme catalog contract", () => {
     expect(source).toContain('touchAction: "none"');
     expect(source).toContain("z-[45]");
     expect(source).not.toContain("const player = audioRef.current ?? new Audio()");
+  });
+
+  it("exposes a dedicated Vietnamese holiday picker with the existing gesture audio dialog", () => {
+    const source = home();
+    expect(source).toContain('aria-labelledby="festive-theme-title"');
+    expect(source).toContain("14 theme lễ hội có âm nền");
+    expect(source).toContain("FESTIVE_THEME_CONFIGS.map((theme)");
+    expect(source).toContain("chooseAudioTheme({ id: theme.id, label: theme.displayName })");
+    expect(source).toContain("festiveAmbientFor(theme.id)");
   });
 
   it("uses a clean default scene instead of a decorative morning overlay", () => {

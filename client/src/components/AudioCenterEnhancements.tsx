@@ -461,10 +461,13 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
     const hasPreset = presets.some((preset) => preset.id === DEFAULT_POMODORO_AMBIENT_PRESET.id);
     onProfile({ ...profile, personalStudyPresets: hasPreset ? presets : [...presets, DEFAULT_POMODORO_AMBIENT_PRESET], activePersonalStudyPresetId: DEFAULT_POMODORO_AMBIENT_PRESET.id }, `Đã áp dụng preset “${DEFAULT_POMODORO_AMBIENT_PRESET.name}”.`);
   }
+  // Các panel này không có luồng mở hoàn chỉnh nên không được render trong giao diện người dùng.
+  const showUnavailableAudioCenterPanels = false;
   return <div className="relative z-10 mt-4 grid gap-3" onPointerDownCapture={(event) => event.stopPropagation()} onClickCapture={(event) => event.stopPropagation()}>
     <div className="rounded-2xl border border-[#2e7d32]/20 bg-gradient-to-r from-[#f6fff2] to-[#fff8ed] p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c62828]">Preset Pomodoro mới</p><h3 className="mt-1 text-sm font-black text-[#25582c]">{DEFAULT_POMODORO_AMBIENT_PRESET.name}</h3><p className="mt-1 max-w-2xl text-xs leading-5 text-[#5a6d5d]">Phối hai lớp âm thanh Buổi sáng và Bão nhẹ ở mức dịu, phù hợp khi muốn đổi không gian tập trung.</p></div><button type="button" onClick={applyPomodoroAmbientPreset} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#2e7d32] px-3 py-2 text-xs font-black text-white shadow-sm transition-transform active:scale-[.98]" aria-label="Áp dụng preset Pomodoro Bình minh và Bão nhẹ"><Play className="h-3.5 w-3.5" />Áp dụng preset</button></div>
     </div>
+    {showUnavailableAudioCenterPanels ? <>
     <PersistentCollapsible storageKey="audio-center-upload" eyebrow="Audio Center" title="Tải âm thanh môi trường thật" className="border-[#c62828]/20 bg-white/90">
       <p className="text-xs leading-5 text-[#35523a]">Thêm bản thu sạch cho mưa rơi hoặc lật sách. Hệ thống chỉ lưu MP3/WAV/OGG/WEBM/M4A vào storage, không tạo âm tổng hợp.</p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -498,6 +501,7 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
       <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-[#35523a]"><span><Filter className="mr-1 inline h-3.5 w-3.5" />{filteredVoices.length} bản thu phù hợp</span><span>Lọc theo nguồn · cảm xúc · sự kiện</span></div>
       <div className="mt-2 grid gap-2 md:grid-cols-2">{filteredVoices.length ? filteredVoices.map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#2e7d32]/15 bg-[#f8fff8] p-3"><div className="min-w-0"><b className="block truncate text-xs text-[#25582c]">{item.label} · {item.name}</b><span className="mt-1 block line-clamp-2 text-xs text-[#5a6d5d]">{item.text}</span><span className="mt-1 block text-[10px] text-[#7f1d1d]">{item.emotion ?? "chung"}{item.event ? ` · ${item.event}` : ""}</span></div>{item.url ? <button type="button" onClick={() => onPlayAsset(item.url!, "voice", `${item.label} · ${item.name}`, item.volume)} className="shrink-0 rounded-lg bg-[#2e7d32] p-2 text-white" aria-label={`Phát ${item.name}`}><Play className="h-3.5 w-3.5" /></button> : <span className="shrink-0 text-[10px] font-bold text-amber-700">Chưa có audio</span>}</div>) : <div className="rounded-xl border border-dashed border-[#2e7d32]/20 p-4 text-center text-xs text-[#5a6d5d]">Không có bản thu phù hợp với bộ lọc hiện tại.</div>}</div>
     </PersistentCollapsible>
+    </> : null}
   </div>;
 }
 

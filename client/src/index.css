@@ -1957,3 +1957,36 @@ body::after,
 @keyframes mascot-drop-feedback { 0% { filter: brightness(1); } 45% { transform: translate(-50%, -50%) scale(1.18) rotate(-5deg); filter: brightness(1.18) drop-shadow(0 0 .8rem rgba(52, 211, 153, .65)); } 100% { filter: brightness(1); } }
 @keyframes mascot-reset-feedback { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(.9) rotate(-12deg); } 100% { transform: translate(-50%, -50%) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .mascot-feedback-drop, .mascot-feedback-reset { animation: none; } }
+/* Theme Ngày Lễ Hội: mọi lớp trang trí mặc định không nhận thao tác; chỉ mascot/ground-item là điều khiển kéo thả. */
+:root[data-festive-theme]:not(.dark) .min-h-screen { background-color: var(--festive-light-bg) !important; }
+:root.dark[data-festive-theme] .min-h-screen { background-color: var(--festive-dark-bg) !important; }
+:root[data-festive-theme]:not(.dark) .level-status-card { background: color-mix(in srgb, var(--festive-light-primary) 82%, white); color: #1f130d; }
+:root.dark[data-festive-theme] .level-status-card { background: color-mix(in srgb, var(--festive-dark-primary) 78%, #101114); color: #fff8ed; }
+.festive-mascot, .festive-ground-item, .festive-mascot-reset { position: fixed; display: grid; place-items: center; border: 0; background: transparent; cursor: grab; user-select: none; -webkit-user-select: none; }
+.festive-mascot:active, .festive-ground-item:active { cursor: grabbing; }
+.festive-mascot:focus-visible, .festive-ground-item:focus-visible, .festive-mascot-reset:focus-visible { outline: 3px solid var(--festive-light-accent, #f4b942); outline-offset: 3px; border-radius: 999px; }
+.festive-mascot-emoji { display: block; font-size: min(100%, 5rem); line-height: 1; filter: drop-shadow(0 7px 9px rgb(0 0 0 / .2)); transform-origin: center; }
+.festive-mascot-emoji.is-dragging { filter: drop-shadow(0 13px 15px rgb(0 0 0 / .32)); transform: scale(1.07); }
+.festive-mascot-reset { width: 28px; height: 28px; border-radius: 999px; background: color-mix(in srgb, var(--festive-light-accent, #f4b942) 90%, white); color: #25120b; box-shadow: 0 5px 14px rgb(0 0 0 / .18); cursor: pointer; }
+.festive-ground { position: fixed; inset-inline: 0; pointer-events: none; }
+.festive-ground-item { pointer-events: auto; padding: 0; line-height: 1; filter: drop-shadow(0 6px 6px rgb(0 0 0 / .17)); }
+.festive-visual-effects { position: fixed; inset: 0; z-index: 110; pointer-events: none; overflow: hidden; }
+.festive-particle { position: fixed; display: block; font-size: 1.1rem; animation: festive-particle-out 600ms cubic-bezier(.23,1,.32,1) forwards; }
+.festive-ripple { position: fixed; border: 2px solid var(--festive-light-accent, #f4b942); border-radius: 999px; transform: translate(-50%, -50%) scale(.15); opacity: .9; animation: festive-ripple-out 650ms ease-out forwards; }
+.festive-effect-scale-bounce { animation: festive-scale-bounce var(--festive-duration, 400ms) cubic-bezier(.23,1,.32,1); }
+.festive-effect-shake { animation: festive-shake var(--festive-duration, 400ms) ease-in-out; }
+.festive-effect-pulse-glow { animation: festive-pulse-glow var(--festive-duration, 400ms) ease-out; }
+.festive-auto-sine-wave { animation: festive-sine-wave 4s ease-in-out infinite; }
+.festive-auto-bounce { animation: festive-bounce 2.4s ease-in-out infinite; }
+.festive-auto-float { animation: festive-float 3.4s ease-in-out infinite; }
+.festive-auto-circular { animation: festive-circular 5.2s linear infinite; }
+@keyframes festive-scale-bounce { 0%, 100% { transform: scale(1); } 45% { transform: scale(var(--festive-intensity, 1.12)); } }
+@keyframes festive-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+@keyframes festive-pulse-glow { 0%, 100% { filter: drop-shadow(0 7px 9px rgb(0 0 0 / .2)); } 50% { filter: drop-shadow(0 0 13px var(--festive-light-accent, #f4b942)); } }
+@keyframes festive-particle-out { to { transform: translate(var(--particle-x, 0), var(--particle-y, -32px)); opacity: 0; } }
+@keyframes festive-ripple-out { to { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+@keyframes festive-sine-wave { 50% { transform: translate(16px, -7px) rotate(4deg); } }
+@keyframes festive-bounce { 50% { transform: translateY(-12px) scale(1.04); } }
+@keyframes festive-float { 50% { transform: translateY(-9px) rotate(-3deg); } }
+@keyframes festive-circular { to { transform: rotate(360deg) translateX(10px) rotate(-360deg); } }
+@media (prefers-reduced-motion: reduce) { .festive-mascot-emoji, .festive-particle, .festive-ripple { animation: none !important; } }

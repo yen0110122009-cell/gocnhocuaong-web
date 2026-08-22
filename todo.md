@@ -322,3 +322,17 @@
 - [x] Truy vết nguồn bảng “Mức sử dụng bộ nhớ”, phân biệt công cụ debug, dialog hợp lệ và UI ứng dụng để không sửa nhầm.
 - [x] Loại bỏ hoặc cô lập lớp phủ gây mờ/chặn thao tác, bảo đảm dialog hợp lệ luôn có đường thoát rõ ràng.
 - [x] Bổ sung regression cho lớp phủ sau đăng nhập; xác minh click, nhập bàn phím, menu, kéo thả linh vật, test/build và checkpoint.
+
+## Theme Ngày Lễ Hội Việt Nam từ cấu hình JSON
+- [x] Chuẩn hóa toàn bộ cấu hình lễ hội, gồm màu light/dark, BGM, mascot, nền đáy, animation, ripple và click effect.
+- [x] Hiển thị các theme lễ hội trong catalog; áp dụng token màu light/dark theo theme đang chọn mà vẫn bảo đảm tương phản chữ.
+- [x] Tạo mascot lễ hội kéo thả độc lập, vị trí/kích thước/z-index/animation theo cấu hình và tôn trọng reduced-motion.
+- [x] Tạo các ground-item ở đáy theo mật độ và kích thước cấu hình; từng mục kéo thả độc lập, không chặn thao tác shell.
+- [x] Cài click effects scale-bounce, shake, particle-burst, ripple-wave và pulse-glow, tách biệt với drag.
+- [x] Đồng bộ phát/dừng BGM theo theme, volume/loop theo cấu hình và chỉ phát sau cử chỉ người dùng.
+- [x] Bổ sung regression cấu hình/tương tác; kiểm tra TypeScript, Vitest, production build, browser desktop/mobile và checkpoint.
+
+## Dọn các khối Audio Center không mở được
+- [x] Xác định và gỡ “Tải âm thanh môi trường thật”, “Thư viện asset đã tải lên”, “Thùng rác audio”, “Trạng thái đang phát” và “Lọc thư viện lời thoại”.
+- [x] Loại bỏ mọi trigger, heading và khoảng trống liên quan để không còn panel rỗng hoặc thao tác không phản hồi.
+- [x] Cập nhật regression Audio Center và xác minh giao diện sau khi loại bỏ.

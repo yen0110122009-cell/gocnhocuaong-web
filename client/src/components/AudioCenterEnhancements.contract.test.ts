@@ -131,6 +131,16 @@ describe("Audio Center UX contracts", () => {
     expect(experienceStudioSource).toContain("stopAudioPreview");
   });
 
+  it("does not render the unsupported Audio Center panels", () => {
+    expect(componentSource).toContain("const showUnavailableAudioCenterPanels = false");
+    expect(componentSource).toContain("{showUnavailableAudioCenterPanels ? <>");
+    expect(componentSource).toContain('title="Tải âm thanh môi trường thật"');
+    expect(componentSource).toContain('title="Thư viện asset đã tải lên"');
+    expect(componentSource).toContain('title={`Thùng rác audio (${trash.length})`}');
+    expect(componentSource).toContain('title="Trạng thái đang phát"');
+    expect(componentSource).toContain('title="Lọc thư viện lời thoại"');
+  });
+
   it("keeps the full Lumi emotion space independently collapsible", () => {
     expect(experienceStudioSource).toContain('storageKey="experience-lumi-emotion-space"');
     expect(experienceStudioSource).toContain('title="Không gian cảm xúc của Lumi" defaultOpen');
