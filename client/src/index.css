@@ -1856,3 +1856,34 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root[data-ambient-scene="coffee"] :is(input,textarea,select),
 :root[data-ambient-scene="ai"] :is(input,textarea,select),
 :root[data-ambient-scene="teddy"] :is(input,textarea,select) { background:var(--scene-card) !important; color:var(--scene-text) !important; border-color:var(--scene-border) !important; }
+
+/* Space scene: explicit shell application and restrained decoration. */
+:root[data-ambient-scene="space"] body,
+:root[data-ambient-scene="space"] #root > div.min-h-screen {
+  background: linear-gradient(135deg, var(--scene-page) 0%, var(--scene-page-alt) 100%) !important;
+  color: var(--scene-text) !important;
+}
+:root[data-ambient-scene="space"] aside,
+:root[data-ambient-scene="space"] header,
+:root[data-ambient-scene="space"] nav {
+  background-color: var(--scene-side) !important;
+  color: var(--scene-text) !important;
+  border-color: var(--scene-border) !important;
+}
+:root[data-ambient-scene="space"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section) {
+  background-color: color-mix(in srgb, var(--scene-card) 96%, transparent) !important;
+  color: var(--scene-text) !important;
+  border-color: color-mix(in srgb, var(--scene-border) 72%, transparent) !important;
+}
+:root[data-ambient-scene="space"] #root > div.min-h-screen::before {
+  opacity: .08 !important;
+  background-image: radial-gradient(circle at 80% 14%, rgba(255,245,189,.78) 0 1.8rem, rgba(255,233,160,.12) 1.9rem 5rem, transparent 5.1rem), radial-gradient(circle at 15% 18%, rgba(255,255,255,.65) 0 .07rem, transparent .12rem), radial-gradient(circle at 52% 12%, rgba(255,255,255,.52) 0 .06rem, transparent .11rem) !important;
+}
+:root[data-ambient-scene="space"] #root > div.min-h-screen::after {
+  opacity: .16 !important;
+  color: var(--scene-accent-alt) !important;
+}
+/* Overlay accessibility guard: decorations stay visible but never wash out text or controls. */
+:root[data-ambient-scene] #root > div.min-h-screen::before { opacity: .14 !important; pointer-events: none !important; }
+:root[data-ambient-scene] #root > div.min-h-screen::after { opacity: .24 !important; pointer-events: none !important; mix-blend-mode: normal !important; }
+:root[data-ambient-scene] #root > div.min-h-screen > * { position: relative; z-index: 1; }

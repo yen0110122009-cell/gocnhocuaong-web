@@ -203,3 +203,19 @@
 - [x] Popup cho phép nghe thử, bật/tắt và chỉnh âm lượng; tránh popup nhảy/đóng sai khi thao tác bên trong.
 - [x] Bảo đảm âm báo Pomodoro vẫn độc lập và không bị thay đổi bởi refactor này.
 - [x] Bổ sung regression, chạy full test, TypeScript, build, responsive và lưu checkpoint.
+
+## Rà soát pasted_content_6 và lớp phủ theme
+- [x] Đọc toàn bộ pasted_content_6.txt và lập danh sách yêu cầu/theme mới.
+- [x] Đối chiếu yêu cầu mới nhất với catalog theme hiện hành, ghi nhận các điểm thay thế hoặc xung đột.
+- [x] Rà soát toàn bộ overlay theme cũ, giảm opacity/độ phủ và loại bỏ lớp làm tối che chữ/menu.
+- [x] Bảo đảm overlay chỉ là hiệu ứng trang trí nhẹ, pointer-events:none, không che nội dung và giữ contrast WCAG.
+- [x] Tích hợp các yêu cầu mới trong pasted_content_6.txt vào website theo phạm vi hợp lệ.
+- [x] Cập nhật regression cho overlay, contrast và theme mới; chạy test, TypeScript, build và responsive.
+- [x] Lưu checkpoint phát hành sau khi xác minh trực quan.
+
+## Sửa lỗi audio giao diện và scene Không gian
+- [x] Điều tra vì sao audio theme không phát khi người dùng nhấn trong popup Giao diện.
+- [x] Sửa lifecycle audio element, autoplay sau gesture và trạng thái bật/tắt để nghe được âm thanh đã cung cấp.
+- [x] Bảo đảm scene Không gian trong Cảnh mở rộng thật sự đổi nền, menu, panel, chữ và hiệu ứng.
+- [x] Bổ sung regression cho audio playback flow và token scene space.
+- [x] Chạy test, TypeScript, build, responsive smoke và lưu checkpoint.
