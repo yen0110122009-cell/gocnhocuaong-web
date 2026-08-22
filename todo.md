@@ -125,7 +125,7 @@
 - [x] Tách rõ Đề kiểm tra (giới hạn thời gian do người dùng đặt) khỏi Ôn tập (tùy số câu, có thể không giới hạn và lưu để làm tiếp).
 - [x] Thêm âm báo hết giờ theo cơ chế âm báo Pomodoro và xử lý trạng thái hết giờ an toàn.
 - [x] Kiểm thử persistence, chỉnh sửa/xóa, chuyển chế độ, TypeScript, full test, production build, responsive và checkpoint phát hành.
-- [ ] Không triển khai các đoạn JavaScript tạo DOM trực tiếp trong tệp tham chiếu; giữ kiến trúc React/CSS hiện tại.
+- [x] Không triển khai các đoạn JavaScript tạo DOM trực tiếp trong tệp tham chiếu; giữ kiến trúc React/CSS hiện tại.
 
 ## Bổ sung quản lý trên route QuizEnhanced
 - [x] Thêm nút Chỉnh sửa/Xóa trực tiếp vào danh sách của QuizEnhanced, có xác nhận và cập nhật profile.
