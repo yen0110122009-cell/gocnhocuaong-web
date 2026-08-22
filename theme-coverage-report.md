@@ -48,3 +48,28 @@
 | Persistence | `normalizeProfile` dùng `AMBIENT_SCENE_IDS` cho scene mặc định, time rules và volume map; scene hyphenated được giữ sau reload. |
 | Tương phản/interaction | Thẻ có trạng thái active rõ ràng, nhãn audio có icon, focus ring, overlay không cản tương tác và reduced-motion được giữ theo regression hiện có. |
 | UNMAPPED_SOURCE | 0 đối với các scene/ý tưởng đã được chuẩn hóa thành scene contract; các nguồn chỉ mô tả audio nhưng không có URL vẫn được ghi nhận là visual-only, không tự tạo audio. |
+
+
+## Audit pasted_content_7, pasted_content_8 và pasted_content_9
+
+Ba tệp mới bổ sung **32 scene ID duy nhất**. Tất cả 32 mục đều mô tả đồng thời nền, giao diện màu, linh vật di động, hiệu ứng đáy và một URL BGM trực tiếp; vì vậy không có mục visual-only trong chính ba nguồn này. Danh sách theo nhóm gồm:
+
+| Nguồn | Nhóm | Scene ID |
+|---|---|---|
+| `pasted_content_7.txt` | Mùa trong năm, lễ hội, thời tiết, nguyên tố/phong cách | `spring-blossom`, `summer-ocean`, `autumn-maple`, `winter-snow`, `tet-vietnam`, `halloween-night`, `ghost-month`, `xmas-holiday`, `teachers-day`, `vietnam-heroes`, `rainy-ripple`, `thunder-storm`, `sunny-day`, `windy-dust`, `fire-element`, `girly-pastel` |
+| `pasted_content_8.txt` | Lễ hội lịch sử Việt Nam, bốn nguyên tố, phong cách đặc biệt | `hung-kings-festival`, `youth-volunteers`, `dien-bien-phu-victory`, `liberation-day`, `vpa-day`, `mid-autumn`, `fire-element`, `water-element`, `air-wind-element`, `earth-element`, `masculine-cyber`, `oriental-wuxia` |
+| `pasted_content_9.txt` | Văn hóa vùng miền, vũ trụ, retro gaming, mood chill | `mekong-delta`, `hanoi-old-quarter`, `mini-hologram-cosmos`, `aurora-borealis`, `arcade-retro`, `magic-chess`, `lofi-rain-chill`, `fairy-tale` |
+
+`fire-element` xuất hiện ở cả `pasted_content_7.txt` và `pasted_content_8.txt` với cùng cấu hình cốt lõi; đây là **một scene, không nhân đôi**. Các URL BGM được cung cấp và sẽ dùng nguyên văn là `outdoor_birds_cicadas.ogg`, `ocean_waves.ogg`, `wind_in_trees.ogg`, `spooky_ghost_wind.ogg`, `8bit_arcade.ogg` và `scifi_synth_hum.ogg`. Volume mặc định được giữ theo từng nguồn, trong khoảng 0.30–0.45.
+
+### Conflict report
+
+| Vấn đề | Quyết định |
+|---|---|
+| `summer-ocean` khác `summer-beach`, `autumn-maple` khác `autumn-leave`, `tet-vietnam` khác `lunar-new-year`, `halloween-night` khác `halloween-spooky` | Giữ ID mới như scene riêng vì tên, linh vật và overlay khác nhau; không ghi đè scene cũ. |
+| `thunder-storm` đã có trong catalog cũ | Giữ một ID chuẩn và cập nhật metadata/audio theo cấu hình mới nhất. |
+| `fire-element` lặp giữa hai tệp | Gộp thành một scene duy nhất, ưu tiên bản mô tả đầy đủ hơn ở `pasted_content_8.txt` nếu có khác biệt. |
+| Một số mô tả âm thanh mang tính diễn giải nhưng URL trùng nguồn thư viện | Chỉ lưu URL và volume được cung cấp; không tuyên bố nội dung âm thanh ngoài mô tả của người dùng. |
+| Emoji như `🦅` được dùng cho nhiều linh vật | Giữ emoji theo nguồn, bổ sung label mô tả để phân biệt trong tooltip; không dùng ảnh ngoài. |
+
+**UNMAPPED_SOURCE = 0** đối với ba tệp mới ở cấp scene/metadata/audio URL. Các scene mới chỉ được coi là audio-backed khi URL được ghi trực tiếp trong nguồn; không tự tạo URL thay thế.

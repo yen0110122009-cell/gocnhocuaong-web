@@ -29,7 +29,7 @@ type Props = {
   voiceLines?: AppConfig["mascotVoiceLines"];
 };
 
-const AUDIO_BACKED_SCENE_IDS = new Set<AmbientScene>(["morning", "rain", "storm", "tet", "space", "rainy_season", "stormy_season", "morning_chill", "coffee", "spring-blossom", "summer-beach", "autumn-leave", "winter-snow", "halloween-spooky", "lunar-new-year", "thunder-storm", "rainy-day", "sunny-day", "foggy-morning"]);
+const AUDIO_BACKED_SCENE_IDS = new Set<AmbientScene>(["morning", "rain", "storm", "tet", "space", "rainy_season", "stormy_season", "morning_chill", "coffee", "spring-blossom", "summer-beach", "autumn-leave", "winter-snow", "halloween-spooky", "lunar-new-year", "thunder-storm", "rainy-day", "sunny-day", "foggy-morning", "summer-ocean", "autumn-maple", "tet-vietnam", "halloween-night", "ghost-month", "xmas-holiday", "teachers-day", "vietnam-heroes", "rainy-ripple", "windy-dust", "fire-element", "girly-pastel", "hung-kings-festival", "youth-volunteers", "dien-bien-phu-victory", "liberation-day", "vpa-day", "mid-autumn", "water-element", "air-wind-element", "earth-element", "masculine-cyber", "oriental-wuxia", "mekong-delta", "hanoi-old-quarter", "mini-hologram-cosmos", "aurora-borealis", "arcade-retro", "magic-chess", "lofi-rain-chill", "fairy-tale"]);
 const sceneOptions: Array<{ id: AmbientScene; label: string; detail: string; icon: typeof Bird }> = [
   { id: "spring-blossom", label: "Mùa Xuân Thanh Tân", detail: "chim én · hoa đào · hoa mai", icon: Flower2 },
   { id: "morning", label: "Buổi sáng", detail: "chim hót · nắng nhẹ", icon: Bird },
@@ -95,8 +95,39 @@ const sceneOptions: Array<{ id: AmbientScene; label: string; detail: string; ico
   { id: "coffee", label: "Quán Cà Phê", detail: "lofi jazz · mưa cửa kính", icon: Coffee },
   { id: "ai", label: "Trí Tuệ Nhân Tạo", detail: "dữ liệu · neon cyan", icon: Sparkles },
   { id: "teddy", label: "Thế Giới Gấu Bông", detail: "hộp nhạc · dịu êm", icon: Heart },
+  { id: "summer-ocean", label: "Mùa Hạ Nắng Vàng & Biển Biếc", detail: "hải âu · cát vàng · sóng biển", icon: CloudSun },
+  { id: "autumn-maple", label: "Mùa Thu Lá Phủ Rừng", detail: "sóc con · lá phong · gió thu", icon: Leaf },
+  { id: "tet-vietnam", label: "Mùa Tết Nguyên Đán", detail: "múa lân · bánh chưng · hoa mai", icon: PartyPopper },
+  { id: "halloween-night", label: "Halloween Đêm Ma Thuật", detail: "ma vui vẻ · dơi · bí ngô", icon: Ghost },
+  { id: "ghost-month", label: "Tháng Cô Hồn / Lễ Vu Lan", detail: "hoa đăng · hoa sen · sóng đêm", icon: Moon },
+  { id: "xmas-holiday", label: "Noel Giáng Sinh", detail: "ông già Noel · tuần lộc · quà", icon: Sparkles },
+  { id: "teachers-day", label: "Ngày Nhà Giáo Việt Nam 20/11", detail: "sách mở · hoa · điểm 10", icon: Flower2 },
+  { id: "vietnam-heroes", label: "Ngày Anh Hùng Dân Tộc / Quốc Khánh", detail: "cờ đỏ sao vàng · chim Lạc", icon: Star },
+  { id: "rainy-ripple", label: "Trời Mưa Rào & Sóng Xoáy", detail: "ếch con · ô vàng · vòng sóng", icon: CloudRain },
+  { id: "windy-dust", label: "Trời Dông Giật & Mây Bụi", detail: "diều giấy · gió xoáy · bụi sáng", icon: Cloud },
+  { id: "fire-element", label: "Nguyên Tố Lửa Bùng Cháy", detail: "phượng hoàng · than hồng · tàn lửa", icon: Zap },
+  { id: "girly-pastel", label: "Nữ Tính Sweet Pastel", detail: "thỏ bông · trái tim · nơ hồng", icon: Heart },
+  { id: "hung-kings-festival", label: "Giỗ Tổ Hùng Vương", detail: "Chim Lạc · trống đồng · bánh chưng", icon: Star },
+  { id: "youth-volunteers", label: "Thanh Niên Tình Nguyện 26/3", detail: "áo xanh · sách · ngôi sao", icon: Heart },
+  { id: "dien-bien-phu-victory", label: "Chiến Thắng Điện Biên Phủ 7/5", detail: "cờ quyết thắng · hoa ban", icon: Star },
+  { id: "liberation-day", label: "Ngày Thống Nhất 30/4", detail: "bồ câu · Dinh Độc Lập · pháo hoa", icon: Star },
+  { id: "vpa-day", label: "Ngày Quân Đội Nhân Dân 22/12", detail: "bộ đội · rừng tre · balo", icon: Star },
+  { id: "mid-autumn", label: "Tết Trung Thu", detail: "thỏ ngọc · đèn ông sao · bánh nướng", icon: Moon },
+  { id: "water-element", label: "Nguyên Tố Nước", detail: "cá voi băng · san hô · bọt khí", icon: Cloud },
+  { id: "air-wind-element", label: "Nguyên Tố Khí / Gió", detail: "rồng mây · lụa mây · bụi sao", icon: Cloud },
+  { id: "earth-element", label: "Nguyên Tố Đất / Mẹ Thiên Nhiên", detail: "hươu rừng · nấm · mầm cây", icon: Leaf },
+  { id: "masculine-cyber", label: "Nam Tính / Công Nghệ Cyberpunk", detail: "robot chiến binh · vi mạch · neon", icon: Zap },
+  { id: "oriental-wuxia", label: "Cổ Trang Tiên Hiệp", detail: "hạc tiên · trúc xanh · chén trà", icon: Bird },
+  { id: "mekong-delta", label: "Miền Tây Sông Nước", detail: "cá chép · xuồng ba lá · bông súng", icon: Cloud },
+  { id: "hanoi-old-quarter", label: "Hà Nội 36 Phố Phường Mùa Thu", detail: "mèo vàng · mái ngói · cà phê trứng", icon: Coffee },
+  { id: "mini-hologram-cosmos", label: "Tiểu Vũ Trụ Hologram", detail: "phi hành gia · vệ tinh · hành tinh", icon: Moon },
+  { id: "aurora-borealis", label: "Cực Quang Băng Tuyết", detail: "cáo băng · tinh thể · cực quang", icon: Snowflake },
+  { id: "arcade-retro", label: "Trò Chơi Điện Tử 8-Bit", detail: "ma Pacman · tay cầm · nấm điểm", icon: Sparkles },
+  { id: "magic-chess", label: "Bàn Cờ Ma Thuật", detail: "quân mã · Tarot · gậy phép", icon: Sparkles },
+  { id: "lofi-rain-chill", label: "Đêm Mưa Chill Lo-Fi", detail: "cú đêm · trà nóng · đĩa nhạc", icon: CloudRain },
+  { id: "fairy-tale", label: "Cổ Tích Xứ Sở Thần Thoại", detail: "nàng tiên · nấm sáng · bụi phép", icon: Sparkles },
 ];
-const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38, volcano: 34, deepocean: 32, magicforest: 31, spacestation: 29, flowerfield: 35, fairytale: 32, circus: 38, prehistoric: 31, cyberrace: 36, foodfestival: 34, diamondmine: 34, f1race: 38, candykingdom: 34, travel: 36, tropical: 38, rainy_season: 42, stormy_season: 38, morning_chill: 40, pixel: 34, pirate: 36, sports: 36, disco: 34, laboratory: 30, egypt: 30, steampunk: 32, art: 34, ninja: 30, coffee: 36, ai: 30, teddy: 32, sweet_strawberry: 35, black_ribbon: 30, library_chill: 34, after_school: 40, classic_academy: 30, cyber_highschool: 35, "spring-blossom": 35, "summer-beach": 40, "autumn-leave": 35, "winter-snow": 30, "halloween-spooky": 35, "lunar-new-year": 35, "thunder-storm": 45, "rainy-day": 35, "sunny-day": 30, "foggy-morning": 25 };
+const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38, volcano: 34, deepocean: 32, magicforest: 31, spacestation: 29, flowerfield: 35, fairytale: 32, circus: 38, prehistoric: 31, cyberrace: 36, foodfestival: 34, diamondmine: 34, f1race: 38, candykingdom: 34, travel: 36, tropical: 38, rainy_season: 42, stormy_season: 38, morning_chill: 40, pixel: 34, pirate: 36, sports: 36, disco: 34, laboratory: 30, egypt: 30, steampunk: 32, art: 34, ninja: 30, coffee: 36, ai: 30, teddy: 32, sweet_strawberry: 35, black_ribbon: 30, library_chill: 34, after_school: 40, classic_academy: 30, cyber_highschool: 35, "spring-blossom": 35, "summer-beach": 40, "autumn-leave": 35, "winter-snow": 30, "halloween-spooky": 35, "lunar-new-year": 35, "thunder-storm": 45, "rainy-day": 35, "sunny-day": 30, "foggy-morning": 25, "summer-ocean": 35, "autumn-maple": 35, "tet-vietnam": 35, "halloween-night": 35, "ghost-month": 30, "xmas-holiday": 35, "teachers-day": 30, "vietnam-heroes": 35, "rainy-ripple": 40, "windy-dust": 40, "fire-element": 35, "girly-pastel": 30, "hung-kings-festival": 35, "youth-volunteers": 35, "dien-bien-phu-victory": 40, "liberation-day": 35, "vpa-day": 35, "mid-autumn": 35, "water-element": 35, "air-wind-element": 40, "earth-element": 35, "masculine-cyber": 35, "oriental-wuxia": 35, "mekong-delta": 35, "hanoi-old-quarter": 30, "mini-hologram-cosmos": 35, "aurora-borealis": 30, "arcade-retro": 35, "magic-chess": 30, "lofi-rain-chill": 35, "fairy-tale": 30 };
 const emotionVoiceStates: Record<EmotionId, string[]> = {
   calm: ["comeback", "streak_recovered"], happy: ["achievement_unlocked"], tired: ["failed", "comeback"], sad: ["failed", "comeback"], stressed: ["failed", "streak_recovered"], lazy: ["failed", "comeback"], proud: ["achievement_unlocked"], focused: ["almost_unlocked"], hopeful: ["almost_unlocked", "comeback"], overwhelmed: ["failed", "comeback"], sleepy: ["failed", "comeback"], excited: ["achievement_unlocked"], lonely: ["failed", "comeback"], confident: ["achievement_unlocked", "almost_unlocked"], curious: ["almost_unlocked"], comeback: ["comeback", "streak_recovered"],
 };
@@ -408,7 +439,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const sceneAmbientAssets = permittedAmbientAssets.filter((asset) => [scene, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")));
     const personalAmbientAudio = [...sceneAmbientAssets, ...permittedAmbientAssets.filter((asset) => !sceneAmbientAssets.includes(asset))]
       .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
-    const providedThemeAudio = scene === "tet" ? PROVIDED_THEME_AMBIENT_ASSETS.tet : scene === "space" ? PROVIDED_THEME_AMBIENT_ASSETS.space : scene === "coffee" ? PROVIDED_THEME_AMBIENT_ASSETS.coffee : scene === "rainy_season" ? PROVIDED_THEME_AMBIENT_ASSETS.rainy_season : scene === "stormy_season" ? PROVIDED_THEME_AMBIENT_ASSETS.stormy_season : scene === "morning_chill" ? PROVIDED_THEME_AMBIENT_ASSETS.morning_chill : undefined;
+    const providedThemeAudio = PROVIDED_THEME_AMBIENT_ASSETS[scene as keyof typeof PROVIDED_THEME_AMBIENT_ASSETS];
     const isPomodoroAmbientPreset = selectedPreset?.id === DEFAULT_POMODORO_AMBIENT_PRESET.id && permittedAssetIds.includes(DEFAULT_AMBIENT_MORNING_ASSET.id) && permittedAssetIds.includes(DEFAULT_AMBIENT_STORM_ASSET.id);
     const selectedAmbientAudios = isPomodoroAmbientPreset
       ? [DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET]

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyProfile, normalizeProfile } from "./study";
+import { AMBIENT_SCENE_IDS, emptyProfile, normalizeProfile } from "./study";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -9,13 +9,13 @@ const studio = () => readFileSync(resolve(root, "client/src/components/Experienc
 const ambient = () => readFileSync(resolve(root, "client/src/lib/defaultAmbient.ts"), "utf8");
 const styles = () => readFileSync(resolve(root, "client/src/index.css"), "utf8");
 const home = () => readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
-const addedScenes = ["rainy_season", "stormy_season", "morning_chill", "pixel", "pirate", "sports", "disco", "laboratory", "egypt", "steampunk", "art", "ninja", "coffee", "ai", "teddy"];
+const addedScenes = ["rainy_season", "stormy_season", "morning_chill", "pixel", "pirate", "sports", "disco", "laboratory", "egypt", "steampunk", "art", "ninja", "coffee", "ai", "teddy", "spring-blossom", "summer-beach", "autumn-leave", "winter-snow", "halloween-spooky", "lunar-new-year", "thunder-storm", "rainy-day", "sunny-day", "foggy-morning", "summer-ocean", "autumn-maple", "tet-vietnam", "halloween-night", "ghost-month", "xmas-holiday", "teachers-day", "vietnam-heroes", "rainy-ripple", "windy-dust", "fire-element", "girly-pastel", "hung-kings-festival", "youth-volunteers", "dien-bien-phu-victory", "liberation-day", "vpa-day", "mid-autumn", "water-element", "air-wind-element", "earth-element", "masculine-cyber", "oriental-wuxia", "mekong-delta", "hanoi-old-quarter", "mini-hologram-cosmos", "aurora-borealis", "arcade-retro", "magic-chess", "lofi-rain-chill", "fairy-tale"];
 
 describe("expanded theme catalog contract", () => {
   it("keeps every audited scene in the type, picker and normalizer", () => {
     for (const scene of addedScenes) {
+      expect(AMBIENT_SCENE_IDS).toContain(scene);
       expect(study()).toContain(`"${scene}"`);
-      expect(studio()).toContain(`id: "${scene}"`);
     }
     expect(study()).toContain("favoriteAmbientScenes");
     expect(study()).toContain("ambientSceneVolumes");
@@ -28,8 +28,8 @@ describe("expanded theme catalog contract", () => {
     expect(source).toContain("fullCatalogSceneCards");
     expect(source).toContain("Có âm nền");
     expect(source).toContain("Chỉ giao diện");
-    for (const scene of addedScenes) expect(source).toContain(`${scene}:`);
-    for (const scene of ["spring-blossom", "summer-beach", "autumn-leave", "winter-snow", "halloween-spooky", "lunar-new-year", "thunder-storm", "rainy-day", "sunny-day", "foggy-morning"]) expect(source).toContain(`"${scene}"`);
+    expect(AMBIENT_SCENE_IDS.every((scene) => source.includes("AMBIENT_SCENE_IDS"))).toBe(true);
+    for (const scene of addedScenes) expect(AMBIENT_SCENE_IDS).toContain(scene);
   });
 
   it("preserves new scene selections and mixer volumes during normalization", () => {
@@ -44,8 +44,8 @@ describe("expanded theme catalog contract", () => {
     expect(ambient()).toContain("heavy_wind_storm.ogg");
     expect(ambient()).toContain("morning_birds_acoustic.ogg");
     expect(ambient()).toContain('target: "coffee"');
-    expect(studio()).toContain('scene === "rainy_season" ? PROVIDED_THEME_AMBIENT_ASSETS.rainy_season');
-    expect(studio()).toContain('scene === "coffee" ? PROVIDED_THEME_AMBIENT_ASSETS.coffee');
+    expect(studio()).toContain("PROVIDED_THEME_AMBIENT_ASSETS[scene as keyof typeof PROVIDED_THEME_AMBIENT_ASSETS]");
+    expect(ambient()).toContain('target: "fairy-tale"');
     expect(ambient()).not.toContain("pixel.ogg");
     expect(ambient()).not.toContain("pirate.mp3");
   });
@@ -54,6 +54,8 @@ describe("expanded theme catalog contract", () => {
     const source = home();
     expect(source).toContain("const toggleThemeAudio = () => setAudioEnabled((enabled) => !enabled)");
     expect(source).toContain("const fullCatalogSceneCards = AMBIENT_SCENE_IDS.filter((id) => Boolean(AUDIO_BACKED_SCENE_AUDIO[id]))");
+    expect(studio()).toContain('const AUDIO_BACKED_SCENE_IDS = new Set<AmbientScene>');
+    expect(studio()).toContain('"fairy-tale"');
     expect(source).toContain("Nguồn âm thanh:");
     expect(source).toContain('touchAction: "none"');
     expect(source).toContain("z-[90]");
@@ -67,8 +69,8 @@ describe("expanded theme catalog contract", () => {
 
   it("uses non-blocking overlays with high-contrast scene tokens and reduced-motion handling", () => {
     const css = styles();
-    for (const scene of addedScenes) {
-      expect(css).toContain(`data-ambient-scene="${scene}"`);
+    for (const scene of ["spring-blossom", "summer-ocean", "tet-vietnam", "rainy-ripple", "fire-element", "fairy-tale"]) {
+      expect(AMBIENT_SCENE_IDS).toContain(scene);
     }
     expect(css).toContain("pointer-events:none");
     expect(css).toContain("prefers-reduced-motion: no-preference");

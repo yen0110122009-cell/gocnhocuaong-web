@@ -270,3 +270,13 @@
 - [x] Thêm hover transition mượt và tooltip thông tin chi tiết cho thẻ theme.
 - [x] Bổ sung regression, chạy full test, TypeScript, build và responsive smoke.
 - [x] Đọc lại TODO, lưu checkpoint phát hành sau khi mọi mục hoàn tất.
+
+
+## Theme mới từ pasted_content_7/8/9
+- [x] Lập coverage report cho toàn bộ scene mới, nhóm, ID, linh vật, overlay, màu và âm thanh từ ba tệp.
+- [x] Đối chiếu trùng lặp/xung đột với catalog hiện tại, ưu tiên cấu hình mới nhất và ghi rõ các quyết định.
+- [x] Thêm các scene mới có audio URL được cung cấp vào contract, metadata, volume map, normalize và picker.
+- [x] Triển khai overlay CSS/emoji 3 tầng, linh vật duy nhất kéo thả/tự di chuyển và click đứng yên/chạy tiếp theo phạm vi an toàn.
+- [x] Hiển thị nguồn audio, volume mặc định và điều khiển nghe thử/bật tắt đúng theo từng theme.
+- [x] Bổ sung regression, chạy TypeScript, full Vitest, build và responsive smoke.
+- [x] Đọc lại TODO và lưu checkpoint phát hành sau khi hoàn tất.
