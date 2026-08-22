@@ -1960,6 +1960,12 @@ body::after,
 /* Theme Ngày Lễ Hội: mọi lớp trang trí mặc định không nhận thao tác; chỉ mascot/ground-item là điều khiển kéo thả. */
 :root[data-festive-theme]:not(.dark) .min-h-screen { background-color: var(--festive-light-bg) !important; }
 :root.dark[data-festive-theme] .min-h-screen { background-color: var(--festive-dark-bg) !important; }
+:root[data-festive-theme]:not(.dark) .min-h-screen { color: var(--festive-light-text, #172033) !important; }
+:root.dark[data-festive-theme] .min-h-screen { color: var(--festive-dark-text, #f8fafc) !important; }
+:root[data-festive-theme]:not(.dark) .min-h-screen :is(aside, header, nav, .panel, .study-card, article, section, input, textarea, select) { background-color: color-mix(in srgb, var(--festive-light-bg) 10%, white) !important; color: var(--festive-light-text, #172033) !important; border-color: color-mix(in srgb, var(--festive-light-primary) 34%, #64748b) !important; }
+:root.dark[data-festive-theme] .min-h-screen :is(aside, header, nav, .panel, .study-card, article, section, input, textarea, select) { background-color: color-mix(in srgb, var(--festive-dark-bg) 82%, #111827) !important; color: var(--festive-dark-text, #f8fafc) !important; border-color: color-mix(in srgb, var(--festive-dark-primary) 50%, #94a3b8) !important; }
+/* Theo yêu cầu catalog chỉ giữ theme đã có nguồn âm nền: các thẻ “Chỉ giao diện” không còn hiện như một lựa chọn có thể mở. */
+:root [aria-label$=", chỉ giao diện"] { display: none !important; }
 :root[data-festive-theme]:not(.dark) .level-status-card { background: color-mix(in srgb, var(--festive-light-primary) 82%, white); color: #1f130d; }
 :root.dark[data-festive-theme] .level-status-card { background: color-mix(in srgb, var(--festive-dark-primary) 78%, #101114); color: #fff8ed; }
 .festive-mascot, .festive-ground-item, .festive-mascot-reset { position: fixed; display: grid; place-items: center; border: 0; background: transparent; cursor: grab; user-select: none; -webkit-user-select: none; }

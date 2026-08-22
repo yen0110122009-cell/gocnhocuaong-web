@@ -336,3 +336,12 @@
 - [x] Xác định và gỡ “Tải âm thanh môi trường thật”, “Thư viện asset đã tải lên”, “Thùng rác audio”, “Trạng thái đang phát” và “Lọc thư viện lời thoại”.
 - [x] Loại bỏ mọi trigger, heading và khoảng trống liên quan để không còn panel rỗng hoặc thao tác không phản hồi.
 - [x] Cập nhật regression Audio Center và xác minh giao diện sau khi loại bỏ.
+
+## Ổn định âm thanh, theme, thùng rác học liệu và ghi âm
+- [x] Tái hiện và sửa công tắc tắt/bật âm thanh cạnh chế độ sáng/tối để không còn nhảy trạng thái.
+- [x] Rà soát token chữ/surface light-dark; bảo đảm nền sáng dùng chữ đủ tối, nền tối dùng chữ đủ sáng và không còn theme làm mờ nội dung.
+- [x] Chỉ giữ các nền có audio và/hoặc hiệu ứng được cấu hình; sửa renderer để hiệu ứng lễ hội hiển thị đúng khi chọn theme.
+- [x] Thiết kế Thùng rác học liệu riêng, phân nhóm Flashcard và Đề kiểm tra với số lượng mục đã xóa, mở rộng/thu gọn, chọn tất cả, xóa vĩnh viễn và khôi phục theo từng nhóm.
+- [x] Nối luồng xóa mềm Flashcard/Đề kiểm tra vào Thùng rác và bảo toàn dữ liệu trong profile.
+- [x] Chẩn đoán, sửa giới hạn ghi âm theo quyền micro, thời lượng, dừng/hoàn tất và thông báo lỗi có thể hành động.
+- [x] Bổ sung regression, kiểm tra TypeScript/Vitest/build, xác minh responsive và lưu checkpoint.

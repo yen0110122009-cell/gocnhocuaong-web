@@ -8,6 +8,13 @@ type Ripple = { id: number; x: number; y: number; size: number };
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 const pixels = (value: string) => Number.parseFloat(value) || 24;
+function readableInk(color: string) {
+  const hex = color.trim().replace("#", "");
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "#172033";
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
+  const luminance = channels.map((channel) => channel <= .03928 ? channel / 12.92 : Math.pow((channel + .055) / 1.055, 2.4)).reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
+  return luminance > .34 ? "#172033" : "#f8fafc";
+}
 const pointFor = (position: { top: string; left: string }, size: number): Point => ({
   x: clamp(window.innerWidth * (Number.parseFloat(position.left) / 100), 8, Math.max(8, window.innerWidth - size - 8)),
   y: clamp(window.innerHeight * (Number.parseFloat(position.top) / 100), 8, Math.max(8, window.innerHeight - size - 8)),
@@ -61,7 +68,7 @@ function visualClass(effect?: FestiveEffectConfig) {
   return effect ? `festive-effect-${effect.type}` : "";
 }
 
-export function FestiveThemeLayer({ scene }: { scene?: string; soundEnabled?: boolean }) {
+export function FestiveThemeLayer({ scene, soundEnabled = true }: { scene?: string; soundEnabled?: boolean }) {
   const theme = festiveThemeFor(scene);
   const [effect, setEffect] = useState<{ id: number; config: FestiveEffectConfig } | null>(null);
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -89,15 +96,24 @@ export function FestiveThemeLayer({ scene }: { scene?: string; soundEnabled?: bo
   };
   useEffect(() => () => window.clearTimeout(effectTimeout.current), []);
   useEffect(() => {
+    if (soundEnabled) return;
+    document.querySelectorAll<HTMLAudioElement>("audio").forEach((audio) => {
+      audio.pause();
+      audio.muted = true;
+    });
+  }, [soundEnabled]);
+  useEffect(() => {
     const root = document.documentElement;
     if (!config) { delete root.dataset.festiveTheme; return; }
     root.dataset.festiveTheme = config.id;
     root.style.setProperty("--festive-light-bg", config.colors.light.bg);
     root.style.setProperty("--festive-light-primary", config.colors.light.primary);
     root.style.setProperty("--festive-light-accent", config.colors.light.accent);
+    root.style.setProperty("--festive-light-text", readableInk(config.colors.light.bg));
     root.style.setProperty("--festive-dark-bg", config.colors.dark.bg);
     root.style.setProperty("--festive-dark-primary", config.colors.dark.primary);
     root.style.setProperty("--festive-dark-accent", config.colors.dark.accent);
+    root.style.setProperty("--festive-dark-text", readableInk(config.colors.dark.bg));
     return () => { delete root.dataset.festiveTheme; };
   }, [config?.id]);
   if (!config) return null;

@@ -71,7 +71,7 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(defaultCompanionMedia()).toContain("getDefaultLumiImage");
     expect(companionControls()).not.toContain("Chưa có ảnh");
     expect(companionControls()).not.toContain("kind === \"lumi-image\" && voiceRecordings.length === 0");
-    expect(companionControls()).toContain("Chỉ nhận WebM, OGG, WAV hoặc MP3, tối đa 8 MB.");
+    expect(companionControls()).toContain("Chỉ nhận WebM, OGG, WAV, MP3, M4A hoặc MP4; tối đa 25 MB cho mỗi bản thu.");
     expect(companionControls()).not.toContain("Chỉ nhận PNG, JPG, WEBP hoặc GIF, tối đa 3 MB.");
     expect(companionControls()).not.toContain("getDefaultLumiImage(emotion)");
     expect(companionControls()).toContain("Nhấn để nghe");

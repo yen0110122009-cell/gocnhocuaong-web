@@ -221,9 +221,9 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
 
   async function uploadFile(file: File, kind: MediaKind) {
     const isAudio = kind === "lumi-voice";
-    const allowed = ["audio/webm", "audio/ogg", "audio/wav", "audio/mpeg"];
-    const limit = 8 * 1024 * 1024;
-    if (!allowed.includes(file.type) || file.size > limit) { alert("Chỉ nhận WebM, OGG, WAV hoặc MP3, tối đa 8 MB."); return; }
+    const allowed = ["audio/webm", "audio/ogg", "audio/wav", "audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/aac", "audio/m4a"];
+    const limit = 25 * 1024 * 1024;
+    if (!allowed.includes(file.type) || file.size > limit) { alert("Chỉ nhận WebM, OGG, WAV, MP3, M4A hoặc MP4; tối đa 25 MB cho mỗi bản thu."); return; }
     setBusy(kind);
     setUploadProgress(8);
     setFailedUpload(null);
@@ -279,10 +279,12 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   async function toggleRecord() {
     if (recording) { recorderRef.current?.stop(); recorderRef.current = null; setRecording(false); stopVisualizer(); return; }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { alert("Trình duyệt này chưa hỗ trợ ghi âm. Bạn vẫn có thể tải tệp âm thanh lên."); return; }
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
       const chunks: BlobPart[] = [];
-      const recorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : undefined });
+      const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((candidate) => MediaRecorder.isTypeSupported(candidate));
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       const AudioContextConstructor = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (AudioContextConstructor) {
         const context = new AudioContextConstructor();
@@ -296,9 +298,21 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
         animateVisualizer(analyser);
       }
       recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
-      recorder.onstop = () => { stream.getTracks().forEach((track) => track.stop()); const file = new File([new Blob(chunks, { type: recorder.mimeType || "audio/webm" })], `lumi-${emotion}-${Date.now()}.webm`, { type: recorder.mimeType || "audio/webm" }); void uploadFile(file, "lumi-voice"); };
-      recorderRef.current = recorder; recorder.start(); setRecording(true);
-    } catch { stopVisualizer(); alert("Không thể dùng micro. Hãy cho phép quyền micro hoặc tải bản thu có sẵn."); }
+      recorder.onstop = () => {
+        stream?.getTracks().forEach((track) => track.stop());
+        const actualType = recorder.mimeType || mimeType || "audio/webm";
+        const extension = actualType.includes("mp4") ? "m4a" : actualType.includes("ogg") ? "ogg" : "webm";
+        const file = new File([new Blob(chunks, { type: actualType })], `lumi-${emotion}-${Date.now()}.${extension}`, { type: actualType });
+        if (!file.size) { alert("Bản thu đang trống. Hãy kiểm tra micro, nói thử vài giây rồi ghi lại."); return; }
+        void uploadFile(file, "lumi-voice");
+      };
+      recorderRef.current = recorder; recorder.start(1_000); setRecording(true);
+    } catch (error) {
+      stream?.getTracks().forEach((track) => track.stop());
+      stopVisualizer();
+      const name = error instanceof DOMException ? error.name : "";
+      alert(name === "NotAllowedError" ? "Micro đang bị chặn. Hãy cho phép quyền micro trong thanh địa chỉ rồi thử lại." : name === "NotFoundError" ? "Không tìm thấy micro khả dụng. Hãy kết nối micro rồi thử lại." : "Không thể bắt đầu ghi âm. Hãy kiểm tra quyền micro hoặc tải bản thu có sẵn.");
+    }
   }
 
   function removeVoice(recordingId: string, targetEmotion = emotion) {
