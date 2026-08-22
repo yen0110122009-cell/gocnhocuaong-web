@@ -236,19 +236,19 @@
 - [x] Bổ sung regression cho việc không còn overlay cũ và audio playback; chạy test, TypeScript, build, responsive và lưu checkpoint.
 
 ## Kiểm kê lại toàn bộ ý tưởng theme
-- [ ] Thu thập tất cả tệp tham chiếu theme hiện có trong thư mục upload và audit của dự án.
-- [ ] Lập bảng coverage đầy đủ: ý tưởng, phiên bản, trạng thái đã triển khai, audio, linh vật, hiệu ứng và token màu.
-- [ ] Đối chiếu bản gửi sau với bản gửi trước, không bỏ sót các ý tưởng bị ẩn trong mô tả dài hoặc ảnh tham chiếu.
-- [ ] Bổ sung catalog và UI cho toàn bộ theme còn thiếu sau khi hoàn tất coverage.
-- [ ] Thêm regression để khóa số lượng theme và nội dung catalog sau khi hoàn tất.
+- [x] Thu thập tất cả tệp tham chiếu theme hiện có trong thư mục upload và audit của dự án.
+- [x] Lập bảng coverage đầy đủ: ý tưởng, phiên bản, trạng thái đã triển khai, audio, linh vật, hiệu ứng và token màu.
+- [x] Đối chiếu bản gửi sau với bản gửi trước, không bỏ sót các ý tưởng bị ẩn trong mô tả dài hoặc ảnh tham chiếu.
+- [x] Bổ sung catalog và UI cho toàn bộ theme còn thiếu sau khi hoàn tất coverage.
+- [x] Thêm regression để khóa số lượng theme và nội dung catalog sau khi hoàn tất.
 
 ## Khôi phục đầy đủ ý tưởng theme đang bị ẩn
-- [ ] Hiển thị toàn bộ sceneOptions trong Giao diện & tone màu, không lọc mất theme chỉ vì chưa có audio trực tiếp.
-- [ ] Cho phép áp dụng mọi theme; theme có audio mới mở điều khiển âm thanh, theme chưa có audio phải hiển thị trạng thái rõ ràng.
-- [ ] Hiển thị toàn bộ favorites hợp lệ, không làm mất các theme đã lưu chỉ vì thiếu audio.
-- [ ] Đồng bộ normalizeProfile, volume map và preset scene với toàn bộ AmbientScenePreference.
-- [ ] Bổ sung regression coverage để khóa catalog đầy đủ và phân biệt trạng thái audio.
-- [ ] Chạy full test, TypeScript, build, responsive và lưu checkpoint.
+- [x] Hiển thị toàn bộ sceneOptions trong Giao diện & tone màu, không lọc mất theme chỉ vì chưa có audio trực tiếp.
+- [x] Cho phép áp dụng mọi theme; theme có audio mới mở điều khiển âm thanh, theme chưa có audio phải hiển thị trạng thái rõ ràng.
+- [x] Hiển thị toàn bộ favorites hợp lệ, không làm mất các theme đã lưu chỉ vì thiếu audio.
+- [x] Đồng bộ normalizeProfile, volume map và preset scene với toàn bộ AmbientScenePreference.
+- [x] Bổ sung regression coverage để khóa catalog đầy đủ và phân biệt trạng thái audio.
+- [x] Chạy full test, TypeScript, build, responsive và lưu checkpoint.
 
 
 ## Khôi phục đầy đủ catalog theme

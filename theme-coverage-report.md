@@ -36,3 +36,15 @@
 - Cần tách rõ hai trạng thái: `catalog scene đã có trong hợp đồng` và `theme được bật trong picker audio-backed`.
 - Để đáp ứng phàn nàn “thiếu ý tưởng”, UI cần cho phép xem toàn bộ catalog scene; với theme không có URL BGM thì hiển thị rõ “Chưa có âm nền được cung cấp” thay vì âm thanh giả, hoặc chỉ loại khỏi picker audio nếu yêu cầu audio-only được giữ.
 - Giữ audio lời Lumi và âm báo Pomodoro độc lập với BGM theme.
+
+
+## Cập nhật sau checkpoint catalog đầy đủ
+
+| Hạng mục kiểm tra | Kết quả hiện tại |
+|---|---|
+| Nguồn tham chiếu | Đã kiểm kê 6 `pasted_content` cùng các audit nội bộ; các ảnh được dùng làm tham chiếu ý tưởng, không đưa ảnh watermark vào theme. |
+| Catalog UI | `AppearanceStudio` dùng `AMBIENT_SCENE_IDS` làm nguồn và render `fullCatalogSceneCards`, nên toàn bộ scene trong contract đều hiển thị, kể cả scene không có BGM. |
+| Audio | Chỉ các ID có URL trực tiếp trong `AUDIO_BACKED_SCENE_AUDIO` mở popup nghe thử/bật tắt/âm lượng; scene còn lại ghi rõ “Chỉ giao diện”. |
+| Persistence | `normalizeProfile` dùng `AMBIENT_SCENE_IDS` cho scene mặc định, time rules và volume map; scene hyphenated được giữ sau reload. |
+| Tương phản/interaction | Thẻ có trạng thái active rõ ràng, nhãn audio có icon, focus ring, overlay không cản tương tác và reduced-motion được giữ theo regression hiện có. |
+| UNMAPPED_SOURCE | 0 đối với các scene/ý tưởng đã được chuẩn hóa thành scene contract; các nguồn chỉ mô tả audio nhưng không có URL vẫn được ghi nhận là visual-only, không tự tạo audio. |
