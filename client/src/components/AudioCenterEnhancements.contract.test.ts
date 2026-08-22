@@ -5,6 +5,8 @@ import path from "node:path";
 const componentSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/components/AudioCenterEnhancements.tsx"), "utf8");
 const homeSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
 const experienceStudioSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/components/ExperienceStudio.tsx"), "utf8");
+const defaultAmbientSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/lib/defaultAmbient.ts"), "utf8");
+const pomodoroSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
 
 describe("Audio Center UX contracts", () => {
   it("provides advanced library search and filters", () => {
@@ -134,5 +136,32 @@ describe("Audio Center UX contracts", () => {
     expect(experienceStudioSource).toContain('title="Không gian cảm xúc của Lumi" defaultOpen');
     const collapsibleSource = fs.readFileSync(path.resolve(process.cwd(), "client/src/components/PersistentCollapsible.tsx"), "utf8");
     expect(collapsibleSource).toContain('{open ? "Thu gọn" : "Mở rộng"}');
+  });
+
+  it("keeps favorite themes unbounded and wires only explicitly provided theme audio", () => {
+    expect(experienceStudioSource).toContain("favoriteAmbientScenes");
+    expect(experienceStudioSource).toContain("toggleFavoriteAmbientScene");
+    expect(experienceStudioSource).toContain("Giao diện yêu thích");
+    expect(defaultAmbientSource).toContain("PROVIDED_THEME_AMBIENT_ASSETS");
+    expect(experienceStudioSource).toContain("toggleAmbient");
+    expect(pomodoroSource).toContain("themeAmbientEnabled");
+    expect(pomodoroSource).toContain("themeAmbientVolume");
+  });
+
+  it("applies a favorite theme from the Lumi panel and preserves collapse state", () => {
+    expect(experienceStudioSource).toContain('storageKey="experience-lumi-favorite-scenes"');
+    expect(experienceStudioSource).toContain('title="Giao diện yêu thích"');
+    expect(experienceStudioSource).toContain("onClick={() => setScene(scene.id)}");
+    expect(experienceStudioSource).toContain("aria-label={`${isFavorite ? \"Bỏ\" : \"Thêm\"} yêu thích ${scene.label}`}");
+  });
+
+  it("uses only supplied theme audio and exposes preview/toggle/volume controls", () => {
+    expect(defaultAmbientSource).toContain("tet:");
+    expect(defaultAmbientSource).toContain("space:");
+    expect(experienceStudioSource).toContain("providedThemeAudio");
+    expect(componentSource).toContain("Nghe thử");
+    expect(pomodoroSource).toContain("themeAmbientEnabled");
+    expect(pomodoroSource).toContain("themeAmbientVolume");
+    expect(pomodoroSource).toContain("pomodoroBackground");
   });
 });

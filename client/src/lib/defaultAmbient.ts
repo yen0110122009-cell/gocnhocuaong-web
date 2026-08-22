@@ -90,3 +90,23 @@ export const DEFAULT_POMODORO_AMBIENT_PRESET: PersonalStudyPreset = {
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
+
+/** Nguồn audio theme do người dùng cung cấp trong tài liệu tham chiếu. */
+export const PROVIDED_THEME_AMBIENT_ASSETS = {
+  tet: {
+    id: "provided-theme-tet",
+    name: "Tết · Nhạc truyền thống",
+    description: "Traditional Asian Flute & Drums",
+    url: "https://actions.google.com/sounds/v1/holidays/lunar_new_year_music.ogg",
+    target: "tet",
+    source: "provided",
+  },
+  space: {
+    id: "provided-theme-space",
+    name: "Không gian · Ambient vũ trụ",
+    description: "Cosmic Sci-Fi Ambient",
+    url: "https://actions.google.com/sounds/v1/science_fiction/space_synth_pad.ogg",
+    target: "space",
+    source: "provided",
+  },
+} as const;

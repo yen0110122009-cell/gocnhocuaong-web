@@ -146,3 +146,29 @@
 - [x] Bổ sung quản trị thành viên: danh sách, lần hoạt động gần nhất, trạng thái khóa và thao tác khóa/mở khóa có xác nhận.
 - [x] Viết regression cho quyền khách/quản trị, chạy TypeScript, full test, build, responsive và checkpoint phát hành.
 - [x] Lưu checkpoint/phát hành mới cho bản cập nhật chế độ khách và quản trị thành viên sau khi đã qua test/build/responsive.
+
+## Mở rộng Giao diện, âm nền chung và yêu thích
+- [x] Rà soát các theme đã có trong tài liệu, chỉ chọn những theme có nguồn âm thanh được cung cấp để gắn audio.
+- [x] Đưa các theme mới vào mục Giao diện trong menu, với thẻ mô tả, trạng thái đang chọn và tone màu đồng bộ.
+- [x] Thêm nghe thử, bật/tắt âm nền và thanh âm lượng riêng cho theme; không tự phát khi chưa có tương tác người dùng.
+- [x] Thay khu cảnh Lumi liên quan bằng mục Giao diện yêu thích không giới hạn, thu gọn/mở rộng và áp dụng theme khi nhấn.
+- [x] Dùng âm nền theme chung cho Pomodoro, có bật/tắt và chỉnh âm lượng; vẫn giữ âm báo chuyển phiên riêng.
+- [x] Bổ sung regression cho theme/audio/favorites/Pomodoro, chạy TypeScript, full test, build, responsive và checkpoint phát hành.
+
+## Điều chỉnh vị trí Giao diện yêu thích
+- [x] Thay trực tiếp panel “Giao diện” trong Không gian cảm xúc của Lumi bằng panel “Giao diện yêu thích”, không tạo panel trùng ở khu vực khác.
+- [x] Giữ danh sách yêu thích không giới hạn, thu gọn/mở rộng và áp dụng theme khi nhấn vào mục yêu thích.
+
+## Regression bổ sung cho theme và audio chung
+- [x] Thêm/cập nhật regression cho danh sách Giao diện yêu thích không giới hạn và thao tác áp dụng theme.
+- [x] Thêm/cập nhật regression cho audio theme: chỉ dùng nguồn được cung cấp, nghe thử, bật/tắt và cập nhật âm lượng.
+- [x] Thêm/cập nhật regression cho công tắc âm nền theme chung trong Pomodoro, bảo đảm vẫn tách âm báo chuyển phiên.
+- [x] Chạy lại TypeScript, full Vitest, production build và responsive sau khi bổ sung regression.
+- [x] Lưu checkpoint phát hành nhóm thay đổi Giao diện yêu thích và audio theme/Pomodoro.
+
+## Gap regression cần xử lý trước phát hành
+- [x] Viết regression tương tác cho Giao diện yêu thích: nhấn mục yêu thích áp dụng đúng scene và giữ persistence/thu gọn hợp lệ.
+- [x] Viết regression hành vi audio theme: chỉ map nguồn được cung cấp, nghe thử hoạt động, bật/tắt dừng-phát đúng và slider cập nhật âm lượng.
+- [x] Bổ sung test Pomodoro cho công tắc âm nền theme chung và khẳng định alert chuyển phiên vẫn độc lập.
+- [x] Chạy lại responsive smoke sau bộ regression cuối rồi lưu bằng chứng/checkpoint phát hành mới.
+- [x] Lưu checkpoint riêng cho nhóm Giao diện yêu thích + audio theme/Pomodoro sau khi mọi test pass.
