@@ -1490,6 +1490,33 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   z-index: 40;
 }
 
+/* Lớp cảnh luôn ở dưới UI: không được phủ dialog, header, menu hoặc tạo một màn trắng chặn thao tác. */
+:root[data-ambient-scene] #root {
+  position: relative;
+  z-index: 1;
+}
+:root[data-ambient-scene] body::before,
+:root[data-ambient-scene] body::after {
+  z-index: 0 !important;
+}
+:root[data-ambient-scene] #root > div.min-h-screen {
+  min-height: 100dvh;
+  overflow: visible;
+}
+:root[data-ambient-scene] #root > div.min-h-screen > div {
+  position: relative;
+  z-index: 1;
+}
+:root[data-ambient-scene] #root > div.min-h-screen > div > header {
+  position: sticky;
+  top: 0;
+  z-index: 50 !important;
+}
+:root[data-ambient-scene] #root > div.min-h-screen > .pointer-events-none.fixed {
+  position: fixed;
+  z-index: 45 !important;
+}
+
 
 /* Sa mạc/Cảnh đêm: token riêng và lớp phủ fixed phủ qua nội dung nhưng không chặn thao tác. */
 :root[data-ambient-scene="desert"] { --scene-page:#f4d5a2; --scene-page-alt:#f7e2bd; --scene-side:#8a4d24; --scene-header:#c87630; --scene-card:#fff4df; --scene-text:#553314; --scene-muted:#805127; --scene-border:#c7833e; --scene-accent:#9d5223; --scene-accent-alt:#e6ad4b; }

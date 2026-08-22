@@ -58,7 +58,7 @@ describe("expanded theme catalog contract", () => {
     expect(studio()).toContain('"fairy-tale"');
     expect(source).toContain("Nguồn âm thanh:");
     expect(source).toContain('touchAction: "none"');
-    expect(source).toContain("z-[25]");
+    expect(source).toContain("z-[45]");
     expect(source).not.toContain("const player = audioRef.current ?? new Audio()");
   });
 

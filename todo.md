@@ -301,3 +301,10 @@
 - [x] Kiểm tra cấu trúc sidebar/header/inset và trạng thái cuộn để xác định vì sao menu bị tách khỏi nội dung.
 - [x] Sửa linh vật tự di chuyển và kéo thả tự do trên viewport, đồng thời sửa shell menu/header theo một layout nhất quán.
 - [x] Viết regression hành vi, kiểm tra desktop/mobile và lưu checkpoint sau khi xác minh.
+
+## Tái kiểm tra bắt buộc các lỗi giao diện tái diễn
+- [x] Tái hiện bằng tương tác thực tế việc kéo thả linh vật trên toàn viewport, chọn scene mới, mở menu ở vị trí cuộn và trạng thái nền mặc định.
+- [x] Loại bỏ mọi overlay hoặc pseudo-element có thể tạo lớp trắng, che nội dung hay nhận pointer events khi thử scene.
+- [x] Sửa lại vị trí và vùng kéo thả linh vật để thao tác chuột/cảm ứng hoạt động tự do trên toàn màn hình, không bị shell hoặc overlay giới hạn.
+- [x] Neo menu và header vào shell cuộn nhất quán, bảo đảm nút ba sọc luôn hiển thị và truy cập được ở mọi vị trí cuộn.
+- [x] Loại bỏ dứt điểm ảnh hưởng nền legacy còn sót, thêm regression hành vi, kiểm tra desktop/mobile, test, build và checkpoint.
