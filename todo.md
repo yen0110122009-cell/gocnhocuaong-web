@@ -222,11 +222,11 @@
 - [x] Khắc phục lỗi Babel `Expecting Unicode escape sequence` tại Home.tsx phát hiện sau khi đọc pasted_content_6.
 
 ## Theme mới theo ảnh tham chiếu dark nâu–đỏ
-- [ ] Đối chiếu ảnh tham chiếu với shell hiện tại: sidebar, thẻ cấp độ, thanh tìm kiếm, nút sáng/âm thanh và avatar Ong.
-- [ ] Thêm theme dark nâu–đỏ bằng token nền/menu/card/panel/chữ/border tương phản cao, không dùng ảnh watermark.
-- [ ] Sửa lỗi hiển thị linh vật Ong: kích thước, vị trí, nhãn trạng thái và pointer-events không che thao tác.
-- [ ] Bảo đảm overlay theme mới nhẹ, không che nội dung/menu và tôn trọng reduced-motion.
-- [ ] Bổ sung regression cho theme, linh vật, contrast và responsive; chạy test, TypeScript, build và lưu checkpoint.
+- [x] Đối chiếu ảnh tham chiếu với shell hiện tại: sidebar, thẻ cấp độ, thanh tìm kiếm, nút sáng/âm thanh và avatar Ong.
+- [x] Thêm theme dark nâu–đỏ bằng token nền/menu/card/panel/chữ/border tương phản cao, không dùng ảnh watermark.
+- [x] Sửa lỗi hiển thị linh vật Ong: kích thước, vị trí, nhãn trạng thái và pointer-events không che thao tác.
+- [x] Bảo đảm overlay theme mới nhẹ, không che nội dung/menu và tôn trọng reduced-motion.
+- [x] Bổ sung regression cho theme, linh vật, contrast và responsive; chạy test, TypeScript, build và lưu checkpoint.
 
 ## Dọn nền cũ lỗi và sửa audio theme
 - [x] Kiểm kê các overlay, ánh nắng và hiệu ứng nền cũ còn được render ngoài theme đang chọn.

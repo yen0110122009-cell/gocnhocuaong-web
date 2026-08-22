@@ -1748,6 +1748,21 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root[data-ambient-scene="steampunk"] { --scene-page:#241b18; --scene-page-alt:#4b3023; --scene-side:#38251e; --scene-header:#503226; --scene-card:#5e3d2d; --scene-text:#fff0c2; --scene-muted:#e9cda0; --scene-border:#d49b4d; --scene-accent:#f0b35b; --scene-accent-alt:#65d3c3; --scene-button-text:#21130b; --scene-shadow:rgba(212,155,77,.25); }
 :root[data-ambient-scene="art"] { --scene-page:#24213e; --scene-page-alt:#5c3158; --scene-side:#33305a; --scene-header:#4d3564; --scene-card:#68406e; --scene-text:#fff8e8; --scene-muted:#f3d9e7; --scene-border:#ffb35c; --scene-accent:#ff6f91; --scene-accent-alt:#62e6c9; --scene-button-text:#201327; --scene-shadow:rgba(255,111,145,.22); }
 :root[data-ambient-scene="ninja"] { --scene-page:#0b1221; --scene-page-alt:#17263c; --scene-side:#111a2d; --scene-header:#16253e; --scene-card:#1d3150; --scene-text:#f4f8ff; --scene-muted:#c8d7eb; --scene-border:#6f9bd2; --scene-accent:#cf334d; --scene-accent-alt:#b9d8ff; --scene-button-text:#09101c; --scene-shadow:rgba(111,155,210,.2); }
+
+/* Góc Ong dark ember reference: visual treatment inspired by the supplied shell, without opaque overlays. */
+:root[data-ambient-scene="coffee"] {
+  --scene-page:#211512; --scene-page-alt:#3b201a; --scene-side:#2b1916; --scene-header:#321c18;
+  --scene-card:#45251d; --scene-text:#fff7ed; --scene-muted:#f2d3bc; --scene-border:#b87955;
+  --scene-accent:#f08a4b; --scene-accent-alt:#d8b36a; --scene-button-text:#25130d; --scene-shadow:rgba(240,138,75,.18);
+}
+:root[data-ambient-scene="coffee"] .mascot-preview-stage {
+  background:radial-gradient(circle at 76% 24%,rgba(240,138,75,.22),transparent 18%),
+    linear-gradient(135deg,#241613 0%,#4b251c 55%,#8d4029 100%);
+}
+:root[data-ambient-scene="coffee"] .mascot-preview-stage::after {
+  content:"☕  ✦  🐝"; position:absolute; right:1rem; bottom:.55rem; color:#f7c98e;
+  font-size:1.35rem; letter-spacing:.32rem; opacity:.78; pointer-events:none;
+}
 :root[data-ambient-scene="coffee"] { --scene-page:#291713; --scene-page-alt:#5a3020; --scene-side:#3d2119; --scene-header:#4a281d; --scene-card:#643a28; --scene-text:#fff4df; --scene-muted:#f2d0ad; --scene-border:#d5a15b; --scene-accent:#e7a34f; --scene-accent-alt:#9ed1bd; --scene-button-text:#25130d; --scene-shadow:rgba(231,163,79,.22); }
 :root[data-ambient-scene="ai"] { --scene-page:#071522; --scene-page-alt:#102e48; --scene-side:#0b2136; --scene-header:#103552; --scene-card:#164667; --scene-text:#effdff; --scene-muted:#bcebf2; --scene-border:#38d9ff; --scene-accent:#00f5ff; --scene-accent-alt:#c5ff4b; --scene-button-text:#03101a; --scene-shadow:rgba(0,245,255,.24); }
 :root[data-ambient-scene="teddy"] { --scene-page:#3b2233; --scene-page-alt:#74455b; --scene-side:#512d43; --scene-header:#633750; --scene-card:#81516a; --scene-text:#fff8f0; --scene-muted:#f8d9dd; --scene-border:#f3ad8c; --scene-accent:#ffc4d6; --scene-accent-alt:#ffd56a; --scene-button-text:#2b1420; --scene-shadow:rgba(255,196,214,.2); }
