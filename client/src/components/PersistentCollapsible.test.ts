@@ -33,7 +33,7 @@ describe("Item-level collapse scope contract", () => {
     expect(museum).toContain('storageKey="museum-achievement-museum"');
     expect(museum).toContain('storageKey="museum-fragment-vault"');
     expect(museum).toContain('storageKey="museum-characters"');
-    expect(pomodoro).toContain('storageKey="pomodoro-audio-center"');
+    expect(pomodoro).not.toContain('storageKey="pomodoro-audio-center"');
     expect(pomodoro).toContain('storageKey="pomodoro-weekly-goal-history"');
     expect(experienceStudio).toContain('storageKey="experience-ambient-audio"');
     expect(experienceStudio).toContain('storageKey="experience-emotion-command"');
@@ -45,9 +45,11 @@ describe("Item-level collapse scope contract", () => {
 describe("background audio contract", () => {
   const source = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
 
-  it("documents the user-gesture unlock path before background playback", () => {
+  it("documents alert playback and preserves the audio unlock helper without ambient playback", () => {
     expect(source).toContain("resume");
-    expect(source).toContain("startBackground");
+    expect(source).toContain("playSequence");
+    expect(source).not.toContain("startBackground");
+    expect(source).not.toContain("backgroundVolume");
   });
 });
 

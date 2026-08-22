@@ -95,3 +95,20 @@
 - [x] Thêm Đường đua Cyberpunk: nền kim loại tối, đèn giao thông cố định, xe đua/vệt neon chạy ở đáy và chữ cyan/hồng neon.
 - [x] Thêm Lễ hội ẩm thực: nền cam–nâu sô-cô-la, trà sữa/donut ở đáy, pizza/kem rơi nhẹ và chữ kem tương phản.
 - [x] Đồng bộ hợp đồng scene, preset audio, bộ chọn có lưu, reduced-motion, regression, TypeScript, build, responsive và checkpoint phát hành.
+
+## Tái cấu trúc âm thanh và chuyển phiên Pomodoro
+- [x] Loại bỏ âm thanh nền/tập trung khỏi Pomodoro, chỉ giữ âm báo trạng thái và âm báo kết thúc.
+- [x] Bổ sung âm báo riêng cho bắt đầu phiên học, kết thúc phiên, bắt đầu nghỉ và kết thúc nghỉ/chuyển về phiên học.
+- [x] Thêm lựa chọn chế độ chuyển phiên thủ công hoặc tự động, có persistence và nút hành động rõ ràng.
+- [x] Bổ sung regression, kiểm tra TypeScript, production build, responsive và checkpoint phát hành.
+- [x] Kiểm tra các âm thanh thử trạng thái hiện có để tránh phát nhầm âm nền Pomodoro.
+
+## Ghi chú nội dung đính kèm chưa triển khai
+- [x] Đã rà soát trực tiếp `pasted_content.txt`, `pasted_content_2.txt` và `pasted_content_3.txt`: đây là đề xuất theme/transition riêng, không thuộc yêu cầu Pomodoro hiện tại; không đưa mã JavaScript tạo DOM ngoài kiến trúc React vào dự án.
+
+
+## Khoảng trống cần xử lý trong refactor Pomodoro
+- [x] Gỡ sạch state/helper/UI/history/action còn liên quan ambient/background khỏi Pomodoro, gồm preset áp lại, setBackgroundSound, setPomodoroAmbientMix và background playback calls.
+- [x] Hoàn thiện CTA thủ công riêng cho focus→break và break→focus, đồng thời ghi/khôi phục transition mode trong persistence.
+- [x] Bổ sung regression khẳng định previewEvent chỉ phát alert events, không gọi background playback, và Pomodoro không còn ambient UI cũ.
+- [x] Chạy responsive smoke riêng cho Pomodoro sau refactor và chỉ đánh dấu phát hành sau checkpoint mới.

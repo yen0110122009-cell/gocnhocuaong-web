@@ -70,12 +70,15 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(pomodoro).toContain("localStorage");
   });
 
-  it("implements working Pomodoro audio preview and completion alert", () => {
+  it("implements working Pomodoro transition-alert previews and completion alert", () => {
     expect(pomodoro).toContain("AudioContext");
-    expect(pomodoro).toContain("function previewBackground()");
-    expect(pomodoro).toContain("startBackground");
-    expect(pomodoro).toContain("backgroundVolume");
-    expect(pomodoro).toContain("function stopPreview()");
+    expect(pomodoro).not.toContain("function previewBackground()");
+    expect(pomodoro).not.toContain("startBackground");
+    expect(pomodoro).not.toContain("backgroundVolume");
+    expect(pomodoro).toContain('previewEvent("start")');
+    expect(pomodoro).toContain('previewEvent("complete")');
+    expect(pomodoro).toContain('previewEvent("breakStart")');
+    expect(pomodoro).toContain('previewEvent("breakEnd")');
     expect(pomodoro).toContain("playAlert()");
   });
 

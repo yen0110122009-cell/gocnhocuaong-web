@@ -84,23 +84,14 @@ describe("StudyCorner contracts", () => {
     expect(home).not.toContain("<PersonalStudySpaceControls");
   });
 
-  it("supports personal Pomodoro ambient ratio presets with durable CRUD controls", () => {
+  it("keeps ambient preset contracts outside the simplified Pomodoro page", () => {
     const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
     expect(study).toContain("PersonalPomodoroAmbientPreset");
     expect(study).toContain("personalPomodoroAmbientPresets");
-    expect(study).toContain("morning: Math.max(0, Math.min(100");
-    expect(pomodoro).toContain("savePersonalAmbientPreset");
-    expect(pomodoro).toContain("applyPersonalAmbientPreset");
-    expect(pomodoro).toContain("editPersonalAmbientPreset");
-    expect(pomodoro).toContain("deletePersonalAmbientPreset");
-    expect(pomodoro).toContain("Preset tỷ lệ của tôi");
-    expect(pomodoro).toContain("personalPomodoroAmbientPresets: next");
-    expect(pomodoro).toContain("toast.success(`Đã áp dụng preset âm lượng");
-    expect(pomodoro).toContain("appliedAmbientPresetId");
-    expect(pomodoro).toContain("preset-ambient-apply");
-    const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
-    expect(css).toContain("@keyframes preset-ambient-apply");
-    expect(css).toContain("prefers-reduced-motion: reduce");
+    expect(pomodoro).toContain("Âm báo Pomodoro");
+    expect(pomodoro).not.toContain("Preset tỷ lệ của tôi");
+    expect(pomodoro).not.toContain('storageKey="pomodoro-audio-center"');
+    expect(pomodoro).toContain('aria-label="Âm báo và chuyển phiên Pomodoro"');
   });
 
   it("keeps Audio Center volumes separated by source and uses clean assets only", () => {

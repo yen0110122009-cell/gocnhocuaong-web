@@ -27,11 +27,12 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).not.toContain("Dùng giọng đọc theo ngày của thiết bị");
   });
 
-  it("keeps the Pomodoro layer mixer and bell volume in the same profile mixer", () => {
+  it("keeps only the Pomodoro bell volume in the profile mixer", () => {
     expect(pomodoro()).toContain("audioMixerHydratedRef");
-    expect(pomodoro()).toContain("pomodoroLayers: layerVolumes");
     expect(pomodoro()).toContain("pomodoroBell: alertVolume");
     expect(pomodoro()).toContain("profile.audioMixer?.pomodoroBell ?? 85");
+    expect(pomodoro()).not.toContain("pomodoroLayers: layerVolumes");
+    expect(pomodoro()).not.toContain("pomodoroAmbientMix");
   });
 
   it("uses the profile emotion when Pomodoro opens Experience Studio", () => {
@@ -119,24 +120,25 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(styles()).toContain("@media (prefers-reduced-motion: no-preference)");
   });
 
-  it("keeps explicit audio-center start, stop, preview and status controls behind a user gesture", () => {
-    expect(pomodoro()).toContain("async function toggleAudioCenter");
-    expect(pomodoro()).toContain("async function toggleBackgroundPlayback");
-    expect(pomodoro()).toContain("const [backgroundRequested, setBackgroundRequested]");
-    expect(pomodoro()).toContain("const [backgroundActive, setBackgroundActive]");
-    expect(pomodoro()).toContain("Bật Audio Center");
-    expect(pomodoro()).toContain("Dừng nền");
-    expect(pomodoro()).toContain("Nghe thử 5 giây");
-    expect(pomodoro()).toContain("async function unlockAudio(allowWhenJustEnabled = false)");
-    expect(pomodoro()).toContain("unlockAudio(allowWhenJustEnabled)");
+  it("keeps only transition alerts and exposes both transition modes", () => {
+    expect(pomodoro()).toContain('aria-label="Âm báo và chuyển phiên Pomodoro"');
+    expect(pomodoro()).toContain('name="pomodoro-transition-mode"');
+    expect(pomodoro()).toContain("Tự động chuyển phiên");
+    expect(pomodoro()).toContain("Tôi tự nhấn để chuyển");
+    expect(pomodoro()).toContain('previewEvent("breakStart")');
+    expect(pomodoro()).toContain('previewEvent("breakEnd")');
+    expect(pomodoro()).not.toContain("Nghe thử 5 giây");
+    expect(pomodoro()).not.toContain("Bật Audio Center");
   });
 
-  it("prevents stale background starts and keeps Pomodoro aligned with the global sound preference", () => {
-    expect(pomodoro()).toContain("backgroundGenerationRef");
-    expect(pomodoro()).toContain("generation !== backgroundGenerationRef.current");
+  it("removes Pomodoro background playback while preserving the global sound unlock flow", () => {
+    expect(pomodoro()).not.toContain("backgroundGenerationRef");
+    expect(pomodoro()).not.toContain("startBackground");
     expect(pomodoro()).toContain("profileSoundRef");
     expect(pomodoro()).toContain("setSound(profile.soundEnabled)");
     expect(pomodoro()).toContain('audioContextRef.current.state === "closed"');
+    expect(pomodoro()).toContain('playSequence("breakStart")');
+    expect(pomodoro()).toContain('playSequence("breakEnd")');
   });
 
   it("keeps clean ambient playback exclusive, user-initiated, faded, and adjustable", () => {

@@ -1,7 +1,9 @@
-export type SoundEvent = "start" | "tick" | "complete" | "warning" | "reward" | "error";
+export type SoundEvent = "start" | "breakStart" | "breakEnd" | "tick" | "complete" | "warning" | "reward" | "error";
 
 export const SOUND_EVENTS: Record<SoundEvent, number[]> = {
   start: [262, 330, 392],
+  breakStart: [392, 523, 659],
+  breakEnd: [659, 523, 392],
   tick: [880],
   complete: [659, 880, 1047, 880, 1319, 1568, 1319, 1760],
   warning: [494, 392, 330],
@@ -20,12 +22,14 @@ export const COMPLETE_ALERT_PROFILE = {
 
 export function soundEventGainMultiplier(event: SoundEvent) {
   if (event === "tick") return 0.055;
+  if (event === "breakStart" || event === "breakEnd") return 0.24;
   if (event === "complete") return COMPLETE_ALERT_PROFILE.gainMultiplier;
   return 0.2;
 }
 
 export function soundEventSpacing(event: SoundEvent) {
   if (event === "tick") return 0.04;
+  if (event === "breakStart" || event === "breakEnd") return 0.1;
   if (event === "complete") return COMPLETE_ALERT_PROFILE.spacingSeconds;
   return 0.12;
 }

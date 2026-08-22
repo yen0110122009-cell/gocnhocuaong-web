@@ -166,7 +166,7 @@ describe("Experience Studio requirements", () => {
   it("applies member-selected audio at Pomodoro milestones and supports night-focus preferences", () => {
     expect(pomodoroSource).toContain("playPersonalCue");
     expect(pomodoroSource).toContain("matchingPersonalAudio");
-    expect(pomodoroSource).toContain("personalBackgroundRef");
+    expect(pomodoroSource).not.toContain("personalBackgroundRef");
     expect(pomodoroSource).toContain('playPersonalCue("start")');
     expect(pomodoroSource).toContain('playPersonalCue("complete")');
     expect(homeSource).toContain("profile.autoNightMode");

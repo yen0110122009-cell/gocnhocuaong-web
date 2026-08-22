@@ -8,16 +8,17 @@ export type PersistedPomodoroSession = {
   mode: PersistedPomodoroMode;
   running: boolean;
   autoAdvance: boolean;
+  pendingTransition?: "break" | "focus" | null;
   subject: string;
   topic: string;
   activity: string;
   totalSessions: number;
   sessionStartedAt: string | null;
-  backgroundSound: string;
-  backgroundVolume: number;
-  layerVolumes: Record<string, number>;
+  backgroundSound?: string;
+  backgroundVolume?: number;
+  layerVolumes?: Record<string, number>;
   alertVolume: number;
-  pomodoroAmbientMix: { morning: number; storm: number };
+  pomodoroAmbientMix?: { morning: number; storm: number };
   compactMode: boolean;
   miniPlayerPinned: boolean;
   savedAt: number;
@@ -45,6 +46,7 @@ export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null =
       mode: value.mode,
       running: value.running === true,
       autoAdvance: value.autoAdvance !== false,
+      pendingTransition: value.pendingTransition === "break" || value.pendingTransition === "focus" ? value.pendingTransition : null,
       subject: typeof value.subject === "string" ? value.subject : "",
       topic: typeof value.topic === "string" ? value.topic : "",
       activity: typeof value.activity === "string" ? value.activity : "theory",
