@@ -109,4 +109,8 @@ export const PROVIDED_THEME_AMBIENT_ASSETS = {
     target: "space",
     source: "provided",
   },
+  rainy_season: { id: "provided-theme-rainy-season", name: "Mưa phủ phàng · Mưa mái tôn", description: "Lofi Chill & heavy rain", url: "https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg", target: "rainy_season", source: "provided" },
+  stormy_season: { id: "provided-theme-stormy-season", name: "Bão giật · Gió và sấm", description: "Dark Ambient Synth & storm wind", url: "https://actions.google.com/sounds/v1/weather/heavy_wind_storm.ogg", target: "stormy_season", source: "provided" },
+  morning_chill: { id: "provided-theme-morning-chill", name: "Nắng ban mai · Chim sớm", description: "Acoustic Guitar & morning birds", url: "https://actions.google.com/sounds/v1/nature/morning_birds_acoustic.ogg", target: "morning_chill", source: "provided" },
+  coffee: { id: "provided-theme-coffee", name: "Quán Cà Phê · Lofi Jazz", description: "Lofi Jazz & coffee shop rain", url: "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg", target: "coffee", source: "provided" },
 } as const;

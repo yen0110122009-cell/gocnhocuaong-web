@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bird, Building2, Cloud, CloudRain, CloudSun, Eye, EyeOff, Flower2, Ghost, Leaf, Mic, Moon, PartyPopper, Pause, Play, Snowflake, Sparkles, Star, Sun, Trash2, Upload, Volume2, VolumeX, Zap } from "lucide-react";
+import { Bird, Building2, Cloud, CloudRain, CloudSun, Coffee, Eye, EyeOff, Flower2, Ghost, Heart, Leaf, Mic, Moon, PartyPopper, Pause, Play, Snowflake, Sparkles, Star, Sun, Trash2, Upload, Volume2, VolumeX, Zap } from "lucide-react";
 import { emotionFromCommand, emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { lumiQuoteForDate } from "../lib/lumiDailyQuotes";
 import { activeContentFor, antiProcrastinationChoices, gentleReminders, randomAntiProcrastinationSpeech, randomMicroTask, speechForEvent, speechGroupLabels, type SpeechGroup } from "../lib/speechLibrary";
@@ -79,8 +79,23 @@ const sceneOptions: Array<{ id: AmbientScene; label: string; detail: string; ico
   { id: "candykingdom", label: "Vương quốc Bánh kẹo", detail: "kẹo ngọt · sắc màu", icon: Sparkles },
   { id: "travel", label: "Du lịch", detail: "bản đồ · hành trình", icon: Building2 },
   { id: "tropical", label: "Biển nhiệt đới", detail: "cây dừa · sóng xanh", icon: CloudSun },
+  { id: "rainy_season", label: "Mưa phủ phàng", detail: "ô lớn · giọt mưa", icon: CloudRain },
+  { id: "stormy_season", label: "Bão giật", detail: "lốc xoáy · sấm chớp", icon: Zap },
+  { id: "morning_chill", label: "Nắng ban mai", detail: "cà phê · chim sớm", icon: Sun },
+  { id: "pixel", label: "Game Pixel Retro", detail: "8-bit · arcade", icon: Sparkles },
+  { id: "pirate", label: "Đảo Cướp Biển", detail: "hải đồ · đại dương", icon: CloudSun },
+  { id: "sports", label: "Sân Cỏ Thể Thao", detail: "sân vận động · năng lượng", icon: Zap },
+  { id: "disco", label: "Vũ Trường Disco", detail: "đèn màu · nhịp điệu", icon: Sparkles },
+  { id: "laboratory", label: "Phòng Thí Nghiệm", detail: "hóa chất · điện tử", icon: Sparkles },
+  { id: "egypt", label: "Ai Cập Cổ Đại", detail: "sa mạc · chữ tượng hình", icon: Sun },
+  { id: "steampunk", label: "Bánh Răng Steampunk", detail: "đồng thau · hơi nước", icon: Building2 },
+  { id: "art", label: "Xưởng Nghệ Thuật", detail: "màu vẽ · cọ sáng tạo", icon: Flower2 },
+  { id: "ninja", label: "Võ Sĩ Ninja", detail: "trăng đêm · kiếm đạo", icon: Moon },
+  { id: "coffee", label: "Quán Cà Phê", detail: "lofi jazz · mưa cửa kính", icon: Coffee },
+  { id: "ai", label: "Trí Tuệ Nhân Tạo", detail: "dữ liệu · neon cyan", icon: Sparkles },
+  { id: "teddy", label: "Thế Giới Gấu Bông", detail: "hộp nhạc · dịu êm", icon: Heart },
 ];
-const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38, volcano: 34, deepocean: 32, magicforest: 31, spacestation: 29, flowerfield: 35, fairytale: 32, circus: 38, prehistoric: 31, cyberrace: 36, foodfestival: 34, diamondmine: 34, f1race: 38, candykingdom: 34, travel: 36, tropical: 38 };
+const defaultAmbientVolumes: AmbientVolumes = { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38, volcano: 34, deepocean: 32, magicforest: 31, spacestation: 29, flowerfield: 35, fairytale: 32, circus: 38, prehistoric: 31, cyberrace: 36, foodfestival: 34, diamondmine: 34, f1race: 38, candykingdom: 34, travel: 36, tropical: 38, rainy_season: 42, stormy_season: 38, morning_chill: 40, pixel: 34, pirate: 36, sports: 36, disco: 34, laboratory: 30, egypt: 30, steampunk: 32, art: 34, ninja: 30, coffee: 36, ai: 30, teddy: 32 };
 const emotionVoiceStates: Record<EmotionId, string[]> = {
   calm: ["comeback", "streak_recovered"], happy: ["achievement_unlocked"], tired: ["failed", "comeback"], sad: ["failed", "comeback"], stressed: ["failed", "streak_recovered"], lazy: ["failed", "comeback"], proud: ["achievement_unlocked"], focused: ["almost_unlocked"], hopeful: ["almost_unlocked", "comeback"], overwhelmed: ["failed", "comeback"], sleepy: ["failed", "comeback"], excited: ["achievement_unlocked"], lonely: ["failed", "comeback"], confident: ["achievement_unlocked", "almost_unlocked"], curious: ["almost_unlocked"], comeback: ["comeback", "streak_recovered"],
 };
@@ -392,7 +407,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const sceneAmbientAssets = permittedAmbientAssets.filter((asset) => [scene, "general"].includes(asset.target.trim().toLocaleLowerCase("vi-VN")));
     const personalAmbientAudio = [...sceneAmbientAssets, ...permittedAmbientAssets.filter((asset) => !sceneAmbientAssets.includes(asset))]
       .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || right.updatedAt.localeCompare(left.updatedAt))[0];
-    const providedThemeAudio = scene === "tet" ? PROVIDED_THEME_AMBIENT_ASSETS.tet : scene === "space" ? PROVIDED_THEME_AMBIENT_ASSETS.space : undefined;
+    const providedThemeAudio = scene === "tet" ? PROVIDED_THEME_AMBIENT_ASSETS.tet : scene === "space" ? PROVIDED_THEME_AMBIENT_ASSETS.space : scene === "coffee" ? PROVIDED_THEME_AMBIENT_ASSETS.coffee : scene === "rainy_season" ? PROVIDED_THEME_AMBIENT_ASSETS.rainy_season : scene === "stormy_season" ? PROVIDED_THEME_AMBIENT_ASSETS.stormy_season : scene === "morning_chill" ? PROVIDED_THEME_AMBIENT_ASSETS.morning_chill : undefined;
     const isPomodoroAmbientPreset = selectedPreset?.id === DEFAULT_POMODORO_AMBIENT_PRESET.id && permittedAssetIds.includes(DEFAULT_AMBIENT_MORNING_ASSET.id) && permittedAssetIds.includes(DEFAULT_AMBIENT_STORM_ASSET.id);
     const selectedAmbientAudios = isPomodoroAmbientPreset
       ? [DEFAULT_AMBIENT_MORNING_ASSET, DEFAULT_AMBIENT_STORM_ASSET]

@@ -172,3 +172,23 @@
 - [x] Bổ sung test Pomodoro cho công tắc âm nền theme chung và khẳng định alert chuyển phiên vẫn độc lập.
 - [x] Chạy lại responsive smoke sau bộ regression cuối rồi lưu bằng chứng/checkpoint phát hành mới.
 - [x] Lưu checkpoint riêng cho nhóm Giao diện yêu thích + audio theme/Pomodoro sau khi mọi test pass.
+
+## Mở rộng toàn bộ catalog theme theo tài liệu tham chiếu
+- [x] Kiểm kê toàn bộ tệp tham chiếu đã gửi và lập danh sách đầy đủ các nhóm theme/ý tưởng, không chỉ 5 theme gần nhất.
+- [x] Đối chiếu từng theme với scene, token màu, hiệu ứng, audio và trạng thái đã có; ghi rõ mục nào thiếu hoặc chỉ có mô tả.
+- [x] Bổ sung toàn bộ theme có đủ dữ liệu triển khai vào Giao diện yêu thích, giữ các theme chưa đủ audio ở trạng thái không có âm thanh thay vì tự tạo nguồn.
+- [x] Bổ sung regression cho số lượng và nhãn catalog theme, persistence yêu thích, áp dụng theme, audio và responsive.
+- [x] Chạy full test, TypeScript, production build, responsive và lưu checkpoint sau khi catalog đầy đủ.
+
+## Ưu tiên bản chỉnh sửa mới nhất của theme
+- [x] Lập timeline cho mọi tệp tham chiếu và nhóm các theme trùng tên hoặc trùng ý tưởng.
+- [x] Ghi nhận bản mới nhất là nguồn ưu tiên; đánh dấu riêng các màu, hiệu ứng, mật độ, vị trí và audio đã bị thay thế.
+- [x] Không cộng dồn chi tiết bị phủ định ở các bản cũ; yêu cầu không rõ hoặc mâu thuẫn cần được nêu ra để xác nhận.
+- [x] Cập nhật catalog Giao diện yêu thích theo bản ưu tiên và bổ sung regression đối chiếu phiên bản.
+
+## Catalog 12 scene còn thiếu từ audio-catalog mới nhất
+- [x] Thêm scene Pixel, Hải tặc, Thể thao, Disco, Phòng thí nghiệm, Ai Cập, Steampunk, Nghệ thuật, Ninja, Cà phê, AI và Gấu bông.
+- [x] Thêm metadata audio trực tiếp cho rainy_season, stormy_season, morning_chill và coffee; không tự tạo URL cho các theme chỉ có mô tả.
+- [x] Thêm token shell và overlay CSS/emoji cho 12 scene mới, bảo đảm pointer-events:none, contrast và reduced-motion.
+- [x] Cập nhật parser, default volume, favorites, schedule và audio mapping cho các scene mới.
+- [x] Viết regression catalog/audio/overlay và chạy full validation trước checkpoint.

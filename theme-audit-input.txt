@@ -1,0 +1,258 @@
+===== /home/ubuntu/upload/pasted_content_2.txt =====
+🎨 Chi Tiết 3 Ý Tưởng Thời Tiết & Âm Thanh Nền1. 🌧️ Mùa Mưa Phủ Phàng & Hạt Mưa Rơi (Rainy Season)Icon chủ đạo: 🌧️ ☔ 💧 ☂️ 🌈 ⛈️Phủ toàn bộ: Nền xanh xám giông bão (#0F172A), Menu đè màu xám đá ướt.Hình ảnh & Hiệu ứng:Chiếc ô ☔ xòe siêu to cố định lơ lửng góc dưới màn hình.Các hạt mưa 💧 rơi dọc từ trên xuống đè nhẹ qua các dòng chữ và thẻ bài học.Màu chữ đối lập: Vàng dạ quang (#FFEE58) hoặc Cyan Neon.2. 🌀 Mùa Bão Giật & Sấm Chớp (Stormy Season)Icon chủ đạo: 🌀 ⚡ 🌩️ 🌪️ 🍃 🌊Phủ toàn bộ: Nền đen tím giông bão (#090314), Menu phủ màu xám sấm sét.Hình ảnh & Hiệu ứng:Cơn lốc xoáy 🌀 hoặc đám mây sấm 🌩️ phóng to cố định góc dưới.Chớp sáng ⚡ thỉnh thoảng nhấp nháy nhẹ quét qua toàn màn hình.Màu chữ đối lập: Vàng chanh dạ quang (#00F5FF) hoặc Trắng tuyết.3. 🌅 Buổi Sáng Tinh Khôi & Nắng Ban Mai (Morning Chill)Icon chủ đạo: 🌅 ☕ 🐦 🍃 🌻 🌤️Phủ toàn bộ: Nền xanh ấm hái trà (#132A13), Menu đè màu gỗ nhạt ban mai.Hình ảnh & Hiệu ứng:Tách cà phê ☕ bốc khói hoặc Mặt trời 🌅 mọc siêu to góc chân trang.Tia nắng 🌤️ chiếu xiên qua màn hình cùng vài chú chim 🐦 vỗ cánh ngang qua.Màu chữ đối lập: Vàng kim rực rỡ (#FFD700).🎵 Bảng Khai Báo Âm Thanh Nền Chuẩn AI (Audio Manifest)Danh Mục Thời TiếtPhong Cách Âm Nhạc (BGM Style)Nguồn Âm Thanh Chuẩn (BGM Source / SFX)🌧️ Mùa MưaLofi Chill & Tiếng mưa rơi mái tôn/cửa kínhBGM: [https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg](https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg)SFX: Tiếng giọt nước rơi water_drop.ogg🌀 Mùa BãoDark Ambient Synth & Tiếng gió rít, sấm rềnBGM: [https://actions.google.com/sounds/v1/weather/heavy_wind_storm.ogg](https://actions.google.com/sounds/v1/weather/heavy_wind_storm.ogg)SFX: Tiếng sấm chớp thunder_heavy.ogg🌅 Buổi SángAcoustic Guitar nhẹ nhàng & Tiếng chim hót sương sớmBGM: [https://actions.google.com/sounds/v1/nature/morning_birds_acoustic.ogg](https://actions.google.com/sounds/v1/nature/morning_birds_acoustic.ogg)SFX: Tiếng ngụm cà phê/chim hót bird_chirp.ogg🛠️ Mã Cấu Hình AI Engine Khai Báo Cho 3 Mùa MớiJavaScript// Khai báo cấu hình âm thanh cho các giao diện thời tiết mới
+const weatherThemesAudio = {
+  rainy_season: {
+    bgmSource: "https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg",
+    sfxSource: "https://actions.google.com/sounds/v1/water/water_drop.ogg",
+    styleDescription: "Tiếng mưa rơi rào rạt kết hợp Lofi thư giãn"
+  },
+  stormy_season: {
+    bgmSource: "https://actions.google.com/sounds/v1/weather/heavy_wind_storm.ogg",
+    sfxSource: "https://actions.google.com/sounds/v1/weather/thunder_heavy.ogg",
+    styleDescription: "Âm thanh gió bão gầm hú và tiếng sấm rền kịch tính"
+  },
+  morning_chill: {
+    bgmSource: "https://actions.google.com/sounds/v1/nature/morning_birds_acoustic.ogg",
+    sfxSource: "https://actions.google.com/sounds/v1/nature/bird_chirp.ogg",
+    styleDescription: "Nhạc Acoustic buổi sáng trong lành kết hợp tiếng chim hót"
+  }
+};
+
+function playWeatherTheme(themeKey) {
+  const data = weatherThemesAudio[themeKey];
+  if (data) {
+    const audio = new Audio(data.bgmSource);
+    audio.loop = true;
+    audio.volume = 0.35;
+    audio.play();
+    console.log(`[AI Engine] Đang phát chủ đề: ${data.styleDescription}`);
+  }
+}
+Mọi chủ đề mùa mưa, mùa bão và buổi sáng đã được thiết lập chuẩn nguồn đầy đủ rồi nhé! 🍀✨===== /home/ubuntu/upload/pasted_content_3.txt =====
+1. 💎 Mỏ Kim Cương & Hang Động Tinh Thể (Crystal Cave)
+
+Icon chủ đạo: 💎 🔮 🪨 ⛏️ 🌟
+
+Phủ toàn bộ: Nền tím đêm ma mị (#1A0B2E), Menu phủ màu xám đá thạch anh.
+
+Hình ảnh & Hiệu ứng:
+
+Viên kim cương 💎 siêu to cố định phát sáng góc dưới.
+
+Các tinh thể đá quý 🔮 lấp lánh đè nhẹ lên góc Menu, vệt sáng kim cương nhấp nháy toàn màn hình.
+
+Màu chữ đối lập: Vàng chanh dạ quang (#FFEE58) hoặc Cyan Neon.
+
+2. 🏎️ Thế Giới Đua Xe F1 & Cờ Đích (F1 Racing Track)
+
+Icon chủ đạo: 🏎️ 🏁 🚦 🛞 ⛽ 🏆
+
+Phủ toàn bộ: Nền đen nhám đường đua (#111111), Menu kẻ ô cờ vua đen trắng ẩn hiện.
+
+Hình ảnh & Hiệu ứng:
+
+Siêu xe F1 🏎️ phóng cực nhanh từ trái qua phải ở dưới chân trang.
+
+Lá cờ đích 🏁 vẩy nhẹ ở góc trên Menu mỗi khi chọn bài học.
+
+Màu chữ đối lập: Đỏ Cam rực (#FF3D00) hoặc Vàng dạ quang.
+
+3. 🍭 Vương Quốc Bánh Kẹo & Kẹo Mút (Candy Land)
+
+Icon chủ đạo: 🍭 🍬 🍫 🧁 🍩 🍨
+
+Phủ toàn bộ: Nền hồng pastel ngọt ngào (#2D0A1E), Menu màu sô-cô-la đắng (#3E2723).
+
+Hình ảnh & Hiệu ứng:
+
+Cây kẹo mút 🍭 siêu to cố định ở góc dưới màn hình.
+
+Mưa viên kẹo 🍬, 🍫 rơi nhẹ nhàng xoay tròn qua các dòng chữ.
+
+Màu chữ đối lập: Xanh ngọc huỳnh quang (#00F5FF) hoặc Trắng kem.
+
+4. ✈️ Du Lịch Vòng Quanh Thế Giới (World Travel)
+
+Icon chủ đạo: 🧳 🗽 🗼 🗺️ 📸 ✈️
+
+Phủ toàn bộ: Nền xanh bản đồ cổ (#0D1F2D), Menu đè màu nâu da vali (#4A2E1B).
+
+Hình ảnh & Hiệu ứng:
+
+Tháp Eiffel 🗼 hoặc Nữ Thần Tự Do 🗽 phóng siêu to cố định ở góc dưới.
+
+Máy bay ✈️ vẽ đường bay nét đứt đè qua giao diện.
+
+Màu chữ đối lập: Vàng ánh kim (#FFD700).
+
+5. 🌊 Sóng Biển Lướt Ván & Mùa Hè Nhiệt Đới (Surf & Tropical)
+
+Icon chủ đạo: 🏄 🥥 🌴 🐬 🕶️ 🌊
+
+Phủ toàn bộ: Nền xanh ngọc bích tươi mát (#004D40), Menu màu cát biển (#8D6E63).
+
+Hình ảnh & Hiệu ứng:
+
+Cây dừa 🌴 phóng siêu to lấp lánh ở mép trái màn hình.
+
+Chú cá heo 🐬 nhảy vọt qua ngọn sóng 🌊 ngay trên giao diện nội dung.
+
+Màu chữ đối lập: Trắng tuyền (#FFFFFF) hoặc Vàng tươi.
+
+🛠️ Mã CSS & JS Minh Họa Cho Giao Diện Vương Quốc Bánh Kẹo (Candy Land)
+CSS
+/* 🍭 GIAO DIỆN VƯƠNG QUỐC BÁNH KẸO */
+body.theme-candy {
+  background: linear-gradient(135deg, #1A0510, #2D0A1E, #4A1230) !important;
+  color: #00F5FF !important; /* Chữ xanh ngọc huỳnh quang nổi bật */
+}
+
+body.theme-candy .menu-bar {
+  background-color: #3E2723 !important;
+  border-bottom: 2px solid #FF4081 !important;
+}
+
+/* Cây kẹo mút siêu to góc dưới */
+.candy-giant {
+  position: fixed;
+  bottom: -3vh;
+  right: 1vw;
+  font-size: 42vh; /* Phóng to chiếm gần nửa màn hình */
+  z-index: 99999;
+  filter: drop-shadow(0 0 15px rgba(255, 64, 129, 0.4));
+}
+
+/* Kẹo rơi đè qua giao diện */
+.falling-sweet {
+  position: fixed;
+  top: -40px;
+  font-size: 30px;
+  z-index: 100000;
+  animation: sweetFall linear infinite;
+}
+
+@keyframes sweetFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(360deg); opacity: 0.8; }
+}
+JavaScript
+// Logic khởi tạo khi bấm chọn icon 🍭 trên Menu
+if (themeName === 'candy') {
+  overlay.innerHTML = `
+    <div class="candy-giant">🍭</div>
+    <div class="falling-sweet" style="left: 10%; animation-duration: 5s;">🍬</div>
+    <div class="falling-sweet" style="left: 50%; animation-duration: 7s; animation-delay: 1s;">🍫</div>
+    <div class="falling-sweet" style="left: 80%; animation-duration: 6s; animation-delay: 0.5s;">🍩</div>
+    <div style="position: fixed; bottom: 10px; left: 20px; font-size: 80px; z-index: 99999;">🧁</div>
+  `;
+}===== /home/ubuntu/upload/pasted_content_4.txt =====
+🎵 Bảng Âm Thanh Nền & Nguồn Tương Ứng Cho Tất Cả Ý TưởngSTTÝ Tưởng Giao DiệnÂm Thanh Nền (BGM Source / Style)Âm Hiệu Ứng (SFX)1🌋 Núi Lửa Phun TràoDark Ambient & Volcanic Lava Soundscapetiếng đá lốc cốc, lửa cháy lava_pop.mp32🌊 Đại Dương Sâu ThẳmDeep Underwater Ambient & Whale Callstiếng bọt nước trôi bubble_pop.mp33🍄 Khu Rừng Phép ThuậtEnchanted Forest Harp & Nature Soundtiếng phép thuật magic_sparkle.mp34🛸 Trạm Vũ Trụ Sci-FiSci-Fi Synth Pad & Cosmic Dronetiếng chùm tia laser laser_beam.mp35🐝 Cánh Đồng HoaAcoustic Guitar & Summer Birdstiếng ong vo ve bee_buzz.mp36🧨 Tết Cổ Truyềnnhạc Đàn Bầu, Đàn Tranh, Trống Hội Tếttiếng pháo nổ firecracker_crack.mp37🏰 Lâu Đài Cổ TíchOrchestral Fairytale Lullaby & Music Boxtiếng chuông phép wand_chime.mp38🎪 Gánh Xiếc CarnivalRetro Circus Accordion & March Musictiếng bóng bay nổ balloon_pop.mp39🦖 Kỷ Băng Hà / Khủng LongTribal Drum Beat & Jungle Ambienttiếng gầm nhẹ dino_roar.mp310🏎️ Đường Đua CyberpunkSynthwave 80s & High Speed Enginetiếng xe lướt qua car_drift.mp311🍔 Lễ Hội Ẩm ThựcLo-fi Chill Beats & Cafe Ambienttiếng nhai giòn food_crunch.mp312🎃 Đêm HalloweenSpooky Organ & Midnight Windtiếng dơi vỗ cánh bat_wing.mp313✈️ Chuyến Bay Mây TrắngPiano Lofi Chill & Sky Breezetiếng gió lướt wind_breeze.mp314🎮 Game Pixel Retro8-Bit Chiptune Arcade Musictiếng ăn đồng xu coin_collect.mp315🏴‍☠️ Đảo Cướp BiểnAccordion Pirate Shanty & Ocean Wavestiếng đồng xu keng coin_clink.mp316⚽ Sân Cỏ Thể ThaoEnergetic Stadium Rock Beat & Crowd Cheertiếng còi trọng tài whistle.mp317🎵 Vũ Trường Disco80s Disco Funk Bass & Synth Groovetiếng nốt nhạc bay synth_note.mp318🧪 Phòng Thí NghiệmDark Electro Synth & Chemical Bubble Soundtiếng nổ nhỏ chem_burst.mp319🏜️ Ai Cập Cổ ĐạiAncient Egyptian Oud & Desert Windtiếng cát chảy sand_slide.mp320⚙️ Bánh Răng SteampunkClockwork Gears & Steam Pipe Ambiencetiếng bánh răng quay gear_tick.mp321🎨 Xưởng Nghệ ThuậtRelaxing Acoustic Guitar & Brush Stroketiếng cọ quẹt brush_stroke.mp322🥷 Võ Sĩ NinjaJapanese Taiko Drums & Shakuhachi Flutetiếng kiếm chém sword_slash.mp323☕ Quán Cà Phê WarmLofi Jazz Chill & Coffee Shop Rain Soundtiếng rót nước coffee_pour.mp324🤖 Trí Tuệ Nhân Tạo AICybernetic Synth & Data Stream Soundtiếng tít vi mạch beep_code.mp325🧸 Thế Giới Gấu BôngCute Music Box & Soft Toy Lullabytiếng chuông lục lạc toy_bell.mp3🛠️ Cấu Trúc Khai Báo Nguồn Cho AI & Trình Duyệt WebĐể AI hoặc hệ thống máy tính hiểu chính xác âm thanh cần lấy từ đâu, bạn cần khai báo dưới dạng tham số audioSource rõ ràng trong mã nguồn JavaScript như sau:JavaScript// Cấu hình kho âm thanh (Audio Manifest) để AI phát đúng bài
+const audioDatabase = {
+  tet: {
+    bgmSource: "https://actions.google.com/sounds/v1/holidays/lunar_new_year_music.ogg",
+    bgmStyle: "Traditional Asian Flute & Drums",
+    sfxSource: "https://actions.google.com/sounds/v1/fireworks/small_explosion.ogg"
+  },
+  space: {
+    bgmSource: "https://actions.google.com/sounds/v1/science_fiction/space_synth_pad.ogg",
+    bgmStyle: "Cosmic Sci-Fi Ambient",
+    sfxSource: "https://actions.google.com/sounds/v1/science_fiction/scifi_laser.ogg"
+  },
+  coffee: {
+    bgmSource: "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
+    bgmStyle: "Lofi Jazz & Rain Ambience",
+    sfxSource: "https://actions.google.com/sounds/v1/household/pouring_water.ogg"
+  }
+};
+
+// Hàm kích hoạt phát nhạc khi người dùng bấm đổi giao diện
+function playThemeAudio(themeName) {
+  const themeData = audioDatabase[themeName];
+  
+  if (themeData) {
+    // Phát nhạc nền lặp lại liên tục
+    let bgmAudio = new Audio(themeData.bgmSource);
+    bgmAudio.loop = true;
+    bgmAudio.volume = 0.4; // Đặt âm lượng 40% để không làm xao nhãng việc học
+    bgmAudio.play();
+
+    console.log(`AI Player đang phát: ${themeData.bgmStyle}`);
+  }
+}===== /home/ubuntu/upload/pasted_content_5.txt =====
+🎨 Chi Tiết 3 Ý Tưởng Thời Tiết & Âm Thanh Nền1. 🌧️ Mùa Mưa Phủ Phàng & Hạt Mưa Rơi (Rainy Season)Icon chủ đạo: 🌧️ ☔ 💧 ☂️ 🌈 ⛈️Phủ toàn bộ: Nền xanh xám giông bão (#0F172A), Menu đè màu xám đá ướt.Hình ảnh & Hiệu ứng:Chiếc ô ☔ xòe siêu to cố định lơ lửng góc dưới màn hình.Các hạt mưa 💧 rơi dọc từ trên xuống đè nhẹ qua các dòng chữ và thẻ bài học.Màu chữ đối lập: Vàng dạ quang (#FFEE58) hoặc Cyan Neon.2. 🌀 Mùa Bão Giật & Sấm Chớp (Stormy Season)Icon chủ đạo: 🌀 ⚡ 🌩️ 🌪️ 🍃 🌊Phủ toàn bộ: Nền đen tím giông bão (#090314), Menu phủ màu xám sấm sét.Hình ảnh & Hiệu ứng:Cơn lốc xoáy 🌀 hoặc đám mây sấm 🌩️ phóng to cố định góc dưới.Chớp sáng ⚡ thỉnh thoảng nhấp nháy nhẹ quét qua toàn màn hình.Màu chữ đối lập: Vàng chanh dạ quang (#00F5FF) hoặc Trắng tuyết.3. 🌅 Buổi Sáng Tinh Khôi & Nắng Ban Mai (Morning Chill)Icon chủ đạo: 🌅 ☕ 🐦 🍃 🌻 🌤️Phủ toàn bộ: Nền xanh ấm hái trà (#132A13), Menu đè màu gỗ nhạt ban mai.Hình ảnh & Hiệu ứng:Tách cà phê ☕ bốc khói hoặc Mặt trời 🌅 mọc siêu to góc chân trang.Tia nắng 🌤️ chiếu xiên qua màn hình cùng vài chú chim 🐦 vỗ cánh ngang qua.Màu chữ đối lập: Vàng kim rực rỡ (#FFD700).🎵 Bảng Khai Báo Âm Thanh Nền Chuẩn AI (Audio Manifest)Danh Mục Thời TiếtPhong Cách Âm Nhạc (BGM Style)Nguồn Âm Thanh Chuẩn (BGM Source / SFX)🌧️ Mùa MưaLofi Chill & Tiếng mưa rơi mái tôn/cửa kínhBGM: [https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg](https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg)SFX: Tiếng giọt nước rơi water_drop.ogg🌀 Mùa BãoDark Ambient Synth & Tiếng gió rít, sấm rềnBGM: [https://actions.google.com/sounds/v1/weather/heavy_wind_storm.ogg](https://actions.google.com/sounds/v1/weather/heavy_wind_storm.ogg)SFX: Tiếng sấm chớp thunder_heavy.ogg🌅 Buổi SángAcoustic Guitar nhẹ nhàng & Tiếng chim hót sương sớmBGM: [https://actions.google.com/sounds/v1/nature/morning_birds_acoustic.ogg](https://actions.google.com/sounds/v1/nature/morning_birds_acoustic.ogg)SFX: Tiếng ngụm cà phê/chim hót bird_chirp.ogg🛠️ Mã Cấu Hình AI Engine Khai Báo Cho 3 Mùa MớiJavaScript// Khai báo cấu hình âm thanh cho các giao diện thời tiết mới
+const weatherThemesAudio = {
+  rainy_season: {
+    bgmSource: "https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg",
+    sfxSource: "https://actions.google.com/sounds/v1/water/water_drop.ogg",
+    styleDescription: "Tiếng mưa rơi rào rạt kết hợp Lofi thư giãn"
+  },
+  stormy_season: {
+    bgmSource: "https://actions.google.com/sounds/v1/weather/heavy_wind_storm.ogg",
+    sfxSource: "https://actions.google.com/sounds/v1/weather/thunder_heavy.ogg",
+    styleDescription: "Âm thanh gió bão gầm hú và tiếng sấm rền kịch tính"
+  },
+  morning_chill: {
+    bgmSource: "https://actions.google.com/sounds/v1/nature/morning_birds_acoustic.ogg",
+    sfxSource: "https://actions.google.com/sounds/v1/nature/bird_chirp.ogg",
+    styleDescription: "Nhạc Acoustic buổi sáng trong lành kết hợp tiếng chim hót"
+  }
+};
+
+function playWeatherTheme(themeKey) {
+  const data = weatherThemesAudio[themeKey];
+  if (data) {
+    const audio = new Audio(data.bgmSource);
+    audio.loop = true;
+    audio.volume = 0.35;
+    audio.play();
+    console.log(`[AI Engine] Đang phát chủ đề: ${data.styleDescription}`);
+  }
+}===== recent errors =====
+[2026-08-22T02:11:49.034Z] {"timestamp":1787364707112,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T02:12:41.030Z] {"timestamp":1787364758987,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T02:12:41.030Z] {"timestamp":1787364758998,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T02:12:41.030Z] {"timestamp":1787364759121,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T02:15:52.069Z] {"timestamp":1787364950065,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T02:15:52.069Z] {"timestamp":1787364950069,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T02:15:52.069Z] {"timestamp":1787364950174,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T02:16:25.484Z] {"timestamp":1787364983465,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T02:16:25.484Z] {"timestamp":1787364983492,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T02:16:25.484Z] {"timestamp":1787364983648,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T02:17:01.653Z] {"timestamp":1787365019649,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T02:17:01.653Z] {"timestamp":1787365019660,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T02:17:01.653Z] {"timestamp":1787365019790,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T02:17:26.678Z] {"timestamp":1787365044595,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T02:17:26.678Z] {"timestamp":1787365044604,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T02:17:26.678Z] {"timestamp":1787365044735,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T02:28:11.567Z] {"timestamp":1787365689555,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T02:28:11.567Z] {"timestamp":1787365689662,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T02:28:11.567Z] {"timestamp":1787365691044,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T02:28:22.870Z] {"timestamp":1787365700866,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T02:28:22.870Z] {"timestamp":1787365700878,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T02:28:22.870Z] {"timestamp":1787365700996,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T02:29:47.997Z] {"timestamp":1787365785945,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T02:29:47.997Z] {"timestamp":1787365785953,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T02:29:47.997Z] {"timestamp":1787365786077,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T03:58:18.790Z] {"timestamp":1787371096773,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T03:58:18.790Z] {"timestamp":1787371096785,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T03:58:18.790Z] {"timestamp":1787371098561,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T04:08:24.987Z] {"timestamp":1787371702975,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T04:08:24.987Z] {"timestamp":1787371702988,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T04:08:24.987Z] {"timestamp":1787371704661,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T04:16:39.042Z] {"timestamp":1787372197027,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T04:16:39.042Z] {"timestamp":1787372197134,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T04:16:39.042Z] {"timestamp":1787372198630,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T04:16:39.105Z] {"timestamp":1787372197101,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T04:16:39.105Z] {"timestamp":1787372197883,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T04:16:39.105Z] {"timestamp":1787372198610,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+[2026-08-22T04:17:27.371Z] {"timestamp":1787372245332,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-08-22T04:17:27.371Z] {"timestamp":1787372245339,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-08-22T04:17:27.371Z] {"timestamp":1787372245451,"level":"INFO","args":["%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools","font-weight:bold"],"stack":null}
+
+===== KẾT QUẢ ĐỐI CHIẾU 2026-08-22 =====
+- pasted_content_5.txt lặp lại nguyên nhóm 3 theme thời tiết và audio của pasted_content_4.txt; không tạo yêu cầu mới.
+- pasted_content_4.txt gồm nhóm 3 theme thời tiết: rainy_season, stormy_season, morning_chill; cùng catalog audio ý tưởng 25 mục ở phần sau.
+- Các nguồn trước đó có chi tiết tinh chỉnh về mật độ, màu, vị trí và hiệu ứng; khi trùng theme phải ưu tiên bản gửi sau cùng, không cộng dồn chi tiết bị phủ định.
+- Audio URL cụ thể được cung cấp cho nhóm thời tiết và manifest tet/space/coffee; các mục còn lại chỉ có phong cách/tên file SFX, chưa có URL tải trực tiếp, nên chỉ dùng làm metadata và không tự tạo audio.
+- Danh sách scene hiện tại đã có nhiều theme, gồm diamondmine, f1race, candykingdom, travel, tropical và nhiều theme trước đó; còn thiếu các mục audio-catalog như pixel, pirate, sports, disco, laboratory, egypt, steampunk, art, ninja, coffee, ai, teddy nếu cần triển khai đầy đủ catalog.
+- Không đưa các đoạn JavaScript mẫu dùng innerHTML hoặc new Audio trực tiếp vào app React; chỉ tái sử dụng catalog/helper hiện có.

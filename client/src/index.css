@@ -1730,3 +1730,129 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root[data-ambient-scene="candykingdom"] #root > div.min-h-screen::before,
 :root[data-ambient-scene="travel"] #root > div.min-h-screen::before,
 :root[data-ambient-scene="tropical"] #root > div.min-h-screen::before { content:""; position:fixed; inset:0; z-index:54; pointer-events:none; opacity:.34; background:radial-gradient(circle at 85% 14%, color-mix(in srgb,var(--scene-accent-alt) 65%,transparent), transparent 16rem), linear-gradient(145deg, color-mix(in srgb,var(--scene-page-alt) 30%,transparent), transparent 54%); }
+
+/* Catalog mở rộng theo audit mới nhất: chỉ CSS/SVG/Emoji, không dùng ảnh có watermark. */
+:root[data-ambient-scene="rainy_season"] { --scene-page:#0f172a; --scene-page-alt:#1e293b; --scene-side:#334155; --scene-header:#263548; --scene-card:#243244; --scene-text:#fff59d; --scene-muted:#c8f7ff; --scene-border:#65c9d8; --scene-accent:#00e5ff; --scene-accent-alt:#ffed4a; --scene-button-text:#07111d; --scene-shadow:rgba(0,229,255,.2); }
+:root[data-ambient-scene="stormy_season"] { --scene-page:#090314; --scene-page-alt:#1e1232; --scene-side:#27203a; --scene-header:#1b122d; --scene-card:#2b2040; --scene-text:#f5ffff; --scene-muted:#c4eff7; --scene-border:#8b7cff; --scene-accent:#00f5ff; --scene-accent-alt:#d5ff3f; --scene-button-text:#080411; --scene-shadow:rgba(0,245,255,.2); }
+:root[data-ambient-scene="morning_chill"] { --scene-page:#132a13; --scene-page-alt:#254b2a; --scene-side:#3f5f3b; --scene-header:#314f32; --scene-card:#315337; --scene-text:#ffd700; --scene-muted:#f6f2bf; --scene-border:#d5b94a; --scene-accent:#ffbf00; --scene-accent-alt:#fff0a6; --scene-button-text:#1b260d; --scene-shadow:rgba(255,215,0,.18); }
+:root[data-ambient-scene="pixel"] { --scene-page:#15132e; --scene-page-alt:#30265b; --scene-side:#241e49; --scene-header:#2b2454; --scene-card:#33295f; --scene-text:#f7f4ff; --scene-muted:#d4ccff; --scene-border:#ffcf4a; --scene-accent:#ff4fd8; --scene-accent-alt:#41f6ff; --scene-button-text:#120d27; --scene-shadow:rgba(65,246,255,.22); }
+:root[data-ambient-scene="pirate"] { --scene-page:#102a3a; --scene-page-alt:#183c4e; --scene-side:#382717; --scene-header:#4a2e1b; --scene-card:#28465a; --scene-text:#ffe39a; --scene-muted:#d2f4ef; --scene-border:#d39b44; --scene-accent:#ef9b32; --scene-accent-alt:#43c8c4; --scene-button-text:#1a160d; --scene-shadow:rgba(239,155,50,.2); }
+:root[data-ambient-scene="sports"] { --scene-page:#0b3b27; --scene-page-alt:#145c3b; --scene-side:#123f2d; --scene-header:#0e5134; --scene-card:#1d6042; --scene-text:#fff9d6; --scene-muted:#c8f4d7; --scene-border:#f4d35e; --scene-accent:#e63946; --scene-accent-alt:#7ee081; --scene-button-text:#101b13; --scene-shadow:rgba(126,224,129,.2); }
+:root[data-ambient-scene="disco"] { --scene-page:#210b3c; --scene-page-alt:#4c125e; --scene-side:#2e124f; --scene-header:#45105c; --scene-card:#531a68; --scene-text:#fff9ff; --scene-muted:#f5c9ff; --scene-border:#ff57d1; --scene-accent:#00e5ff; --scene-accent-alt:#ffe45e; --scene-button-text:#16051e; --scene-shadow:rgba(255,87,209,.28); }
+:root[data-ambient-scene="laboratory"] { --scene-page:#102329; --scene-page-alt:#1e4142; --scene-side:#183137; --scene-header:#20424a; --scene-card:#26545a; --scene-text:#efffff; --scene-muted:#c7f2ed; --scene-border:#75e5c8; --scene-accent:#39ffc2; --scene-accent-alt:#caff5c; --scene-button-text:#08201b; --scene-shadow:rgba(57,255,194,.2); }
+:root[data-ambient-scene="egypt"] { --scene-page:#3b2510; --scene-page-alt:#70451b; --scene-side:#503019; --scene-header:#65401e; --scene-card:#825326; --scene-text:#fff4bf; --scene-muted:#ffe0a3; --scene-border:#e5b94c; --scene-accent:#ffcf4d; --scene-accent-alt:#e98b36; --scene-button-text:#281607; --scene-shadow:rgba(255,207,77,.2); }
+:root[data-ambient-scene="steampunk"] { --scene-page:#241b18; --scene-page-alt:#4b3023; --scene-side:#38251e; --scene-header:#503226; --scene-card:#5e3d2d; --scene-text:#fff0c2; --scene-muted:#e9cda0; --scene-border:#d49b4d; --scene-accent:#f0b35b; --scene-accent-alt:#65d3c3; --scene-button-text:#21130b; --scene-shadow:rgba(212,155,77,.25); }
+:root[data-ambient-scene="art"] { --scene-page:#24213e; --scene-page-alt:#5c3158; --scene-side:#33305a; --scene-header:#4d3564; --scene-card:#68406e; --scene-text:#fff8e8; --scene-muted:#f3d9e7; --scene-border:#ffb35c; --scene-accent:#ff6f91; --scene-accent-alt:#62e6c9; --scene-button-text:#201327; --scene-shadow:rgba(255,111,145,.22); }
+:root[data-ambient-scene="ninja"] { --scene-page:#0b1221; --scene-page-alt:#17263c; --scene-side:#111a2d; --scene-header:#16253e; --scene-card:#1d3150; --scene-text:#f4f8ff; --scene-muted:#c8d7eb; --scene-border:#6f9bd2; --scene-accent:#cf334d; --scene-accent-alt:#b9d8ff; --scene-button-text:#09101c; --scene-shadow:rgba(111,155,210,.2); }
+:root[data-ambient-scene="coffee"] { --scene-page:#291713; --scene-page-alt:#5a3020; --scene-side:#3d2119; --scene-header:#4a281d; --scene-card:#643a28; --scene-text:#fff4df; --scene-muted:#f2d0ad; --scene-border:#d5a15b; --scene-accent:#e7a34f; --scene-accent-alt:#9ed1bd; --scene-button-text:#25130d; --scene-shadow:rgba(231,163,79,.22); }
+:root[data-ambient-scene="ai"] { --scene-page:#071522; --scene-page-alt:#102e48; --scene-side:#0b2136; --scene-header:#103552; --scene-card:#164667; --scene-text:#effdff; --scene-muted:#bcebf2; --scene-border:#38d9ff; --scene-accent:#00f5ff; --scene-accent-alt:#c5ff4b; --scene-button-text:#03101a; --scene-shadow:rgba(0,245,255,.24); }
+:root[data-ambient-scene="teddy"] { --scene-page:#3b2233; --scene-page-alt:#74455b; --scene-side:#512d43; --scene-header:#633750; --scene-card:#81516a; --scene-text:#fff8f0; --scene-muted:#f8d9dd; --scene-border:#f3ad8c; --scene-accent:#ffc4d6; --scene-accent-alt:#ffd56a; --scene-button-text:#2b1420; --scene-shadow:rgba(255,196,214,.2); }
+:root[data-ambient-scene="rainy_season"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="stormy_season"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="morning_chill"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="pixel"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="pirate"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="sports"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="disco"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="laboratory"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="egypt"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="steampunk"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="art"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="ninja"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="coffee"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="ai"] #root > div.min-h-screen::before,
+:root[data-ambient-scene="teddy"] #root > div.min-h-screen::before { background: radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--scene-accent-alt) 24%, transparent), transparent 22%), linear-gradient(135deg, color-mix(in srgb, var(--scene-page) 90%, transparent), color-mix(in srgb, var(--scene-page-alt) 94%, transparent)); opacity:.96; }
+:root[data-ambient-scene="rainy_season"] #root > div.min-h-screen::after { content:"☔  💧  💧  💧"; background: repeating-linear-gradient(110deg, transparent 0 48px, rgba(134,239,255,.28) 49px 50px, transparent 51px 92px); color:#d5fbff; }
+:root[data-ambient-scene="stormy_season"] #root > div.min-h-screen::after { content:"🌩️  ⚡"; color:#eaff70; text-shadow:0 0 20px #00e5ff; }
+:root[data-ambient-scene="morning_chill"] #root > div.min-h-screen::after { content:"🌅  ☕  🐦"; color:#ffe27a; text-shadow:0 0 18px #ffd700; }
+:root[data-ambient-scene="pixel"] #root > div.min-h-screen::after { content:"🎮  ✦  🟪  🟦"; color:#7ffaff; text-shadow:0 0 12px #ff4fd8; }
+:root[data-ambient-scene="pirate"] #root > div.min-h-screen::after { content:"🏴‍☠️  ⚓  🗺️"; color:#ffe39a; }
+:root[data-ambient-scene="sports"] #root > div.min-h-screen::after { content:"⚽  🏆  🏁"; color:#fff09a; }
+:root[data-ambient-scene="disco"] #root > div.min-h-screen::after { content:"🎵  🪩  ✨"; color:#ffb3ef; text-shadow:0 0 18px #00e5ff; }
+:root[data-ambient-scene="laboratory"] #root > div.min-h-screen::after { content:"🧪  ⚗️  ✦"; color:#aaffdc; }
+:root[data-ambient-scene="egypt"] #root > div.min-h-screen::after { content:"𓂀  🐫  ☀️"; color:#ffe18b; }
+:root[data-ambient-scene="steampunk"] #root > div.min-h-screen::after { content:"⚙️  🛠️  ♨️"; color:#ffd083; }
+:root[data-ambient-scene="art"] #root > div.min-h-screen::after { content:"🎨  🖌️  ✦"; color:#ffd1e1; }
+:root[data-ambient-scene="ninja"] #root > div.min-h-screen::after { content:"🥷  🌙  ✦"; color:#cbe5ff; }
+:root[data-ambient-scene="coffee"] #root > div.min-h-screen::after { content:"☕  ♨️  ☕"; color:#ffe3b5; }
+:root[data-ambient-scene="ai"] #root > div.min-h-screen::after { content:"🤖  </>  0101"; color:#9dffff; }
+:root[data-ambient-scene="teddy"] #root > div.min-h-screen::after { content:"🧸  🧸  ✦"; color:#ffe0ea; }
+:root[data-ambient-scene="rainy_season"] body,
+:root[data-ambient-scene="stormy_season"] body,
+:root[data-ambient-scene="morning_chill"] body,
+:root[data-ambient-scene="pixel"] body,
+:root[data-ambient-scene="pirate"] body,
+:root[data-ambient-scene="sports"] body,
+:root[data-ambient-scene="disco"] body,
+:root[data-ambient-scene="laboratory"] body,
+:root[data-ambient-scene="egypt"] body,
+:root[data-ambient-scene="steampunk"] body,
+:root[data-ambient-scene="art"] body,
+:root[data-ambient-scene="ninja"] body,
+:root[data-ambient-scene="coffee"] body,
+:root[data-ambient-scene="ai"] body,
+:root[data-ambient-scene="teddy"] body { background: linear-gradient(135deg, var(--scene-page), var(--scene-page-alt)) !important; color: var(--scene-text) !important; }
+:root[data-ambient-scene="rainy_season"] #root > div.min-h-screen,
+:root[data-ambient-scene="stormy_season"] #root > div.min-h-screen,
+:root[data-ambient-scene="morning_chill"] #root > div.min-h-screen,
+:root[data-ambient-scene="pixel"] #root > div.min-h-screen,
+:root[data-ambient-scene="pirate"] #root > div.min-h-screen,
+:root[data-ambient-scene="sports"] #root > div.min-h-screen,
+:root[data-ambient-scene="disco"] #root > div.min-h-screen,
+:root[data-ambient-scene="laboratory"] #root > div.min-h-screen,
+:root[data-ambient-scene="egypt"] #root > div.min-h-screen,
+:root[data-ambient-scene="steampunk"] #root > div.min-h-screen,
+:root[data-ambient-scene="art"] #root > div.min-h-screen,
+:root[data-ambient-scene="ninja"] #root > div.min-h-screen,
+:root[data-ambient-scene="coffee"] #root > div.min-h-screen,
+:root[data-ambient-scene="ai"] #root > div.min-h-screen,
+:root[data-ambient-scene="teddy"] #root > div.min-h-screen { color:var(--scene-text) !important; background:linear-gradient(135deg,var(--scene-page),var(--scene-page-alt)) !important; }
+:root[data-ambient-scene="rainy_season"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="stormy_season"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="morning_chill"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="pixel"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="pirate"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="sports"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="disco"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="laboratory"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="egypt"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="steampunk"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="art"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="ninja"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="coffee"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="ai"] #root > div.min-h-screen::after,
+:root[data-ambient-scene="teddy"] #root > div.min-h-screen::after { position:fixed; inset:0; z-index:54; display:flex; align-items:flex-end; justify-content:flex-end; gap:.5rem; padding:1.25rem 2rem; pointer-events:none; font-size:clamp(1.5rem,4vw,3.8rem); letter-spacing:.15em; opacity:.78; }
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-ambient-scene="rainy_season"] #root > div.min-h-screen::after { animation: global-rain 1.7s linear infinite; }
+  :root[data-ambient-scene="stormy_season"] #root > div.min-h-screen::after { animation: storm-flash 7s steps(1,end) infinite; }
+}
+:root[data-ambient-scene="rainy_season"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="stormy_season"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="morning_chill"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="pixel"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="pirate"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="sports"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="disco"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="laboratory"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="egypt"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="steampunk"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="art"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="ninja"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="coffee"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="ai"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]),
+:root[data-ambient-scene="teddy"] :is(.panel,.study-card,.emotion-studio,.pomodoro-journey,article,section,[class*="bg-white"],[class*="bg-[#"]) { background-color:color-mix(in srgb,var(--scene-card) 94%,transparent) !important; color:var(--scene-text) !important; border-color:color-mix(in srgb,var(--scene-border) 60%,transparent) !important; box-shadow:0 14px 34px var(--scene-shadow) !important; }
+:root[data-ambient-scene="rainy_season"] :is(input,textarea,select),
+:root[data-ambient-scene="stormy_season"] :is(input,textarea,select),
+:root[data-ambient-scene="morning_chill"] :is(input,textarea,select),
+:root[data-ambient-scene="pixel"] :is(input,textarea,select),
+:root[data-ambient-scene="pirate"] :is(input,textarea,select),
+:root[data-ambient-scene="sports"] :is(input,textarea,select),
+:root[data-ambient-scene="disco"] :is(input,textarea,select),
+:root[data-ambient-scene="laboratory"] :is(input,textarea,select),
+:root[data-ambient-scene="egypt"] :is(input,textarea,select),
+:root[data-ambient-scene="steampunk"] :is(input,textarea,select),
+:root[data-ambient-scene="art"] :is(input,textarea,select),
+:root[data-ambient-scene="ninja"] :is(input,textarea,select),
+:root[data-ambient-scene="coffee"] :is(input,textarea,select),
+:root[data-ambient-scene="ai"] :is(input,textarea,select),
+:root[data-ambient-scene="teddy"] :is(input,textarea,select) { background:var(--scene-card) !important; color:var(--scene-text) !important; border-color:var(--scene-border) !important; }
