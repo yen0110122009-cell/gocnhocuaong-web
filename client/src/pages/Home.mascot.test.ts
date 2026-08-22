@@ -23,13 +23,13 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
 
   it("để linh vật đi dạo trong viewport nhưng không chặn menu hoặc thao tác học", () => {
     expect(source).toContain('hidden={view === "appearance"}');
-    expect(source).toContain("if (!pet) return null;");
+    expect(source).toContain("if (!pet || hidden) return null;");
     expect(source).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
     expect(source).toContain("if (!pet || !roamingEnabled || dragging || reducedMotion) return;");
-    expect(source).toContain('className="pointer-events-none fixed inset-0 z-[90]"');
+    expect(source).toContain('className="pointer-events-none fixed inset-0 z-[25]"');
     expect(source).toContain('"pointer-events-auto absolute');
-    expect(source).toContain("Math.max(8, Math.min(92");
-    expect(source).toContain("Math.max(18, Math.min(84");
+    expect(source).toContain("Math.max(8, Math.min(90");
+    expect(source).toContain("Math.max(5, Math.min(95");
     expect(source).toContain("appearanceEmojiPet: { ...pet, x: draft.x, y: draft.y, roam: true, roamingEnabled: true }");
   });
 

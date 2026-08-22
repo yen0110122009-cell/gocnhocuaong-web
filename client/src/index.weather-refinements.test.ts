@@ -57,8 +57,8 @@ describe("tinh chỉnh cảnh mưa, lá rơi, tuyết và dark mode theo mùa", 
     expect(css).toContain("34rem 14.5rem");
   });
 
-  it("thêm điểm nhấn nắng và chim cho Buổi sáng", () => {
-    expect(css).toContain('data-ambient-scene="morning"] body::before');
-    expect(css).toContain("morning-sunrise-breathe");
+  it("không còn lớp mặt trời/chim legacy của nền mặc định", () => {
+    expect(css).not.toContain("morning-sunrise-breathe");
+    expect(css).not.toContain('data-ambient-scene="morning"] body::before');
   });
 });

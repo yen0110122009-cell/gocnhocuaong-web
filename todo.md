@@ -280,3 +280,24 @@
 - [x] Hiển thị nguồn audio, volume mặc định và điều khiển nghe thử/bật tắt đúng theo từng theme.
 - [x] Bổ sung regression, chạy TypeScript, full Vitest, build và responsive smoke.
 - [x] Đọc lại TODO và lưu checkpoint phát hành sau khi hoàn tất.
+
+
+## Xóa ảnh hưởng nền legacy còn sót
+- [x] Truy vết background, pseudo-element, gradient, overlay và component scene cũ còn tác động lên nền hiện tại.
+- [x] Xóa nguồn legacy gây ảnh hưởng, bảo đảm nền mặc định sạch và scene đang chọn chỉ áp dụng đúng lớp của nó.
+- [x] Bổ sung regression chống nền/overlay cũ quay lại và xác minh tương phản, responsive, TypeScript, test, build.
+- [x] Đọc lại TODO và lưu checkpoint phát hành bản sửa.
+
+
+## Sửa overlay trắng và bố cục menu
+- [x] Truy vết lớp phủ trắng xuất hiện khi chọn/thử scene mới và xác định nguồn CSS/component tạo lớp phủ.
+- [x] Sửa z-index, pointer-events và trạng thái overlay để preview scene không khóa toàn màn hình hoặc chặn thao tác.
+- [x] Khôi phục bố cục menu/header để luôn nằm đúng trong shell, dễ truy cập khi cuộn và không bị tách khỏi nội dung.
+- [x] Bổ sung regression cho overlay scene và cấu trúc menu; kiểm tra desktop/mobile, full test, build và lưu checkpoint.
+
+
+## Sửa lỗi tái diễn linh vật và menu
+- [x] Kiểm tra tương tác thực tế để xác định vì sao linh vật vẫn bị giới hạn chuyển động hoặc bị lớp khác che.
+- [x] Kiểm tra cấu trúc sidebar/header/inset và trạng thái cuộn để xác định vì sao menu bị tách khỏi nội dung.
+- [x] Sửa linh vật tự di chuyển và kéo thả tự do trên viewport, đồng thời sửa shell menu/header theo một layout nhất quán.
+- [x] Viết regression hành vi, kiểm tra desktop/mobile và lưu checkpoint sau khi xác minh.

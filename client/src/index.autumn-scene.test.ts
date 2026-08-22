@@ -7,7 +7,7 @@ describe("cảnh Lá rơi mùa thu", () => {
 
   it("có tán lá và lá tích trên lớp nền cố định", () => {
     expect(css).toContain(':root[data-ambient-scene="leaves"] #root > div.min-h-screen::before');
-    expect(css).toContain('study-scene-leaves_bb6c6f6c.jpg');
+    expect(css).not.toContain('study-scene-leaves_bb6c6f6c.jpg');
     expect(css).toContain('radial-gradient(ellipse 18% 6% at 7% 101%');
   });
 

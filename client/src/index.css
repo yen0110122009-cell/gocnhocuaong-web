@@ -576,7 +576,6 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
 
 /* Thời tiết là lớp cảnh cố định toàn trang, không che thao tác và vẫn tồn tại khi cuộn. */
 :root[data-ambient-scene] #root > div.min-h-screen::before { content: ""; position: fixed; inset: 0; z-index: 19; pointer-events: none; opacity: .42; }
-:root[data-ambient-scene="morning"] #root > div.min-h-screen::before { background: radial-gradient(circle at 84% 12%, rgba(255, 213, 80, .9) 0 2.8rem, rgba(255, 227, 135, .24) 2.9rem 8rem, transparent 8.1rem), radial-gradient(ellipse at 12% 74%, rgba(51, 116, 55, .5) 0 5rem, transparent 5.2rem), linear-gradient(175deg, transparent 0 67%, rgba(83, 138, 69, .22) 68% 100%); }
 :root[data-ambient-scene="rain"] #root > div.min-h-screen::before { background: radial-gradient(ellipse at 80% 12%, rgba(31, 42, 54, .76) 0 16%, transparent 17%), radial-gradient(ellipse at 22% 8%, rgba(58, 68, 78, .62) 0 18%, transparent 19%), repeating-linear-gradient(112deg, transparent 0 31px, rgba(81, 145, 184, .38) 32px 34px, transparent 35px 64px); animation: global-rain 1.2s linear infinite; }
 :root[data-ambient-scene="snow"] #root > div.min-h-screen::before { background: radial-gradient(circle at 78% 18%, rgba(255,255,255,.92) 0 3px, transparent 4px), radial-gradient(circle at 20% 36%, rgba(255,255,255,.84) 0 4px, transparent 5px), radial-gradient(ellipse at 86% 94%, rgba(231,241,249,.96) 0 12%, transparent 13%), radial-gradient(ellipse at 8% 92%, rgba(224,237,247,.96) 0 15%, transparent 16%); background-size: 83px 92px, 57px 72px, auto, auto; animation: global-snow 6s linear infinite; }
 :root[data-ambient-scene="leaves"] #root > div.min-h-screen::before { background: radial-gradient(ellipse at 94% 8%, rgba(116, 70, 26, .55) 0 10%, transparent 10.5%), radial-gradient(ellipse at 88% 12%, rgba(210, 129, 34, .86) 0 1.2rem, transparent 1.3rem), radial-gradient(ellipse at 78% 30%, rgba(192, 72, 35, .78) 0 .55rem, transparent .65rem), radial-gradient(ellipse at 20% 82%, rgba(214, 133, 36, .62) 0 12%, transparent 13%); animation: leaf-drift 9s linear infinite; }
@@ -588,15 +587,13 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
 
 
 /* Asset minh họa thật cho các cảnh thời tiết; animation gradient vẫn phủ lên trên để tạo chiều sâu. */
-:root[data-ambient-scene="morning"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(255,249,220,.16), rgba(227,246,228,.26)), url("/manus-storage/study-scene-morning_f6b8968e.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; }
-:root[data-ambient-scene="rain"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(30,42,55,.32), rgba(46,67,80,.25)), url("/manus-storage/study-scene-rain_8224ae90.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; background-blend-mode: multiply; }
-:root[data-ambient-scene="snow"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(217,236,250,.18), rgba(225,240,250,.32)), url("/manus-storage/study-scene-snow_7068a43f.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; }
-:root[data-ambient-scene="leaves"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(255,232,180,.18), rgba(126,76,35,.2)), url("/manus-storage/study-scene-leaves_bb6c6f6c.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; }
-:root[data-ambient-scene="storm"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(21,28,40,.42), rgba(40,53,66,.32)), url("/manus-storage/study-scene-storm_0f557d3d.jpg"); background-size: cover; background-position: center; background-repeat: no-repeat; background-blend-mode: multiply; }
+:root[data-ambient-scene="rain"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(30,42,55,.32), rgba(46,67,80,.25)), none; background-size: cover; background-position: center; background-repeat: no-repeat; background-blend-mode: multiply; }
+:root[data-ambient-scene="snow"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(217,236,250,.18), rgba(225,240,250,.32)), none; background-size: cover; background-position: center; background-repeat: no-repeat; }
+:root[data-ambient-scene="leaves"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(255,232,180,.18), rgba(126,76,35,.2)), none; background-size: cover; background-position: center; background-repeat: no-repeat; }
+:root[data-ambient-scene="storm"] #root > div.min-h-screen::before { background-image: linear-gradient(rgba(21,28,40,.42), rgba(40,53,66,.32)), none; background-size: cover; background-position: center; background-repeat: no-repeat; background-blend-mode: multiply; }
 .dark #root > div.min-h-screen::before { opacity: .34; }
 
 /* Chuyển động cảnh quan nhẹ, vẫn giữ ảnh minh họa cố định khi cuộn. */
-:root[data-ambient-scene="morning"] #root > div.min-h-screen::before,
 :root[data-ambient-scene="rain"] #root > div.min-h-screen::before,
 :root[data-ambient-scene="snow"] #root > div.min-h-screen::before,
 :root[data-ambient-scene="leaves"] #root > div.min-h-screen::before,
@@ -604,7 +601,6 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
   animation: scene-landscape-breathe 18s ease-in-out infinite alternate;
   transform-origin: center center;
 }
-:root[data-ambient-scene="morning"] #root > div.min-h-screen::before { animation-duration: 20s; }
 :root[data-ambient-scene="snow"] #root > div.min-h-screen::before { animation-duration: 24s; }
 :root[data-ambient-scene="leaves"] #root > div.min-h-screen::before { animation-duration: 16s; }
 @keyframes scene-landscape-breathe {
@@ -625,7 +621,7 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
     radial-gradient(ellipse 38% 10% at 41% 102%, rgba(236, 246, 255, .98) 0 64%, transparent 66%),
     radial-gradient(ellipse 34% 9% at 88% 101%, rgba(248, 253, 255, .99) 0 64%, transparent 66%),
     linear-gradient(rgba(217, 236, 250, .12), rgba(225, 240, 250, .22)),
-    url("/manus-storage/study-scene-snow_7068a43f.jpg");
+    none;
   background-size: auto, auto, auto, cover, cover;
   background-position: left bottom, center bottom, right bottom, center, center;
   background-repeat: no-repeat;
@@ -679,7 +675,7 @@ button[class*="bg-emerald"], button[class*="bg-green"], .semantic-positive { bac
     radial-gradient(ellipse 38% 20% at 0% 0%, rgba(210, 103, 25, .36) 0 27%, transparent 28%),
     radial-gradient(ellipse 29% 17% at 100% 0%, rgba(245, 181, 44, .4) 0 27%, transparent 28%),
     linear-gradient(145deg, rgba(255, 236, 174, .22), rgba(126, 76, 35, .18)),
-    url("/manus-storage/study-scene-leaves_bb6c6f6c.jpg");
+    none;
   background-size: auto, auto, auto, auto, auto, auto, cover, cover;
   background-position: left bottom, 27% bottom, 58% bottom, right bottom, left top, right top, center, center;
   background-repeat: no-repeat;
@@ -1256,27 +1252,6 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   filter: drop-shadow(0 -3px 5px rgba(87, 23, 17, .18));
 }
 
-/* Buổi sáng: mặt trời có tia, chim bay thưa, tán cây và sương ở đáy viewport. */
-:root[data-ambient-scene="morning"] body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 54;
-  pointer-events: none;
-  opacity: .76;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 100'%3E%3Cpath d='M18 42q10-13 20 0 10-13 20 0M100 25q8-11 16 0 8-11 16 0M158 48q9-12 18 0 9-12 18 0' fill='none' stroke='%2351704f' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"),
-    radial-gradient(circle at 86% 13%, rgba(255, 205, 59, .98) 0 3.25rem, rgba(255, 226, 122, .44) 3.3rem 8.1rem, transparent 8.2rem),
-    repeating-conic-gradient(from -18deg at 86% 13%, rgba(255, 251, 210, .26) 0 4deg, transparent 5deg 13deg),
-    radial-gradient(ellipse at 13% 100%, rgba(45, 111, 66, .52) 0 16%, transparent 16.5%),
-    linear-gradient(180deg, rgba(255, 248, 209, .08), rgba(230, 248, 233, .25) 74%, rgba(191, 224, 198, .36));
-  background-size: 20rem 9rem, auto, auto, auto, cover;
-  background-position: 8% 18%, center, center, left bottom, center;
-  background-repeat: no-repeat;
-  animation: morning-sunrise-breathe 16s ease-in-out infinite alternate;
-}
-@keyframes morning-sunrise-breathe { from { opacity: .62; } to { opacity: .9; } }
-
 /* Emoji hệ thống giúp người tuyết thân thiện và rõ nét hơn thay cho hình SVG vẽ tay. */
 :root[data-ambient-scene="snow"] body::after {
   content: "⛄";
@@ -1302,12 +1277,10 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 @media (max-width: 767px) {
   :root[data-ambient-scene="tet"] body::after { height: 5.25rem; }
   :root[data-ambient-scene="halloween"] body::after { height: 5.8rem; }
-  :root[data-ambient-scene="morning"] body::before { background-size: 14rem 6.4rem, auto, auto, auto, cover; background-position: 4% 21%, center, center, left bottom, center; }
   :root[data-ambient-scene="snow"] body::after { font-size: 4.3rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root[data-ambient-scene="morning"] body::before,
   :root[data-ambient-scene="spring"] #root > div.min-h-screen::after { animation: none !important; }
 }
 
@@ -1493,6 +1466,30 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 @media (prefers-reduced-motion: reduce) {
   :root[data-ambient-scene="leaves"] body::before { text-shadow: 0 .12rem 0 #b6542e, .22rem -.15rem 0 #ea9d31; }
 }
+
+/* Regression guard: scene decorations must never become a full-screen interaction layer. */
+:root[data-ambient-scene] body::before,
+:root[data-ambient-scene] body::after,
+:root[data-ambient-scene] #root > div.min-h-screen::before,
+:root[data-ambient-scene] #root > div.min-h-screen::after {
+  pointer-events: none !important;
+}
+:root[data-ambient-scene] #root > div.min-h-screen {
+  position: relative;
+  isolation: isolate;
+}
+:root[data-ambient-scene] #root > div.min-h-screen::before,
+:root[data-ambient-scene] #root > div.min-h-screen::after {
+  z-index: 0 !important;
+}
+:root[data-ambient-scene] #root > div.min-h-screen > aside {
+  position: fixed;
+  z-index: 50;
+}
+:root[data-ambient-scene] #root > div.min-h-screen > button {
+  z-index: 40;
+}
+
 
 /* Sa mạc/Cảnh đêm: token riêng và lớp phủ fixed phủ qua nội dung nhưng không chặn thao tác. */
 :root[data-ambient-scene="desert"] { --scene-page:#f4d5a2; --scene-page-alt:#f7e2bd; --scene-side:#8a4d24; --scene-header:#c87630; --scene-card:#fff4df; --scene-text:#553314; --scene-muted:#805127; --scene-border:#c7833e; --scene-accent:#9d5223; --scene-accent-alt:#e6ad4b; }
