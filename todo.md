@@ -112,3 +112,8 @@
 - [x] Hoàn thiện CTA thủ công riêng cho focus→break và break→focus, đồng thời ghi/khôi phục transition mode trong persistence.
 - [x] Bổ sung regression khẳng định previewEvent chỉ phát alert events, không gọi background playback, và Pomodoro không còn ambient UI cũ.
 - [x] Chạy responsive smoke riêng cho Pomodoro sau refactor và chỉ đánh dấu phát hành sau checkpoint mới.
+
+## Cải thiện mini-player Pomodoro ghim
+- [x] Đổi nền mini-player ghim khỏi màu navy quá tối sang palette sáng/trung tính dễ chịu.
+- [x] Tăng tương phản cho tiêu đề, thời gian, trạng thái và nút điều khiển; bảo đảm đọc rõ khi scene thay đổi.
+- [x] Bổ sung regression và kiểm tra responsive cho mini-player sau khi chỉnh style.

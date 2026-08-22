@@ -11,6 +11,14 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("aria-label={audioUnlocked ?");
   });
 
+  it("uses a light, readable palette for the pinned mini-player", () => {
+    expect(source).toContain("bg-[linear-gradient(135deg,#fffdf8_0%,#eff9f0_100%)]");
+    expect(source).toContain("text-slate-900 shadow-2xl");
+    expect(source).toContain('text-emerald-800">Pomodoro đang chạy');
+    expect(source).toContain('text-slate-700">{modeLabels[mode]}');
+    expect(source).toContain("text-emerald-800 hover:bg-emerald-100");
+  });
+
   it("keeps restore confirmation and a smooth visual feedback state", () => {
     expect(source).toContain("Đã khôi phục phiên Pomodoro đang chạy.");
     expect(source).toContain("pomodoro-starting");
