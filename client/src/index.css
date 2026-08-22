@@ -138,6 +138,10 @@ html[data-popups="off"] [data-sonner-toaster] { display: none !important; }
   100% { opacity: 1; transform: translateY(0) scale(1); filter: saturate(1) blur(0); }
 }
 
+body:has(#root > main)::before,
+body:has(#root > main)::after { content: none !important; display: none !important; background: none !important; animation: none !important; opacity: 0 !important; pointer-events: none !important; }
+body:has(#root > main) { background: #fffdf8 !important; }
+
 @media (forced-colors: active) {
   button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid CanvasText; outline-offset: 3px; }
 }
@@ -189,15 +193,15 @@ html[data-popups="off"] [data-sonner-toaster] { display: none !important; }
   --emotion-green-bright: #43a047;
   --emotion-cream: #fff7f2;
 }
-body { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 52%, #fff7f2 100%); }
-#root > div.min-h-screen { background: linear-gradient(135deg, #fff7f2 0%, #f5fff5 58%, #fff7f2 100%) !important; }
+body { background: #fffdf8; }
+#root > div.min-h-screen { background: #fffdf8 !important; }
 #root > div.min-h-screen > aside { background: linear-gradient(180deg, rgba(255,247,242,.98), rgba(245,255,245,.98)) !important; border-right-color: rgba(46,125,50,.22) !important; }
 #root > div.min-h-screen header { background: rgba(255,247,242,.94) !important; border-bottom-color: rgba(198,40,40,.18) !important; }
 .emotion-studio { box-shadow: 0 16px 40px rgba(198,40,40,.09), 0 8px 25px rgba(46,125,50,.08); }
 
 /* Cảm xúc đang chọn thay bảng màu ở lớp ứng dụng, không chỉ riêng card lựa chọn. */
-:root[data-emotion] body { background: radial-gradient(circle at 14% 8%, color-mix(in srgb, var(--emotion-glow) 58%, transparent), transparent 34%), linear-gradient(135deg, var(--emotion-soft), #fff 58%, var(--emotion-soft)) !important; }
-:root[data-emotion] #root > div.min-h-screen { background: linear-gradient(135deg, color-mix(in srgb, var(--emotion-soft) 92%, white), #fff 56%, color-mix(in srgb, var(--emotion-glow) 20%, white)) !important; }
+:root[data-emotion] body { background: var(--emotion-soft, #fffdf8) !important; }
+:root[data-emotion] #root > div.min-h-screen { background: var(--emotion-soft, #fffdf8) !important; }
 :root[data-emotion] #root > div.min-h-screen > aside { background: linear-gradient(180deg, color-mix(in srgb, var(--emotion-soft) 94%, white), color-mix(in srgb, var(--emotion-glow) 16%, white)) !important; border-right-color: color-mix(in srgb, var(--emotion-secondary) 28%, transparent) !important; }
 :root[data-emotion] #root > div.min-h-screen header { background: color-mix(in srgb, var(--emotion-soft) 88%, white) !important; border-bottom-color: color-mix(in srgb, var(--emotion-primary) 22%, transparent) !important; }
 :root[data-emotion] .panel, :root[data-emotion] .study-card { border-color: color-mix(in srgb, var(--emotion-primary) 18%, #ead8c4) !important; }
@@ -1883,39 +1887,39 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   opacity: .16 !important;
   color: var(--scene-accent-alt) !important;
 }
-/* Overlay accessibility guard: decorations stay visible but never wash out text or controls. */
-:root[data-ambient-scene] #root > div.min-h-screen::before { opacity: .14 !important; pointer-events: none !important; }
-:root[data-ambient-scene] #root > div.min-h-screen::after { opacity: .24 !important; pointer-events: none !important; mix-blend-mode: normal !important; }
+/* Legacy full-screen overlays are removed: scene tokens remain, but stale veils and sunlight cannot cover the shell. */
+:root[data-ambient-scene] #root > div.min-h-screen::before,
+:root[data-ambient-scene] #root > div.min-h-screen::after { content: none !important; display: none !important; opacity: 0 !important; pointer-events: none !important; background: none !important; }
 :root[data-ambient-scene] #root > div.min-h-screen > * { position: relative; z-index: 1; }
 
 /* pasted_content_6 scenes: visual aliases use light decoration only; no opaque full-screen veil. */
-::root[data-ambient-scene="spring-blossom"],
-::root[data-ambient-scene="summer-beach"],
-::root[data-ambient-scene="autumn-leave"],
-::root[data-ambient-scene="winter-snow"],
-::root[data-ambient-scene="halloween-spooky"],
-::root[data-ambient-scene="lunar-new-year"],
-::root[data-ambient-scene="thunder-storm"],
-::root[data-ambient-scene="rainy-day"],
-::root[data-ambient-scene="sunny-day"],
-::root[data-ambient-scene="foggy-morning"] { --scene-page: #eef6f5; --scene-page-alt: #c8e6e3; --scene-side: #23605e; --scene-card: #f8fffe; --scene-text: #173638; --scene-border: #77aaa5; --scene-accent: #d97745; --scene-accent-alt: #2c8c85; --scene-shadow: rgb(23 54 56 / .16); }
-::root[data-ambient-scene="spring-blossom"],
-::root[data-ambient-scene="summer-beach"],
-::root[data-ambient-scene="autumn-leave"],
-::root[data-ambient-scene="winter-snow"],
-::root[data-ambient-scene="halloween-spooky"],
-::root[data-ambient-scene="lunar-new-year"],
-::root[data-ambient-scene="thunder-storm"],
-::root[data-ambient-scene="rainy-day"],
-::root[data-ambient-scene="sunny-day"],
-::root[data-ambient-scene="foggy-morning"] #root > div.min-h-screen::before { opacity: .05 !important; pointer-events: none !important; }
-::root[data-ambient-scene="spring-blossom"],
-::root[data-ambient-scene="summer-beach"],
-::root[data-ambient-scene="autumn-leave"],
-::root[data-ambient-scene="winter-snow"],
-::root[data-ambient-scene="halloween-spooky"],
-::root[data-ambient-scene="lunar-new-year"],
-::root[data-ambient-scene="thunder-storm"],
-::root[data-ambient-scene="rainy-day"],
-::root[data-ambient-scene="sunny-day"],
-::root[data-ambient-scene="foggy-morning"] #root > div.min-h-screen::after { opacity: .10 !important; pointer-events: none !important; mix-blend-mode: normal !important; }
+:root[data-ambient-scene="spring-blossom"],
+:root[data-ambient-scene="summer-beach"],
+:root[data-ambient-scene="autumn-leave"],
+:root[data-ambient-scene="winter-snow"],
+:root[data-ambient-scene="halloween-spooky"],
+:root[data-ambient-scene="lunar-new-year"],
+:root[data-ambient-scene="thunder-storm"],
+:root[data-ambient-scene="rainy-day"],
+:root[data-ambient-scene="sunny-day"],
+:root[data-ambient-scene="foggy-morning"] { --scene-page: #eef6f5; --scene-page-alt: #c8e6e3; --scene-side: #23605e; --scene-card: #f8fffe; --scene-text: #173638; --scene-border: #77aaa5; --scene-accent: #d97745; --scene-accent-alt: #2c8c85; --scene-shadow: rgb(23 54 56 / .16); }
+:root[data-ambient-scene="spring-blossom"],
+:root[data-ambient-scene="summer-beach"],
+:root[data-ambient-scene="autumn-leave"],
+:root[data-ambient-scene="winter-snow"],
+:root[data-ambient-scene="halloween-spooky"],
+:root[data-ambient-scene="lunar-new-year"],
+:root[data-ambient-scene="thunder-storm"],
+:root[data-ambient-scene="rainy-day"],
+:root[data-ambient-scene="sunny-day"],
+:root[data-ambient-scene="foggy-morning"] #root > div.min-h-screen::before { opacity: .05 !important; pointer-events: none !important; }
+:root[data-ambient-scene="spring-blossom"],
+:root[data-ambient-scene="summer-beach"],
+:root[data-ambient-scene="autumn-leave"],
+:root[data-ambient-scene="winter-snow"],
+:root[data-ambient-scene="halloween-spooky"],
+:root[data-ambient-scene="lunar-new-year"],
+:root[data-ambient-scene="thunder-storm"],
+:root[data-ambient-scene="rainy-day"],
+:root[data-ambient-scene="sunny-day"],
+:root[data-ambient-scene="foggy-morning"] #root > div.min-h-screen::after { opacity: .10 !important; pointer-events: none !important; mix-blend-mode: normal !important; }

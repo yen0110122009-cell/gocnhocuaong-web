@@ -220,3 +220,17 @@
 - [x] Bổ sung regression cho audio playback flow và token scene space.
 - [x] Chạy test, TypeScript, build, responsive smoke và lưu checkpoint.
 - [x] Khắc phục lỗi Babel `Expecting Unicode escape sequence` tại Home.tsx phát hiện sau khi đọc pasted_content_6.
+
+## Theme mới theo ảnh tham chiếu dark nâu–đỏ
+- [ ] Đối chiếu ảnh tham chiếu với shell hiện tại: sidebar, thẻ cấp độ, thanh tìm kiếm, nút sáng/âm thanh và avatar Ong.
+- [ ] Thêm theme dark nâu–đỏ bằng token nền/menu/card/panel/chữ/border tương phản cao, không dùng ảnh watermark.
+- [ ] Sửa lỗi hiển thị linh vật Ong: kích thước, vị trí, nhãn trạng thái và pointer-events không che thao tác.
+- [ ] Bảo đảm overlay theme mới nhẹ, không che nội dung/menu và tôn trọng reduced-motion.
+- [ ] Bổ sung regression cho theme, linh vật, contrast và responsive; chạy test, TypeScript, build và lưu checkpoint.
+
+## Dọn nền cũ lỗi và sửa audio theme
+- [x] Kiểm kê các overlay, ánh nắng và hiệu ứng nền cũ còn được render ngoài theme đang chọn.
+- [x] Xóa dứt điểm các lớp nền/hiệu ứng cũ bị lỗi thay vì tiếp tục chồng thêm bản vá.
+- [x] Khôi phục nền mặc định sạch, không còn ánh nắng hoặc hiệu ứng sót từ scene trước.
+- [x] Sửa audio theme để khi mở/chọn giao diện, nguồn audio được khởi tạo và phát sau gesture người dùng.
+- [x] Bổ sung regression cho việc không còn overlay cũ và audio playback; chạy test, TypeScript, build, responsive và lưu checkpoint.

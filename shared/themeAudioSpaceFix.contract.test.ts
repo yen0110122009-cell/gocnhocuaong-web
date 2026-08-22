@@ -18,9 +18,9 @@ describe("theme audio and space scene fix", () => {
 
   it("keeps the Space scene visible without a dark full-screen veil", () => {
     expect(css).toContain(':root[data-ambient-scene="space"] #root > div.min-h-screen');
-    expect(css).toContain(':root[data-ambient-scene="space"] #root > div.min-h-screen::before');
-    expect(css).toContain('opacity: .08 !important;');
-    expect(css).toContain(':root[data-ambient-scene] #root > div.min-h-screen::before { opacity: .14 !important;');
-    expect(css).toContain(':root[data-ambient-scene] #root > div.min-h-screen::after { opacity: .24 !important;');
+    expect(css).toContain(':root[data-ambient-scene] #root > div.min-h-screen::before,');
+    expect(css).toContain('content: none !important;');
+    expect(css).toContain('display: none !important;');
+    expect(css).toContain('background: none !important;');
   });
 });
