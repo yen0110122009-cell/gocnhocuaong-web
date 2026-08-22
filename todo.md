@@ -345,3 +345,8 @@
 - [x] Nối luồng xóa mềm Flashcard/Đề kiểm tra vào Thùng rác và bảo toàn dữ liệu trong profile.
 - [x] Chẩn đoán, sửa giới hạn ghi âm theo quyền micro, thời lượng, dừng/hoàn tất và thông báo lỗi có thể hành động.
 - [x] Bổ sung regression, kiểm tra TypeScript/Vitest/build, xác minh responsive và lưu checkpoint.
+
+## Đối chiếu cấu hình lễ hội và dọn nút trợ giúp
+- [x] Đối chiếu 14 theme trong JSON mới với registry/renderer: mascot, nền đáy, BGM, token màu, animation, ripple và click effect.
+- [x] Xóa nút dấu hỏi trợ giúp ở góc dưới màn hình cùng mọi sự kiện/tooltip liên quan.
+- [x] Bổ sung regression, kiểm thử TypeScript/Vitest/build/responsive và lưu checkpoint.
