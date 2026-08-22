@@ -20,6 +20,7 @@ describe("login and member dashboard contract", () => {
   it("renders loading, red error, and admin-help links in the no-email login", () => {
     const markup = renderToStaticMarkup(React.createElement(Login, {
       onSubmit: () => undefined,
+      onGuest: () => undefined,
       loading: true,
       error: "Thông tin đăng nhập không chính xác.",
       staticHost: true,
@@ -27,7 +28,12 @@ describe("login and member dashboard contract", () => {
     expect(markup).toContain("Đang xử lý…");
     expect(markup).toContain("Thông tin đăng nhập không chính xác.");
     expect(markup).toContain("Quên mật khẩu?");
-    expect(markup).toContain("Quên mã thành viên?");
+    expect(markup).toContain("Quên mã được cấp?");
+    expect(markup).toContain("Mã được cấp");
+    expect(markup).toContain("Chỉ tham quan với tài khoản khách");
+    expect(markup).toContain("Facebook: gửi yêu cầu xét duyệt");
+    expect(markup).toContain("Nhắn Zalo 0983346399");
+    expect(markup).not.toContain("mã 111");
   });
 
   it("renders member greeting and account information after login", () => {
@@ -51,6 +57,9 @@ describe("auth dashboard source accessibility", () => {
     expect(source).toContain("aria-label=\"Đóng hướng dẫn\"");
     expect(source).toContain("Mã thành viên:");
     expect(source).toContain("aria-label={loading ? \"Đang kiểm tra thông tin\"");
+    expect(source).toContain("Bạn thật sự muốn đăng nhập tài khoản khách ư?");
+    expect(source).toContain("session?.account.isGuest");
+    expect(source).toContain("Chế độ khách không lưu thay đổi");
   });
 });
 
@@ -59,6 +68,7 @@ describe("new resilience feedback contracts", () => {
   it("renders a friendly retry action for rate-limited login", () => {
     const markup = renderToStaticMarkup(React.createElement(Login, {
       onSubmit: () => undefined,
+      onGuest: () => undefined,
       loading: false,
       error: "Hệ thống đang nhận quá nhiều yêu cầu đăng nhập. Vui lòng chờ khoảng một phút rồi thử lại.",
       staticHost: true,

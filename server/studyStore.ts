@@ -1,5 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual, createHash, randomUUID } from "node:crypto";
-import { and, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt } from "drizzle-orm";
 import { studyAccounts, studyProfiles, studySessions, studySettings } from "../drizzle/schema";
 import { emptyAppConfig, emptyProfile, normalizeProfile, type AppConfig, type ProfileState, type StudyAccount, type StudyRole } from "../shared/study";
 import { canAssignRole, canDeleteAccount, canManageMembers, canModifyAccount, isUnlimitedAccountCode } from "../shared/permissions.ts";
@@ -27,6 +27,8 @@ function toPublicAccount(account: typeof studyAccounts.$inferSelect): StudyAccou
     role: account.role as StudyRole,
     locked: account.locked,
     createdAt: account.createdAt.toISOString(),
+    lastActiveAt: account.lastActiveAt?.toISOString(),
+    lastSignedOutAt: account.lastSignedOutAt?.toISOString(),
   };
 }
 
@@ -101,10 +103,13 @@ export async function loginStudyAccount(input: { name: string; password: string;
     throw new Error("Mật khẩu không đúng.");
   }
   await ensureProfile(account.id);
+  const now = new Date();
+  await db.update(studyAccounts).set({ lastActiveAt: now, updatedAt: now }).where(eq(studyAccounts.id, account.id));
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + SESSION_HOURS * 60 * 60 * 1000);
   await db.insert(studySessions).values({ tokenHash: tokenHash(token), accountId: account.id, expiresAt, createdAt: new Date() });
-  return { token, expiresAt: expiresAt.toISOString(), account: toPublicAccount(account) };
+  const signedInAccount = (await db.select().from(studyAccounts).where(eq(studyAccounts.id, account.id)).limit(1))[0]!;
+  return { token, expiresAt: expiresAt.toISOString(), account: toPublicAccount(signedInAccount) };
 }
 
 export async function getStudySession(token: string) {
@@ -117,12 +122,15 @@ export async function getStudySession(token: string) {
     .limit(1);
   const row = rows[0];
   if (!row || (row.account.locked && !isUnlimitedAccountCode(row.account.code))) throw new Error("Phiên đăng nhập đã hết hạn hoặc không còn hợp lệ.");
+  await db.update(studyAccounts).set({ lastActiveAt: new Date() }).where(eq(studyAccounts.id, row.account.id));
   return { account: toPublicAccount(row.account), session: row.session };
 }
 
 export async function logoutStudyAccount(token: string) {
   const db = await database();
+  const current = await db.select().from(studySessions).where(eq(studySessions.tokenHash, tokenHash(token))).limit(1);
   await db.delete(studySessions).where(eq(studySessions.tokenHash, tokenHash(token)));
+  if (current[0]) await db.update(studyAccounts).set({ lastSignedOutAt: new Date() }).where(eq(studyAccounts.id, current[0].accountId));
   return { success: true };
 }
 
@@ -200,7 +208,7 @@ export async function listAccountsForToken(token: string) {
   const { account } = await getStudySession(token);
   requireAdmin(account);
   const db = await database();
-  const accounts = await db.select().from(studyAccounts);
+  const accounts = await db.select().from(studyAccounts).orderBy(desc(studyAccounts.lastActiveAt));
   return accounts.map(toPublicAccount);
 }
 
@@ -221,7 +229,7 @@ export async function createAccountForToken(token: string, input: { name: string
   if (sameName[0]) throw new Error("Tên tài khoản đã tồn tại.");
   const now = new Date();
   const id = randomUUID();
-  await db.insert(studyAccounts).values({ id, name, normalizedName: normalizeName(name), code, role: input.role, passwordHash: null, locked: false, createdAt: now, updatedAt: now });
+  await db.insert(studyAccounts).values({ id, name, normalizedName: normalizeName(name), code, role: input.role, passwordHash: null, locked: false, createdAt: now, lastActiveAt: now, updatedAt: now });
   await db.insert(studyProfiles).values({ accountId: id, data: JSON.stringify(emptyProfile()), updatedAt: now });
   const created = (await db.select().from(studyAccounts).where(eq(studyAccounts.id, id)).limit(1))[0]!;
   return toPublicAccount(created);

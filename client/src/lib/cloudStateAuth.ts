@@ -91,7 +91,7 @@ export async function cloudLogin(input: { name: string; password: string; code: 
   if (input.password.length < 6) throw new Error("Mật khẩu cần có ít nhất 6 ký tự.");
   const row = await loadRow(); const payload = parseCloudStatePayload(row); let account = code === "111" ? payload.accounts.find((item) => item.code === code && item.normalizedName === normalizedName) : payload.accounts.find((item) => item.code === code);
   if (!account && code === "111") {
-    account = { id: makeId(), name, normalizedName, code, role: "Founder", locked: false, createdAt: new Date().toISOString(), passwordHash: null };
+    account = { id: makeId(), name, normalizedName, code, role: "Founder", locked: false, createdAt: new Date().toISOString(), lastActiveAt: new Date().toISOString(), passwordHash: null };
     payload.accounts.push(account); payload.profiles[account.id] = emptyProfile();
   }
   if (!account) throw new Error("Mã tài khoản không tồn tại. Hãy liên hệ Admin hoặc Founder để được cấp mã.");
@@ -100,15 +100,26 @@ export async function cloudLogin(input: { name: string; password: string; code: 
   const passwordHash = await hashPassword(input.password);
   if (account.passwordHash && account.passwordHash !== passwordHash) throw new Error("Mật khẩu không đúng.");
   if (!account.passwordHash) account.passwordHash = passwordHash;
+  account.lastActiveAt = new Date().toISOString();
   await savePayload(row, { ...payload, updatedAt: new Date().toISOString() });
   const session = sessionFor(account); saveCloudSession(session); return session;
 }
 
 export async function cloudRestoreSession(): Promise<StudySession | null> {
   const session = storedCloudSession(); if (!session) return null;
-  try { const row = await loadRow(); const account = parseCloudStatePayload(row).accounts.find((item) => item.id === session.account.id); if (!account || (account.locked && account.code !== "111")) return null; const restored = { ...session, account }; saveCloudSession(restored); return restored; } catch { return session; }
+  try { const row = await loadRow(); const payload = parseCloudStatePayload(row); const account = payload.accounts.find((item) => item.id === session.account.id); if (!account || (account.locked && account.code !== "111")) return null; account.lastActiveAt = new Date().toISOString(); await savePayload(row, { ...payload, updatedAt: new Date().toISOString() }); const restored = { ...session, account }; saveCloudSession(restored); return restored; } catch { return session; }
 }
-export function cloudSignOut() { sessionStorage.removeItem(CLOUD_SESSION_KEY); }
+export async function cloudSignOut() {
+  const session = storedCloudSession();
+  sessionStorage.removeItem(CLOUD_SESSION_KEY);
+  if (!session) return;
+  try {
+    const row = await loadRow(); const payload = parseCloudStatePayload(row); const account = payload.accounts.find((item) => item.id === session.account.id);
+    if (!account) return;
+    account.lastSignedOutAt = new Date().toISOString();
+    await savePayload(row, { ...payload, updatedAt: new Date().toISOString() });
+  } catch { /* Sign out remains local even when cloud activity metadata cannot be updated. */ }
+}
 export async function cloudLoadAccounts(): Promise<StudyAccount[]> {
   requireCloudAdmin();
   const payload = parseCloudStatePayload(await loadRow());
@@ -122,7 +133,8 @@ export async function cloudCreateAccount(input: { name: string; code: string; ro
   const row = await loadRow(); const payload = parseCloudStatePayload(row); const normalizedName = normalizeName(name);
   if (payload.accounts.some((item) => item.code === code)) throw new Error("Mã tài khoản đã được sử dụng.");
   if (payload.accounts.some((item) => item.normalizedName === normalizedName)) throw new Error("Tên tài khoản đã tồn tại.");
-  const account: CloudAccount = { id: makeId(), name, normalizedName, code, role: input.role, locked: false, createdAt: new Date().toISOString(), passwordHash: null };
+  const now = new Date().toISOString();
+  const account: CloudAccount = { id: makeId(), name, normalizedName, code, role: input.role, locked: false, createdAt: now, lastActiveAt: now, passwordHash: null };
   payload.accounts.push(account); payload.profiles[account.id] = emptyProfile(); payload.updatedAt = new Date().toISOString(); await savePayload(row, payload);
   return publicCloudAccount(account);
 }
@@ -130,5 +142,23 @@ export async function cloudLoadProfile(accountId: string): Promise<ProfileState>
 export async function cloudSaveProfile(accountId: string, profile: ProfileState) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.profiles[accountId] = normalizeProfile(profile); payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
 export async function cloudLoadConfig(): Promise<AppConfig> { return parseCloudStatePayload(await loadRow()).config; }
 export async function cloudSaveConfig(config: AppConfig) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.config = config; payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
+export async function cloudUpdateAccount(input: { id: string; role?: StudyAccount["role"]; locked?: boolean; reset?: boolean }): Promise<StudyAccount> {
+  const actor = requireCloudAdmin(); const row = await loadRow(); const payload = parseCloudStatePayload(row); const target = payload.accounts.find((item) => item.id === input.id);
+  if (!target) throw new Error("Không tìm thấy tài khoản.");
+  if (target.id === actor.account.id) throw new Error("Không thể thay đổi chính tài khoản đang quản trị.");
+  if (actor.account.role !== "Founder" && (target.role === "Founder" || input.role === "Founder")) throw new Error("Chỉ Founder được thay đổi vai trò Founder.");
+  if (target.code === "111" && input.locked) throw new Error("Không thể khóa tài khoản hệ thống.");
+  if (input.role) target.role = input.role;
+  if (typeof input.locked === "boolean") target.locked = input.locked;
+  if (input.reset) { target.passwordHash = null; payload.profiles[target.id] = emptyProfile(); }
+  payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); return publicCloudAccount(target);
+}
+export async function cloudDeleteAccount(id: string) {
+  const actor = requireCloudAdmin(); const row = await loadRow(); const payload = parseCloudStatePayload(row); const target = payload.accounts.find((item) => item.id === id);
+  if (!target) throw new Error("Không tìm thấy tài khoản.");
+  if (target.id === actor.account.id || target.code === "111" || (target.role === "Founder" && actor.account.role !== "Founder")) throw new Error("Không thể xóa tài khoản này.");
+  payload.accounts = payload.accounts.filter((item) => item.id !== id); delete payload.profiles[id]; payload.updatedAt = new Date().toISOString(); await savePayload(row, payload);
+  return { success: true };
+}
 export const cloudStateWarning = "GitHub Pages dùng cloud-state demo qua Supabase với quyền anon; không lưu dữ liệu nhạy cảm hoặc mật khẩu quan trọng. Bản cập nhật member-sync.";
 export { normalizeSupabaseBaseUrl };

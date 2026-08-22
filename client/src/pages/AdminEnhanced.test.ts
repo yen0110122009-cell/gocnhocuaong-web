@@ -15,6 +15,11 @@ describe("Admin character source workflow", () => {
     expect(source).toContain("Không thể tải danh sách thành viên");
     expect(source).toContain("Chưa có thành viên nào trong nguồn dữ liệu này");
     expect(source).toContain("Danh sách đang được cập nhật.");
+    expect(source).toContain("formatMemberActivity");
+    expect(source).toContain("lastActiveAt");
+    expect(source).toContain("Bạn có chắc muốn");
+    expect(source).toContain("cloudUpdateAccount");
+    expect(source).toContain("cloudDeleteAccount");
   });
 
   it("exposes CRUD, copy, preview and source validation controls", () => {

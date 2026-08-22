@@ -21,6 +21,8 @@ export const studyAccounts = mysqlTable("study_accounts", {
   passwordHash: text("passwordHash"),
   locked: boolean("locked").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  lastActiveAt: timestamp("lastActiveAt").defaultNow().notNull(),
+  lastSignedOutAt: timestamp("lastSignedOutAt"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 

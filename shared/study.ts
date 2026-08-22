@@ -795,6 +795,12 @@ export type StudyAccount = {
   role: StudyRole;
   locked: boolean;
   createdAt: string;
+  /** Phiên khách chỉ tồn tại trong bộ nhớ trình duyệt và không được ghi vào tài khoản hay hồ sơ học tập. */
+  isGuest?: boolean;
+  /** Mốc hoạt động xác thực gần nhất, chỉ hiển thị cho khu vực quản trị. */
+  lastActiveAt?: string;
+  /** Mốc đăng xuất gần nhất, chỉ hiển thị cho khu vực quản trị. */
+  lastSignedOutAt?: string;
 };
 
 export type StudySession = {

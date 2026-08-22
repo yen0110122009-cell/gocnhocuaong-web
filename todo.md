@@ -137,3 +137,12 @@
 - [x] Cân chỉnh palette Light/Dark cho nền, chữ, icon, border, card, panel và input theo mục tiêu WCAG.
 - [x] Bổ sung regression cho token tương phản và bảo đảm tệp tham chiếu không đưa JS tạo DOM trực tiếp vào app.
 - [x] Chạy full test, TypeScript, production build, kiểm tra responsive Light/Dark và lưu checkpoint phát hành.
+
+## Chế độ khách và quản trị thành viên
+- [x] Rà soát các luồng đăng nhập hiện có, dữ liệu hồ sơ, quyền Admin và khả năng theo dõi hoạt động mà không lộ mã nội bộ.
+- [x] Thêm nút đăng nhập khách có hộp xác nhận, giới hạn ở chế độ tham quan và không lưu tiến trình học/quiz/flashcard.
+- [x] Ẩn hướng dẫn hoặc nhãn tiết lộ mã nội bộ; chuẩn hóa trường đăng nhập chỉ hiển thị “Mã được cấp”.
+- [x] Thêm thông tin liên hệ xét duyệt tài khoản, ưu tiên Facebook và dự phòng Zalo theo nội dung người dùng cung cấp.
+- [x] Bổ sung quản trị thành viên: danh sách, lần hoạt động gần nhất, trạng thái khóa và thao tác khóa/mở khóa có xác nhận.
+- [x] Viết regression cho quyền khách/quản trị, chạy TypeScript, full test, build, responsive và checkpoint phát hành.
+- [x] Lưu checkpoint/phát hành mới cho bản cập nhật chế độ khách và quản trị thành viên sau khi đã qua test/build/responsive.
