@@ -1639,3 +1639,77 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 @keyframes storm-lightning-strike { 0%,89%,93%,100% { opacity:0; } 90%,92% { opacity:.8; } 91% { opacity:.26; } }
 @media (max-width:767px) { :root[data-ambient-scene="night"] body::after { height:4.8rem; } }
 @media (prefers-reduced-motion: reduce) { :root[data-ambient-scene="storm"] #root > div.min-h-screen::after { animation:none !important; opacity:.16; } }
+
+/* Accessibility contrast layer: semantic tokens are intentionally declared last so legacy utility
+   colors cannot make text disappear when the global theme changes. */
+:root {
+  --theme-page: #fffaf1;
+  --theme-surface: #fffdf8;
+  --theme-surface-raised: #ffffff;
+  --theme-ink: #241815;
+  --theme-muted: #5b4a43;
+  --theme-border: #bda99a;
+  --theme-focus: #8f3029;
+}
+
+.dark {
+  --theme-page: #171311;
+  --theme-surface: #27201d;
+  --theme-surface-raised: #332a26;
+  --theme-ink: #f3f4f6;
+  --theme-muted: #d1d5db;
+  --theme-border: #897a72;
+  --theme-focus: #f6c85f;
+}
+
+@layer base {
+  html, body { background-color: var(--theme-page); color: var(--theme-ink); }
+  #root > div.min-h-screen { background-color: var(--theme-page) !important; color: var(--theme-ink) !important; }
+  #root > div.min-h-screen > aside,
+  #root > div.min-h-screen header { background-color: color-mix(in srgb, var(--theme-surface) 94%, transparent) !important; border-color: var(--theme-border) !important; }
+  * { border-color: var(--theme-border); }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+    --tw-ring-color: var(--theme-focus) !important;
+    --tw-ring-offset-color: var(--theme-page) !important;
+  }
+}
+
+@layer components {
+  .panel, .study-card {
+    background-color: var(--theme-surface) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-ink) !important;
+  }
+  .input, .textarea, select, input, textarea {
+    background-color: var(--theme-surface-raised) !important;
+    color: var(--theme-ink) !important;
+    border-color: var(--theme-border) !important;
+  }
+  .input::placeholder, .textarea::placeholder, input::placeholder, textarea::placeholder {
+    color: var(--theme-muted) !important;
+    opacity: 1;
+  }
+  .secondary-button, .icon-button, .icon-text-button, .filter-pill {
+    background-color: var(--theme-surface-raised) !important;
+    color: var(--theme-ink) !important;
+    border-color: var(--theme-border) !important;
+  }
+  .tab { color: var(--theme-muted) !important; }
+  .nav-item { color: var(--theme-muted) !important; }
+  .nav-item.active, .tab.selected { color: var(--theme-ink) !important; border-color: var(--theme-border) !important; }
+}
+
+/* Dark mode fallback for legacy Tailwind utilities used by older pages. */
+.dark :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-stone-400, .text-stone-500, .text-stone-600, .text-gray-400, .text-gray-500, .text-gray-600, .text-muted-foreground) {
+  color: var(--theme-muted) !important;
+}
+.dark :is(.text-black, .text-slate-700, .text-slate-800, .text-slate-900, .text-stone-700, .text-stone-800, .text-stone-900, .text-gray-700, .text-gray-800, .text-gray-900) {
+  color: var(--theme-ink) !important;
+}
+.dark :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-stone-50, .bg-gray-50) {
+  background-color: var(--theme-surface-raised) !important;
+}
+.dark :is(.border-slate-100, .border-slate-200, .border-stone-100, .border-gray-200, .border-gray-300) {
+  border-color: var(--theme-border) !important;
+}
+.dark :is(button, a, label, p, small, span, dt, dd, li) > svg { color: currentColor; }

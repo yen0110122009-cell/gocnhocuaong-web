@@ -131,3 +131,9 @@
 - [x] Thêm nút Chỉnh sửa/Xóa trực tiếp vào danh sách của QuizEnhanced, có xác nhận và cập nhật profile.
 - [x] Gắn nút Chỉnh sửa bộ Flashcard đang có vào giao diện Cards.
 - [x] Chạy full suite sau cùng, kiểm tra responsive mobile cho Quiz/Flashcard và lưu checkpoint phát hành.
+
+## Rà soát tương phản Light/Dark mode
+- [x] Rà soát CSS variables, ThemeProvider, token cảnh và các màu hard-coded có nguy cơ chìm trên nền.
+- [x] Cân chỉnh palette Light/Dark cho nền, chữ, icon, border, card, panel và input theo mục tiêu WCAG.
+- [x] Bổ sung regression cho token tương phản và bảo đảm tệp tham chiếu không đưa JS tạo DOM trực tiếp vào app.
+- [x] Chạy full test, TypeScript, production build, kiểm tra responsive Light/Dark và lưu checkpoint phát hành.
