@@ -316,3 +316,9 @@
 - [x] Thêm phản hồi hình ảnh và âm thanh nhẹ sau thao tác kéo/thả linh vật, tôn trọng reduced-motion và quyền autoplay.
 - [x] Làm mượt chuyển cảnh khi đổi giao diện nền, không tạo lớp phủ chặn tương tác.
 - [x] Thêm regression tương tác, kiểm tra desktop/mobile, full test, build và checkpoint.
+
+## Sửa lớp phủ làm mờ dashboard và bảng bộ nhớ
+- [x] Tái hiện chính xác dashboard bị làm mờ sau đăng nhập và xác định phần tử/lớp xếp chồng đang phủ lên toàn giao diện.
+- [x] Truy vết nguồn bảng “Mức sử dụng bộ nhớ”, phân biệt công cụ debug, dialog hợp lệ và UI ứng dụng để không sửa nhầm.
+- [x] Loại bỏ hoặc cô lập lớp phủ gây mờ/chặn thao tác, bảo đảm dialog hợp lệ luôn có đường thoát rõ ràng.
+- [x] Bổ sung regression cho lớp phủ sau đăng nhập; xác minh click, nhập bàn phím, menu, kéo thả linh vật, test/build và checkpoint.

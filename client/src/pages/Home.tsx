@@ -54,6 +54,48 @@ type View = "dashboard" | "focus" | "pomodoro" | "knowledge" | "history" | "exam
 const SESSION_KEY = "study_historia_session_v1";
 const uid = () => crypto.randomUUID();
 const isAdmin = (a: StudyAccount) => canManageLearningConfig(a.role);
+const MEMORY_DIAGNOSTIC_PATTERN = /(?:mức sử dụng bộ nhớ|memory usage)/i;
+
+/** Chỉ cô lập bảng chẩn đoán do môi trường chèn ngoài #root, không đụng tới dialog của ứng dụng. */
+function suppressExternalMemoryDiagnostic(scope: ParentNode) {
+  const candidates = Array.from(scope.querySelectorAll<HTMLElement>("*"));
+  const memoryPanel = candidates.find((node) => {
+    const ownText = `${node.getAttribute("aria-label") ?? ""} ${node.innerText ?? node.textContent ?? ""}`;
+    const childAlsoMatches = Array.from(node.children).some((child) => MEMORY_DIAGNOSTIC_PATTERN.test(`${(child as HTMLElement).innerText ?? child.textContent ?? ""}`));
+    return MEMORY_DIAGNOSTIC_PATTERN.test(ownText) && !childAlsoMatches;
+  });
+  if (!memoryPanel) return;
+  let overlay: HTMLElement = memoryPanel;
+  while (overlay.parentElement && overlay.parentElement !== scope) {
+    const parent = overlay.parentElement;
+    const rect = parent.getBoundingClientRect();
+    const style = window.getComputedStyle(parent);
+    const coversViewport = (style.position === "fixed" || style.position === "absolute") && rect.width >= window.innerWidth * .8 && rect.height >= window.innerHeight * .8;
+    if (coversViewport) overlay = parent;
+    else break;
+  }
+  overlay.setAttribute("data-study-external-memory-diagnostic", "suppressed");
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.style.setProperty("display", "none", "important");
+  overlay.style.setProperty("pointer-events", "none", "important");
+}
+
+function protectDashboardFromExternalMemoryDiagnostic() {
+  const observers: MutationObserver[] = [];
+  const scan = () => {
+    suppressExternalMemoryDiagnostic(document);
+    document.querySelectorAll<HTMLElement>("*").forEach((host) => { if (host.shadowRoot) suppressExternalMemoryDiagnostic(host.shadowRoot); });
+  };
+  scan();
+  const observe = (target: Node) => {
+    const observer = new MutationObserver(scan);
+    observer.observe(target, { childList: true, subtree: true, characterData: true });
+    observers.push(observer);
+  };
+  observe(document.body);
+  document.querySelectorAll<HTMLElement>("*").forEach((host) => { if (host.shadowRoot) observe(host.shadowRoot); });
+  return () => { observers.forEach((observer) => observer.disconnect()); };
+}
 const nav: { id: View; label: string; icon: typeof LayoutDashboard; admin?: boolean; special111?: boolean }[] = [
   { id: "dashboard", label: "Trang chủ", icon: LayoutDashboard }, { id: "special111", label: "Trung tâm 111", icon: WandSparkles, special111: true }, { id: "focus", label: "Ôn tập thông minh", icon: Sparkles }, { id: "ai-import", label: "Nhập dữ liệu AI", icon: FileUp }, { id: "pomodoro", label: "Pomodoro", icon: Clock3 }, { id: "knowledge", label: "Bản đồ kiến thức", icon: BarChart3 }, { id: "history", label: "Lịch sử học", icon: History }, { id: "exam", label: "Tôi sắp kiểm tra", icon: Flag }, { id: "progress", label: "Tiến trình", icon: BarChart3 }, { id: "studio", label: "AI Studio", icon: BrainCircuit }, { id: "flashcards", label: "Flashcard", icon: BookOpen }, { id: "quizzes", label: "Đề kiểm tra", icon: CircleHelp }, { id: "achievements", label: "Thành tích", icon: Trophy }, { id: "museum", label: "Bảo tàng hành trình", icon: History }, { id: "wheel", label: "Vòng quay tri thức", icon: Dices }, { id: "account", label: "Tài khoản", icon: UsersRound }, { id: "appearance", label: "Giao diện & tone màu", icon: Palette }, { id: "admin", label: "Admin Panel", icon: ShieldCheck, admin: true },
 ];
@@ -97,6 +139,10 @@ export default function Home() {
     const timer = profile.autoNightMode === true ? window.setInterval(applyAppearance, 60_000) : undefined;
     return () => { if (timer) window.clearInterval(timer); };
   }, [profile.autoNightMode, profile.focusMode, profile.theme, profile.activeCosmeticTheme, profile.activeCosmeticBackground, profile.defaultAmbientScene]);
+  useEffect(() => {
+    if (!session) return;
+    return protectDashboardFromExternalMemoryDiagnostic();
+  }, [session]);
   useEffect(() => {
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) return;
     const root = document.querySelector("main[data-scroll-reveal-root]");
