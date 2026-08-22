@@ -257,3 +257,16 @@
 - [x] Bổ sung chỉ báo trực quan Có âm nền/Chỉ giao diện trên từng thẻ theme và giữ popup audio cho theme có URL.
 - [x] Viết regression cho độ phủ catalog, persistence scene mới và chỉ báo audio; chạy TypeScript, full test, build và responsive smoke.
 - [x] Lưu checkpoint phát hành sau khi xác minh toàn bộ mục trên.
+
+
+## Sửa lỗi theme/audio và linh vật theo phản hồi mới
+- [x] Điều tra và sửa chuyển đổi Light/Dark không phản hồi, bảo đảm ThemeProvider và token đồng bộ.
+- [x] Sửa công tắc audio bị nhấp nháy giữa bật/tắt; ổn định lifecycle audio element và state sau thao tác người dùng.
+- [x] Rà soát catalog nguồn âm nền, bổ sung đúng các URL đã được cung cấp và hiển thị nguồn gốc; không tự tạo URL.
+- [x] Xử lý yêu cầu xóa theme visual-only theo catalog audio đã xác nhận, không làm mất theme có nguồn hợp lệ.
+- [x] Khôi phục nền mặc định sạch, không render mặt trời/chim/overlay khi chưa chọn scene.
+- [x] Cân chỉnh toàn bộ chữ/icon/border ở Dark mode và kiểm tra tương phản các surface.
+- [x] Khôi phục linh vật tự do kéo thả toàn màn hình và tự di chuyển trong vùng an toàn.
+- [x] Thêm hover transition mượt và tooltip thông tin chi tiết cho thẻ theme.
+- [x] Bổ sung regression, chạy full test, TypeScript, build và responsive smoke.
+- [x] Đọc lại TODO, lưu checkpoint phát hành sau khi mọi mục hoàn tất.

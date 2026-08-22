@@ -26,7 +26,7 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
     expect(source).toContain("if (!pet) return null;");
     expect(source).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
     expect(source).toContain("if (!pet || !roamingEnabled || dragging || reducedMotion) return;");
-    expect(source).toContain('className="pointer-events-none fixed inset-0 z-40"');
+    expect(source).toContain('className="pointer-events-none fixed inset-0 z-[90]"');
     expect(source).toContain('"pointer-events-auto absolute');
     expect(source).toContain("Math.max(8, Math.min(92");
     expect(source).toContain("Math.max(18, Math.min(84");

@@ -50,6 +50,21 @@ describe("expanded theme catalog contract", () => {
     expect(ambient()).not.toContain("pirate.mp3");
   });
 
+  it("keeps theme/audio controls single-source and removes visual-only cards", () => {
+    const source = home();
+    expect(source).toContain("const toggleThemeAudio = () => setAudioEnabled((enabled) => !enabled)");
+    expect(source).toContain("const fullCatalogSceneCards = AMBIENT_SCENE_IDS.filter((id) => Boolean(AUDIO_BACKED_SCENE_AUDIO[id]))");
+    expect(source).toContain("Nguồn âm thanh:");
+    expect(source).toContain('touchAction: "none"');
+    expect(source).toContain("z-[90]");
+    expect(source).not.toContain("const player = audioRef.current ?? new Audio()");
+  });
+
+  it("uses a clean default scene instead of a decorative morning overlay", () => {
+    const source = home();
+    expect(source).toContain('root.dataset.ambientScene = profile.defaultAmbientScene ?? "none"');
+  });
+
   it("uses non-blocking overlays with high-contrast scene tokens and reduced-motion handling", () => {
     const css = styles();
     for (const scene of addedScenes) {

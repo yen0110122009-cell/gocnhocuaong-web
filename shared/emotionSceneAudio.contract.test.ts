@@ -15,7 +15,7 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
   it("uses the saved scene as the default scene and applies it globally", () => {
     expect(studio()).toContain('profile?.defaultAmbientScene ?? "morning"');
     expect(studio()).toContain("defaultAmbientScene: ambientScene");
-    expect(home()).toContain('root.dataset.ambientScene = profile.defaultAmbientScene ?? "morning"');
+    expect(home()).toContain('root.dataset.ambientScene = profile.defaultAmbientScene ?? "none"');
   });
 
   it("persists independent scene and recorded-Lumi volume controls without device speech synthesis", () => {

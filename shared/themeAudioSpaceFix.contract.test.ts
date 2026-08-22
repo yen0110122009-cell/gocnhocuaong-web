@@ -7,13 +7,15 @@ const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8")
 
 describe("theme audio and space scene fix", () => {
   it("applies the selected ambient scene to the document root", () => {
-    expect(home).toContain('root.dataset.ambientScene = profile.defaultAmbientScene ?? "morning";');
+    expect(home).toContain('root.dataset.ambientScene = profile.defaultAmbientScene ?? "none";');
   });
 
-  it("starts theme audio from the user selection handler", () => {
-    expect(home).toContain("const player = audioRef.current ?? new Audio();");
-    expect(home).toContain("player.src = audio.url;");
-    expect(home).toContain("void player.play().catch(() => undefined);");
+  it("starts and stops theme audio through one stable popup audio element", () => {
+    expect(home).toContain('<audio ref={audioRef} src={audioTheme.url}');
+    expect(home).toContain("const toggleThemeAudio = () => setAudioEnabled((enabled) => !enabled)");
+    expect(home).toContain("player.load();");
+    expect(home).toContain("player.pause();");
+    expect(home).not.toContain("const player = audioRef.current ?? new Audio();");
   });
 
   it("keeps the Space scene visible without a dark full-screen veil", () => {
