@@ -101,7 +101,7 @@ describe("StudyCorner contracts", () => {
     expect(audio).toContain("AudioChannelVolumes");
     expect(audio).toContain("updateAudioChannelVolume");
     expect(audio).toContain("playCleanAmbientAsset");
-    expect(audio).toContain("item.category === \"background\"");
+    expect(audio).not.toContain("item.category === \"background\"");
     expect(audio).toContain("preferredMemberVoice");
     expect(audio).toContain("const fade =");
   });

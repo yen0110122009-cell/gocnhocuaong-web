@@ -34,7 +34,7 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("#2e7d32");
     expect(studioSource).not.toContain("OngLearnerAvatar");
     expect(studioSource).toContain("unlockAudio");
-    expect(studioSource).toContain("Mở khóa âm thanh trên thiết bị");
+    expect(studioSource).toContain("Đã mở khóa âm thanh trên thiết bị này.");
     expect(mediaControlsSource).toContain("Audio Lumi · Nhấn để nghe");
     expect(mediaControlsSource).not.toContain("getDefaultLumiImage");
   });
@@ -58,7 +58,8 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("Nghe lời thoại Lumi");
     expect(studioSource).not.toContain("<img");
     expect(studioSource).toContain("ambientScene");
-    expect(studioSource).toContain("Âm thanh và cảnh nền");
+    expect(studioSource).toContain("Giao diện yêu thích");
+    expect(studioSource).not.toContain("Phát âm nền cho cảm xúc");
     expect(studioSource).toContain("profile?.defaultAmbientScene");
     expect(studioSource).toContain("defaultAmbientScene: ambientScene");
   });
@@ -271,7 +272,7 @@ describe("Experience Studio requirements", () => {
     expect(cssSource).toContain("study-scene-storm_0f557d3d.jpg");
     expect(cssSource).toContain("#root > div.min-h-screen::before");
     expect(studioSource).toContain("ambientSceneVolumes");
-    expect(studioSource).toContain("aria-label={`Âm lượng ${scene.label}`}");
-    expect(studioSource).toContain("updateAmbientVolume(scene.id");
+    expect(homeSource).toContain("aria-label=\"Âm lượng âm nền theme\"");
+    expect(homeSource).toContain("updateThemeAudioVolume");
   });
 });

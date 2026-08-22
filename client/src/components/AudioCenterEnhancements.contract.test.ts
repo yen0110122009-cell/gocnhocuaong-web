@@ -74,14 +74,14 @@ describe("Audio Center UX contracts", () => {
     expect(experienceStudioSource).toContain("ambientTrackRef");
     expect(experienceStudioSource).toContain("pointerdown");
     expect(experienceStudioSource).toContain("touchstart");
-    expect(experienceStudioSource).toContain("autoplay");
+    expect(experienceStudioSource).toContain("Đã mở khóa âm thanh trên thiết bị này.");
   });
 
   it("supports ambient volume and mute controls", () => {
     expect(experienceStudioSource).toContain("audioChannelVolumes.environment");
     expect(experienceStudioSource).toContain("toggleAmbientMute");
     expect(experienceStudioSource).toContain("ambientMuted");
-    expect(experienceStudioSource).toContain("Âm lượng âm nền");
+    expect(experienceStudioSource).toContain("ambientVolumes");
   });
 
   it("shows current volume in playback status and offers type-aware speed presets", () => {

@@ -158,8 +158,8 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain('scene === "leaves" ? DEFAULT_AMBIENT_BOOK_PAGES_ASSET');
     expect(studio()).toContain('scene === "storm" || scene === "halloween" || scene === "night" ? DEFAULT_AMBIENT_STORM_ASSET');
     expect(studio()).toContain('audio.preload = "auto"');
-    expect(studio()).toContain("Phát thử âm nền");
-    expect(studio()).toContain("Thử lại âm nền");
+    expect(studio()).toContain("ambientTrackRef");
+    expect(readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8")).toContain("Điều khiển âm nền theme");
     expect(studio()).not.toContain("ambientGenerationRef.current);");
   });
 });

@@ -192,3 +192,14 @@
 - [x] Thêm token shell và overlay CSS/emoji cho 12 scene mới, bảo đảm pointer-events:none, contrast và reduced-motion.
 - [x] Cập nhật parser, default volume, favorites, schedule và audio mapping cho các scene mới.
 - [x] Viết regression catalog/audio/overlay và chạy full validation trước checkpoint.
+
+## Thay Lumi cảnh nền bằng Giao diện yêu thích và popup âm nền theme
+- [x] Xóa khỏi Không gian cảm xúc của Lumi toàn bộ UI chọn cảnh nền và âm thanh cảnh nền.
+- [x] Chỉ hiển thị các theme/cảm xúc có âm nền được cung cấp; loại toàn bộ mục không có audio khỏi picker và favorites.
+- [x] Làm sạch favorites/persistence để theme cũ không có audio không còn được áp dụng.
+- [x] Kiểm thử mapping audio, popup chọn âm lượng và Pomodoro sau khi lọc catalog.
+- [x] Giữ riêng panel Giao diện yêu thích trong Lumi, danh sách không giới hạn và thu gọn/mở rộng.
+- [x] Khi chọn theme trong Giao diện & tone màu, áp dụng theme và mở popup điều khiển âm nền của theme.
+- [x] Popup cho phép nghe thử, bật/tắt và chỉnh âm lượng; tránh popup nhảy/đóng sai khi thao tác bên trong.
+- [x] Bảo đảm âm báo Pomodoro vẫn độc lập và không bị thay đổi bởi refactor này.
+- [x] Bổ sung regression, chạy full test, TypeScript, build, responsive và lưu checkpoint.

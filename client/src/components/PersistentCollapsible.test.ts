@@ -35,7 +35,8 @@ describe("Item-level collapse scope contract", () => {
     expect(museum).toContain('storageKey="museum-characters"');
     expect(pomodoro).not.toContain('storageKey="pomodoro-audio-center"');
     expect(pomodoro).toContain('storageKey="pomodoro-weekly-goal-history"');
-    expect(experienceStudio).toContain('storageKey="experience-ambient-audio"');
+    expect(experienceStudio).not.toContain('storageKey="experience-ambient-audio"');
+    expect(experienceStudio).toContain('storageKey="experience-lumi-favorite-scenes"');
     expect(experienceStudio).toContain('storageKey="experience-emotion-command"');
     expect(experienceStudio).toContain('storageKey="experience-lumi-speech-library"');
   });
