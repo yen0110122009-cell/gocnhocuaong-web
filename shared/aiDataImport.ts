@@ -12,6 +12,9 @@ export type AiImportOptions = {
   subject?: string;
   topic?: string;
   extraRequest?: string;
+  quizMode?: "test" | "review";
+  timerMode?: "timed" | "unlimited";
+  durationMinutes?: number;
 };
 
 export type DeepImportExplanation = {
@@ -211,7 +214,8 @@ export function convertImportToFlashcards(validation: ImportValidation, metadata
   return { id: `set-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, difficulty: metadata.difficulty ?? "Trung bình", createdAt: now, studyCount: 0, cards };
 }
 
-export function convertImportToQuiz(validation: ImportValidation, metadata: { title: string; subject: string; topic: string; difficulty?: Quiz["difficulty"]; durationMinutes?: number }, now = new Date().toISOString()): Quiz {
+export function convertImportToQuiz(validation: ImportValidation, metadata: { title: string; subject: string; topic: string; difficulty?: Quiz["difficulty"]; durationMinutes?: number; mode?: Quiz["mode"]; timerMode?: Quiz["timerMode"] }, now = new Date().toISOString()): Quiz {
   const questions: QuizQuestion[] = validation.questions.map((question) => ({ id: question.id, type: question.type, prompt: question.prompt, options: question.options, answer: question.answer, explanation: question.explanation, deepExplanation: question.deepExplanation }));
-  return { id: `quiz-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, difficulty: metadata.difficulty ?? "Trung bình", durationMinutes: metadata.durationMinutes ?? 30, createdAt: now, questions };
+  const mode = metadata.mode ?? "test";
+  return { id: `quiz-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, difficulty: metadata.difficulty ?? "Trung bình", durationMinutes: metadata.durationMinutes ?? 30, createdAt: now, questions, mode, timerMode: metadata.timerMode ?? (mode === "review" ? "unlimited" : "timed") };
 }

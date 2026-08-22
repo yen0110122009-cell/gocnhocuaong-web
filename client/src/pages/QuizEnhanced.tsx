@@ -6,6 +6,7 @@ import { buildWrongAnswerDeepPrompt, parseWrongAnswerDeepData } from "../../../s
 import type { WrongAnswerReview } from "../../../shared/study";
 import { buildQuizAttempt, normalizeQuizAnswer } from "../../../shared/quizPersistence";
 import { cn } from "@/lib/utils";
+import { playSoundEvent } from "@/lib/pomodoroAudio";
 
 type QuizMode = "quick" | "deep" | "paper";
 
@@ -29,16 +30,20 @@ export default function QuizEnhanced({ profile, config, onProfile }: Props) {
   const [quizDifficulty, setQuizDifficulty] = useState("all");
   const [paperGoal, setPaperGoal] = useState("");
   const [paperAllowPause, setPaperAllowPause] = useState(true);
+  const reviewKey = active ? `study-review:${active.id}` : "";
   const filteredQuizzes = useMemo(() => profile.quizzes.filter((quiz) => (!quizQuery || `${quiz.title} ${quiz.subject} ${quiz.topic}`.toLowerCase().includes(quizQuery.toLowerCase())) && (quizDifficulty === "all" || quiz.difficulty === quizDifficulty)), [profile.quizzes, quizQuery, quizDifficulty]);
 
   useEffect(() => {
-    if (!active || result !== null || seconds <= 0 || mode === "paper") return;
+    if (!active || result !== null || seconds <= 0 || mode === "paper" || active.mode === "review" || active.timerMode === "unlimited") return;
     const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value - 1)), 1000);
     return () => window.clearInterval(timer);
   }, [active, result, seconds, mode]);
 
   useEffect(() => {
-    if (active && seconds === 0 && result === null && mode !== "paper") finishOnline();
+    if (active && seconds === 0 && result === null && mode !== "paper" && active.mode !== "review" && active.timerMode !== "unlimited") {
+      void playSoundEvent("complete", 100);
+      finishOnline();
+    }
   }, [seconds]);
 
   useEffect(() => {
@@ -48,9 +53,17 @@ export default function QuizEnhanced({ profile, config, onProfile }: Props) {
   }, [paper?.status]);
 
   const startOnline = (quiz: Quiz, selectedMode: "quick" | "deep") => {
-    setMode(selectedMode); setActive(quiz); setAnswers({}); setThoughts({}); setFlags([]); setIndex(0); setResult(null); setDeepOpen({}); setSeconds(quiz.durationMinutes * 60);
+    const isReview = (quiz.mode ?? "test") === "review" || quiz.timerMode === "unlimited";
+    const saved = isReview ? localStorage.getItem(`study-review:${quiz.id}`) : null;
+    const snapshot = saved ? JSON.parse(saved) as { answers?: Record<string, string>; thoughts?: Record<string, string>; flags?: string[]; index?: number } : null;
+    setMode(selectedMode); setActive(quiz); setAnswers(snapshot?.answers ?? {}); setThoughts(snapshot?.thoughts ?? {}); setFlags(snapshot?.flags ?? []); setIndex(snapshot?.index ?? 0); setResult(null); setDeepOpen({}); setSeconds(isReview ? 0 : quiz.durationMinutes * 60);
+    if (snapshot) toast.success("Đã khôi phục tiến độ Ôn tập.");
   };
 
+  useEffect(() => {
+    if (!active || result !== null || mode === "paper" || ((active.mode ?? "test") !== "review" && active.timerMode !== "unlimited")) return;
+    localStorage.setItem(reviewKey, JSON.stringify({ answers, thoughts, flags, index, updatedAt: new Date().toISOString() }));
+  }, [active, result, mode, reviewKey, answers, thoughts, flags, index]);
   const startPaper = (quiz: Quiz) => {
     const now = new Date().toISOString();
     setMode("paper"); setActive(quiz); setPaper({ id: crypto.randomUUID(), quizId: quiz.id, title: quiz.title, subject: quiz.subject, questionCount: quiz.questions.length, durationMinutes: quiz.durationMinutes, startedAt: now, elapsedSeconds: 0, goal: paperGoal, status: "running", allowPause: paperAllowPause, certainty: {} });
@@ -84,13 +97,15 @@ export default function QuizEnhanced({ profile, config, onProfile }: Props) {
   const mins = String(Math.floor((paper ? Math.max(0, paper.durationMinutes * 60 - paper.elapsedSeconds) : seconds) / 60)).padStart(2, "0");
   const secs = String((paper ? Math.max(0, paper.durationMinutes * 60 - paper.elapsedSeconds) : seconds) % 60).padStart(2, "0");
 
+  const editQuiz = (quiz: Quiz) => { const title = window.prompt("Tên đề", quiz.title)?.trim(); if (!title) return; const subject = window.prompt("Môn học", quiz.subject)?.trim() || quiz.subject; const topic = window.prompt("Chủ đề", quiz.topic)?.trim() || quiz.topic; const duration = window.prompt("Thời gian làm (phút)", String(quiz.durationMinutes)); const nextDuration = duration === null ? quiz.durationMinutes : Math.max(1, Number(duration) || 1); const rawQuestions = window.prompt("Nội dung câu hỏi JSON (prompt/type/answer/options), để trống để giữ nguyên", JSON.stringify(quiz.questions)); let questions = quiz.questions; if (rawQuestions !== null && rawQuestions.trim()) { try { const parsed = JSON.parse(rawQuestions); if (!Array.isArray(parsed) || !parsed.length || parsed.some((item) => !item.prompt?.trim() || !item.answer?.trim())) throw new Error(); questions = parsed.map((item, index) => ({ ...quiz.questions[index], ...item, id: quiz.questions[index]?.id ?? crypto.randomUUID() })); } catch { toast.error("Nội dung câu hỏi JSON chưa đúng. Đề chưa được lưu."); return; } } onProfile({ ...profile, quizzes: profile.quizzes.map((item) => item.id === quiz.id ? { ...item, title, subject, topic, durationMinutes: nextDuration, questions } : item) }, "Đã cập nhật đề kiểm tra."); };
+  const deleteQuiz = (quiz: Quiz) => { if (!window.confirm(`Xóa đề “${quiz.title}”?`)) return; onProfile({ ...profile, quizzes: profile.quizzes.filter((item) => item.id !== quiz.id) }, "Đã xóa đề kiểm tra."); };
   if (!profile.quizzes.length && !active) return <Empty />;
   if (!active) return <>
     <Heading title="Làm đề — chọn đúng cách học" text="Ba chế độ độc lập: làm nhanh trên web, hiểu tận gốc từng câu hoặc dùng website như đồng hồ khi làm đề giấy." />
     <ModePicker mode={mode} setMode={setMode} />
     <div className="panel mb-5 grid gap-3 p-4 sm:grid-cols-3"><input aria-label="Tìm đề kiểm tra" value={quizQuery} onChange={(e) => setQuizQuery(e.target.value)} placeholder="Tìm theo tên, môn, chủ đề" className="input mt-0 sm:col-span-2" /><select aria-label="Lọc độ khó đề kiểm tra" value={quizDifficulty} onChange={(e) => setQuizDifficulty(e.target.value)} className="input mt-0"><option value="all">Mọi độ khó</option><option>Cơ bản</option><option>Trung bình</option><option>Nâng cao</option></select></div>
     {mode === "paper" && <section className="panel mb-5 grid gap-4 p-5 sm:grid-cols-3"><label className="text-sm font-bold">Mục tiêu điểm<input value={paperGoal} onChange={(e) => setPaperGoal(e.target.value)} className="input mt-2" placeholder="Ví dụ: 8/10" /></label><label className="flex items-center gap-3 text-sm font-bold"><input type="checkbox" checked={paperAllowPause} onChange={(e) => setPaperAllowPause(e.target.checked)} />Cho phép tạm dừng</label><p className="text-sm leading-6 text-slate-500">Website không hiển thị câu hỏi. Ong làm bài bằng giấy, còn website giữ timer, trạng thái tập trung và lịch sử phiên.</p></section>}
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredQuizzes.map((q) => <article className="panel p-5" key={q.id}><Clock3 className="h-6 w-6 text-amber-700" /><p className="mt-5 text-xs font-bold uppercase tracking-widest text-amber-700">{q.subject} · {q.difficulty}</p><h2 className="mt-2 font-display text-xl font-bold">{q.title}</h2><p className="mt-3 text-xs text-slate-500">{q.questions.length} câu · {q.durationMinutes} phút</p><div className="mt-5 grid gap-2">{mode === "paper" ? <button aria-label={`Bắt đầu làm đề giấy ${q.title}`} onClick={() => startPaper(q)} className="primary-button"><FileText className="h-4 w-4" />Tự làm đề–Tập trung</button> : <><button aria-label={`Bắt đầu làm đề nhanh ${q.title}`} onClick={() => startOnline(q, "quick")} className="primary-button"><Target className="h-4 w-4" />Làm đề nhanh</button><button aria-label={`Bắt đầu hiểu tận gốc ${q.title}`} onClick={() => startOnline(q, "deep")} className="secondary-button"><BrainCircuit className="h-4 w-4" />Hiểu tận gốc</button></>}</div></article>)}</div>
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredQuizzes.map((q) => <article className="panel p-5" key={q.id}><Clock3 className="h-6 w-6 text-amber-700" /><p className="mt-5 text-xs font-bold uppercase tracking-widest text-amber-700">{q.subject} · {q.difficulty}</p><h2 className="mt-2 font-display text-xl font-bold">{q.title}</h2><p className="mt-3 text-xs text-slate-500">{q.questions.length} câu · {(q.mode ?? "test") === "review" || q.timerMode === "unlimited" ? "Không giới hạn" : `${q.durationMinutes} phút`}</p><div className="mt-5 grid gap-2">{mode === "paper" ? <button aria-label={`Bắt đầu làm đề giấy ${q.title}`} onClick={() => startPaper(q)} className="primary-button"><FileText className="h-4 w-4" />Tự làm đề–Tập trung</button> : <><button aria-label={`Bắt đầu làm đề nhanh ${q.title}`} onClick={() => startOnline(q, "quick")} className="primary-button"><Target className="h-4 w-4" />Làm đề nhanh</button><button aria-label={`Bắt đầu hiểu tận gốc ${q.title}`} onClick={() => startOnline(q, "deep")} className="secondary-button"><BrainCircuit className="h-4 w-4" />Hiểu tận gốc</button></>}</div><div className="mt-3 flex gap-2 border-t border-slate-100 pt-3 dark:border-white/10"><button aria-label={`Chỉnh sửa đề ${q.title}`} className="secondary-button !px-3 !py-2 text-xs" onClick={() => editQuiz(q)}><Pencil className="h-3.5 w-3.5" />Chỉnh sửa</button><button aria-label={`Xóa đề ${q.title}`} className="secondary-button !px-3 !py-2 text-xs text-rose-700" onClick={() => deleteQuiz(q)}><Trash2 className="h-3.5 w-3.5" />Xóa</button></div></article>)}</div>
     <HistoryList profile={profile} config={config} />
     <PaperSessionArchive profile={profile} onProfile={onProfile} />
   </>;

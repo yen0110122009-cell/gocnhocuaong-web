@@ -62,6 +62,9 @@ export type QuizQuestion = {
   deepExplanation?: DeepExplanation;
 };
 
+export type QuizMode = "test" | "review";
+export type QuizTimerMode = "timed" | "unlimited";
+
 export type Quiz = {
   id: string;
   title: string;
@@ -71,6 +74,8 @@ export type Quiz = {
   durationMinutes: number;
   createdAt: string;
   questions: QuizQuestion[];
+  mode?: QuizMode;
+  timerMode?: QuizTimerMode;
 };
 
 export type QuizAttempt = {
@@ -1438,12 +1443,20 @@ export function applyStudyActivityRewards(profile: ProfileState, activity: Study
 export function normalizeProfile(value: unknown): ProfileState {
   const source = value && typeof value === "object" ? (value as Partial<ProfileState>) : {};
   const base = emptyProfile();
+  const normalizedQuizzes: Quiz[] = Array.isArray(source.quizzes) ? source.quizzes.flatMap((value) => {
+    if (!value || typeof value !== "object") return [];
+    const quiz = value as Partial<Quiz>;
+    if (!quiz.id || !quiz.title || !Array.isArray(quiz.questions)) return [];
+    const mode: QuizMode = quiz.mode === "review" ? "review" : "test";
+    const timerMode: QuizTimerMode = quiz.timerMode === "unlimited" || mode === "review" ? "unlimited" : "timed";
+    return [{ ...quiz, id: String(quiz.id), title: String(quiz.title), subject: String(quiz.subject ?? ""), topic: String(quiz.topic ?? ""), difficulty: quiz.difficulty ?? "Trung bình", durationMinutes: Math.max(0, Number(quiz.durationMinutes) || 0), createdAt: String(quiz.createdAt ?? new Date(0).toISOString()), questions: quiz.questions as QuizQuestion[], mode, timerMode } as Quiz];
+  }) : [];
   const merged: ProfileState = {
     ...base,
     ...source,
     xp: Math.max(0, Number(source.xp) || 0),
     flashcardSets: Array.isArray(source.flashcardSets) ? source.flashcardSets : [],
-    quizzes: Array.isArray(source.quizzes) ? source.quizzes : [],
+    quizzes: normalizedQuizzes,
     attempts: Array.isArray(source.attempts) ? source.attempts.flatMap((value) => { const attempt = value && typeof value === "object" ? (value as Partial<QuizAttempt>) : null; if (!attempt?.id || !attempt.quizId) return []; return [{ id: String(attempt.id), quizId: String(attempt.quizId), completedAt: String(attempt.completedAt ?? new Date(0).toISOString()), correct: Math.max(0, Number(attempt.correct) || 0), total: Math.max(0, Number(attempt.total) || 0), accuracy: Math.max(0, Math.min(100, Number(attempt.accuracy) || 0)), durationSeconds: Math.max(0, Number(attempt.durationSeconds) || 0), answers: Array.isArray(attempt.answers) ? attempt.answers : [] }]; }) : [],
     studyActivity: Array.isArray(source.studyActivity) ? source.studyActivity.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<StudyActivity>) : null; if (!item?.id || (item.kind !== "flashcard" && item.kind !== "quiz" && item.kind !== "wheel" && item.kind !== "pomodoro")) return []; return [{ id: String(item.id), occurredAt: String(item.occurredAt ?? new Date(0).toISOString()), kind: item.kind, quantity: Math.max(0, Number(item.quantity) || 0), durationSeconds: Math.max(0, Number(item.durationSeconds) || 0), xpEarned: Math.max(0, Number(item.xpEarned) || 0), correct: item.correct === undefined ? undefined : Math.max(0, Number(item.correct) || 0), total: item.total === undefined ? undefined : Math.max(0, Number(item.total) || 0) }]; }) : [],
     fragments: source.fragments && typeof source.fragments === "object" ? source.fragments : {},

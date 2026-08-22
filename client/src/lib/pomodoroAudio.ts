@@ -1,3 +1,5 @@
+declare global { interface Window { webkitAudioContext?: typeof AudioContext; } }
+
 export type SoundEvent = "start" | "breakStart" | "breakEnd" | "tick" | "complete" | "warning" | "reward" | "error";
 
 export const SOUND_EVENTS: Record<SoundEvent, number[]> = {
@@ -112,4 +114,21 @@ export function scaledLayerGain(volume: number, baseVolume: number) {
 export function soundEventDuration(event: SoundEvent) {
   if (event === "complete") return COMPLETE_ALERT_PROFILE.durationSeconds;
   return event === "tick" ? 0.12 : 0.34;
+}
+
+export async function playSoundEvent(event: SoundEvent, volume = 100) {
+  if (typeof window === "undefined") return false;
+  try {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return false;
+    const context = new Ctor();
+    if (context.state !== "running") await context.resume();
+    if (context.state !== "running") return false;
+    const master = context.createGain(); master.gain.value = scaledGain(volume, soundEventGainMultiplier(event)); master.connect(context.destination);
+    SOUND_EVENTS[event].forEach((frequency, index) => {
+      const oscillator = context.createOscillator(); const gain = context.createGain(); const startAt = context.currentTime + index * soundEventSpacing(event);
+      oscillator.type = event === "complete" ? "triangle" : "sine"; oscillator.frequency.setValueAtTime(frequency, startAt); gain.gain.setValueAtTime(0.001, startAt); gain.gain.exponentialRampToValueAtTime(1, startAt + 0.025); gain.gain.exponentialRampToValueAtTime(0.001, startAt + soundEventDuration(event)); oscillator.connect(gain).connect(master); oscillator.start(startAt); oscillator.stop(startAt + soundEventDuration(event) + 0.03);
+    });
+    window.setTimeout(() => { void context.close(); }, 1400); return true;
+  } catch { return false; }
 }

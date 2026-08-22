@@ -1,6 +1,6 @@
 import type { FlashcardSet, Quiz, QuizAttempt, QuizQuestion } from "./study";
 
-export function createQuizFromFlashcardSet(set: FlashcardSet, now = new Date().toISOString()): Quiz {
+export function createQuizFromFlashcardSet(set: FlashcardSet, now = new Date().toISOString(), options: Partial<Pick<Quiz, "mode" | "timerMode" | "durationMinutes">> = {}): Quiz {
   const questions: QuizQuestion[] = set.cards.map((card, index) => ({
     id: `${set.id}-q-${index + 1}`,
     type: "short",
@@ -8,15 +8,18 @@ export function createQuizFromFlashcardSet(set: FlashcardSet, now = new Date().t
     answer: card.back,
     explanation: `Đáp án tham chiếu từ thẻ ${index + 1}.`,
   }));
+  const mode = options.mode ?? "review";
   return {
     id: `quiz-${set.id}-${Date.parse(now)}`,
-    title: `Ôn tập: ${set.title}`,
+    title: `${mode === "test" ? "Đề kiểm tra" : "Ôn tập"}: ${set.title}`,
     subject: set.subject,
     topic: set.topic,
     difficulty: set.difficulty,
-    durationMinutes: Math.max(5, Math.ceil(questions.length * 1.5)),
+    durationMinutes: options.durationMinutes ?? Math.max(5, Math.ceil(questions.length * 1.5)),
     createdAt: now,
     questions,
+    mode,
+    timerMode: options.timerMode ?? (mode === "review" ? "unlimited" : "timed"),
   };
 }
 

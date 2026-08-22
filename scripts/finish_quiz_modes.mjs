@@ -1,0 +1,23 @@
+import { readFileSync, writeFileSync } from "node:fs";
+const audioPath = "client/src/lib/pomodoroAudio.ts";
+let audio = readFileSync(audioPath, "utf8");
+if (!audio.includes("export async function playSoundEvent")) {
+  audio = audio.replace("export type SoundEvent =", "declare global { interface Window { webkitAudioContext?: typeof AudioContext; } }\n\nexport type SoundEvent =");
+  audio += `\nexport async function playSoundEvent(event: SoundEvent, volume = 100) {\n  if (typeof window === "undefined") return false;\n  try {\n    const Ctor = window.AudioContext || window.webkitAudioContext;\n    if (!Ctor) return false;\n    const context = new Ctor();\n    if (context.state !== "running") await context.resume();\n    if (context.state !== "running") return false;\n    const master = context.createGain(); master.gain.value = scaledGain(volume, soundEventGainMultiplier(event)); master.connect(context.destination);\n    SOUND_EVENTS[event].forEach((frequency, index) => {\n      const oscillator = context.createOscillator(); const gain = context.createGain(); const startAt = context.currentTime + index * soundEventSpacing(event);\n      oscillator.type = event === "complete" ? "triangle" : "sine"; oscillator.frequency.setValueAtTime(frequency, startAt); gain.gain.setValueAtTime(0.001, startAt); gain.gain.exponentialRampToValueAtTime(1, startAt + 0.025); gain.gain.exponentialRampToValueAtTime(0.001, startAt + soundEventDuration(event)); oscillator.connect(gain).connect(master); oscillator.start(startAt); oscillator.stop(startAt + soundEventDuration(event) + 0.03);\n    });\n    window.setTimeout(() => { void context.close(); }, 1400); return true;\n  } catch { return false; }\n}\n`;
+  writeFileSync(audioPath, audio);
+}
+const quizPath = "client/src/pages/QuizEnhanced.tsx";
+let quiz = readFileSync(quizPath, "utf8");
+quiz = quiz.replace('import { cn } from "@/lib/utils";', 'import { cn } from "@/lib/utils";\nimport { playSoundEvent } from "@/lib/pomodoroAudio";');
+quiz = quiz.replace('  const [paperAllowPause, setPaperAllowPause] = useState(true);', '  const [paperAllowPause, setPaperAllowPause] = useState(true);\n  const reviewKey = active ? `study-review:${active.id}` : "";');
+quiz = quiz.replace('    if (!active || result !== null || seconds <= 0 || mode === "paper") return;', '    if (!active || result !== null || seconds <= 0 || mode === "paper" || active.mode === "review" || active.timerMode === "unlimited") return;');
+quiz = quiz.replace('  useEffect(() => {\n    if (active && seconds === 0 && result === null && mode !== "paper") finishOnline();', '  useEffect(() => {\n    if (active && seconds === 0 && result === null && mode !== "paper" && active.mode !== "review" && active.timerMode !== "unlimited") {\n      void playSoundEvent("complete", 100);\n      finishOnline();\n    }');
+const oldStart = `  const startOnline = (quiz: Quiz, selectedMode: "quick" | "deep") => {\n    setMode(selectedMode); setActive(quiz); setAnswers({}); setThoughts({}); setFlags([]); setIndex(0); setResult(null); setDeepOpen({}); setSeconds(quiz.durationMinutes * 60);\n  };`;
+const newStart = `  const startOnline = (quiz: Quiz, selectedMode: "quick" | "deep") => {\n    const isReview = (quiz.mode ?? "test") === "review" || quiz.timerMode === "unlimited";\n    const saved = isReview ? localStorage.getItem(\`study-review:\${quiz.id}\`) : null;\n    const snapshot = saved ? JSON.parse(saved) as { answers?: Record<string, string>; thoughts?: Record<string, string>; flags?: string[]; index?: number } : null;\n    setMode(selectedMode); setActive(quiz); setAnswers(snapshot?.answers ?? {}); setThoughts(snapshot?.thoughts ?? {}); setFlags(snapshot?.flags ?? []); setIndex(snapshot?.index ?? 0); setResult(null); setDeepOpen({}); setSeconds(isReview ? 0 : quiz.durationMinutes * 60);\n    if (snapshot) toast.success("Đã khôi phục tiến độ Ôn tập.");\n  };`;
+quiz = quiz.replace(oldStart, newStart);
+const marker = '  const startPaper = (quiz: Quiz) => {';
+const persist = `  useEffect(() => {\n    if (!active || result !== null || mode === "paper" || ((active.mode ?? "test") !== "review" && active.timerMode !== "unlimited")) return;\n    localStorage.setItem(reviewKey, JSON.stringify({ answers, thoughts, flags, index, updatedAt: new Date().toISOString() }));\n  }, [active, result, mode, reviewKey, answers, thoughts, flags, index]);\n`;
+quiz = quiz.replace(marker, persist + marker);
+quiz = quiz.replace('{q.questions.length} câu · {q.durationMinutes} phút', '{q.questions.length} câu · {(q.mode ?? "test") === "review" || q.timerMode === "unlimited" ? "Không giới hạn" : `${q.durationMinutes} phút`}');
+writeFileSync(quizPath, quiz);
+console.log("patched");

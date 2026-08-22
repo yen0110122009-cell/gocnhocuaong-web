@@ -17,11 +17,14 @@ export default function AIDataImport({ profile, onProfile, onView }: Props) {
   const [subject, setSubject] = useState("Lịch sử Việt Nam");
   const [topic, setTopic] = useState("");
   const [extraRequest, setExtraRequest] = useState("");
+  const [quizMode, setQuizMode] = useState<"test" | "review">("test");
+  const [timerMode, setTimerMode] = useState<"timed" | "unlimited">("timed");
+  const [durationMinutes, setDurationMinutes] = useState(30);
   const [rawData, setRawData] = useState("");
   const [documentName, setDocumentName] = useState("");
   const [prompt, setPrompt] = useState("");
   const [validated, setValidated] = useState<ReturnType<typeof validateExternalAiData> | null>(null);
-  const options = useMemo<AiImportOptions>(() => ({ target, questionType, quantity, customQuantity, title, subject, topic, extraRequest }), [target, questionType, quantity, customQuantity, title, subject, topic, extraRequest]);
+  const options = useMemo<AiImportOptions>(() => ({ target, questionType, quantity, customQuantity, title, subject, topic, extraRequest, quizMode, timerMode, durationMinutes }), [target, questionType, quantity, customQuantity, title, subject, topic, extraRequest, quizMode, timerMode, durationMinutes]);
   const makePrompt = () => { setPrompt(buildExternalAiPrompt(options)); toast.success("Đã tạo prompt cho AI bên ngoài."); };
   const validate = () => { const result = validateExternalAiData(rawData); setValidated(result); result.valid ? toast.success(`Dữ liệu hợp lệ: ${result.questions.length} câu.`) : toast.error(`${result.errors.length} lỗi cần sửa trước khi nhập.`); };
   const copyPrompt = async () => { const value = prompt || buildExternalAiPrompt(options); setPrompt(value); await navigator.clipboard?.writeText(value); toast.success("Đã sao chép prompt."); };
@@ -36,7 +39,7 @@ export default function AIDataImport({ profile, onProfile, onView }: Props) {
     const shouldCards = target === "flashcards" || target === "both" || target === "practice";
     const shouldQuiz = target === "quiz" || target === "both" || target === "practice";
     const set = shouldCards ? convertImportToFlashcards(result, { title, subject, topic }) : undefined;
-    const quiz = shouldQuiz ? convertImportToQuiz(result, { title, subject, topic }) : undefined;
+    const quiz = shouldQuiz ? convertImportToQuiz(result, { title, subject, topic, mode: quizMode, timerMode: quizMode === "review" ? "unlimited" : timerMode, durationMinutes: Math.max(1, durationMinutes) }) : undefined;
     const record = { id: uid(), title, createdAt: now, target, questionCount: quiz?.questions.length ?? 0, flashcardCount: set?.cards.length ?? 0, prompt, rawData, quizId: quiz?.id, flashcardSetId: set?.id };
     onProfile({ ...profile, flashcardSets: set ? [set, ...profile.flashcardSets] : profile.flashcardSets, quizzes: quiz ? [quiz, ...profile.quizzes] : profile.quizzes, aiImportHistory: [record, ...profile.aiImportHistory].slice(0, 50) }, `Đã tạo ${record.flashcardCount} Flashcard và ${record.questionCount} câu hỏi.`);
     onView(set ? "flashcards" : "quizzes");
@@ -54,6 +57,11 @@ export default function AIDataImport({ profile, onProfile, onView }: Props) {
             <label className="text-sm font-bold">Loại câu<select aria-label="Loại câu AI" value={questionType} onChange={(e) => setQuestionType(e.target.value as ImportQuestionType)} className="select mt-2 w-full"><option value="mixed">Kết hợp</option><option value="multiple">Trắc nghiệm</option><option value="boolean">Đúng/Sai</option><option value="short">Trả lời ngắn</option></select></label>
             <label className="text-sm font-bold">Số lượng<select aria-label="Số lượng câu AI" value={String(quantity)} onChange={(e) => setQuantity(parseQuantity(e.target.value))} className="select mt-2 w-full"><option value="auto">Tự động</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="custom">Tùy chỉnh</option></select></label>
             {quantity === "custom" && <label className="text-sm font-bold">Số tùy chỉnh<input aria-label="Số lượng tùy chỉnh" type="number" min={1} max={200} value={customQuantity} onChange={(e) => setCustomQuantity(Number(e.target.value))} className="input mt-2 w-full" /></label>}
+            {(target === "quiz" || target === "both" || target === "practice") && <>
+              <label className="text-sm font-bold">Chế độ Quiz<select aria-label="Chế độ Quiz" value={quizMode} onChange={(e) => { const next = e.target.value as "test" | "review"; setQuizMode(next); if (next === "review") setTimerMode("unlimited"); }} className="select mt-2 w-full"><option value="test">Đề kiểm tra</option><option value="review">Ôn tập</option></select></label>
+              <label className="text-sm font-bold">Thời gian<select aria-label="Chính sách thời gian Quiz" value={quizMode === "review" ? "unlimited" : timerMode} onChange={(e) => setTimerMode(e.target.value as "timed" | "unlimited")} className="select mt-2 w-full"><option value="timed">Giới hạn thời gian</option><option value="unlimited">Không giới hạn</option></select></label>
+              {quizMode === "test" && timerMode === "timed" && <label className="text-sm font-bold">Số phút làm bài<input aria-label="Số phút làm bài" type="number" min={1} max={600} value={durationMinutes} onChange={(e) => setDurationMinutes(Number(e.target.value))} className="input mt-2 w-full" /></label>}
+            </>}
             <label className="text-sm font-bold">Tên tài liệu<input aria-label="Tên tài liệu" value={title} onChange={(e) => setTitle(e.target.value)} className="input mt-2 w-full" /></label>
             <label className="text-sm font-bold">Môn học<input aria-label="Môn học AI" value={subject} onChange={(e) => setSubject(e.target.value)} className="input mt-2 w-full" /></label>
             <label className="text-sm font-bold sm:col-span-2">Chủ đề<input aria-label="Chủ đề AI" value={topic} onChange={(e) => setTopic(e.target.value)} className="input mt-2 w-full" /></label>

@@ -117,3 +117,17 @@
 - [x] Đổi nền mini-player ghim khỏi màu navy quá tối sang palette sáng/trung tính dễ chịu.
 - [x] Tăng tương phản cho tiêu đề, thời gian, trạng thái và nút điều khiển; bảo đảm đọc rõ khi scene thay đổi.
 - [x] Bổ sung regression và kiểm tra responsive cho mini-player sau khi chỉnh style.
+
+## Tái thiết Đề kiểm tra, Ôn tập và Flash Cards
+- [x] Rà soát model, persistence và UI hiện có cho đề/Flash Cards; xác định dữ liệu cần giữ tương thích.
+- [x] Thêm thao tác Chỉnh sửa và Xóa cho từng đề đã tạo, có xác nhận xóa và cập nhật danh sách.
+- [x] Thêm thao tác Chỉnh sửa và Xóa cho từng bộ Flash Cards đã tạo, có xác nhận xóa và cập nhật danh sách.
+- [x] Tách rõ Đề kiểm tra (giới hạn thời gian do người dùng đặt) khỏi Ôn tập (tùy số câu, có thể không giới hạn và lưu để làm tiếp).
+- [x] Thêm âm báo hết giờ theo cơ chế âm báo Pomodoro và xử lý trạng thái hết giờ an toàn.
+- [x] Kiểm thử persistence, chỉnh sửa/xóa, chuyển chế độ, TypeScript, full test, production build, responsive và checkpoint phát hành.
+- [ ] Không triển khai các đoạn JavaScript tạo DOM trực tiếp trong tệp tham chiếu; giữ kiến trúc React/CSS hiện tại.
+
+## Bổ sung quản lý trên route QuizEnhanced
+- [x] Thêm nút Chỉnh sửa/Xóa trực tiếp vào danh sách của QuizEnhanced, có xác nhận và cập nhật profile.
+- [x] Gắn nút Chỉnh sửa bộ Flashcard đang có vào giao diện Cards.
+- [x] Chạy full suite sau cùng, kiểm tra responsive mobile cho Quiz/Flashcard và lưu checkpoint phát hành.
