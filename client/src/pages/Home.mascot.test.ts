@@ -22,12 +22,15 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
   });
 
   it("để linh vật đi dạo trong viewport nhưng không chặn menu hoặc thao tác học", () => {
-    expect(source).toContain('hidden={view === "appearance"}');
     expect(source).toContain("if (!pet) return null;");
     expect(source).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
     expect(source).toContain("if (!pet || !roamingEnabled || dragging || reducedMotion) return;");
-    expect(source).toContain('className="pointer-events-none fixed inset-0 z-[45]"');
-    expect(source).toContain('"pointer-events-auto absolute');
+    expect(source).not.toContain('pointer-events-none fixed inset-0 z-[45]');
+    expect(source).toContain('"fixed z-[45]');
+    expect(source).toContain('aria-label="Đặt lại vị trí linh vật"');
+    expect(source).toContain('const next = { x: 50, y: 72 };');
+    expect(source).toContain("function playMascotFeedback");
+    expect(source).toContain("window.AudioContext");
     expect(source).toContain("const draggingRef = useRef(false);");
     expect(source).toContain("Math.max(8, Math.min(90");
     expect(source).toContain("Math.max(5, Math.min(95");
@@ -40,5 +43,12 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
     expect(source).toContain('window.addEventListener("pointermove", updatePointerGlow, { passive: true })');
     expect(source).toContain('window.removeEventListener("pointermove", updatePointerGlow)');
     expect(source).toContain('root.style.removeProperty("--scene-pointer-x")');
+  });
+
+  it("giữ bảng âm nền là dialog có thể thoát bằng Escape, nhấn nền và nút đóng", () => {
+    expect(source).toContain('aria-label="Điều khiển âm nền theme"');
+    expect(source).toContain('onClick={dismissAudioTheme}');
+    expect(source).toContain('event.key === "Escape"');
+    expect(source).toContain('audioThemeTriggerRef.current?.focus()');
   });
 });

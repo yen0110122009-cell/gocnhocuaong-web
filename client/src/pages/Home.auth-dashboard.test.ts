@@ -60,6 +60,8 @@ describe("auth dashboard source accessibility", () => {
     expect(source).toContain("Bạn thật sự muốn đăng nhập tài khoản khách ư?");
     expect(source).toContain("session?.account.isGuest");
     expect(source).toContain("Chế độ khách không lưu thay đổi");
+    expect(source).toContain("enabled: Boolean(token) && !session?.account.isGuest && !isGitHubPages");
+    expect(source).toContain("if (profileData.error && !session?.account.isGuest)");
   });
 });
 

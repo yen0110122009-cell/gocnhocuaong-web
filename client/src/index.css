@@ -1926,39 +1926,34 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   opacity: .16 !important;
   color: var(--scene-accent-alt) !important;
 }
-/* Legacy full-screen overlays are removed: scene tokens remain, but stale veils and sunlight cannot cover the shell. */
+/* Scene boundary: palettes may recolor the shell, but no scene owns a full-screen pseudo-element.
+   This removes every legacy fixed veil (including body layers) from the computed layout, so it
+   cannot sit above a button, keyboard focus target, sidebar, or mobile backdrop after login. */
+body::before,
+body::after,
 :root[data-ambient-scene] #root > div.min-h-screen::before,
-:root[data-ambient-scene] #root > div.min-h-screen::after { content: none !important; display: none !important; opacity: 0 !important; pointer-events: none !important; background: none !important; }
-:root[data-ambient-scene] #root > div.min-h-screen > * { position: relative; z-index: 1; }
-
-/* pasted_content_6 scenes: visual aliases use light decoration only; no opaque full-screen veil. */
-:root[data-ambient-scene="spring-blossom"],
-:root[data-ambient-scene="summer-beach"],
-:root[data-ambient-scene="autumn-leave"],
-:root[data-ambient-scene="winter-snow"],
-:root[data-ambient-scene="halloween-spooky"],
-:root[data-ambient-scene="lunar-new-year"],
-:root[data-ambient-scene="thunder-storm"],
-:root[data-ambient-scene="rainy-day"],
-:root[data-ambient-scene="sunny-day"],
-:root[data-ambient-scene="foggy-morning"] { --scene-page: #eef6f5; --scene-page-alt: #c8e6e3; --scene-side: #23605e; --scene-card: #f8fffe; --scene-text: #173638; --scene-border: #77aaa5; --scene-accent: #d97745; --scene-accent-alt: #2c8c85; --scene-shadow: rgb(23 54 56 / .16); }
-:root[data-ambient-scene="spring-blossom"],
-:root[data-ambient-scene="summer-beach"],
-:root[data-ambient-scene="autumn-leave"],
-:root[data-ambient-scene="winter-snow"],
-:root[data-ambient-scene="halloween-spooky"],
-:root[data-ambient-scene="lunar-new-year"],
-:root[data-ambient-scene="thunder-storm"],
-:root[data-ambient-scene="rainy-day"],
-:root[data-ambient-scene="sunny-day"],
-:root[data-ambient-scene="foggy-morning"] #root > div.min-h-screen::before { opacity: .05 !important; pointer-events: none !important; }
-:root[data-ambient-scene="spring-blossom"],
-:root[data-ambient-scene="summer-beach"],
-:root[data-ambient-scene="autumn-leave"],
-:root[data-ambient-scene="winter-snow"],
-:root[data-ambient-scene="halloween-spooky"],
-:root[data-ambient-scene="lunar-new-year"],
-:root[data-ambient-scene="thunder-storm"],
-:root[data-ambient-scene="rainy-day"],
-:root[data-ambient-scene="sunny-day"],
-:root[data-ambient-scene="foggy-morning"] #root > div.min-h-screen::after { opacity: .10 !important; pointer-events: none !important; mix-blend-mode: normal !important; }
+:root[data-ambient-scene] #root > div.min-h-screen::after {
+  content: none !important;
+  display: none !important;
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  background: none !important;
+  animation: none !important;
+}
+:root[data-ambient-scene] body,
+:root[data-ambient-scene] #root > div.min-h-screen {
+  background: linear-gradient(135deg, var(--scene-page, #fffdf8), var(--scene-page-alt, #fff8ef)) !important;
+  color: var(--scene-text, #241815) !important;
+  transition: background-color 240ms var(--ease-out), color 180ms var(--ease-out);
+}
+:root[data-ambient-scene] #root > div.min-h-screen :is(aside, header, nav, .panel, .study-card, article, section) {
+  transition: background-color 240ms var(--ease-out), border-color 160ms var(--ease-out), color 180ms var(--ease-out);
+}
+.mascot-feedback-drop { animation: mascot-drop-feedback 420ms var(--ease-out); }
+.mascot-feedback-reset { animation: mascot-reset-feedback 460ms var(--ease-out); }
+@keyframes mascot-drop-feedback { 0% { filter: brightness(1); } 45% { transform: translate(-50%, -50%) scale(1.18) rotate(-5deg); filter: brightness(1.18) drop-shadow(0 0 .8rem rgba(52, 211, 153, .65)); } 100% { filter: brightness(1); } }
+@keyframes mascot-reset-feedback { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(.9) rotate(-12deg); } 100% { transform: translate(-50%, -50%) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .mascot-feedback-drop, .mascot-feedback-reset { animation: none; } }

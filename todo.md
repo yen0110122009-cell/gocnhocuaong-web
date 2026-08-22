@@ -308,3 +308,11 @@
 - [x] Sửa lại vị trí và vùng kéo thả linh vật để thao tác chuột/cảm ứng hoạt động tự do trên toàn màn hình, không bị shell hoặc overlay giới hạn.
 - [x] Neo menu và header vào shell cuộn nhất quán, bảo đảm nút ba sọc luôn hiển thị và truy cập được ở mọi vị trí cuộn.
 - [x] Loại bỏ dứt điểm ảnh hưởng nền legacy còn sót, thêm regression hành vi, kiểm tra desktop/mobile, test, build và checkpoint.
+
+## Sửa lớp phủ sau đăng nhập và cải thiện tương tác linh vật
+- [x] Tái hiện lớp phủ trắng sau đăng nhập và truy vết phần tử nhận pointer events nhưng không phải luồng thao tác chủ đích.
+- [x] Gỡ hoặc giới hạn lớp phủ để chuột, cảm ứng và bàn phím tương tác được với mọi control sau đăng nhập.
+- [x] Thêm nút nhỏ, dễ truy cập để đặt lại linh vật về vị trí mặc định.
+- [x] Thêm phản hồi hình ảnh và âm thanh nhẹ sau thao tác kéo/thả linh vật, tôn trọng reduced-motion và quyền autoplay.
+- [x] Làm mượt chuyển cảnh khi đổi giao diện nền, không tạo lớp phủ chặn tương tác.
+- [x] Thêm regression tương tác, kiểm tra desktop/mobile, full test, build và checkpoint.

@@ -201,9 +201,11 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   }, [onSelect, selected]);
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.ambientScene = ambientScene;
-  }, [ambientScene]);
+    const savedScene = profile?.defaultAmbientScene;
+    if (!savedScene) return;
+    setAmbientScene(savedScene);
+    setFavoriteScene(savedScene);
+  }, [profile?.defaultAmbientScene]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -222,7 +224,6 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       if (!next || next === automatedSceneRef.current) return;
       automatedSceneRef.current = next;
       setScene(next);
-      if (profile && profile.defaultAmbientScene !== next) onProfile?.({ ...profile, defaultAmbientScene: next });
       setMessage(`Lịch cá nhân đã đổi cảnh sang ${sceneOptions.find((item) => item.id === next)?.label}.`);
     };
     applySchedule();
@@ -285,7 +286,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   function setScene(next: AmbientScene) {
     setAmbientScene(next);
-    document.documentElement.dataset.ambientScene = next;
+    if (profile && onProfile && profile.defaultAmbientScene !== next) onProfile({ ...profile, defaultAmbientScene: next });
   }
 
   function saveFavoriteScene() {
@@ -527,30 +528,14 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   }
 
   useEffect(() => {
-    if (!attentionPreferences.soundEnabled) return;
-    let disposed = false;
-    const tryStartAmbient = () => {
-      if (disposed || ambientTrackRef.current || ambientPlaying) return;
-      void toggleAmbient();
-    };
-    tryStartAmbient();
-    const resumeAfterGesture = () => {
-      void unlockAudio();
-      tryStartAmbient();
-      if (ambientTrackRef.current) {
-        window.removeEventListener("pointerdown", resumeAfterGesture);
-        window.removeEventListener("keydown", resumeAfterGesture);
-        window.removeEventListener("touchstart", resumeAfterGesture);
-      }
-    };
-    window.addEventListener("pointerdown", resumeAfterGesture, { passive: true });
-    window.addEventListener("keydown", resumeAfterGesture);
-    window.addEventListener("touchstart", resumeAfterGesture, { passive: true });
+    const unlockAfterGesture = () => { void unlockAudio(); };
+    window.addEventListener("pointerdown", unlockAfterGesture, { passive: true, once: true });
+    window.addEventListener("keydown", unlockAfterGesture, { once: true });
+    window.addEventListener("touchstart", unlockAfterGesture, { passive: true, once: true });
     return () => {
-      disposed = true;
-      window.removeEventListener("pointerdown", resumeAfterGesture);
-      window.removeEventListener("keydown", resumeAfterGesture);
-      window.removeEventListener("touchstart", resumeAfterGesture);
+      window.removeEventListener("pointerdown", unlockAfterGesture);
+      window.removeEventListener("keydown", unlockAfterGesture);
+      window.removeEventListener("touchstart", unlockAfterGesture);
     };
   }, []);
 

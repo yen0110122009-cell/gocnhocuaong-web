@@ -1542,8 +1542,8 @@ export function normalizeProfile(value: unknown): ProfileState {
       };
     })(),
     favoriteAmbientScenes: Array.isArray(source.favoriteAmbientScenes)
-      ? (source.favoriteAmbientScenes.filter((scene, index, list) => typeof scene === "string" && list.indexOf(scene) === index) as AmbientScenePreference[])
-      : [base.defaultAmbientScene ?? "morning"],
+      ? (source.favoriteAmbientScenes.filter((scene, index, list) => typeof scene === "string" && AMBIENT_SCENE_IDS.includes(scene as AmbientScenePreference) && list.indexOf(scene) === index) as AmbientScenePreference[])
+      : [],
     sceneAutomation: {
       enabled: source.sceneAutomation?.enabled === true,
       applyFixedHolidays: source.sceneAutomation?.applyFixedHolidays !== false,
