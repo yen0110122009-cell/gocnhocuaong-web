@@ -9,11 +9,14 @@ import { comboLabel, emotionThemes, type EmotionId } from "../lib/emotionThemes"
 import { AVOIDANCE_REASONS, AVOIDANCE_REASON_LABELS, TASK_COMBOS, chooseMicroTask, comboProgress, createCombo, completeComboStep, procrastinationAnalytics } from "../lib/procrastination";
 import { clearPersistedPomodoro, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
 import { PROVIDED_THEME_AMBIENT_ASSETS } from "../lib/defaultAmbient";
+import { resolveMediaUrl } from "../lib/runtime";
 import type { AvoidanceReason, ProcrastinationEvent, TaskCombo } from "../../../shared/study";
 
 const KEY = "study_historia_pomodoro_v3";
 type Mode = "focus" | "shortBreak" | "longBreak";
 type Activity = "flashcards" | "quizzes" | "theory" | "deep" | "reading" | "exercise";
+type LumiSupportKind = "comfort" | "encouragement";
+type LumiSupportPrompt = { kind: LumiSupportKind; text: string; audioUrl?: string; stateName: string };
 type View = "pomodoro" | "flashcards" | "quizzes" | "achievements" | "museum" | "progress";
 type Props = { profile: ProfileState; config: AppConfig; onProfile: (profile: ProfileState, message?: string) => void; onView: (view: View) => void; isVisible?: boolean };
 
@@ -90,6 +93,8 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const [activeTaskCombo, setActiveTaskCombo] = useState<TaskCombo | null>(null);
   const [showAvoidanceReasons, setShowAvoidanceReasons] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [lumiSupportPrompt, setLumiSupportPrompt] = useState<LumiSupportPrompt | null>(null);
+  const [lumiPlaybackStatus, setLumiPlaybackStatus] = useState("");
   const completionRef = useRef(false);
   const trackedOpenRef = useRef(false);
   const audioMixerHydratedRef = useRef(false);
@@ -97,11 +102,58 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const audioContextRef = useRef<AudioContext | null>(null);
   const personalCueRef = useRef<HTMLAudioElement | null>(null);
   const themeAmbientRef = useRef<HTMLAudioElement | null>(null);
+  const lumiSupportAudioRef = useRef<HTMLAudioElement | null>(null);
   const profileSoundRef = useRef(profile.soundEnabled);
   const appliedAudioPresetRef = useRef<string | null>(null);
   const weeklyGoalReachedRef = useRef<boolean | null>(null);
   const weeklyGoalKeyRef = useRef<string | null>(null);
   const weeklyGoalHistoryWriteRef = useRef<Set<string>>(new Set());
+  const lumiSupportMode = profile.pomodoroLumiSupportMode ?? "encouragement";
+  const availableMascotStates = useMemo(() => (config.mascotStates ?? []).filter((item) => item.enabled && !item.deletedAt), [config.mascotStates]);
+  const availableVoiceLines = useMemo(() => (config.mascotVoiceLines ?? []).filter((item) => item.enabled && !item.deletedAt), [config.mascotVoiceLines]);
+  const selectedLumiRecording = useMemo(() => {
+    const media = profile.companionEmotionMedia?.[emotion];
+    const recordings = media?.lumiVoiceRecordings ?? [];
+    return recordings.find((recording) => recording.id === media?.favoriteLumiVoiceId) ?? recordings[0] ?? (media?.lumiVoiceUrl ? { url: media.lumiVoiceUrl } : undefined);
+  }, [emotion, profile.companionEmotionMedia]);
+  function prepareLumiSupport(kind: LumiSupportKind): LumiSupportPrompt | null {
+    const stateId = kind === "comfort" ? "mistake" : "encouragement";
+    const mascotState = availableMascotStates.find((item) => item.id === stateId);
+    if (!mascotState) return null;
+    const voiceLine = availableVoiceLines.find((item) => item.state === stateId && (!item.emotion || item.emotion === emotion));
+    const customFallback = (config.customContent ?? []).find((item) => item.enabled && !item.deletedAt && (item.modules.includes("pomodoro") || item.modules.includes("antiProcrastination")));
+    return { kind, text: voiceLine?.text || customFallback?.text || mascotState.description || mascotState.name, audioUrl: voiceLine?.audioUrl || selectedLumiRecording?.url, stateName: mascotState.name };
+  }
+  function showLumiCheckIn(kind: LumiSupportKind = lumiSupportMode === "comfort" ? "comfort" : "encouragement") {
+    const prompt = prepareLumiSupport(kind);
+    if (!prompt) { setLumiSupportPrompt(null); return; }
+    setLumiPlaybackStatus("");
+    setLumiSupportPrompt(prompt);
+  }
+  async function playLumiSupport() {
+    if (!lumiSupportPrompt?.audioUrl) return;
+    try {
+      lumiSupportAudioRef.current?.pause();
+      const audio = new Audio(resolveMediaUrl(lumiSupportPrompt.audioUrl));
+      audio.volume = clamp((profile.audioMixer?.lumi ?? 75) / 100, 0, 1);
+      lumiSupportAudioRef.current = audio;
+      audio.onended = () => setLumiPlaybackStatus("Đã phát xong bản thu Lumi.");
+      await audio.play();
+      setLumiPlaybackStatus("Đang phát lời Lumi.");
+    } catch {
+      setLumiPlaybackStatus("Không thể phát bản thu trên thiết bị này. Ong vẫn có thể đọc lời nhắn ở đây.");
+    }
+  }
+  useEffect(() => () => { lumiSupportAudioRef.current?.pause(); }, []);
+  useEffect(() => {
+    if (!isVisible || !running || mode !== "focus" || lumiSupportMode === "off" || profile.popupsEnabled === false) {
+      setLumiSupportPrompt(null);
+      return;
+    }
+    const initialPrompt = window.setTimeout(() => showLumiCheckIn(), 4.5 * 60 * 1000);
+    const recurringPrompt = window.setInterval(() => showLumiCheckIn(), 9 * 60 * 1000);
+    return () => { window.clearTimeout(initialPrompt); window.clearInterval(recurringPrompt); };
+  }, [isVisible, running, mode, lumiSupportMode, profile.popupsEnabled]);
 
   function restorePersistedSession() {
     const saved = readPersistedPomodoro();
@@ -489,6 +541,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     {compactMode ? <section className="panel mt-5 border-[#2e7d32]/25 bg-gradient-to-br from-[#f5fff5] to-[#fff8f5] p-5 shadow-sm" aria-label="Pomodoro thu nhỏ"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">Pomodoro thu nhỏ</p><p className="mt-1 text-sm font-bold text-[#35523a]">Bộ đếm vẫn chạy và âm thanh vẫn giữ nguyên khi giao diện đầy đủ được thu gọn.</p></div><button type="button" className="secondary-button" onClick={() => setCompactMode(false)}>Mở đầy đủ</button></div><div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#2e7d32]/15 bg-white/85 p-4"><div><p className="text-xs font-black text-[#c62828]">{modeLabels[mode]}</p><p className="font-mono text-5xl font-black tracking-tight text-[#7f1d1d]" aria-live="polite">{display}</p><p className="mt-1 text-xs font-bold text-[#4d6c53]">{statusText}</p><span className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black transition-all duration-300 ${audioUnlocked ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`} role="status">{audioUnlocked ? "✓ Âm thanh đã mở khóa" : "◌ Âm thanh chờ thao tác chạm"}</span></div><div className="flex flex-wrap gap-2"><button type="button" className="primary-button min-w-36" onClick={handleMainAction}>{running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}{mainActionLabel}</button><button type="button" className="secondary-button" onClick={() => reset(true)}><RotateCcw className="h-4 w-4" />Đặt lại</button></div></div></section> : <>
     {isComeback ? <section className="rounded-3xl border-2 border-[#2e7d32]/20 bg-[#eff9ef] p-5 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#2e7d32]">🌱 COMEBACK</p><h2 className="mt-2 font-display text-2xl font-black text-[#35523a]">Ong quay lại rồi.</h2><p className="mt-1 text-sm font-bold text-[#4d6c53]">Bắt đầu lại không có nghĩa là thất bại. Mình thử 5 phút thật nhẹ nhé.</p></div><button type="button" className="primary-button bg-[#2e7d32]" onClick={() => { setFocus(5); setSeconds(300); setMode("focus"); }}>🍅 Học 5 phút</button></div></section> : null}
     <section className={`pomodoro-journey pomodoro-journey--${timeOfDay} rounded-3xl border border-[#2e7d32]/15 p-4`} aria-label="Start Small và nền học theo thời gian"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#c62828]">🎁 HỘP NHIỆM VỤ NGẪU NHIÊN</p><p className="mt-1 text-sm font-bold text-[#4d352f]">{randomTask}</p></div><div className="flex gap-2"><button type="button" className="secondary-button text-xs" onClick={chooseRandomTask}>✨ Mở nhiệm vụ</button><button type="button" className="secondary-button text-xs" onClick={startTwoMinutes}>⏱ 2 phút</button></div></div><p className="mt-3 text-xs font-bold text-[#4d6c53]">Nền {timeOfDay === "morning" ? "buổi sáng" : timeOfDay === "afternoon" ? "buổi chiều" : "buổi tối"} · chuyển động thở nhẹ · có thể tắt bằng chế độ giảm chuyển động của thiết bị.</p></section>
+    <section className="rounded-3xl border border-[#2e7d32]/20 bg-white p-5 shadow-sm dark:bg-slate-950/60" aria-label="Lời động viên Lumi trong Pomodoro"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#c62828]">Lumi trong phiên học</p><h2 className="mt-2 font-display text-xl font-black">Chọn cách Lumi đồng hành</h2><p className="mt-1 max-w-2xl text-sm font-bold text-slate-500 dark:text-slate-300">Lời nhắc chỉ xuất hiện thỉnh thoảng trong lúc học, không dừng bộ đếm và không che thao tác. Âm thanh chỉ phát khi Ong chủ động nhấn nghe.</p></div><div className="mt-4 grid gap-2 sm:grid-cols-3" role="group" aria-label="Cách nhận lời Lumi">{([{ id: "comfort", label: "Nhận lời an ủi", note: "Khi cần được dịu lại" }, { id: "encouragement", label: "Nhận lời động viên", note: "Khi cần thêm đà" }, { id: "off", label: "Không nhận", note: "Không hiện lời nhắc" }] as const).map((option) => <button type="button" key={option.id} onClick={() => { onProfile(normalizeProfile({ ...profile, pomodoroLumiSupportMode: option.id }), option.id === "off" ? "Pomodoro sẽ không hiện lời nhắc Lumi." : "Đã lưu cách Lumi đồng hành trong Pomodoro."); if (option.id === "off") setLumiSupportPrompt(null); }} aria-pressed={lumiSupportMode === option.id} className={`rounded-2xl border p-3 text-left transition ${lumiSupportMode === option.id ? "border-[#c62828] bg-red-50 shadow-sm dark:border-red-300 dark:bg-red-400/10" : "border-slate-200 bg-white hover:border-[#2e7d32]/50 dark:border-slate-700 dark:bg-slate-900"}`}><b className="block text-sm font-black">{option.label}</b><small className="mt-1 block text-xs font-bold text-slate-500 dark:text-slate-300">{option.note}</small></button>)}</div>{lumiSupportMode !== "off" && lumiSupportPrompt ? <div className="mt-4 rounded-2xl border border-[#2e7d32]/30 bg-emerald-50/80 p-4 shadow-sm dark:border-emerald-300/25 dark:bg-emerald-400/10" role="status" aria-live="polite"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs font-black uppercase tracking-wide text-[#2e7d32] dark:text-emerald-200">Lumi hỏi thăm · {lumiSupportPrompt.kind === "comfort" ? "an ủi" : "động viên"}</p><h3 className="mt-1 text-base font-black">Bạn đang cảm thấy thế nào?</h3><p className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-100">{lumiSupportPrompt.text}</p>{lumiPlaybackStatus ? <p className="mt-2 text-xs font-bold text-[#2e7d32] dark:text-emerald-200">{lumiPlaybackStatus}</p> : null}</div><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => { lumiSupportAudioRef.current?.pause(); setLumiSupportPrompt(null); setLumiPlaybackStatus(""); }}>Đóng</button></div><div className="mt-3 flex flex-wrap gap-2"><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => showLumiCheckIn("comfort")}>Cần an ủi</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => showLumiCheckIn("encouragement")}>Cần động viên</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => setLumiSupportPrompt(null)}>Ổn, tiếp tục học</button>{lumiSupportPrompt.audioUrl ? <button type="button" className="primary-button px-3 py-2 text-xs" onClick={() => void playLumiSupport()}><Volume2 className="mr-1 inline h-3.5 w-3.5" />Nghe lời Lumi</button> : <span className="self-center text-xs font-bold text-slate-500 dark:text-slate-300">Chưa có bản thu hoạt động cho lời này.</span>}</div></div> : null}</section>
     <section className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
       <div className="rounded-3xl border border-[#c62828]/15 bg-[#fff8f5] p-5 shadow-sm dark:bg-white/5">
         <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-[#c62828]">🧩 Lumi giúp Ong bắt đầu</p><h2 className="mt-2 font-display text-xl font-black text-[#6f2424] dark:text-red-200">Chọn một cái thôi</h2><p className="mt-1 text-sm font-bold text-[#7b5048] dark:text-slate-300">Không cần suy nghĩ 20 lựa chọn. Một bước nhỏ cũng được tính.</p></div><button type="button" className="secondary-button text-xs" onClick={() => setShowAvoidanceReasons((value) => !value)}>{showAvoidanceReasons ? "Đóng" : "Vì sao hôm nay khó học?"}</button></div>

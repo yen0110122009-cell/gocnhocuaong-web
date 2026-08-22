@@ -350,3 +350,12 @@
 - [x] Đối chiếu 14 theme trong JSON mới với registry/renderer: mascot, nền đáy, BGM, token màu, animation, ripple và click effect.
 - [x] Xóa nút dấu hỏi trợ giúp ở góc dưới màn hình cùng mọi sự kiện/tooltip liên quan.
 - [x] Bổ sung regression, kiểm thử TypeScript/Vitest/build/responsive và lưu checkpoint.
+
+## Lời động viên Lumi trong Pomodoro
+- [x] Gỡ khu Chế độ lười và toàn bộ lựa chọn mức năng lượng không còn dùng.
+- [x] Gỡ khu “Trung tâm điều khiển của Ong”/mã 111 khỏi giao diện và điều hướng liên quan.
+- [x] Sửa nghe thử và ghi âm lời Lumi, gồm quyền micro, bản thu, trạng thái phát và thông báo lỗi có thể hành động.
+- [x] Biến Mascot theo trạng thái thành cấu hình hoạt động thực tế cho lời an ủi/động viên, tôn trọng trạng thái đã tắt và thùng rác.
+- [x] Thêm lựa chọn trong Pomodoro: nhận an ủi, nhận động viên hoặc không nhận; lưu lựa chọn riêng theo hồ sơ.
+- [x] Hiển thị khung gợi ý không chặn thao tác theo nhịp trong phiên Pomodoro; cho phép trả lời cảm xúc và phát lời/bản thu khi có.
+- [x] Bổ sung regression, TypeScript/Vitest/build, kiểm tra responsive và checkpoint phát hành.

@@ -137,7 +137,6 @@ const emotionVoiceStates: Record<EmotionId, string[]> = {
 export function ExperienceStudio({ selected, onSelect, profile, onProfile, onStartTwoMinutes, customContent = [], mascotStates = [], voiceLines = [] }: Props) {
   const [command, setCommand] = useState("");
   const [message, setMessage] = useState("");
-  const [lazyLevel, setLazyLevel] = useState<"mild" | "very" | "none" | null>(null);
   const [speechGroup, setSpeechGroup] = useState<SpeechGroup>("comfort");
   const [speech, setSpeech] = useState(() => speechForEvent("procrastination"));
   const [recentContentIds, setRecentContentIds] = useState<string[]>([]);
@@ -578,11 +577,16 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   function playLumiVoice() {
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
-    const voiceUrl = preferredCompanionAudio("lumi")?.url || preferredPersonalVoice?.url || companionMedia?.lumiVoiceUrl || matchingVoiceLine?.audioUrl;
+    const voiceUrl = customCongratulation?.audioUrl || preferredCompanionAudio("lumi")?.url || preferredPersonalVoice?.url || companionMedia?.lumiVoiceUrl || matchingVoiceLine?.audioUrl;
     if (voiceUrl) {
       stopVoicePlayback(); const audio = new Audio(resolveMediaUrl(voiceUrl)); audio.volume = 0; audio.onended = () => { if (lumiAudioRef.current === audio) { lumiAudioRef.current = null; setChannelPlaying("voice", false); } }; lumiAudioRef.current = audio; void audio.play().then(() => { setChannelPlaying("voice", true, "Lumi · lời động viên"); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = lumiVolume / 100 * progress; if (progress < 1 && lumiAudioRef.current === audio) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage("Không thể phát bản thu này. Lumi vẫn để lại lời nhắn ở bên cạnh.")); return;
     }
     setMessage("Chưa có bản thu Lumi cho lời nhắn này. Ong có thể thêm bản thu trong thư viện rồi chủ động nhấn nghe.");
+  }
+  function openLumiRecording() {
+    window.dispatchEvent(new CustomEvent("gocnhocuaong:open-collapsible", { detail: { storageKey: `lumi-congratulations-${theme.id}` } }));
+    window.setTimeout(() => document.getElementById(`lumi-congratulations-${theme.id}`)?.focus(), 80);
+    setMessage("Đã mở phần Lời chúc của Lumi. Hãy nhập lời nhắn, nhấn Ghi âm trực tiếp và lưu lại khi hoàn tất.");
   }
 
   function playOngVoice() {
@@ -636,8 +640,6 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     else setSpeech(speechForEvent(event, group));
   }
   function chooseAntiProcrastination(id: "five" | "review" | "lumi") { if (id === "five") onStartTwoMinutes?.(); if (id === "review") setSpeech({ ...speechForEvent("ineffective", "understanding"), text: "Lumi chọn cho Ong: mở lại một phần bài cũ trong 5 phút thôi nhé." }); if (id === "lumi") { setSpeech(randomAntiProcrastinationSpeech()); setMicroTask(randomMicroTask()); setReminder(gentleReminders[Math.floor(Math.random() * gentleReminders.length)] ?? gentleReminders[0]); } setMessage(id === "five" ? "Lumi ở đây. Mình bắt đầu thật nhẹ nhé." : "Lumi đã chọn một nhiệm vụ nhỏ cho Ong."); }
-  function chooseLazy(level: "mild" | "very" | "none") { if (lazyLevel === level) { setLazyLevel(null); setMessage("Đã bỏ chọn Chế độ lười."); return; } setLazyLevel(level); setMessage("Không ép buộc. Ong chỉ cần một bước nhỏ khi sẵn sàng."); }
-
   return <PersistentCollapsible storageKey="experience-lumi-emotion-space" eyebrow="Không gian cá nhân" title="Không gian cảm xúc của Lumi" defaultOpen className="relative z-10 border-2 border-[#c62828]/15 bg-[linear-gradient(135deg,#fff7f2_0%,#f5fff5_100%)]"><section className="emotion-studio relative overflow-hidden" aria-labelledby="emotion-studio-title">
     <div className={`ambient-scene ambient-scene-${ambientScene}`} aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
     <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-[#c62828]">Không gian cảm xúc của Lumi</p><h2 id="emotion-studio-title" className="mt-2 font-display text-2xl font-black text-[#7f1d1d]">Hôm nay Ong đang cảm thấy thế nào?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#3f513f]">Chọn cảm xúc để đổi màu toàn ứng dụng và nhận lời đồng hành phù hợp. Âm nền chỉ phát khi Ong chủ động nhấn nút.</p></div><div className="flex items-center gap-3 rounded-2xl border border-[#2e7d32]/20 bg-white/85 px-3 py-3 shadow-sm">{showMascot && showLumi ? <div className={`flex h-20 w-16 shrink-0 items-center justify-center rounded-2xl border border-[#c62828]/20 bg-[#fff7ed] text-center text-[10px] font-bold text-[#9a3412] ${transitioningEmotion === theme.id ? "lumi-emotion-transition" : ""}`}>Audio<br />Lumi</div> : null}<div><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Bạn đồng hành</p><p className="mt-1 text-sm font-black text-[#7f1d1d]">Lumi</p><span className="text-xs text-[#35523a]">{!showLumi ? "Lumi chỉ phát âm thanh khi Ong chọn nghe" : `Đang ở bên Ong · ${theme.label}`}</span></div><span className="rounded-full border border-[#2e7d32]/20 bg-white px-2 py-1 text-[10px] font-black text-[#2e7d32]">Audio-only</span></div></div>
@@ -654,9 +656,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       <div className="rounded-2xl bg-[#fff0eb]/95 p-4">
         <div className="flex items-start gap-3"><div className={`flex h-14 w-12 items-center justify-center rounded-xl border border-[#c62828]/20 bg-[#fff7ed] text-[#c62828] ${transitioningEmotion === theme.id ? "lumi-emotion-transition" : ""}`} aria-label="Lumi audio-only"><Volume2 className="h-5 w-5" /></div><div><p className="text-xs font-black uppercase tracking-wider text-[#c62828]">Lời chúc của Lumi</p><p className="mt-2 text-sm font-bold leading-6 text-[#6f2424]">{lumiCongratulationText}</p></div></div>
         <p className="mt-3 text-xs text-[#6f5a53]">{customCongratulation ? "Đây là lời chúc riêng do Ong đã lưu cho cảm xúc này." : "Lumi đang ở đây cùng Ong — không phán xét, chỉ cùng mình đi tiếp."}</p>
-        <button type="button" onClick={playLumiVoice} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white shadow-sm"><Volume2 className="h-3.5 w-3.5" />{matchingVoiceLine?.audioUrl ? "Nghe lời thoại Lumi" : "Thêm hoặc nghe bản thu Lumi"}</button>
+        <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={playLumiVoice} className="inline-flex items-center gap-2 rounded-xl bg-[#c62828] px-3 py-2 text-xs font-black text-white shadow-sm"><Volume2 className="h-3.5 w-3.5" />Nghe lời thoại Lumi</button><button type="button" onClick={openLumiRecording} className="inline-flex items-center gap-2 rounded-xl border border-[#2e7d32]/30 bg-white px-3 py-2 text-xs font-black text-[#2e7d32] shadow-sm dark:bg-slate-950"><Mic className="h-3.5 w-3.5" />Ghi hoặc quản lý bản thu</button></div>
       </div>
-      <div className="rounded-2xl bg-[#eff9ef]/95 p-4"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Chế độ lười</p><p className="mt-2 text-sm leading-6 text-[#35523a]">Không ép buộc. Chọn mức năng lượng hiện tại:</p><div className="mt-3 flex flex-wrap gap-2">{([ ["mild", "😌 Hơi lười"], ["very", "🥱 Rất lười"], ["none", "🫠 Không muốn làm gì"] ] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={lazyLevel === value} onClick={() => chooseLazy(value)} className={`rounded-xl px-2.5 py-2 text-xs font-black ${lazyLevel === value ? "bg-[#2e7d32] text-white" : "bg-white text-[#2e7d32]"}`}>{label}</button>)}</div><button type="button" onClick={onStartTwoMinutes} className="mt-3 rounded-xl bg-[#2e7d32] px-3 py-2 text-xs font-black text-white">⏱ Thử 2 phút</button></div>
       <div className="rounded-2xl bg-[#fff9e8]/95 p-4"><p className="text-xs font-black uppercase tracking-wider text-[#9a5b00]">Boss Trì hoãn</p><p className="mt-2 text-sm font-bold text-[#6b4a1f]">👾 HP 100% · Mỗi phiên hoàn thành: −20 HP</p><div className="mt-3 h-2 rounded-full bg-[#ead9b3]"><div className="h-full w-full rounded-full bg-[#c62828]" /></div><p className="mt-2 text-xs text-[#6b4a1f]">Metaphor vui, không phải bảng phạt.</p></div>
       <div className="rounded-2xl bg-[#f5fff5]/95 p-4"><p className="text-xs font-black uppercase tracking-wider text-[#2e7d32]">Ong vs Trì hoãn</p><div className="mt-3 flex items-center justify-between text-center"><div><div className="text-2xl">🐝</div><b className="text-xs text-[#2e7d32]">Ong +1</b></div><span className="text-xs font-black text-[#c62828]">VS</span><div><div className="text-2xl">🫠</div><b className="text-xs text-[#9a5b00]">Trì hoãn</b></div></div><p className="mt-3 text-xs leading-5 text-[#35523a]">Mỗi lần bắt đầu là Ong đang thắng một chút.</p></div>
     </div>

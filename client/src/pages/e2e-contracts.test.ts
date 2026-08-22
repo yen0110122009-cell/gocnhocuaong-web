@@ -52,13 +52,12 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(store).not.toContain('code === "111" || code === "999"');
   });
 
-  it("exposes the special 111 dashboard only through the unlimited-account guard", () => {
-    expect(home).toContain('isUnlimitedAccountCode } from "../../../shared/permissions";');
-    expect(home).toContain('"special111"');
-    expect(home).toContain('(!x.special111 || isUnlimitedAccountCode(account.code))');
-    expect(home).toContain('isUnlimitedAccountCode(account.code) ? <Special111Dashboard');
-    expect(home).toContain("Mã 111 · Không giới hạn");
-    expect(home).toContain("Menu truy cập nhanh dành cho mã 111");
+  it("does not expose a special-account dashboard or code-111 navigation", () => {
+    expect(home).not.toContain('isUnlimitedAccountCode } from "../../../shared/permissions";');
+    expect(home).not.toContain('"special111"');
+    expect(home).not.toContain("Khu vực đặc biệt · Mã 111");
+    expect(home).not.toContain("Trung tâm điều khiển của Ong");
+    expect(home).not.toContain("Menu truy cập nhanh dành cho mã 111");
   });
 
   it("keeps Pomodoro configuration and completed session persistence wired", () => {
@@ -68,6 +67,19 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(pomodoro).toContain("startedAt");
     expect(pomodoro).toContain("endedAt");
     expect(pomodoro).toContain("localStorage");
+  });
+
+  it("uses enabled mascot states for non-blocking Lumi support during a focus session", () => {
+    expect(pomodoro).toContain("pomodoroLumiSupportMode");
+    expect(pomodoro).toContain('item.enabled && !item.deletedAt');
+    expect(pomodoro).toContain('item.id === stateId');
+    expect(pomodoro).toContain('mode !== "focus" || lumiSupportMode === "off"');
+    expect(pomodoro).toContain("Bạn đang cảm thấy thế nào?");
+    expect(pomodoro).toContain("Cần an ủi");
+    expect(pomodoro).toContain("Cần động viên");
+    expect(pomodoro).toContain("Nghe lời Lumi");
+    expect(pomodoro).toContain("new Audio(resolveMediaUrl(lumiSupportPrompt.audioUrl))");
+    expect(pomodoro).not.toContain("lumi-support-overlay");
   });
 
   it("implements working Pomodoro transition-alert previews and completion alert", () => {

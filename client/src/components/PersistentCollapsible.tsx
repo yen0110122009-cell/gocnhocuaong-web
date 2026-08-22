@@ -30,6 +30,15 @@ export function PersistentCollapsible({
   const [open, setOpen] = useState(() => readOpenState(storageKey, defaultOpen));
 
   useEffect(() => {
+    const handleOpenRequest = (event: Event) => {
+      const detail = (event as CustomEvent<{ storageKey?: string }>).detail;
+      if (detail?.storageKey === storageKey) setOpen(true);
+    };
+    window.addEventListener("gocnhocuaong:open-collapsible", handleOpenRequest);
+    return () => window.removeEventListener("gocnhocuaong:open-collapsible", handleOpenRequest);
+  }, [storageKey]);
+
+  useEffect(() => {
     try {
       window.localStorage.setItem(`gocnhocuaong:collapse:${storageKey}`, open ? "open" : "closed");
     } catch {

@@ -74,4 +74,11 @@ describe("Companion emotion media normalization", () => {
     expect(profile.lumiCongratulationMessages?.calm).toEqual([{ id: "calm-1", text: "Ong đã rất bền bỉ.", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" }]);
     expect(profile.lumiCongratulationMessages?.happy).toBeUndefined();
   });
+
+  it("defaults invalid or missing Pomodoro Lumi support preferences to encouragement", () => {
+    expect(normalizeProfile({}).pomodoroLumiSupportMode).toBe("encouragement");
+    expect(normalizeProfile({ pomodoroLumiSupportMode: "comfort" }).pomodoroLumiSupportMode).toBe("comfort");
+    expect(normalizeProfile({ pomodoroLumiSupportMode: "off" }).pomodoroLumiSupportMode).toBe("off");
+    expect(normalizeProfile({ pomodoroLumiSupportMode: "invalid" as never }).pomodoroLumiSupportMode).toBe("encouragement");
+  });
 });

@@ -25,9 +25,10 @@ describe("Experience Studio requirements", () => {
     expect(emotionFromCommand("lệnh không xác định").id).toBe("calm");
   });
 
-  it("contains the required non-pressure learning flows and red-green visual tokens", () => {
-    expect(studioSource).toContain("Chế độ lười");
-    expect(studioSource).toContain("Thử 2 phút");
+  it("contains the remaining non-pressure learning flows and red-green visual tokens", () => {
+    expect(studioSource).not.toContain("Chế độ lười");
+    expect(studioSource).not.toContain("Hơi lười");
+    expect(studioSource).not.toContain("Rất lười");
     expect(studioSource).toContain("Boss Trì hoãn");
     expect(studioSource).toContain("Ong vs Trì hoãn");
     expect(studioSource).toContain("#c62828");
@@ -147,7 +148,9 @@ describe("Experience Studio requirements", () => {
 
   it("only plays saved Lumi audio and exposes a member-owned personal study-space library", () => {
     expect(studioSource).not.toContain("speechSynthesis");
-    expect(studioSource).toContain("Thêm hoặc nghe bản thu Lumi");
+    expect(studioSource).toContain("Ghi hoặc quản lý bản thu");
+    expect(studioSource).toContain("openLumiRecording");
+    expect(studioSource).toContain("customCongratulation?.audioUrl");
     expect(personalStudySpaceSource).toContain("Âm thanh & Chủ đề của tôi");
     expect(personalStudySpaceSource).toContain("Tải tệp MP3/WAV/OGG/M4A");
     expect(personalStudySpaceSource).toContain("preset");

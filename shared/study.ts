@@ -752,6 +752,8 @@ export type ProfileState = {
   weeklyPomodoroGoalMinutes?: number;
   weeklyPomodoroGoalCompletions?: WeeklyPomodoroGoalCompletion[];
   lumiCongratulationMessages?: Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>>;
+  /** Cách Lumi đồng hành trong phiên Pomodoro; có thể tắt hoàn toàn lời nhắc. */
+  pomodoroLumiSupportMode?: "comfort" | "encouragement" | "off";
   theme: "light" | "dark";
   lastActivityAt: string | null;
   currentStreak: number;
@@ -924,6 +926,7 @@ export const emptyProfile = (): ProfileState => ({
   emotionTheme: "calm",
   companionEmotionMedia: {},
   lumiVoiceRecordingTrash: {},
+  pomodoroLumiSupportMode: "encouragement",
   showMascot: true,
   showLumi: true,
   defaultAmbientScene: undefined,
@@ -1488,6 +1491,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     achievementUnlockDates: source.achievementUnlockDates && typeof source.achievementUnlockDates === "object" ? source.achievementUnlockDates : {},
     animationsEnabled: source.animationsEnabled !== false,
     popupsEnabled: source.popupsEnabled !== false,
+    pomodoroLumiSupportMode: ["comfort", "encouragement", "off"].includes(String(source.pomodoroLumiSupportMode)) ? source.pomodoroLumiSupportMode as ProfileState["pomodoroLumiSupportMode"] : "encouragement",
     emotionTheme: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(source.emotionTheme)) ? source.emotionTheme as ProfileState["emotionTheme"] : "calm",
     companionEmotionMedia: source.companionEmotionMedia && typeof source.companionEmotionMedia === "object" ? Object.fromEntries(Object.entries(source.companionEmotionMedia).flatMap(([emotion, value]) => {
       if (!["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(emotion) || !value || typeof value !== "object") return [];
