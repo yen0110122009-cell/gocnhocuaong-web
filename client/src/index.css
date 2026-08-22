@@ -1887,3 +1887,35 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root[data-ambient-scene] #root > div.min-h-screen::before { opacity: .14 !important; pointer-events: none !important; }
 :root[data-ambient-scene] #root > div.min-h-screen::after { opacity: .24 !important; pointer-events: none !important; mix-blend-mode: normal !important; }
 :root[data-ambient-scene] #root > div.min-h-screen > * { position: relative; z-index: 1; }
+
+/* pasted_content_6 scenes: visual aliases use light decoration only; no opaque full-screen veil. */
+::root[data-ambient-scene="spring-blossom"],
+::root[data-ambient-scene="summer-beach"],
+::root[data-ambient-scene="autumn-leave"],
+::root[data-ambient-scene="winter-snow"],
+::root[data-ambient-scene="halloween-spooky"],
+::root[data-ambient-scene="lunar-new-year"],
+::root[data-ambient-scene="thunder-storm"],
+::root[data-ambient-scene="rainy-day"],
+::root[data-ambient-scene="sunny-day"],
+::root[data-ambient-scene="foggy-morning"] { --scene-page: #eef6f5; --scene-page-alt: #c8e6e3; --scene-side: #23605e; --scene-card: #f8fffe; --scene-text: #173638; --scene-border: #77aaa5; --scene-accent: #d97745; --scene-accent-alt: #2c8c85; --scene-shadow: rgb(23 54 56 / .16); }
+::root[data-ambient-scene="spring-blossom"],
+::root[data-ambient-scene="summer-beach"],
+::root[data-ambient-scene="autumn-leave"],
+::root[data-ambient-scene="winter-snow"],
+::root[data-ambient-scene="halloween-spooky"],
+::root[data-ambient-scene="lunar-new-year"],
+::root[data-ambient-scene="thunder-storm"],
+::root[data-ambient-scene="rainy-day"],
+::root[data-ambient-scene="sunny-day"],
+::root[data-ambient-scene="foggy-morning"] #root > div.min-h-screen::before { opacity: .05 !important; pointer-events: none !important; }
+::root[data-ambient-scene="spring-blossom"],
+::root[data-ambient-scene="summer-beach"],
+::root[data-ambient-scene="autumn-leave"],
+::root[data-ambient-scene="winter-snow"],
+::root[data-ambient-scene="halloween-spooky"],
+::root[data-ambient-scene="lunar-new-year"],
+::root[data-ambient-scene="thunder-storm"],
+::root[data-ambient-scene="rainy-day"],
+::root[data-ambient-scene="sunny-day"],
+::root[data-ambient-scene="foggy-morning"] #root > div.min-h-screen::after { opacity: .10 !important; pointer-events: none !important; mix-blend-mode: normal !important; }

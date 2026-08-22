@@ -219,3 +219,4 @@
 - [x] Bảo đảm scene Không gian trong Cảnh mở rộng thật sự đổi nền, menu, panel, chữ và hiệu ứng.
 - [x] Bổ sung regression cho audio playback flow và token scene space.
 - [x] Chạy test, TypeScript, build, responsive smoke và lưu checkpoint.
+- [x] Khắc phục lỗi Babel `Expecting Unicode escape sequence` tại Home.tsx phát hiện sau khi đọc pasted_content_6.
