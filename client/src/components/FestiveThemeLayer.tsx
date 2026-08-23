@@ -160,6 +160,7 @@ export function FestiveThemeLayer({ scene, soundEnabled = true, toneEnabled = tr
     const palette = config.colors.light;
     root.style.setProperty("--festive-bg", palette.bg);
     root.style.setProperty("--festive-primary", palette.primary);
+    root.style.setProperty("--festive-primary-ink", readableInk(palette.primary));
     root.style.setProperty("--festive-accent", palette.accent);
     root.style.setProperty("--festive-ink", readableInk(palette.bg));
     root.style.setProperty("--festive-panel", palette.bg);
@@ -169,11 +170,12 @@ export function FestiveThemeLayer({ scene, soundEnabled = true, toneEnabled = tr
     root.style.setProperty("--festive-light-text", readableInk(config.colors.light.bg));
     root.style.setProperty("--festive-dark-bg", config.colors.dark.bg);
     root.style.setProperty("--festive-dark-primary", config.colors.dark.primary);
+    root.style.setProperty("--festive-dark-primary-ink", readableInk(config.colors.dark.primary));
     root.style.setProperty("--festive-dark-accent", config.colors.dark.accent);
     root.style.setProperty("--festive-dark-text", readableInk(config.colors.dark.bg));
     return () => {
       delete root.dataset.festiveTheme;
-      ["--festive-bg", "--festive-primary", "--festive-accent", "--festive-ink", "--festive-panel"].forEach((name) => root.style.removeProperty(name));
+      ["--festive-bg", "--festive-primary", "--festive-primary-ink", "--festive-accent", "--festive-ink", "--festive-panel", "--festive-dark-primary-ink"].forEach((name) => root.style.removeProperty(name));
     };
   }, [config?.id, resolvedToneEnabled]);
   if (!config || !resolvedVfxEnabled) return children ? <div id="vfx-stage" className="vfx-stage-personal" aria-label="Linh vật cá nhân tương tác">{children}</div> : null;

@@ -173,6 +173,7 @@ html[data-festive-theme] .primary-button {
 html.dark[data-festive-theme] {
   --festive-bg: var(--festive-dark-bg);
   --festive-primary: var(--festive-dark-primary);
+  --festive-primary-ink: var(--festive-dark-primary-ink, #fff);
   --festive-accent: var(--festive-dark-accent);
   --festive-ink: var(--festive-dark-text);
   --festive-panel: color-mix(in srgb, var(--festive-dark-bg) 88%, #111827);
@@ -2106,7 +2107,8 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   opacity: 1 !important;
   pointer-events: none !important;
 }
-#vfx-stage :is(.festive-mascot, .festive-ground-item) {
+#vfx-stage :is(.festive-mascot, .festive-ground-item),
+#vfx-stage button {
   display: grid !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -2121,4 +2123,85 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   min-height: 130px !important;
   font-size: 130px !important;
   z-index: 10000 !important;
+}
+
+/* Khi đang ở theme lễ hội, trạng thái đã chọn vẫn phải dùng accent của theme. */
+:root[data-festive-theme] #root > div.min-h-screen :is(.primary-button, button[aria-pressed="true"], button[aria-current="page"]) {
+  background-color: var(--festive-primary, #c62828) !important;
+  background-image: none !important;
+  border-color: var(--festive-primary, #c62828) !important;
+  color: var(--festive-primary-ink, #fff) !important;
+  text-shadow: none !important;
+}
+:root[data-festive-theme] #root > div.min-h-screen :is(button[aria-pressed="true"], button[aria-current="page"]):hover {
+  background-color: color-mix(in srgb, var(--festive-primary, #c62828) 86%, black) !important;
+  color: var(--festive-primary-ink, #fff) !important;
+}
+
+/* Overlay chúc mừng Pomodoro: pháo hoa xuất phát từ giữa rồi tản ra xung quanh. */
+.pomodoro-goal-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 1.25rem;
+  background: rgb(15 23 42 / .72);
+  backdrop-filter: blur(3px);
+}
+.pomodoro-goal-celebration__card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 27rem);
+  border: 2px solid color-mix(in srgb, var(--palette-accent, #e4572e) 60%, white);
+  border-radius: 1.75rem;
+  background: color-mix(in srgb, var(--palette-card, #fffdf8) 96%, white);
+  color: var(--palette-text-primary, #2f211e);
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 24px 80px rgb(15 23 42 / .32);
+  animation: pomodoro-celebration-card-in 420ms var(--ease-out) both;
+}
+.pomodoro-goal-fireworks {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.pomodoro-goal-fireworks > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  font-size: clamp(1.7rem, 4vw, 2.8rem);
+  line-height: 1;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.55);
+  animation: pomodoro-firework-out 1.35s var(--ease-out) both;
+}
+@keyframes pomodoro-celebration-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pomodoro-firework-out {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.55); }
+  16% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--firework-x)), calc(-50% + var(--firework-y))) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pomodoro-goal-celebration__card { animation: none; }
+  .pomodoro-goal-fireworks > span {
+    opacity: .9;
+    animation: none;
+    transform: translate(calc(-50% + var(--firework-x)), calc(-50% + var(--firework-y))) scale(.9);
+  }
+}
+html[data-animations="off"] .pomodoro-goal-celebration__card { animation: none; }
+html[data-animations="off"] .pomodoro-goal-fireworks > span {
+  opacity: .9;
+  animation: none;
+  transform: translate(calc(-50% + var(--firework-x)), calc(-50% + var(--firework-y))) scale(.9);
 }
