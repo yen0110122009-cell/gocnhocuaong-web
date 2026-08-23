@@ -24,6 +24,8 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(lumi).toContain("Cần cái ôm");
     expect(lumi).toContain("Sẵn sàng học");
     expect(lumi).toContain("Lumi đang ở đây với Ong");
+    expect(lumi).toContain("LUMI_WELCOME");
+    expect(lumi).toContain("lumiKaomojiForEmotion");
     expect(lumi).not.toContain("Trạng thái của hôm nay");
     expect(lumi).not.toContain("Một lời nhắc nhẹ");
   });
@@ -45,6 +47,9 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(helper).toContain('"hug"');
     expect(helper).toContain('"companionship"');
     expect(helper).toContain('"water"');
+    expect(helper).toContain("Đừng lo nhé");
+    expect(helper).toContain("Cùng tập trung học thật tốt nhé");
+    expect(helper).toContain("Đã đến giờ uống một ngụm nước ấm");
     expect(lumi).toContain("Thêm, sửa và nghe thử câu nói");
     expect(lumi).toContain("Chỉnh sửa");
     expect(lumi).toContain("Xóa");

@@ -1,7 +1,7 @@
 export const LUMI_SPEECH_STORAGE_KEY = "lumi_speech_enabled";
 export const LUMI_WATER_MESSAGE_STORAGE_KEY = "lumi_water_message";
 export const LUMI_DIALOGUE_LINES_STORAGE_KEY = "lumi_dialogue_lines";
-export const DEFAULT_LUMI_WATER_MESSAGE = "Ong ơi, đến lúc uống một ngụm nước rồi nhé. Mình chăm sóc cơ thể để học thật lâu nha!";
+export const DEFAULT_LUMI_WATER_MESSAGE = "Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧";
 
 function storage() {
   return typeof window === "undefined" ? null : window.localStorage;

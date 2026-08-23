@@ -4,6 +4,7 @@ import type { AppConfig, ProfileState } from "../../../shared/study";
 import { emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { dialogueGroupForEmotion, dialoguesForGroup, LUMI_DIALOGUE_GROUPS, readLumiCustomDialogues, saveLumiCustomDialogues, type LumiCustomDialogue, type LumiDialogueGroup, LUMI_CUSTOM_DIALOGUES_EVENT } from "../lib/lumiCustomDialogues";
 import { readLumiSpeechPreference, saveLumiSpeechPreference } from "../lib/lumiPreferences";
+import { LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
 
 export type ExperienceStudioProps = {
   selected: EmotionId;
@@ -40,13 +41,14 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const current = emotionThemes.find((item) => item.id === selected) ?? emotionThemes[0];
   const [dialogues, setDialogues] = useState<LumiCustomDialogue[]>(() => readLumiCustomDialogues());
   const [speechEnabled, setSpeechEnabled] = useState(() => readLumiSpeechPreference(profile?.lumiSpeechEnabled !== false));
-  const [activeMessage, setActiveMessage] = useState(current.encouragement);
+  const [activeMessage, setActiveMessage] = useState<string>(LUMI_WELCOME.text);
   const [showEmotionDialog, setShowEmotionDialog] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [newText, setNewText] = useState("");
   const [newGroup, setNewGroup] = useState<LumiDialogueGroup>("companionship");
   const [dialogueFilter, setDialogueFilter] = useState<LumiDialogueGroup | "all">("all");
+  const lumiKaomoji = lumiKaomojiForEmotion(selected);
 
   const activeGroup = dialogueGroupForEmotion(selected);
   const activeDialogues = useMemo(() => dialoguesForGroup(dialogues, activeGroup), [activeGroup, dialogues]);
@@ -67,6 +69,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   }, []);
 
   useEffect(() => {
+    if (activeMessage === LUMI_WELCOME.text) return;
     if (!activeDialogues.some((dialogue) => dialogue.text === activeMessage)) setActiveMessage(activeDialogues[0]?.text ?? current.encouragement);
   }, [activeDialogues, activeMessage, current.encouragement]);
 
@@ -135,7 +138,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
         <label className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-white/80 px-3 py-2 text-xs font-black text-rose-800 shadow-sm dark:border-rose-300/20 dark:bg-slate-950/30 dark:text-rose-100"><input type="checkbox" checked={speechEnabled} onChange={(event) => setSpeech(event.target.checked)} /> <Volume2 className="h-4 w-4" aria-hidden="true" /> AI đọc thoại</label>
       </div>
       <div className="mt-6 grid place-items-center text-center">
-        <div className="grid min-h-36 min-w-56 place-items-center rounded-[2rem] border border-rose-200 bg-white/75 px-6 py-5 shadow-inner dark:border-rose-300/20 dark:bg-slate-950/25" aria-label={`Lumi đang thể hiện ${current.label}`}><div className="text-5xl" aria-hidden="true">{current.emoji}</div><div className="mt-2 font-mono text-2xl font-black text-rose-800 dark:text-rose-100">{current.id === "tired" || current.id === "sleepy" ? "(｡•́︿•̀｡)" : current.id === "happy" || current.id === "excited" ? "٩(ˊᗜˋ*)و" : "(｡•̀ᴗ-)✧"}</div><p className="mt-2 text-xs font-bold text-rose-700 dark:text-rose-200">Lumi · {current.label}</p></div>
+        <div className="grid min-h-36 min-w-56 place-items-center rounded-[2rem] border border-rose-200 bg-white/75 px-6 py-5 shadow-inner dark:border-rose-300/20 dark:bg-slate-950/25" aria-label={`Lumi đang thể hiện ${current.label}`}><div className="text-5xl" aria-hidden="true">{current.emoji}</div><div className="mt-2 font-mono text-2xl font-black text-rose-800 dark:text-rose-100">{activeMessage === LUMI_WELCOME.text ? LUMI_WELCOME.kaomoji : lumiKaomoji}</div><p className="mt-2 text-xs font-bold text-rose-700 dark:text-rose-200">Lumi · {current.label}</p></div>
         <div className="mt-4 max-w-2xl rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm font-semibold leading-6 text-amber-950 dark:border-amber-300/20 dark:bg-amber-950/25 dark:text-amber-50" role="status" aria-live="polite">“{activeMessage}”</div>
         <div className="mt-3 flex flex-wrap justify-center gap-2"><button type="button" className="secondary-button" onClick={() => showDialogue(activeMessage)}><Play className="h-4 w-4" />Nghe lời nhắn</button>{onStartTwoMinutes ? <button type="button" className="primary-button" onClick={onStartTwoMinutes}>Bắt đầu 2 phút</button> : null}</div>
       </div>

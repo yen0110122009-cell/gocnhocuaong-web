@@ -19,16 +19,16 @@ export const LUMI_DIALOGUE_GROUPS: Array<{ id: LumiDialogueGroup; label: string;
 ];
 
 export const DEFAULT_LUMI_DIALOGUES: LumiCustomDialogue[] = [
-  { id: "default-comfort-1", group: "comfort", text: "Không sao nếu hôm nay Ong đi chậm. Mình cùng thở một nhịp rồi làm một việc thật nhỏ nhé.", isDefault: true },
-  { id: "default-comfort-2", group: "comfort", text: "Lumi ở đây với Ong. Nghỉ một chút cũng là cách chăm sóc hành trình học tập.", isDefault: true },
-  { id: "default-encouragement-1", group: "encouragement", text: "Lumi tin Ong làm được. Mình bắt đầu bằng năm phút thôi nhé!", isDefault: true },
-  { id: "default-encouragement-2", group: "encouragement", text: "Từng bước nhỏ đều có ý nghĩa. Ong đã bắt đầu rồi, mình đi tiếp cùng nhau.", isDefault: true },
-  { id: "default-hug-1", group: "hug", text: "Gửi Ong một cái ôm thật ấm. Ong không cần hoàn hảo để được yêu thương đâu.", isDefault: true },
-  { id: "default-hug-2", group: "hug", text: "(っ´▽`)っ Lumi ôm Ong một cái rồi mình cùng nhẹ nhàng quay lại nhé.", isDefault: true },
-  { id: "default-companionship-1", group: "companionship", text: "Lumi sẵn sàng ngồi cạnh Ong. Một phiên, một mục tiêu, mình cùng làm nhé!", isDefault: true },
-  { id: "default-companionship-2", group: "companionship", text: "Ong không học một mình đâu. Lumi vẫn ở đây, cùng Ong đi từng phút.", isDefault: true },
-  { id: "default-water-1", group: "water", text: "Ong ơi, uống một ngụm nước rồi mình học tiếp thật dịu dàng nhé.", isDefault: true },
-  { id: "default-water-2", group: "water", text: "Một ngụm nước nhỏ cho cơ thể thêm năng lượng. Cảm ơn Ong đã chăm sóc mình!", isDefault: true },
+  { id: "default-comfort-1", group: "comfort", text: "Đừng lo nhé, mọi chuyện rồi sẽ ổn thôi. Lumi ở đây bên bạn nè 💖", isDefault: true },
+  { id: "default-comfort-2", group: "comfort", text: "Lumi ở đây với bạn. Mình cùng thở một nhịp rồi làm một việc thật nhỏ nhé.", isDefault: true },
+  { id: "default-encouragement-1", group: "encouragement", text: "Cố lên nào! Bạn mạnh mẽ và giỏi giang hơn bạn nghĩ nhiều đó ✨", isDefault: true },
+  { id: "default-encouragement-2", group: "encouragement", text: "Cùng tập trung học thật tốt nhé! Lumi luôn đồng hành cùng bạn 🍀", isDefault: true },
+  { id: "default-hug-1", group: "hug", text: "Gửi bạn một cái ôm thật chặt và ấm áp này! 🤗", isDefault: true },
+  { id: "default-hug-2", group: "hug", text: "Lumi ôm bạn một cái rồi mình cùng nhẹ nhàng quay lại nhé.", isDefault: true },
+  { id: "default-companionship-1", group: "companionship", text: "Cùng nhau bắt đầu một phiên học thật tốt nhé! 🍀", isDefault: true },
+  { id: "default-companionship-2", group: "companionship", text: "Lumi sẵn sàng ngồi cạnh bạn. Một phiên, một mục tiêu, mình cùng làm nhé.", isDefault: true },
+  { id: "default-water-1", group: "water", text: "Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧", isDefault: true },
+  { id: "default-water-2", group: "water", text: "Ngoan lắm! Tiếp tục thôi nào ✨", isDefault: true },
 ];
 
 const GROUP_IDS = new Set<LumiDialogueGroup>(LUMI_DIALOGUE_GROUPS.map((group) => group.id));

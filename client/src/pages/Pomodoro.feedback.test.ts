@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 describe("Pomodoro feedback contract", () => {
   const source = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
+  const presets = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPresets.ts"), "utf8");
 
   it("giữ quy định no-BGM với âm báo nước và TTS Lumi", () => {
     expect(source).toContain("Cài đặt Lumi và Pomodoro");
@@ -51,5 +52,15 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("Thiếu động lực");
     expect(source).toContain("Cần cái ôm");
     expect(source).toContain("Sẵn sàng học");
+  });
+
+  it("đồng bộ routine Kaomoji Lumi với focus, nghỉ và nhắc nước", () => {
+    expect(source).toContain("lumiKaomojiForPomodoro");
+    expect(source).toContain("lumiRoutineMessage");
+    expect(source).toContain("LUMI_WELCOME");
+    expect(source).toContain("waterReminderVisible ? \"(´ー`)旦~~\"");
+    expect(source).toContain("Ngoan lắm! Tiếp tục thôi nào ✨");
+    expect(source).toContain("LUMI_WATER_MESSAGE");
+    expect(presets).toContain("Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧");
   });
 });
