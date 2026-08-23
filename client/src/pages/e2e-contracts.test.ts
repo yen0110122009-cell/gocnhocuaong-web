@@ -49,15 +49,16 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(pomodoro).toContain('role="status"');
   });
 
-  it("chỉ dùng âm báo nước và TTS, không khởi chạy BGM Pomodoro", () => {
+  it("chỉ dùng âm báo ngắn và TTS, không khởi chạy BGM Pomodoro", () => {
     expect(pomodoro).toContain("AudioContext");
     expect(pomodoro).toContain("playLumiWaterAlert");
+    expect(pomodoro).toContain("playPomodoroAlert");
+    expect(pomodoro).toContain("triggerPomodoroAlert");
     expect(pomodoro).toContain("window.speechSynthesis");
     expect(pomodoro).toContain("Pomodoro không phát nhạc nền");
-    expect(pomodoro).not.toContain("triggerAlert(\"endFocus\")");
-    expect(pomodoro).not.toContain("playPomodoroAlert");
     expect(pomodoro).not.toContain("startBackground");
     expect(pomodoro).not.toContain("backgroundVolume");
+    expect(pomodoro).not.toContain("new Audio(");
   });
 
   it("giữ hiệu ứng cuộn và reduced-motion ở shell chính", () => {

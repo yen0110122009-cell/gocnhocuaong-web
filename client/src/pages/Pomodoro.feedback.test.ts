@@ -7,13 +7,14 @@ describe("Pomodoro feedback contract", () => {
   const presets = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPresets.ts"), "utf8");
   const speech = readFileSync(resolve(process.cwd(), "client/src/lib/lumiSpeech.ts"), "utf8");
 
-  it("giữ quy định no-BGM với âm báo nước và TTS Lumi", () => {
+  it("giữ quy định no-BGM với âm báo nước, bốn âm báo Pomodoro và TTS Lumi", () => {
     expect(source).toContain("Cài đặt Lumi và Pomodoro");
     expect(source).toContain("Nhắc uống nước");
     expect(source).toContain("LUMI_WATER_ALERT_SOUNDS");
+    expect(source).toContain("POMODORO_ALERT_EVENT_IDS.map");
+    expect(source).toContain("playPomodoroAlert");
     expect(source).toContain("window.speechSynthesis");
-    expect(source).not.toContain("POMODORO_ALERT_EVENT_IDS.map");
-    expect(source).not.toContain("playPomodoroAlert");
+    expect(source).not.toContain("new Audio(");
   });
 
   it("lưu ngữ cảnh học gồm môn, nội dung và ghi chú", () => {
@@ -44,6 +45,9 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("pomodoro_lumi_timer_badge_visible");
     expect(source).toContain("const lumiTimerBadge = showLumiDialog ?");
     expect(source).toContain("return <>{showLumiDialog ? lumiTimerBadge");
+    expect(source).toContain("setShowLumiDialog(true)");
+    expect(source).toContain("onPointerDown={startLumiPopupDrag}");
+    expect(source).toContain("lumiPopupPosition");
     expect(css).toContain(".pomodoro-pinned-widget");
     expect(css).toContain("z-index: 9999 !important");
     expect(css).toContain(".modal-backdrop");
@@ -85,6 +89,9 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("waterReminderVisible ? \"(´ー`)旦~~\"");
     expect(source).toContain("Ngoan lắm! Tiếp tục thôi nào ✨");
     expect(source).toContain("LUMI_WATER_MESSAGE");
+    expect(source).toContain("scheduleMode");
+    expect(source).toContain("dailyTime");
+    expect(source).toContain("Nghe thử âm báo nhắc nước");
     expect(presets).toContain("Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧");
   });
 });

@@ -2,13 +2,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   normalizeLumiWaterSettings,
+  normalizePomodoroAlertSettings,
+  POMODORO_ALERT_EVENT_IDS,
   type AppConfig,
+  type PomodoroAlertEventId,
   type PomodoroSession,
   type LumiWaterSettings,
   type ProfileState,
 } from "../../../shared/study";
 import { readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
 import { LUMI_WATER_ALERT_SOUNDS, isLumiWaterAlertSoundId, playLumiWaterAlert } from "../lib/lumiAlerts";
+import { POMODORO_ALERT_SOUNDS, isPomodoroAlertSoundId, playPomodoroAlert } from "../lib/pomodoroAlerts";
 import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMessage, saveLumiSpeechPreference, saveLumiWaterMessage } from "../lib/lumiPreferences";
 import { emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues, type LumiCustomDialogue } from "../lib/lumiCustomDialogues";
@@ -28,6 +32,7 @@ const activities: Array<{ id: Activity; label: string; icon: string }> = [
 const presets = [{ label: "10 / 5", focus: 10, short: 5, long: 15 }, { label: "25 / 5", focus: 25, short: 5, long: 15 }, { label: "45 / 10", focus: 45, short: 10, long: 20 }];
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 const labelForMode: Record<Mode, string> = { focus: "Tập trung", shortBreak: "Nghỉ ngắn", longBreak: "Nghỉ dài" };
+const pomodoroAlertEventLabels: Record<PomodoroAlertEventId, string> = { startFocus: "Bắt đầu phiên tập trung", endFocus: "Kết thúc phiên tập trung", startBreak: "Bắt đầu giờ nghỉ", endBreak: "Kết thúc giờ nghỉ" };
 const celebrationFireworks = [
   { emoji: "🎆", x: "-12rem", y: "-7rem" },
   { emoji: "🎇", x: "-5rem", y: "-10rem" },
@@ -62,6 +67,8 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const [compactMode, setCompactMode] = useState(restored?.compactMode ?? false);
   const [miniPlayerPinned, setMiniPlayerPinned] = useState(restored?.miniPlayerPinned ?? false);
   const [miniPlayerPosition, setMiniPlayerPosition] = useState({ x: restored?.miniPlayerX ?? 78, y: restored?.miniPlayerY ?? 78 });
+  const [lumiPopupPosition, setLumiPopupPosition] = useState({ x: restored?.lumiPopupX ?? 50, y: restored?.lumiPopupY ?? 50 });
+  const [pomodoroAlertSettings, setPomodoroAlertSettings] = useState(() => normalizePomodoroAlertSettings(restored?.pomodoroAlerts ?? profile.audioMixer?.pomodoroAlerts));
   const [goalCelebrationVisible, setGoalCelebrationVisible] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
@@ -86,6 +93,8 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const celebrationTimeoutRef = useRef<number | undefined>(undefined);
   const waterFeedbackTimeoutRef = useRef<number | undefined>(undefined);
   const widgetDragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
+  const popupDragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
+  const lastWaterClockKeyRef = useRef<string | null>(null);
   const incompletePlans = (profile.studyPlanItems ?? []).filter((item) => !item.completed);
   const selectedPlans = incompletePlans.filter((item) => checkedPlanItemIds.includes(item.id));
   const completedFocusCount = profile.pomodoroHistory.filter((item) => item.mode === "focus" && item.status === "completed").length;
@@ -96,7 +105,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const lumiMode = profile.pomodoroLumiSupportMode ?? "encouragement";
   const lumiSpeechEnabled = speechEnabledPreference;
   const [waterMessage, setWaterMessage] = useState(() => readLumiWaterMessage());
-  const waterDisplay = `${String(Math.floor(waterSecondsRemaining / 60)).padStart(2, "0")}:${String(waterSecondsRemaining % 60).padStart(2, "0")}`;
+  const waterDisplay = lumiWaterSettings.scheduleMode === "clock" ? `Mỗi ngày lúc ${lumiWaterSettings.dailyTime ?? "09:00"}` : `${String(Math.floor(waterSecondsRemaining / 60)).padStart(2, "0")}:${String(waterSecondsRemaining % 60).padStart(2, "0")}`;
   const lumiKaomoji = waterCelebrated ? LUMI_WELCOME.kaomoji : waterReminderVisible ? "(´ー`)旦~~" : lumiKaomojiForPomodoro(mode, running);
   const lumiKaomojiEntry = useMemo(() => findLumiKaomojiDialogue(lumiMultiDialogues, lumiKaomoji), [lumiMultiDialogues, lumiKaomoji]);
   const lumiWelcomeEntry = useMemo(() => findLumiKaomojiDialogue(lumiMultiDialogues, LUMI_WELCOME.kaomoji), [lumiMultiDialogues]);
@@ -106,8 +115,8 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const lumiActiveDialogue = waterCelebrated ? LUMI_WATER_PRAISE : waterReminderVisible ? waterMessage || LUMI_WATER_MESSAGE : lumiWidgetDialogue ?? lumiRoutineDialogue ?? lumiRoutineMessage(mode, running);
 
   useEffect(() => {
-    writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, goalCompletedSessions, sessionStartedAt, alertVolume: 0, compactMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y });
-  }, [focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, goalCompletedSessions, sessionStartedAt, compactMode, miniPlayerPinned, miniPlayerPosition]);
+    writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, goalCompletedSessions, sessionStartedAt, alertVolume: 0, pomodoroAlerts: pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y, lumiPopupX: lumiPopupPosition.x, lumiPopupY: lumiPopupPosition.y });
+  }, [focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, goalCompletedSessions, sessionStartedAt, pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerPosition, lumiPopupPosition]);
   useEffect(() => {
     if (!running) return;
     const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value - 1)), 1_000);
@@ -116,7 +125,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   useEffect(() => {
     if (seconds !== 0 || completionHandled.current) return;
     completionHandled.current = true;
-    if (mode === "focus") completeFocus(); else completeBreak();
+    if (mode === "focus") { triggerPomodoroAlert("endFocus"); completeFocus(); } else { triggerPomodoroAlert("endBreak"); completeBreak(); }
   }, [seconds, mode]);
   useEffect(() => {
     if (!running || mode !== "focus" || lumiMode === "off" || profile.popupsEnabled === false) return;
@@ -153,31 +162,86 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   useEffect(() => {
     setLumiWidgetDialogue(lumiKaomojiEntry ? pickRandomLumiDialogue(lumiKaomojiEntry)?.text ?? null : null);
   }, [lumiKaomojiEntry]);
+  function showWaterReminder() {
+    const reminderText = waterMessage || DEFAULT_LUMI_WATER_MESSAGE;
+    if (profile.popupsEnabled === false) return;
+    setWaterReminderVisible(true);
+    setWaterCelebrated(false);
+    setWaterFeedback(null);
+    triggerLumiWaterAlert();
+    speakLumi(reminderText);
+  }
+
   useEffect(() => {
-    if (!lumiWaterSettings.enabled) { setWaterSecondsRemaining(0); return; }
+    if (!lumiWaterSettings.enabled) { setWaterSecondsRemaining(0); lastWaterClockKeyRef.current = null; return; }
+    if (lumiWaterSettings.scheduleMode === "clock") {
+      setWaterSecondsRemaining(0);
+      const checkClock = () => {
+        const now = new Date();
+        const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        const clockKey = `${now.toDateString()}-${currentTime}`;
+        if (currentTime === (lumiWaterSettings.dailyTime ?? "09:00") && lastWaterClockKeyRef.current !== clockKey) {
+          lastWaterClockKeyRef.current = clockKey;
+          showWaterReminder();
+        }
+      };
+      checkClock();
+      const timer = window.setInterval(checkClock, 1_000);
+      return () => window.clearInterval(timer);
+    }
+    lastWaterClockKeyRef.current = null;
     setWaterSecondsRemaining(lumiWaterSettings.intervalMinutes * 60);
     const timer = window.setInterval(() => setWaterSecondsRemaining((value) => {
       if (value > 1) return value - 1;
-      const reminderText = waterMessage || DEFAULT_LUMI_WATER_MESSAGE;
-      if (profile.popupsEnabled !== false) {
-        setWaterReminderVisible(true);
-        setWaterCelebrated(false);
-        setWaterFeedback(null);
-        triggerLumiWaterAlert();
-        speakLumi(reminderText);
-      }
+      showWaterReminder();
       return lumiWaterSettings.intervalMinutes * 60;
     }), 1_000);
     return () => window.clearInterval(timer);
-  }, [lumiWaterSettings.enabled, lumiWaterSettings.intervalMinutes, profile.popupsEnabled, profile.soundEnabled, lumiSpeechEnabled, waterMessage]);
+  }, [lumiWaterSettings.enabled, lumiWaterSettings.intervalMinutes, lumiWaterSettings.scheduleMode, lumiWaterSettings.dailyTime, profile.popupsEnabled, profile.soundEnabled, lumiSpeechEnabled, waterMessage]);
   useEffect(() => () => { void alertContextRef.current?.close().catch(() => undefined); window.clearTimeout(waterFeedbackTimeoutRef.current); window.speechSynthesis?.cancel(); }, []);
   useEffect(() => () => window.clearTimeout(celebrationTimeoutRef.current), []);
   useEffect(() => {
     try { window.localStorage.setItem("pomodoro_lumi_timer_badge_visible", showLumiDialog ? "visible" : "hidden"); } catch { /* localStorage may be unavailable */ }
   }, [showLumiDialog]);
+  useEffect(() => {
+    if (!showLumiDialog) return;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") dismissLumiDialog(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showLumiDialog]);
 
   function speakLumi(text: string) {
     speakLumiVietnamese(text, profile.soundEnabled && lumiSpeechEnabled);
+  }
+
+  function triggerPomodoroAlert(eventId: PomodoroAlertEventId) {
+    if (!profile.soundEnabled) return;
+    const eventSettings = pomodoroAlertSettings.events[eventId];
+    if (!eventSettings.enabled) return;
+    void getAlertContext().then((context) => {
+      if (context) playPomodoroAlert(context, eventSettings.soundId, pomodoroAlertSettings.masterVolume);
+    }).catch(() => undefined);
+  }
+
+  function updatePomodoroAlertSettings(next: ReturnType<typeof normalizePomodoroAlertSettings>) {
+    const normalized = normalizePomodoroAlertSettings(next);
+    setPomodoroAlertSettings(normalized);
+    if (profile.audioMixer) onProfile({ ...profile, audioMixer: { ...profile.audioMixer, pomodoroAlerts: normalized } }, "Đã lưu cài đặt âm báo Pomodoro.");
+  }
+
+  function previewPomodoroAlert(eventId: PomodoroAlertEventId) {
+    if (!profile.soundEnabled) { toast.info("Hãy bật âm thanh của trang để nghe thử âm báo."); return; }
+    const eventSettings = pomodoroAlertSettings.events[eventId];
+    void getAlertContext().then((context) => {
+      if (context) playPomodoroAlert(context, eventSettings.soundId, pomodoroAlertSettings.masterVolume);
+    }).catch(() => undefined);
+  }
+
+  function previewWaterAlert() {
+    if (!profile.soundEnabled) { toast.info("Hãy bật âm thanh của trang để nghe thử âm báo."); return; }
+    void getAlertContext().then((context) => {
+      if (context) playLumiWaterAlert(context, lumiWaterSettings.soundId, (profile.audioMixer?.lumi ?? 75) / 100);
+    }).catch(() => undefined);
   }
 
   function triggerLumiWaterAlert() {
@@ -186,9 +250,10 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   }
 
   function updateLumiWaterSettings(next: LumiWaterSettings) {
-    setLumiWaterSettings(next);
-    setWaterSecondsRemaining(next.enabled ? next.intervalMinutes * 60 : 0);
-    onProfile({ ...profile, lumiWaterSettings: next }, "Đã lưu cài đặt nhắc uống nước của Lumi.");
+    const normalized = normalizeLumiWaterSettings(next);
+    setLumiWaterSettings(normalized);
+    setWaterSecondsRemaining(normalized.enabled && normalized.scheduleMode !== "clock" ? normalized.intervalMinutes * 60 : 0);
+    onProfile({ ...profile, lumiWaterSettings: normalized }, "Đã lưu cài đặt nhắc uống nước của Lumi.");
   }
 
   function saveWaterReminderMessage() {
@@ -227,7 +292,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     setLumiDialogResponse({ group: details.label, kaomoji, description: multiEntry?.description ?? details.label, text });
     setLumiWidgetDialogue(text);
     speakLumi(text);
-    setShowLumiDialog(false);
+    setShowLumiDialog(true);
   }
 
   function startWidgetDrag(event: React.PointerEvent<HTMLElement>) {
@@ -245,6 +310,23 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   }
   function stopWidgetDrag(event: React.PointerEvent<HTMLElement>) {
     if (widgetDragRef.current?.pointerId === event.pointerId) widgetDragRef.current = null;
+  }
+
+  function startLumiPopupDrag(event: React.PointerEvent<HTMLElement>) {
+    if ((event.target as HTMLElement).closest("button, input, select, textarea, a")) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    popupDragRef.current = { pointerId: event.pointerId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function moveLumiPopup(event: React.PointerEvent<HTMLElement>) {
+    if (!popupDragRef.current || popupDragRef.current.pointerId !== event.pointerId) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    setLumiPopupPosition({ x: clamp((event.clientX - popupDragRef.current.offsetX + rect.width / 2) / window.innerWidth * 100, 20, 80), y: clamp((event.clientY - popupDragRef.current.offsetY + rect.height / 2) / window.innerHeight * 100, 18, 82) });
+  }
+
+  function stopLumiPopupDrag(event: React.PointerEvent<HTMLElement>) {
+    if (popupDragRef.current?.pointerId === event.pointerId) popupDragRef.current = null;
   }
 
   function dismissGoalCelebration() {
@@ -288,12 +370,12 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     return alertContextRef.current;
   }
   function begin() {
-    if (pendingTransition === "break") { setPendingTransition(null); setSeconds((mode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; return; }
-    if (pendingTransition === "focus") { setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; return; }
+    if (pendingTransition === "break") { setPendingTransition(null); setSeconds((mode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startBreak"); return; }
+    if (pendingTransition === "focus") { setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startFocus"); return; }
     if (running) { setRunning(false); return; }
     if (mode === "focus" && goalCompletedSessions >= totalSessions) setGoalCompletedSessions(0);
     if (mode === "focus" && !sessionStartedAt) setSessionStartedAt(new Date().toISOString());
-    setRunning(true); completionHandled.current = false;
+    setRunning(true); completionHandled.current = false; triggerPomodoroAlert(mode === "focus" ? "startFocus" : "startBreak");
   }
   function reset() { if (running && !window.confirm("Đặt lại phiên đang chạy? Thời gian chưa hoàn thành sẽ không được ghi nhận.")) return; setRunning(false); setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); completionHandled.current = false; }
   function completeFocus() {
@@ -305,17 +387,17 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     onProfile({ ...profile, pomodoroHistory: [session, ...profile.pomodoroHistory].slice(0, 500), studyActivity: [activityRow, ...profile.studyActivity].slice(0, 2_000) }, goalReached ? "Đã đạt mục tiêu Pomodoro." : "Đã lưu phiên Pomodoro vào Lịch sử học.");
     completedFocusRef.current += 1; setGoalCompletedSessions(completedInGoal); const nextMode: Mode = (completedFocusCount + 1) % 4 === 0 ? "longBreak" : "shortBreak"; setSessionStartedAt(null);
     if (goalReached) { setMode("focus"); setSeconds(0); setRunning(false); setPendingTransition(null); celebrateGoal(); toast.success(`Chúc mừng Ong đã hoàn thành ${totalSessions} phiên Pomodoro.`); return; }
-    if (autoAdvance) { setMode(nextMode); setSeconds((nextMode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; toast.success("Đã hoàn thành phiên. Pomodoro chuyển sang thời gian nghỉ."); }
+    if (autoAdvance) { setMode(nextMode); setSeconds((nextMode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startBreak"); toast.success("Đã hoàn thành phiên. Pomodoro chuyển sang thời gian nghỉ."); }
     else { setMode(nextMode); setSeconds(0); setRunning(false); setPendingTransition("break"); completionHandled.current = false; toast.success("Đã hoàn thành phiên. Khi sẵn sàng, bạn có thể bắt đầu nghỉ."); }
   }
   function completeBreak() {
-    if (autoAdvance) { setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; }
+    if (autoAdvance) { setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startFocus"); }
     else { setMode("focus"); setRunning(false); setPendingTransition("focus"); completionHandled.current = false; }
   }
   function choosePreset(value: typeof presets[number]) { if (running && !window.confirm("Đổi nhịp học sẽ dừng phiên hiện tại. Tiếp tục?")) return; setRunning(false); setFocus(value.focus); setShortBreak(value.short); setLongBreak(value.long); setMode("focus"); setSeconds(value.focus * 60); setSessionStartedAt(null); }
   function togglePlan(id: string) { setCheckedPlanItemIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]); }
 
-  const lumiPopups = <>{showLumiDialog ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={dismissLumiDialog}><section className="lumi-popup-modal w-full max-w-md border border-emerald-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-emerald-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-checkin-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">{lumiDialogResponse?.kaomoji ?? LUMI_WELCOME.kaomoji}</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lumi hỏi thăm</p><h2 id="lumi-checkin-title" className="mt-1 font-display text-2xl font-black">{lumiDialogResponse ? lumiDialogResponse.group : "Hôm nay Ong cảm thấy thế nào?"}</h2><p className="mt-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">{lumiDialogResponse?.description ?? lumiWelcomeEntry?.description ?? "Lumi sẵn sàng lắng nghe"}</p><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{lumiDialogResponse?.text ?? lumiDialogIntro}</p></div>{!lumiDialogResponse ? <div className="lumi-quick-feelings-grid mt-5">{LUMI_CHECKIN_OPTIONS.map((choice) => <button key={choice.id} type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling(choice.id)}>{choice.emoji} {choice.label}</button>)}</div> : <div className="mt-5 flex gap-2"><button type="button" className="secondary-button flex-1 justify-center" onClick={() => setLumiDialogResponse(null)}>Hỏi lại</button><button type="button" className="primary-button flex-1 justify-center" onClick={dismissLumiDialog}>Cảm ơn Lumi</button></div>}</section></div> : null}{waterReminderVisible ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={() => setWaterReminderVisible(false)}><section className="lumi-popup-modal w-full max-w-sm border border-sky-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-sky-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-water-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">(´ー`)旦~~</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Lumi nhắc uống nước</p><h2 id="lumi-water-title" className="mt-1 font-display text-2xl font-black">Đến giờ uống nước rồi!</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{waterMessage || LUMI_WATER_MESSAGE}</p></div><button type="button" className="primary-button mt-5 w-full justify-center" onClick={acknowledgeWater}>Đã uống 💧</button></section></div> : null}</>;
+  const lumiPopups = <>{showLumiDialog ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={dismissLumiDialog}><section className="lumi-popup-modal w-full max-w-md border border-emerald-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-emerald-300/25 dark:bg-slate-900 dark:text-slate-100" style={{ left: `${lumiPopupPosition.x}%`, top: `${lumiPopupPosition.y}%`, transform: "translate(-50%, -50%)" }} role="dialog" aria-modal="true" aria-labelledby="lumi-checkin-title" onClick={(event) => event.stopPropagation()}><div className="lumi-popup-drag-handle touch-none select-none text-center" title="Kéo Lumi để di chuyển popup" onPointerDown={startLumiPopupDrag} onPointerMove={moveLumiPopup} onPointerUp={stopLumiPopupDrag} onPointerCancel={stopLumiPopupDrag}><div className="text-5xl" aria-hidden="true">{lumiDialogResponse?.kaomoji ?? LUMI_WELCOME.kaomoji}</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lumi hỏi thăm</p><h2 id="lumi-checkin-title" className="mt-1 font-display text-2xl font-black">{lumiDialogResponse ? lumiDialogResponse.group : "Hôm nay Ong cảm thấy thế nào?"}</h2><p className="mt-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">{lumiDialogResponse?.description ?? lumiWelcomeEntry?.description ?? "Lumi sẵn sàng lắng nghe"}</p><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{lumiDialogResponse?.text ?? lumiDialogIntro}</p></div>{!lumiDialogResponse ? <div className="lumi-quick-feelings-grid mt-5">{LUMI_CHECKIN_OPTIONS.map((choice) => <button key={choice.id} type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling(choice.id)}>{choice.emoji} {choice.label}</button>)}</div> : <div className="mt-5 flex gap-2"><button type="button" className="secondary-button flex-1 justify-center" onClick={() => setLumiDialogResponse(null)}>Hỏi lại</button><button type="button" className="primary-button flex-1 justify-center" onClick={dismissLumiDialog}>Cảm ơn Lumi</button></div>}</section></div> : null}{waterReminderVisible ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={() => setWaterReminderVisible(false)}><section className="lumi-popup-modal w-full max-w-sm border border-sky-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-sky-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-water-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">(´ー`)旦~~</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Lumi nhắc uống nước</p><h2 id="lumi-water-title" className="mt-1 font-display text-2xl font-black">Đến giờ uống nước rồi!</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{waterMessage || LUMI_WATER_MESSAGE}</p></div><button type="button" className="primary-button mt-5 w-full justify-center" onClick={acknowledgeWater}>Đã uống 💧</button></section></div> : null}</>;
   const supportButtons = <div className="flex flex-wrap gap-2"><button type="button" className="secondary-button text-xs" onClick={() => askLumi("comfort")}>Cần an ủi</button><button type="button" className="secondary-button text-xs" onClick={() => askLumi("encouragement")}>Cần động viên</button><button type="button" className="secondary-button text-xs" onClick={() => { openLumiDialog(); }}>Hỏi thăm cảm xúc</button></div>;
   const lumiTimerBadge = showLumiDialog ? <div className="lumi-timer-badge" role="timer" aria-live="off" aria-label={`Lumi đang đếm ngược ${display}`}><span aria-hidden="true">⏱️</span><span>{display}</span></div> : null;
   if (!isVisible) {
@@ -331,7 +413,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
       <section className="panel p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700">Trước khi bắt đầu</p><h2 className="mt-1 font-display text-2xl font-black">Bạn đang học gì?</h2></div><button type="button" className="text-sm font-bold text-red-700 underline" onClick={() => setShowSettings((value) => !value)}>{showSettings ? "Ẩn nhịp học" : "Chỉnh nhịp học"}</button></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">{activities.map((item) => <button key={item.id} type="button" className={`rounded-xl border p-3 text-left text-xs font-bold ${activity === item.id ? "border-red-500 bg-red-50 text-red-900 dark:bg-red-500/10 dark:text-red-100" : "border-slate-200 dark:border-white/10"}`} onClick={() => setActivity(item.id)}>{item.icon} {item.label}</button>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Môn học<input className="field mt-2" value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Ví dụ: Lịch sử Việt Nam" /></label><label className="text-sm font-bold">Nội dung<input className="field mt-2" value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="Ví dụ: Nhà Trần" /></label></div><label className="mt-3 block text-sm font-bold">Ghi chú phiên học<textarea className="field mt-2 min-h-20" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Điều đã học, điểm cần xem lại hoặc cảm nhận ngắn." /></label>{showSettings ? <div className="mt-4 rounded-2xl border border-dashed border-red-200 p-4 dark:border-red-300/20"><div className="grid gap-2 sm:grid-cols-3">{presets.map((preset) => <button key={preset.label} type="button" className="rounded-xl border border-slate-200 p-3 text-left text-sm font-bold dark:border-white/10" onClick={() => choosePreset(preset)}>{preset.label}</button>)}</div><div className="mt-3 grid grid-cols-3 gap-2"><label className="text-xs font-bold">Tập trung<input className="field mt-1" type="number" min="1" max="120" value={focus} onChange={(event) => { const value = clamp(Number(event.target.value) || 1, 1, 120); setFocus(value); if (!running && mode === "focus") setSeconds(value * 60); }} /></label><label className="text-xs font-bold">Nghỉ ngắn<input className="field mt-1" type="number" min="1" max="30" value={shortBreak} onChange={(event) => setShortBreak(clamp(Number(event.target.value) || 1, 1, 30))} /></label><label className="text-xs font-bold">Nghỉ dài<input className="field mt-1" type="number" min="1" max="45" value={longBreak} onChange={(event) => setLongBreak(clamp(Number(event.target.value) || 1, 1, 45))} /></label></div></div> : null}</section></section>
       <section className="panel p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-amber-700">Kế hoạch liên quan</p><h2 className="mt-1 font-display text-2xl font-black">Công việc đang thực hiện trong phiên</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Chọn các mục để lưu cùng lịch sử Pomodoro. Việc đánh dấu hoàn thành và phần thưởng vẫn do bạn thực hiện trong Kế hoạch.</p></div><button type="button" className="secondary-button text-xs" onClick={() => onView("plans")}>Mở Kế hoạch</button></div>{incompletePlans.length ? <div className="mt-4 grid gap-2 md:grid-cols-2">{incompletePlans.map((item) => <label key={item.id} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-3 dark:border-white/10"><input className="mt-1" type="checkbox" checked={checkedPlanItemIds.includes(item.id)} onChange={() => togglePlan(item.id)} /><span><b className="block text-sm">{item.title}</b><small className="mt-1 block text-xs text-slate-500">{item.subject ?? "Chưa phân môn"} · {item.cadence === "day" ? "Kế hoạch ngày" : "Kế hoạch tuần"}</small></span></label>)}</div> : <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-white/5">Chưa có kế hoạch mở. Bạn vẫn có thể ghi môn học và nội dung ngay trong phiên này.</p>}</section>
       <section className="panel p-5 sm:p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700">Hỗ trợ chống trì hoãn</p><h2 className="mt-1 font-display text-2xl font-black">Bắt đầu theo cách nhẹ nhàng</h2><p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">Không phán xét và không chia nhỏ thành nhiệm vụ ngẫu nhiên. Nếu bạn thấy khó bắt đầu, Lumi chỉ dùng thông tin này để đưa lời nhắc phù hợp hơn.</p></div><button type="button" className="secondary-button" onClick={() => setShowReasons((value) => !value)}>{showReasons ? "Thu gọn" : "Điều gì đang làm khó?"}</button></div>{showReasons ? <div className="mt-4 grid gap-2 sm:grid-cols-3">{["Mệt", "Khó bắt đầu", "Nội dung quá nhiều", "Mất tập trung", "Lo lắng", "Không rõ nên làm gì"].map((reason) => <button type="button" key={reason} className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-left text-sm font-bold text-emerald-950 dark:border-emerald-300/20 dark:bg-emerald-400/10 dark:text-emerald-100" onClick={() => recordAvoidance(reason)}>{reason}</button>)}</div> : null}</section>
-      <section className="panel p-5" aria-label="Cài đặt Lumi và Pomodoro"><div><p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700">Lumi · Pomodoro</p><h2 className="mt-1 font-display text-xl font-black">Âm thanh tối giản, tập trung hơn</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Pomodoro không phát nhạc nền. Chỉ có âm báo nhắc nước do Ong chọn và giọng đọc Lumi khi được bật.</p></div><div className="mt-5 grid gap-5 lg:grid-cols-[1.05fr_.95fr]"><fieldset><legend className="text-sm font-bold">Mục tiêu và cách chuyển phiên</legend><label className="mt-3 block text-sm font-bold">Mục tiêu phiên học · {goalCompletedSessions}/{totalSessions}<input aria-label="Mục tiêu số phiên Pomodoro" className="field mt-2" type="number" min="1" max="12" value={totalSessions} onChange={(event) => { const next = clamp(Number(event.target.value) || 1, 1, 12); setTotalSessions(next); setGoalCompletedSessions((current) => Math.min(current, next)); }} /></label><p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-300">Đạt đủ mục tiêu, Pomodoro dừng lại và chúc mừng Ong.</p><label className="mt-4 flex gap-2 text-sm"><input type="radio" name="auto" checked={autoAdvance} onChange={() => setAutoAdvance(true)} />Tự động chuyển</label><label className="mt-2 flex gap-2 text-sm"><input type="radio" name="auto" checked={!autoAdvance} onChange={() => setAutoAdvance(false)} />Tôi tự nhấn để chuyển</label></fieldset><fieldset><legend className="text-sm font-bold">Giọng đọc và nhắc uống nước</legend><label className="mt-3 flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={lumiSpeechEnabled} onChange={(event) => { setSpeechEnabledPreference(event.target.checked); saveLumiSpeechPreference(event.target.checked); onProfile({ ...profile, lumiSpeechEnabled: event.target.checked }, `Đã ${event.target.checked ? "bật" : "tắt"} giọng đọc Lumi.`); }} />Đọc lời thoại Lumi bằng giọng tiếng Việt</label><div className="mt-3 grid gap-3 sm:grid-cols-[auto_minmax(8rem,1fr)]"><label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={lumiWaterSettings.enabled} onChange={(event) => updateLumiWaterSettings({ ...lumiWaterSettings, enabled: event.target.checked })} />Nhắc uống nước</label><label className="text-sm font-bold">Mỗi<input className="field mt-1" type="number" min="5" max="180" value={lumiWaterSettings.intervalMinutes} onChange={(event) => updateLumiWaterSettings({ ...lumiWaterSettings, intervalMinutes: clamp(Number(event.target.value) || 5, 5, 180) })} />phút</label></div><label className="mt-3 block text-sm font-bold">Âm báo nhắc nước<select className="field mt-1" value={lumiWaterSettings.soundId} onChange={(event) => { if (isLumiWaterAlertSoundId(event.target.value)) updateLumiWaterSettings({ ...lumiWaterSettings, soundId: event.target.value }); }}>{LUMI_WATER_ALERT_SOUNDS.map((sound) => <option key={sound.id} value={sound.id}>{sound.label}</option>)}</select></label><label className="mt-3 block text-sm font-bold">Câu nhắc uống nước<input className="field mt-1" value={waterMessageDraft} maxLength={280} onChange={(event) => setWaterMessageDraft(event.target.value)} placeholder="Ví dụ: Ong ơi, uống một ngụm nước nhé!" /></label><button type="button" className="secondary-button mt-3" onClick={saveWaterReminderMessage}>Lưu câu nhắc</button>{lumiWaterSettings.enabled ? <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Lần nhắc tiếp theo: {waterDisplay}. Chỉ âm báo đã chọn được phát, không có BGM.</p> : <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Nhắc uống nước đang tắt.</p>}</fieldset></div></section>
+      <section className="panel p-5" aria-label="Cài đặt Lumi và Pomodoro"><div><p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700">Lumi · Pomodoro</p><h2 className="mt-1 font-display text-xl font-black">Âm thanh tối giản, tập trung hơn</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Pomodoro không phát nhạc nền. Chỉ có âm báo nhắc nước do Ong chọn và giọng đọc Lumi khi được bật.</p></div><div className="mt-5 rounded-2xl border border-violet-200 bg-violet-50/70 p-4 dark:border-violet-300/15 dark:bg-violet-950/20"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.14em] text-violet-700 dark:text-violet-300">Âm báo phiên học</p><h3 className="mt-1 text-base font-black">Báo khi bắt đầu/kết thúc</h3><p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">Đây là âm báo ngắn bằng Web Audio, không phải nhạc nền. Mỗi mốc có thể bật/tắt, chọn âm và nghe thử.</p></div><label className="text-xs font-bold text-violet-900 dark:text-violet-100">Âm lượng<input className="field mt-1 w-28" type="number" min="0" max="2" step="0.05" value={pomodoroAlertSettings.masterVolume} onChange={(event) => updatePomodoroAlertSettings({ ...pomodoroAlertSettings, masterVolume: Number(event.target.value) })} aria-label="Âm lượng âm báo Pomodoro" /></label></div><div className="mt-3 grid gap-2 md:grid-cols-2">{POMODORO_ALERT_EVENT_IDS.map((eventId) => { const eventSettings = pomodoroAlertSettings.events[eventId]; return <div key={eventId} className="rounded-xl border border-violet-100 bg-white/80 p-3 dark:border-white/10 dark:bg-white/[.035]"><label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={eventSettings.enabled} onChange={(event) => updatePomodoroAlertSettings({ ...pomodoroAlertSettings, events: { ...pomodoroAlertSettings.events, [eventId]: { ...eventSettings, enabled: event.target.checked } } })} />{pomodoroAlertEventLabels[eventId]}</label><div className="mt-2 flex gap-2"><select className="field min-w-0 flex-1 text-xs" value={eventSettings.soundId} onChange={(event) => { if (isPomodoroAlertSoundId(event.target.value)) updatePomodoroAlertSettings({ ...pomodoroAlertSettings, events: { ...pomodoroAlertSettings.events, [eventId]: { ...eventSettings, soundId: event.target.value } } }); }} aria-label={`Âm báo ${pomodoroAlertEventLabels[eventId]}`}>{POMODORO_ALERT_SOUNDS.map((sound) => <option key={sound.id} value={sound.id}>{sound.label}</option>)}</select><button type="button" className="secondary-button shrink-0 px-3 text-xs" onClick={() => previewPomodoroAlert(eventId)}><span aria-hidden="true">🔊</span> Nghe thử</button></div></div>; })}</div></div><div className="mt-5 grid gap-5 lg:grid-cols-[1.05fr_.95fr]"><fieldset><legend className="text-sm font-bold">Mục tiêu và cách chuyển phiên</legend><label className="mt-3 block text-sm font-bold">Mục tiêu phiên học · {goalCompletedSessions}/{totalSessions}<input aria-label="Mục tiêu số phiên Pomodoro" className="field mt-2" type="number" min="1" max="12" value={totalSessions} onChange={(event) => { const next = clamp(Number(event.target.value) || 1, 1, 12); setTotalSessions(next); setGoalCompletedSessions((current) => Math.min(current, next)); }} /></label><p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-300">Đạt đủ mục tiêu, Pomodoro dừng lại và chúc mừng Ong.</p><label className="mt-4 flex gap-2 text-sm"><input type="radio" name="auto" checked={autoAdvance} onChange={() => setAutoAdvance(true)} />Tự động chuyển</label><label className="mt-2 flex gap-2 text-sm"><input type="radio" name="auto" checked={!autoAdvance} onChange={() => setAutoAdvance(false)} />Tôi tự nhấn để chuyển</label></fieldset><fieldset><legend className="text-sm font-bold">Giọng đọc và nhắc uống nước</legend><label className="mt-3 flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={lumiSpeechEnabled} onChange={(event) => { setSpeechEnabledPreference(event.target.checked); saveLumiSpeechPreference(event.target.checked); onProfile({ ...profile, lumiSpeechEnabled: event.target.checked }, `Đã ${event.target.checked ? "bật" : "tắt"} giọng đọc Lumi.`); }} />Đọc lời thoại Lumi bằng giọng tiếng Việt</label><div className="mt-3 grid gap-3 sm:grid-cols-[minmax(9rem,.8fr)_minmax(8rem,1fr)]"><label className="text-sm font-bold">Cách nhắc<select className="field mt-1" value={lumiWaterSettings.scheduleMode ?? "interval"} onChange={(event) => updateLumiWaterSettings({ ...lumiWaterSettings, scheduleMode: event.target.value === "clock" ? "clock" : "interval" })}><option value="interval">Theo khoảng thời gian</option><option value="clock">Theo mốc giờ mỗi ngày</option></select></label>{lumiWaterSettings.scheduleMode === "clock" ? <label className="text-sm font-bold">Mỗi ngày lúc<input className="field mt-1" type="time" value={lumiWaterSettings.dailyTime ?? "09:00"} onChange={(event) => updateLumiWaterSettings({ ...lumiWaterSettings, dailyTime: event.target.value })} /></label> : <label className="text-sm font-bold">Mỗi<input className="field mt-1" type="number" min="5" max="180" value={lumiWaterSettings.intervalMinutes} onChange={(event) => updateLumiWaterSettings({ ...lumiWaterSettings, intervalMinutes: clamp(Number(event.target.value) || 5, 5, 180) })} />phút</label>}</div><label className="mt-3 block text-sm font-bold">Âm báo nhắc nước<select className="field mt-1" value={lumiWaterSettings.soundId} onChange={(event) => { if (isLumiWaterAlertSoundId(event.target.value)) updateLumiWaterSettings({ ...lumiWaterSettings, soundId: event.target.value }); }}>{LUMI_WATER_ALERT_SOUNDS.map((sound) => <option key={sound.id} value={sound.id}>{sound.label}</option>)}</select></label><button type="button" className="secondary-button mt-3" onClick={previewWaterAlert}><span aria-hidden="true">🔊</span> Nghe thử âm báo nhắc nước</button><label className="mt-3 block text-sm font-bold">Câu nhắc uống nước<input className="field mt-1" value={waterMessageDraft} maxLength={280} onChange={(event) => setWaterMessageDraft(event.target.value)} placeholder="Ví dụ: Ong ơi, uống một ngụm nước nhé!" /></label><button type="button" className="secondary-button mt-3" onClick={saveWaterReminderMessage}>Lưu câu nhắc</button>{lumiWaterSettings.enabled ? <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Lần nhắc tiếp theo: {waterDisplay}. Chỉ âm báo đã chọn được phát, không có BGM.</p> : <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-300">Nhắc uống nước đang tắt.</p>}</fieldset></div></section>
     </>}
     {lumiPopups}
     {showSupport && supportMessage ? <section className="fixed bottom-5 left-1/2 z-[90] w-[min(92vw,38rem)] -translate-x-1/2 rounded-3xl border border-emerald-300 bg-white p-5 shadow-2xl dark:bg-slate-950" role="status"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.14em] text-emerald-700">Lumi · {supportMessage.kind === "comfort" ? "an ủi" : "động viên"}</p><p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-100">{supportMessage.text}</p></div><button type="button" className="secondary-button text-xs" onClick={() => setShowSupport(false)}>Đóng</button></div></section> : null}

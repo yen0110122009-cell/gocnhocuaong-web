@@ -2463,6 +2463,15 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
   border-radius: 20px;
 }
 
+.lumi-popup-drag-handle {
+  cursor: grab;
+  touch-action: none;
+}
+
+.lumi-popup-drag-handle:active {
+  cursor: grabbing;
+}
+
 .lumi-quick-feelings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

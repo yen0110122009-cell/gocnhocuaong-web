@@ -532,15 +532,19 @@ export type PomodoroAlertEventSettings = { enabled: boolean; soundId: PomodoroAl
 export type PomodoroAlertSettings = { masterVolume: number; events: Record<PomodoroAlertEventId, PomodoroAlertEventSettings> };
 export const LUMI_WATER_ALERT_SOUND_IDS = ["water_drop", "soft_chime", "wind_chime", "wood_block", "cute_beep"] as const;
 export type LumiWaterAlertSoundId = typeof LUMI_WATER_ALERT_SOUND_IDS[number];
-export type LumiWaterSettings = { enabled: boolean; intervalMinutes: number; soundId: LumiWaterAlertSoundId };
-export const DEFAULT_LUMI_WATER_SETTINGS: LumiWaterSettings = { enabled: true, intervalMinutes: 45, soundId: "water_drop" };
+export type LumiWaterScheduleMode = "interval" | "clock";
+export type LumiWaterSettings = { enabled: boolean; intervalMinutes: number; soundId: LumiWaterAlertSoundId; scheduleMode?: LumiWaterScheduleMode; dailyTime?: string };
+export const DEFAULT_LUMI_WATER_SETTINGS: LumiWaterSettings = { enabled: true, intervalMinutes: 45, soundId: "water_drop", scheduleMode: "interval", dailyTime: "09:00" };
 export function normalizeLumiWaterSettings(value: unknown): LumiWaterSettings {
   const source = value && typeof value === "object" ? value as Partial<LumiWaterSettings> : {};
   const rawInterval = Number(source.intervalMinutes);
+  const dailyTime = typeof source.dailyTime === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(source.dailyTime) ? source.dailyTime : DEFAULT_LUMI_WATER_SETTINGS.dailyTime;
   return {
     enabled: source.enabled !== false,
     intervalMinutes: Number.isFinite(rawInterval) ? Math.max(5, Math.min(180, Math.round(rawInterval))) : DEFAULT_LUMI_WATER_SETTINGS.intervalMinutes,
     soundId: LUMI_WATER_ALERT_SOUND_IDS.includes(source.soundId as LumiWaterAlertSoundId) ? source.soundId as LumiWaterAlertSoundId : DEFAULT_LUMI_WATER_SETTINGS.soundId,
+    scheduleMode: source.scheduleMode === "clock" ? "clock" : "interval",
+    dailyTime,
   };
 }
 export const DEFAULT_POMODORO_ALERT_SETTINGS: PomodoroAlertSettings = {

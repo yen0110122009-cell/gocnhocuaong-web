@@ -92,8 +92,9 @@ describe("StudyCorner contracts", () => {
     expect(pomodoro).toContain("Nhắc uống nước");
     expect(pomodoro).not.toContain("Preset tỷ lệ của tôi");
     expect(pomodoro).not.toContain('storageKey="pomodoro-audio-center"');
-    expect(pomodoro).not.toContain("POMODORO_ALERT_EVENT_IDS.map");
-    expect(pomodoro).not.toContain("Nghe thử");
+    expect(pomodoro).toContain("POMODORO_ALERT_EVENT_IDS.map");
+    expect(pomodoro).toContain("Nghe thử");
+    expect(pomodoro).not.toContain("startBackground");
   });
 
   it("giữ dữ liệu mixer tương thích nhưng không đặt Audio Center trong màn Lumi rút gọn", () => {

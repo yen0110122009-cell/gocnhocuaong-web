@@ -29,6 +29,8 @@ export type PersistedPomodoroSession = {
   miniPlayerPinned: boolean;
   miniPlayerX: number;
   miniPlayerY: number;
+  lumiPopupX?: number;
+  lumiPopupY?: number;
   savedAt: number;
 };
 
@@ -76,6 +78,8 @@ export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null =
       miniPlayerPinned: value.miniPlayerPinned === true,
       miniPlayerX: finiteNumber(value.miniPlayerX, 78, 8, 92),
       miniPlayerY: finiteNumber(value.miniPlayerY, 78, 12, 88),
+      lumiPopupX: finiteNumber(value.lumiPopupX, 50, 20, 80),
+      lumiPopupY: finiteNumber(value.lumiPopupY, 50, 20, 80),
       savedAt: finiteNumber(value.savedAt, Date.now(), 0, Number.MAX_SAFE_INTEGER),
     };
   } catch {

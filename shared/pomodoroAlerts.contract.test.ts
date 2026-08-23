@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_POMODORO_ALERT_SETTINGS,
+  normalizeLumiWaterSettings,
   POMODORO_ALERT_EVENT_IDS,
   POMODORO_ALERT_SOUND_IDS,
   normalizePomodoroAlertSettings,
@@ -18,7 +19,7 @@ const speechSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiSpe
 const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPresets.ts"), "utf8");
 
  describe("Pomodoro and Lumi audio rules", () => {
-  it("keeps legacy Pomodoro alert data normalizable without exposing it as active playback", () => {
+  it("keeps Pomodoro alert settings normalizable and exposes the four selectable events", () => {
     expect(POMODORO_ALERT_SOUNDS).toHaveLength(10);
     expect(POMODORO_ALERT_SOUNDS.map((sound) => sound.id)).toEqual(POMODORO_ALERT_SOUND_IDS);
     expect(POMODORO_ALERT_EVENT_IDS).toEqual(["startFocus", "endFocus", "startBreak", "endBreak"]);
@@ -26,6 +27,8 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     const normalized = normalizePomodoroAlertSettings({ masterVolume: 5, events: { startFocus: { enabled: false, soundId: "retro_beep" } } });
     expect(normalized.masterVolume).toBe(2);
     expect(normalized.events.startFocus).toEqual({ enabled: false, soundId: "retro_beep" });
+    expect(normalizeLumiWaterSettings({ intervalMinutes: 2, scheduleMode: "clock", dailyTime: "07:30" })).toMatchObject({ intervalMinutes: 5, scheduleMode: "clock", dailyTime: "07:30" });
+    expect(normalizeLumiWaterSettings({ scheduleMode: "clock", dailyTime: "25:99" }).dailyTime).toBe("09:00");
   });
 
   it("provides exactly five selectable water reminder sounds using Web Audio only", () => {
@@ -42,15 +45,15 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     expect(lumiAlertSource).not.toContain("new Audio(");
   });
 
-  it("enforces strict no-BGM behavior while keeping water alert and Vietnamese TTS", () => {
+  it("keeps strict no-BGM behavior while enabling short Pomodoro alerts and Vietnamese TTS", () => {
     expect(pomodoroSource).toContain("Pomodoro không phát nhạc nền");
     expect(pomodoroSource).toContain("playLumiWaterAlert");
+    expect(pomodoroSource).toContain("playPomodoroAlert");
+    expect(pomodoroSource).toContain("triggerPomodoroAlert");
     expect(pomodoroSource).toContain("window.speechSynthesis");
     expect(speechSource).toContain('utterance.lang = "vi-VN"');
     expect(speechSource).toContain('voice.lang.toLocaleLowerCase() === "vi-vn"');
-    expect(pomodoroSource).not.toContain("triggerAlert(");
-    expect(pomodoroSource).not.toContain("playPomodoroAlert");
-    expect(pomodoroSource).not.toContain("POMODORO_ALERT_EVENT_IDS.map");
+    expect(pomodoroSource).not.toContain("new Audio(");
   });
 
   it("supports a draggable persisted widget, expanded check-in choices and live water feedback", () => {
@@ -61,6 +64,9 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     for (const label of ["Mệt mỏi", "Thiếu động lực", "Cần cái ôm", "Sẵn sàng học", "Tập trung", "Đau lòng", "Bình tĩnh"]) expect(presetsSource).toContain(label);
     expect(pomodoroSource).toContain("Đã uống 💧");
     expect(pomodoroSource).toContain("Lumi thả tim");
+    expect(pomodoroSource).toContain("setShowLumiDialog(true)");
+    expect(pomodoroSource).toContain("onPointerDown={startLumiPopupDrag}");
+    expect(pomodoroSource).toContain("lumiPopupPosition");
     expect(pomodoroSource).not.toContain("Mảnh ghép đang có");
     expect(pomodoroSource).not.toContain("nhận 1 Mảnh ghép");
   });
@@ -74,5 +80,8 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     expect(preferencesSource).toContain("localStorage");
     expect(preferencesSource).toContain("saveLumiDialogueLines");
     expect(preferencesSource).toContain("DEFAULT_LUMI_WATER_MESSAGE");
+    expect(pomodoroSource).toContain("scheduleMode");
+    expect(pomodoroSource).toContain("dailyTime");
+    expect(pomodoroSource).toContain("Nghe thử âm báo nhắc nước");
   });
 });
