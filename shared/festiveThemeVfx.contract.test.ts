@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FESTIVE_THEME_CONFIGS, FESTIVE_THEME_DECORATIONS, STUDENT_THEME_CONFIGS, USER_PROVIDED_FESTIVE_AUDIO, festiveThemeFor } from "../client/src/lib/festiveThemes";
+import { PROVIDED_THEME_AMBIENT_ASSETS } from "../client/src/lib/defaultAmbient";
 
 const layer = readFileSync(resolve(process.cwd(), "client/src/components/FestiveThemeLayer.tsx"), "utf8");
 const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
@@ -34,7 +35,7 @@ describe("festive VFX contract", () => {
 
   it("locks the original five student themes to the requested counts and fixed sizes", () => {
     const expected = { sweet_strawberry: ["🍰", 12], black_ribbon: ["⚡", 6], library_chill: ["☕", 8], after_school: ["🍋", 10], classic_academy: ["🎼", 15] } as const;
-    expect(STUDENT_THEME_CONFIGS).toHaveLength(25);
+    expect(STUDENT_THEME_CONFIGS).toHaveLength(30);
     for (const [id, [emoji, count]] of Object.entries(expected)) {
       const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
       expect(theme).toBeTruthy();
@@ -124,6 +125,27 @@ describe("festive VFX contract", () => {
     expect(festiveThemeFor("flower_field")?.id).toBe("flower_field");
   });
 
+  it("locks the five fantasy/adventure themes to the requested counts and fixed sizes", () => {
+    const expected = { fairytale_castle: ["✨", 15], circus_fun: ["🎉", 14], prehistoric_era: ["🍃", 16], cyberpunk_racetrack: ["⚡", 18], food_festival: ["♨️", 12] } as const;
+    const mascots = { fairytale_castle: "🏰", circus_fun: "🎪", prehistoric_era: "🦕", cyberpunk_racetrack: "🏎️", food_festival: "🍜" } as const;
+    const ground = { fairytale_castle: "👑", circus_fun: "🎈", prehistoric_era: "🪨", cyberpunk_racetrack: "🏁", food_festival: "🏮" } as const;
+    for (const [id, [emoji, count]] of Object.entries(expected)) {
+      const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
+      expect(theme).toBeTruthy();
+      expect(theme?.mascot.emoji).toBe(mascots[id as keyof typeof mascots]);
+      expect(theme?.mascot.size).toBe("130px");
+      expect(theme?.groundContainer.itemCount).toBe(25);
+      expect(theme?.groundContainer.items[0]?.emoji).toBe(ground[id as keyof typeof ground]);
+      expect(theme?.groundContainer.items[0]?.size).toBe("100px");
+      expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
+    }
+    expect(festiveThemeFor("fairytale_castle")?.id).toBe("fairytale_castle");
+    expect(festiveThemeFor("circus_fun")?.id).toBe("circus_fun");
+    expect(festiveThemeFor("prehistoric_era")?.id).toBe("prehistoric_era");
+    expect(festiveThemeFor("cyberpunk_racetrack")?.id).toBe("cyberpunk_racetrack");
+    expect(festiveThemeFor("food_festival")?.id).toBe("food_festival");
+  });
+
   it("keeps one non-blocking high-priority VFX stage and never pauses unrelated learning audio", () => {
     expect(css).toContain("#vfx-stage { position: fixed; inset: 0; z-index: 9999 !important; pointer-events: none;");
     expect(css).toContain(".festive-visual-effects { position: fixed; inset: 0; z-index: 1; pointer-events: none;");
@@ -146,6 +168,21 @@ describe("festive VFX contract", () => {
     expect(home).toContain("toneEnabled={profile.festiveThemeOptions?.enableThemeTone !== false}");
     expect(home).toContain("vfxEnabled={profile.festiveThemeOptions?.enableVFX !== false}");
     expect(layer).toContain("personalMascot={children}");
+  });
+
+  it("registers the five new theme audio references without using YouTube watch URLs as player sources", () => {
+    const ambient = readFileSync(resolve(process.cwd(), "client/src/lib/defaultAmbient.ts"), "utf8");
+    const homeSource = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+    for (const [id, referenceUrl] of Object.entries({ fairytale_castle: "mVnImSxvAV8", circus_fun: "79yzXoj0EOo", prehistoric_era: "Jx5CR-RYJnI", cyberpunk_racetrack: "mVnImSxvAV8", food_festival: "yJg-Y5byMMw" })) {
+      expect(ambient).toContain(`${id}:`);
+      expect(ambient).toContain(`watch?v=${referenceUrl}`);
+      expect(homeSource).toContain(`${id}: { label: PROVIDED_THEME_AMBIENT_ASSETS.${id}.name`);
+    }
+    expect(ambient).toContain("referenceUrl");
+    expect(homeSource).not.toContain("url: audio.referenceUrl");
+    const urls = ["fairytale_castle", "circus_fun", "prehistoric_era", "cyberpunk_racetrack", "food_festival"].map((id) => PROVIDED_THEME_AMBIENT_ASSETS[id as keyof typeof PROVIDED_THEME_AMBIENT_ASSETS].url);
+    expect(new Set(urls).size).toBe(5);
+    expect(urls.every((url) => url.includes("/audio/festive-") && url.endsWith(".mp3"))).toBe(true);
   });
 
   it("registers all fourteen festive audio sources locally and plays only after a user gesture", () => {
