@@ -42,11 +42,17 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("lumi-timer-badge");
     expect(source).toContain('role="timer"');
     expect(source).toContain("pomodoro_lumi_timer_badge_visible");
+    expect(source).toContain("const lumiTimerBadge = showLumiDialog ?");
+    expect(source).toContain("return <>{showLumiDialog ? lumiTimerBadge");
     expect(css).toContain(".pomodoro-pinned-widget");
     expect(css).toContain("z-index: 9999 !important");
     expect(css).toContain(".modal-backdrop");
-    expect(css).toContain("z-index: 9000");
+    expect(css).toContain("z-index: 9000 !important");
+    expect(css).toContain(".lumi-popup-modal");
+    expect(css).toContain("z-index: 9500 !important");
     expect(css).toContain(".lumi-timer-badge");
+    expect(css).toContain("position: fixed !important");
+    expect(css).toContain("top: max(64px");
     expect(css).toContain("z-index: 99999 !important");
     expect(css).toContain("min-width: 110px");
     expect(css).toContain("border-radius: 20px");
