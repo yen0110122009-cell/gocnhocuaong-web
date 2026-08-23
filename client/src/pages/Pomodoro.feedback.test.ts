@@ -102,6 +102,10 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("LUMI_WATER_MESSAGE");
     expect(source).toContain("scheduleMode");
     expect(source).toContain("dailyTime");
+    expect(source).toContain("dailyTimes");
+    expect(source).toContain("addDailyWaterTime");
+    expect(source).toContain("removeDailyWaterTime");
+    expect(source).toContain("Bạn có thể đặt nhiều mốc");
     expect(source).toContain("Nghe thử âm báo nhắc nước");
     expect(presets).toContain("Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧");
   });

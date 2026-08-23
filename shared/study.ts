@@ -533,18 +533,22 @@ export type PomodoroAlertSettings = { masterVolume: number; events: Record<Pomod
 export const LUMI_WATER_ALERT_SOUND_IDS = ["water_drop", "soft_chime", "wind_chime", "wood_block", "cute_beep"] as const;
 export type LumiWaterAlertSoundId = typeof LUMI_WATER_ALERT_SOUND_IDS[number];
 export type LumiWaterScheduleMode = "interval" | "clock";
-export type LumiWaterSettings = { enabled: boolean; intervalMinutes: number; soundId: LumiWaterAlertSoundId; scheduleMode?: LumiWaterScheduleMode; dailyTime?: string };
-export const DEFAULT_LUMI_WATER_SETTINGS: LumiWaterSettings = { enabled: true, intervalMinutes: 45, soundId: "water_drop", scheduleMode: "interval", dailyTime: "09:00" };
+export type LumiWaterSettings = { enabled: boolean; intervalMinutes: number; soundId: LumiWaterAlertSoundId; scheduleMode?: LumiWaterScheduleMode; dailyTime?: string; dailyTimes?: string[] };
+export const DEFAULT_LUMI_WATER_SETTINGS: LumiWaterSettings = { enabled: true, intervalMinutes: 45, soundId: "water_drop", scheduleMode: "interval", dailyTime: "09:00", dailyTimes: ["09:00"] };
 export function normalizeLumiWaterSettings(value: unknown): LumiWaterSettings {
   const source = value && typeof value === "object" ? value as Partial<LumiWaterSettings> : {};
   const rawInterval = Number(source.intervalMinutes);
-  const dailyTime = typeof source.dailyTime === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(source.dailyTime) ? source.dailyTime : DEFAULT_LUMI_WATER_SETTINGS.dailyTime;
+  const validTime = (time: unknown): time is string => typeof time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+  const candidateTimes = Array.isArray(source.dailyTimes) ? source.dailyTimes.filter(validTime) : validTime(source.dailyTime) ? [source.dailyTime] : DEFAULT_LUMI_WATER_SETTINGS.dailyTimes ?? ["09:00"];
+  const dailyTimes = Array.from(new Set(candidateTimes)).sort().slice(0, 12);
+  const normalizedDailyTimes = dailyTimes.length ? dailyTimes : ["09:00"];
   return {
     enabled: source.enabled !== false,
     intervalMinutes: Number.isFinite(rawInterval) ? Math.max(5, Math.min(180, Math.round(rawInterval))) : DEFAULT_LUMI_WATER_SETTINGS.intervalMinutes,
     soundId: LUMI_WATER_ALERT_SOUND_IDS.includes(source.soundId as LumiWaterAlertSoundId) ? source.soundId as LumiWaterAlertSoundId : DEFAULT_LUMI_WATER_SETTINGS.soundId,
     scheduleMode: source.scheduleMode === "clock" ? "clock" : "interval",
-    dailyTime,
+    dailyTime: normalizedDailyTimes[0],
+    dailyTimes: normalizedDailyTimes,
   };
 }
 export const DEFAULT_POMODORO_ALERT_SETTINGS: PomodoroAlertSettings = {

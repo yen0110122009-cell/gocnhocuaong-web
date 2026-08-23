@@ -27,7 +27,8 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     const normalized = normalizePomodoroAlertSettings({ masterVolume: 5, events: { startFocus: { enabled: false, soundId: "retro_beep" } } });
     expect(normalized.masterVolume).toBe(2);
     expect(normalized.events.startFocus).toEqual({ enabled: false, soundId: "retro_beep" });
-    expect(normalizeLumiWaterSettings({ intervalMinutes: 2, scheduleMode: "clock", dailyTime: "07:30" })).toMatchObject({ intervalMinutes: 5, scheduleMode: "clock", dailyTime: "07:30" });
+    expect(normalizeLumiWaterSettings({ intervalMinutes: 2, scheduleMode: "clock", dailyTime: "07:30" })).toMatchObject({ intervalMinutes: 5, scheduleMode: "clock", dailyTime: "07:30", dailyTimes: ["07:30"] });
+    expect(normalizeLumiWaterSettings({ scheduleMode: "clock", dailyTimes: ["14:00", "09:00", "09:00", "bad"] }).dailyTimes).toEqual(["09:00", "14:00"]);
     expect(normalizeLumiWaterSettings({ scheduleMode: "clock", dailyTime: "25:99" }).dailyTime).toBe("09:00");
   });
 
