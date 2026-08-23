@@ -34,7 +34,7 @@ describe("festive VFX contract", () => {
 
   it("locks the original five student themes to the requested counts and fixed sizes", () => {
     const expected = { sweet_strawberry: ["🍰", 12], black_ribbon: ["⚡", 6], library_chill: ["☕", 8], after_school: ["🍋", 10], classic_academy: ["🎼", 15] } as const;
-    expect(STUDENT_THEME_CONFIGS).toHaveLength(20);
+    expect(STUDENT_THEME_CONFIGS).toHaveLength(25);
     for (const [id, [emoji, count]] of Object.entries(expected)) {
       const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
       expect(theme).toBeTruthy();
@@ -103,10 +103,10 @@ describe("festive VFX contract", () => {
     expect(festiveThemeFor("rainy-day")?.id).toBe("rainy_day");
   });
 
-  it("locks the five atmosphere themes to the requested counts and fixed sizes", () => {
-    const expected = { mystic_fog: ["🌫️", 14], cosmic_space: ["🚀", 15], warm_night_coffee: ["🌟", 12], fresh_morning: ["☀️", 10], rainy_day: ["🌧️", 18] } as const;
-    const mascots = { mystic_fog: "🐺", cosmic_space: "🛸", warm_night_coffee: "🐝", fresh_morning: "🐓", rainy_day: "🐱" } as const;
-    const ground = { mystic_fog: "🌲", cosmic_space: "🪐", warm_night_coffee: "☕", fresh_morning: "🌾", rainy_day: "💧" } as const;
+  it("locks the five audio themes to the requested counts and fixed sizes", () => {
+    const expected = { volcano_lava: ["💥", 14], deep_ocean: ["🫧", 16], magic_forest: ["🦋", 12], space_station: ["💫", 15], flower_field: ["🐝", 13] } as const;
+    const mascots = { volcano_lava: "🌋", deep_ocean: "🐋", magic_forest: "🍄", space_station: "🛰️", flower_field: "🌻" } as const;
+    const ground = { volcano_lava: "🪨", deep_ocean: "🪸", magic_forest: "🌿", space_station: "⚙️", flower_field: "🌱" } as const;
     for (const [id, [emoji, count]] of Object.entries(expected)) {
       const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
       expect(theme).toBeTruthy();
@@ -117,11 +117,11 @@ describe("festive VFX contract", () => {
       expect(theme?.groundContainer.items[0]?.size).toBe("100px");
       expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
     }
-    expect(festiveThemeFor("foggy-morning")?.id).toBe("mystic_fog");
-    expect(festiveThemeFor("space")?.id).toBe("cosmic_space");
-    expect(festiveThemeFor("coffee")?.id).toBe("warm_night_coffee");
-    expect(festiveThemeFor("morning_chill")?.id).toBe("fresh_morning");
-    expect(festiveThemeFor("rainy-day")?.id).toBe("rainy_day");
+    expect(festiveThemeFor("volcano_lava")?.id).toBe("volcano_lava");
+    expect(festiveThemeFor("deep_ocean")?.id).toBe("deep_ocean");
+    expect(festiveThemeFor("magic_forest")?.id).toBe("magic_forest");
+    expect(festiveThemeFor("space_station")?.id).toBe("space_station");
+    expect(festiveThemeFor("flower_field")?.id).toBe("flower_field");
   });
 
   it("keeps one non-blocking high-priority VFX stage and never pauses unrelated learning audio", () => {

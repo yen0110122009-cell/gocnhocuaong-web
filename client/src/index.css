@@ -2087,6 +2087,11 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 .festive-auto-bee-glow { animation: festive-mascot-bee-glow 2.4s ease-in-out infinite; }
 .festive-auto-rooster-bounce { animation: festive-mascot-rooster-bounce 1.2s ease-in-out infinite; }
 .festive-auto-cat-rain-walk { animation: festive-mascot-cat-rain-walk 1.4s ease-in-out infinite; }
+.festive-auto-volcano-jitter { animation: festive-mascot-volcano-jitter 2s ease-in-out infinite; }
+.festive-auto-whale-sway { animation: festive-mascot-whale-sway 6s ease-in-out infinite; }
+.festive-auto-mushroom-glow { animation: festive-mascot-mushroom-glow 3s ease-in-out infinite; }
+.festive-auto-satellite-orbit { animation: festive-mascot-satellite-orbit 8s linear infinite; }
+.festive-auto-sunflower-sway { animation: festive-mascot-sunflower-sway 3.5s ease-in-out infinite; }
 
 @keyframes festive-scale-bounce { 0%, 100% { transform: scale(1); } 45% { transform: scale(var(--festive-intensity, 1.12)); } }
 @keyframes festive-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
@@ -2116,6 +2121,11 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 @keyframes festive-mascot-bee-glow { 0%, 100% { filter: drop-shadow(0 0 3px #facc15); } 50% { filter: drop-shadow(0 0 15px #fbbf24); } }
 @keyframes festive-mascot-rooster-bounce { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-10px); } 70% { transform: translateY(0); } }
 @keyframes festive-mascot-cat-rain-walk { 0%, 100% { transform: rotate(-8deg) translateX(-2px); } 50% { transform: rotate(8deg) translateX(2px); } }
+@keyframes festive-mascot-volcano-jitter { 0%, 100% { transform: translate(0, 0) rotate(-2deg); filter: drop-shadow(0 0 3px #f97316); } 25% { transform: translate(-3px, 2px) rotate(2deg); } 50% { transform: translate(3px, -1px) rotate(-1deg); filter: drop-shadow(0 0 10px #fb923c); } 75% { transform: translate(-2px, 1px) rotate(1deg); } }
+@keyframes festive-mascot-whale-sway { 0%, 100% { transform: translateX(-8px) rotate(-8deg); } 50% { transform: translateX(8px) rotate(8deg); } }
+@keyframes festive-mascot-mushroom-glow { 0%, 100% { transform: scale(.9); filter: drop-shadow(0 0 4px #c084fc); } 50% { transform: scale(1.1); filter: drop-shadow(0 0 18px #e9d5ff); } }
+@keyframes festive-mascot-satellite-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes festive-mascot-sunflower-sway { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
 @keyframes festive-ambient-fall { from { transform: translate3d(0, -12vh, 0) rotate(0deg); } to { transform: translate3d(6vw, 112vh, 0) rotate(150deg); } }
 .festive-ambient-decoration { font-size: 40px; }
 .festive-ambient-decoration.festive-ambient-fall { animation-name: festive-ambient-fall; }
