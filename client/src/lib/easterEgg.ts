@@ -1,4 +1,5 @@
 export const EASTER_EGG_STORAGE_KEY = "easter_egg_message";
+export const EASTER_EGG_UPDATED_EVENT = "gocnhocuaong:easter-egg-message-updated";
 export const DEFAULT_EASTER_EGG_MESSAGE = "Chúc bạn một ngày tốt lành! 🍀";
 
 export function readEasterEggMessage(): string {
@@ -16,6 +17,7 @@ export function saveEasterEggMessage(message: string): string {
   if (typeof window !== "undefined") {
     try {
       window.localStorage.setItem(EASTER_EGG_STORAGE_KEY, normalized);
+      window.dispatchEvent(new CustomEvent(EASTER_EGG_UPDATED_EVENT, { detail: normalized }));
     } catch {
       // Private browsing or blocked storage should not break account settings.
     }
@@ -27,6 +29,7 @@ export function clearEasterEggMessage(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(EASTER_EGG_STORAGE_KEY);
+    window.dispatchEvent(new CustomEvent(EASTER_EGG_UPDATED_EVENT, { detail: DEFAULT_EASTER_EGG_MESSAGE }));
   } catch {
     // Ignore unavailable storage.
   }

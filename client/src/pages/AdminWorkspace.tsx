@@ -2,6 +2,7 @@ import { CalendarDays, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PersistentCollapsible } from "@/components/PersistentCollapsible";
+import { EasterEggAdminPanel } from "@/components/EasterEggAdminPanel";
 import AdminEnhanced from "./AdminEnhanced";
 import type { AppConfig, CollectionEvent, ProfileState, StudyAccount } from "../../../shared/study";
 
@@ -52,6 +53,10 @@ export default function AdminWorkspace({ account, config, onConfig }: Props) {
 
     <PersistentCollapsible storageKey="admin-members" eyebrow="Truy cập" title="Quản lý thành viên">
       <AdminEnhanced account={account} config={config} onConfig={onConfig} />
+    </PersistentCollapsible>
+
+    <PersistentCollapsible storageKey="admin-easter-egg" eyebrow="Nội dung hiển thị" title="Pop-up cỏ bốn lá">
+      <EasterEggAdminPanel />
     </PersistentCollapsible>
 
     <PersistentCollapsible storageKey="admin-events" eyebrow="Kế hoạch chung" title={`Event học tập (${visibleEvents.length})`}>

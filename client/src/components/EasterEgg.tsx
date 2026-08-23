@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { DEFAULT_EASTER_EGG_MESSAGE, readEasterEggMessage } from "@/lib/easterEgg";
+import { DEFAULT_EASTER_EGG_MESSAGE, EASTER_EGG_UPDATED_EVENT, readEasterEggMessage } from "@/lib/easterEgg";
 
 type EasterEggProps = { soundEnabled?: boolean };
 
@@ -38,8 +38,12 @@ export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
   useEffect(() => {
     const syncMessage = () => setMessage(readEasterEggMessage());
     syncMessage();
+    window.addEventListener(EASTER_EGG_UPDATED_EVENT, syncMessage);
     window.addEventListener("storage", syncMessage);
-    return () => window.removeEventListener("storage", syncMessage);
+    return () => {
+      window.removeEventListener(EASTER_EGG_UPDATED_EVENT, syncMessage);
+      window.removeEventListener("storage", syncMessage);
+    };
   }, []);
 
   useEffect(() => {
