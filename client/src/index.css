@@ -2477,3 +2477,33 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
     transition: none !important;
   }
 }
+
+/* Easter Egg modal: portal ra body để không bị ảnh hưởng bởi layout/scroll container. */
+.easter-egg-modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  z-index: 1000 !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.easter-egg-modal-card {
+  position: relative;
+  z-index: 1002;
+  max-height: min(90vh, 40rem);
+  overflow-y: auto;
+  border-radius: 20px;
+}
+
+.easter-egg-modal-backdrop .easter-egg-fireworks {
+  z-index: 1001;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .easter-egg-modal-backdrop {
+    scroll-behavior: auto;
+  }
+}

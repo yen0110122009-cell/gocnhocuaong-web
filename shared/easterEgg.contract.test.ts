@@ -39,6 +39,18 @@ describe("Easter Egg 🍀 contract", () => {
     expect(component).toContain("event.key === \"Escape\"");
   });
 
+  it("renders the modal through document.body and keeps it fixed to the viewport", () => {
+    expect(component).toContain("createPortal");
+    expect(component).toContain("createPortal(modal, document.body)");
+    expect(component).toContain("easter-egg-modal-backdrop");
+    expect(component).toContain("easter-egg-modal-card");
+    expect(css).toContain(".easter-egg-modal-backdrop");
+    expect(css).toContain("position: fixed !important");
+    expect(css).toContain("inset: 0 !important");
+    expect(css).toContain("min-height: 100dvh");
+    expect(css).toContain("z-index: 1000 !important");
+  });
+
   it("mounts the Easter Egg globally and provides the Account setting", () => {
     expect(home).toContain('import { EasterEgg } from "@/components/EasterEgg";');
     expect(home).toContain("<EasterEgg soundEnabled={profile.soundEnabled} />");

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { DEFAULT_EASTER_EGG_MESSAGE, readEasterEggMessage } from "@/lib/easterEgg";
 
 type EasterEggProps = { soundEnabled?: boolean };
@@ -58,6 +59,26 @@ export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
     window.setTimeout(() => setCelebrating(false), 1400);
   };
 
+  const modal = open ? <div
+    className="easter-egg-modal-backdrop grid place-items-center bg-slate-950/45 p-4 backdrop-blur-[2px]"
+    role="presentation"
+    onClick={() => setOpen(false)}
+  >
+    {celebrating ? <div className="easter-egg-fireworks" aria-hidden="true">{["🎉", "✨", "🎊", "✨", "🎉", "🌟", "🎊", "✨", "🎉", "🌟", "🎊", "✨"].map((emoji, index) => <span key={`${emoji}-${index}`}>{emoji}</span>)}</div> : null}
+    <section
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="easter-egg-title"
+      className="easter-egg-modal-card w-full max-w-sm rounded-3xl border border-emerald-200 bg-white p-5 text-slate-900 shadow-2xl dark:border-emerald-300/25 dark:bg-slate-900 dark:text-slate-100"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lời nhắn từ bạn 🍀</p>
+      <h2 id="easter-egg-title" className="sr-only">Lời nhắn từ bạn</h2>
+      <p className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-center text-base font-bold leading-7 text-emerald-950 dark:border-emerald-300/20 dark:bg-emerald-950/30 dark:text-emerald-50">{message || DEFAULT_EASTER_EGG_MESSAGE}</p>
+      <button type="button" onClick={() => setOpen(false)} className="primary-button mt-5 w-full justify-center">Đóng</button>
+    </section>
+  </div> : null;
+
   return <>
     <button
       type="button"
@@ -70,24 +91,8 @@ export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
       <span aria-hidden="true">🍀</span>
     </button>
 
-    {open ? <div
-      className="fixed inset-0 z-[1000] grid place-items-center bg-slate-950/45 p-4 backdrop-blur-[2px]"
-      role="presentation"
-      onClick={() => setOpen(false)}
-    >
-      {celebrating ? <div className="easter-egg-fireworks" aria-hidden="true">{["🎉", "✨", "🎊", "✨", "🎉", "🌟", "🎊", "✨", "🎉", "🌟", "🎊", "✨"].map((emoji, index) => <span key={`${emoji}-${index}`}>{emoji}</span>)}</div> : null}
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="easter-egg-title"
-        className="w-full max-w-sm rounded-3xl border border-emerald-200 bg-white p-5 text-slate-900 shadow-2xl dark:border-emerald-300/25 dark:bg-slate-900 dark:text-slate-100"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lời nhắn từ bạn 🍀</p>
-        <h2 id="easter-egg-title" className="sr-only">Lời nhắn từ bạn</h2>
-        <p className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-center text-base font-bold leading-7 text-emerald-950 dark:border-emerald-300/20 dark:bg-emerald-950/30 dark:text-emerald-50">{message || DEFAULT_EASTER_EGG_MESSAGE}</p>
-        <button type="button" onClick={() => setOpen(false)} className="primary-button mt-5 w-full justify-center">Đóng</button>
-      </section>
-    </div> : null}
+    {modal && typeof document !== "undefined" ? createPortal(modal, document.body) : null}
   </>;
 }
+
+export default EasterEgg;
