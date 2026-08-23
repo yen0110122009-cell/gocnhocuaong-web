@@ -1,3 +1,5 @@
+import { speakLumiExternalVietnamese, stopExternalLumiSpeech } from "./lumiExternalTts";
+
 let pendingVoiceCleanup: (() => void) | null = null;
 
 export const LUMI_SPEECH_UNAVAILABLE_EVENT = "lumi:speech-unavailable";
@@ -72,6 +74,20 @@ export function speakLumiVietnamese(text: string, enabled: boolean): LumiSpeechR
   };
   synthesis.addEventListener("voiceschanged", onVoicesChanged);
   return "pending";
+}
+
+export async function speakLumi(text: string, enabled: boolean): Promise<LumiSpeechResult> {
+  if (!enabled) return "disabled";
+  const externalResult = await speakLumiExternalVietnamese(text, enabled);
+  if (externalResult === "spoken") return "spoken";
+  return speakLumiVietnamese(text, enabled);
+}
+
+export function stopLumiSpeech() {
+  stopExternalLumiSpeech();
+  if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  pendingVoiceCleanup?.();
+  pendingVoiceCleanup = null;
 }
 
 export function hasLumiVietnameseVoice(): boolean {

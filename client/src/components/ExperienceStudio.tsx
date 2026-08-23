@@ -7,7 +7,7 @@ import { dialogueGroupForEmotion, dialoguesForGroup, LUMI_DIALOGUE_GROUPS, readL
 import { readLumiSpeechPreference, saveLumiSpeechPreference } from "../lib/lumiPreferences";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { LUMI_CHECKIN_OPTIONS, LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
-import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
+import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumi as speakLumiWithAudio, speakLumiVietnamese, stopLumiSpeech } from "../lib/lumiSpeech";
 import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
 
@@ -25,7 +25,7 @@ export type ExperienceStudioProps = {
 const quickFeelings = LUMI_CHECKIN_OPTIONS;
 
 function speakLumi(text: string, enabled: boolean) {
-  speakLumiVietnamese(text, enabled);
+  void speakLumiWithAudio(text, enabled);
 }
 
 export function ExperienceStudio({ selected, onSelect, profile, onProfile, onStartTwoMinutes }: ExperienceStudioProps) {
@@ -105,7 +105,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   function setSpeech(value: boolean) {
     setSpeechEnabled(value);
     saveLumiSpeechPreference(value);
-    if (!value) window.speechSynthesis?.cancel();
+    if (!value) stopLumiSpeech();
     if (profile && onProfile) onProfile({ ...profile, lumiSpeechEnabled: value }, `Đã ${value ? "bật" : "tắt"} AI đọc thoại cho Lumi.`);
   }
 
@@ -128,7 +128,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   }
 
   function addDialogue() {
-    const text = newText.trim().slice(0, 280);
+    const text = newText.trim();
     if (!text) return;
     persist([...dialogues, { id: `lumi-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, group: newGroup, text }]);
     setNewText("");
@@ -140,7 +140,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   }
 
   function saveEdit(dialogue: LumiCustomDialogue) {
-    const text = editingText.trim().slice(0, 280);
+    const text = editingText.trim();
     if (!text) return;
     persist(dialogues.map((item) => item.id === dialogue.id ? { ...item, text, isDefault: false } : item));
     setEditingId(null);
@@ -157,7 +157,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   }
 
   function addMultiDialogue(entry: LumiKaomojiDialogueEntry) {
-    const text = (newMultiDialogue[entry.kaomoji] ?? "").trim().slice(0, 280);
+    const text = (newMultiDialogue[entry.kaomoji] ?? "").trim();
     if (!text) return;
     persistMultiDialogues(multiDialogues.map((item) => item.kaomoji === entry.kaomoji ? { ...item, dialogues: [...item.dialogues, { id: `lumi-multi-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, text }] } : item));
     setNewMultiDialogue((current) => ({ ...current, [entry.kaomoji]: "" }));
@@ -169,8 +169,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   function saveKaomojiCustomization(entry: LumiKaomojiDialogueEntry) {
     const draft = kaomojiDrafts[entry.kaomoji] ?? { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "" };
-    const description = draft.description.trim().slice(0, 120);
-    const dialogue = draft.dialogue.trim().slice(0, 280);
+    const description = draft.description.trim();
+    const dialogue = draft.dialogue.trim();
     if (!description || !dialogue) { toast.error("Hãy nhập đủ tên mô tả và câu thoại cho Kaomoji."); return; }
     setMultiDialogues(saveLumiCustomKaomojiItem({ kaomoji: entry.kaomoji, description, dialogue }));
     toast.success(`Đã lưu tùy chỉnh cho ${entry.kaomoji}.`);
@@ -218,7 +218,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   function addKeywordRule() {
     const keyword = keywordDraft.trim().slice(0, 180);
-    const dialogue = keywordDialogueDraft.trim().slice(0, 280);
+    const dialogue = keywordDialogueDraft.trim();
     if (!keyword || !dialogue) return;
     setKeywordRules(saveLumiKeywords([...keywordRules, { id: `lumi-keyword-${Date.now()}`, keyword, kaomoji: keywordKaomojiDraft, dialogue }]));
     setKeywordDraft("");
@@ -265,9 +265,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
     <section className="panel p-5" aria-labelledby="lumi-dialogue-manager-title">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Kho lời thoại Lumi</p><h2 id="lumi-dialogue-manager-title" className="mt-1 font-display text-2xl font-black">Thêm, sửa và nghe thử câu nói</h2><p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">Bộ câu thoại mặc định ngọt ngào luôn có sẵn. Câu cá nhân được lưu tại <code>lumi_custom_dialogues</code> và tự đồng bộ sang widget Pomodoro ghim.</p></div><span className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-100">{dialogues.length} câu thoại</span></div>
-      <div className="mt-4 grid gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3 dark:border-emerald-300/15 dark:bg-emerald-950/20"><div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_190px_auto]"><input className="field" value={newText} maxLength={280} onChange={(event) => setNewText(event.target.value)} placeholder="Viết một câu Lumi dành riêng cho Ong…" aria-label="Câu thoại Lumi mới" /><select className="field" value={newGroup} onChange={(event) => setNewGroup(event.target.value as LumiDialogueGroup)} aria-label="Nhóm câu thoại mới">{LUMI_DIALOGUE_GROUPS.map((group) => <option key={group.id} value={group.id}>{group.emoji} {group.label}</option>)}</select><button type="button" className="primary-button whitespace-nowrap" onClick={addDialogue}><Plus className="h-4 w-4" />Thêm câu</button></div></div>
+      <div className="mt-4 grid gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3 dark:border-emerald-300/15 dark:bg-emerald-950/20"><div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_190px_auto]"><input className="field" value={newText} onChange={(event) => setNewText(event.target.value)} placeholder="Viết một câu Lumi dành riêng cho Ong…" aria-label="Câu thoại Lumi mới" /><select className="field" value={newGroup} onChange={(event) => setNewGroup(event.target.value as LumiDialogueGroup)} aria-label="Nhóm câu thoại mới">{LUMI_DIALOGUE_GROUPS.map((group) => <option key={group.id} value={group.id}>{group.emoji} {group.label}</option>)}</select><button type="button" className="primary-button whitespace-nowrap" onClick={addDialogue}><Plus className="h-4 w-4" />Thêm câu</button></div></div>
       <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Lọc nhóm lời thoại">{[{ id: "all", label: "Tất cả", emoji: "✨" }, ...LUMI_DIALOGUE_GROUPS].map((group) => <button key={group.id} type="button" role="tab" aria-selected={dialogueFilter === group.id} onClick={() => setDialogueFilter(group.id as LumiDialogueGroup | "all")} className={`rounded-full border px-3 py-1.5 text-xs font-black ${dialogueFilter === group.id ? "border-emerald-700 bg-emerald-700 text-white" : "border-emerald-200 bg-white text-emerald-800 dark:border-emerald-300/20 dark:bg-slate-950/30 dark:text-emerald-100"}`}>{group.emoji} {group.label}</button>)}</div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">{visibleDialogues.map((dialogue) => { const group = LUMI_DIALOGUE_GROUPS.find((item) => item.id === dialogue.group); const editing = editingId === dialogue.id; return <article key={dialogue.id} className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.035]"><div className="flex items-start justify-between gap-3"><span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-100">{group?.emoji} {group?.label}</span>{dialogue.isDefault ? <span className="text-[10px] font-bold text-slate-400">Mặc định</span> : null}</div>{editing ? <textarea className="field mt-3 min-h-20 text-sm" value={editingText} maxLength={280} onChange={(event) => setEditingText(event.target.value)} aria-label={`Chỉnh sửa câu thoại ${dialogue.id}`} autoFocus /> : <p className="mt-3 min-h-12 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-100">{dialogue.text}</p>}<div className="mt-3 flex flex-wrap gap-2">{editing ? <><button type="button" className="primary-button px-3 py-2 text-xs" onClick={() => saveEdit(dialogue)}><Save className="h-3.5 w-3.5" />Lưu sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => setEditingId(null)}>Hủy</button></> : <><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => showDialogue(dialogue.text)}><Volume2 className="h-3.5 w-3.5" />Nghe thử giọng đọc AI</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => startEdit(dialogue)}><Save className="h-3.5 w-3.5" />Chỉnh sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs text-rose-700" onClick={() => removeDialogue(dialogue.id)}><Trash2 className="h-3.5 w-3.5" />Xóa</button></>}</div></article>; })}</div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">{visibleDialogues.map((dialogue) => { const group = LUMI_DIALOGUE_GROUPS.find((item) => item.id === dialogue.group); const editing = editingId === dialogue.id; return <article key={dialogue.id} className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.035]"><div className="flex items-start justify-between gap-3"><span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-100">{group?.emoji} {group?.label}</span>{dialogue.isDefault ? <span className="text-[10px] font-bold text-slate-400">Mặc định</span> : null}</div>{editing ? <textarea className="field mt-3 min-h-20 text-sm" value={editingText} onChange={(event) => setEditingText(event.target.value)} aria-label={`Chỉnh sửa câu thoại ${dialogue.id}`} autoFocus /> : <p className="mt-3 min-h-12 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-100">{dialogue.text}</p>}<div className="mt-3 flex flex-wrap gap-2">{editing ? <><button type="button" className="primary-button px-3 py-2 text-xs" onClick={() => saveEdit(dialogue)}><Save className="h-3.5 w-3.5" />Lưu sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => setEditingId(null)}>Hủy</button></> : <><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => showDialogue(dialogue.text)}><Volume2 className="h-3.5 w-3.5" />Nghe thử giọng đọc AI</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => startEdit(dialogue)}><Save className="h-3.5 w-3.5" />Chỉnh sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs text-rose-700" onClick={() => removeDialogue(dialogue.id)}><Trash2 className="h-3.5 w-3.5" />Xóa</button></>}</div></article>; })}</div>
     </section>
 
     <PersistentCollapsible storageKey="lumi-keywords" eyebrow="Tự động hóa Lumi" title="Từ khóa phát hiện cảm xúc">
@@ -279,7 +279,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
         <div className="flex gap-2"><input className="field min-w-0 flex-1" value={keywordStatus} onChange={(event) => setKeywordStatus(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") activateKeywordStatus(); }} placeholder="Ví dụ: hôm nay mình hơi mệt…" aria-label="Trạng thái để Lumi phát hiện từ khóa" /><button type="button" className="primary-button shrink-0" onClick={activateKeywordStatus}>Kích hoạt Lumi</button></div>
         <p className="mt-2 text-xs font-semibold text-slate-500">Từ khóa được quét không phân biệt hoa thường và có thể phân tách bằng dấu phẩy.</p>
       </div>
-      <div className="mt-4 grid gap-2 rounded-2xl border border-amber-100 bg-white/80 p-3 dark:border-amber-300/15 dark:bg-white/[.035]"><div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"><input className="field" value={keywordDraft} maxLength={180} onChange={(event) => setKeywordDraft(event.target.value)} placeholder="Từ khóa: mệt, đuối, hết pin…" aria-label="Từ khóa Lumi mới" /><select className="field" value={keywordKaomojiDraft} onChange={(event) => setKeywordKaomojiDraft(event.target.value)} aria-label="Kaomoji kích hoạt">{multiDialogues.map((entry) => <option key={entry.kaomoji} value={entry.kaomoji}>{entry.kaomoji} · {entry.description}</option>)}</select></div><div className="mt-2 flex gap-2"><input className="field min-w-0 flex-1" value={keywordDialogueDraft} maxLength={280} onChange={(event) => setKeywordDialogueDraft(event.target.value)} placeholder="Lời thoại khi phát hiện từ khóa…" aria-label="Lời thoại từ khóa Lumi mới" /><button type="button" className="primary-button shrink-0" onClick={addKeywordRule}><Plus className="h-4 w-4" />Thêm từ khóa mới</button></div></div>
+      <div className="mt-4 grid gap-2 rounded-2xl border border-amber-100 bg-white/80 p-3 dark:border-amber-300/15 dark:bg-white/[.035]"><div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"><input className="field" value={keywordDraft} onChange={(event) => setKeywordDraft(event.target.value)} placeholder="Từ khóa: mệt, đuối, hết pin…" aria-label="Từ khóa Lumi mới" /><select className="field" value={keywordKaomojiDraft} onChange={(event) => setKeywordKaomojiDraft(event.target.value)} aria-label="Kaomoji kích hoạt">{multiDialogues.map((entry) => <option key={entry.kaomoji} value={entry.kaomoji}>{entry.kaomoji} · {entry.description}</option>)}</select></div><div className="mt-2 flex gap-2"><input className="field min-w-0 flex-1" value={keywordDialogueDraft} onChange={(event) => setKeywordDialogueDraft(event.target.value)} placeholder="Lời thoại khi phát hiện từ khóa…" aria-label="Lời thoại từ khóa Lumi mới" /><button type="button" className="primary-button shrink-0" onClick={addKeywordRule}><Plus className="h-4 w-4" />Thêm từ khóa mới</button></div></div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">{keywordRules.map((rule) => <article key={rule.id} className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.035]"><div className="flex items-start gap-3"><div className="grid min-h-12 min-w-24 place-items-center rounded-2xl bg-amber-500 px-2 py-2 text-center font-mono text-sm font-black text-white">{rule.kaomoji}</div><div className="min-w-0 flex-1"><p className="text-xs font-black uppercase tracking-[.12em] text-amber-700 dark:text-amber-300">{rule.keyword}</p><p className="mt-2 text-sm font-semibold leading-6">{rule.dialogue}</p></div></div><div className="mt-3 flex flex-wrap gap-2"><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => { setActiveMessage(rule.dialogue); speakLumi(rule.dialogue, speechEnabled); }}><Volume2 className="h-3.5 w-3.5" />Nghe thử</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => editKeywordRule(rule)}><Save className="h-3.5 w-3.5" />Chỉnh sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs text-rose-700" onClick={() => removeKeywordRule(rule.id)}><Trash2 className="h-3.5 w-3.5" />Xóa</button></div></article>)}</div>
       <div className="mt-3 flex items-center justify-between gap-3"><p className="text-xs text-slate-500">Lưu tại <code>lumi_custom_keywords</code> và đồng bộ ngay trong tab.</p><button type="button" className="secondary-button text-xs" onClick={() => setKeywordRules(saveLumiKeywords(DEFAULT_LUMI_KEYWORDS))}>Khôi phục từ khóa gốc</button></div>
     </PersistentCollapsible>
@@ -303,8 +303,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
             <div className="min-w-0 flex-1"><p className="text-xs font-black uppercase tracking-[.12em] text-emerald-700 dark:text-emerald-300">{entry.group}</p><h3 className="mt-1 font-bold">{entry.description}</h3><p className="mt-1 text-xs text-slate-500">{entry.dialogues.length} câu thoại · phát luân phiên ngẫu nhiên</p></div>
           </div>
           <div className="mt-4 grid gap-3 rounded-2xl border border-emerald-200/70 bg-emerald-50/60 p-3 dark:border-emerald-300/15 dark:bg-emerald-950/20">
-            <label className="text-xs font-black text-emerald-900 dark:text-emerald-100">Tên mô tả hành động<input className="field mt-1" maxLength={120} value={kaomojiDrafts[entry.kaomoji]?.description ?? entry.description} onChange={(event) => updateKaomojiDraft(entry, "description", event.target.value)} placeholder="Nhập tên mô tả hành động mới…" aria-label={`Tên mô tả cho ${entry.kaomoji}`} /></label>
-            <label className="text-xs font-black text-emerald-900 dark:text-emerald-100">Câu thoại phát ra<textarea className="field mt-1 min-h-20" maxLength={280} value={kaomojiDrafts[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? ""} onChange={(event) => updateKaomojiDraft(entry, "dialogue", event.target.value)} placeholder="Nhập câu thoại/lời nhắn mới…" aria-label={`Câu thoại chính cho ${entry.kaomoji}`} /></label>
+            <label className="text-xs font-black text-emerald-900 dark:text-emerald-100">Tên mô tả hành động<input className="field mt-1" value={kaomojiDrafts[entry.kaomoji]?.description ?? entry.description} onChange={(event) => updateKaomojiDraft(entry, "description", event.target.value)} placeholder="Nhập tên mô tả hành động mới…" aria-label={`Tên mô tả cho ${entry.kaomoji}`} /></label>
+            <label className="text-xs font-black text-emerald-900 dark:text-emerald-100">Câu thoại phát ra<textarea className="field mt-1 min-h-20" value={kaomojiDrafts[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? ""} onChange={(event) => updateKaomojiDraft(entry, "dialogue", event.target.value)} placeholder="Nhập câu thoại/lời nhắn mới…" aria-label={`Câu thoại chính cho ${entry.kaomoji}`} /></label>
             <div className="flex flex-wrap gap-2">
               <button type="button" className="primary-button px-3 py-2 text-xs" onClick={() => saveKaomojiCustomization(entry)}><Save className="h-3.5 w-3.5" />Lưu thay đổi</button>
               <button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => playMultiDialogue(kaomojiDrafts[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? "")}><Volume2 className="h-3.5 w-3.5" />Nghe thử</button>
@@ -316,7 +316,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
             {entry.dialogues.map((dialogue) => <div key={dialogue.id} className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50/80 p-2.5 dark:border-white/10 dark:bg-slate-950/30"><p className="min-w-0 flex-1 text-sm font-semibold leading-6">{dialogue.text}</p><div className="flex shrink-0 gap-1"><button type="button" className="secondary-button !px-2 !py-1.5 text-xs" aria-label={`Nghe thử ${dialogue.text}`} onClick={() => playMultiDialogue(dialogue.text)}><Volume2 className="h-3.5 w-3.5" /><span className="hidden sm:inline">Nghe thử</span></button><button type="button" className="secondary-button !px-2 !py-1.5 text-xs text-rose-700" aria-label={`Xóa câu thoại ${dialogue.text}`} onClick={() => removeMultiDialogue(entry, dialogue.id)}><Trash2 className="h-3.5 w-3.5" /><span className="hidden sm:inline">Xóa</span></button></div></div>)}
             {entry.dialogues.length === 0 ? <p className="rounded-xl border border-dashed border-slate-200 p-3 text-xs font-semibold text-slate-500 dark:border-white/10">Chưa có câu thoại. Hãy thêm một câu mới cho Kaomoji này.</p> : null}
           </div>
-          <div className="mt-3 flex gap-2"><input className="field min-w-0 flex-1" maxLength={280} value={newMultiDialogue[entry.kaomoji] ?? ""} onChange={(event) => setNewMultiDialogue((current) => ({ ...current, [entry.kaomoji]: event.target.value }))} placeholder="Thêm lời nhắn mới…" aria-label={`Câu thoại mới cho ${entry.kaomoji}`} /><button type="button" className="primary-button shrink-0 px-3" onClick={() => addMultiDialogue(entry)}><Plus className="h-4 w-4" /><span className="hidden sm:inline">Thêm câu thoại mới</span><span className="sm:hidden">Thêm</span></button></div>
+          <div className="mt-3 flex gap-2"><input className="field min-w-0 flex-1" value={newMultiDialogue[entry.kaomoji] ?? ""} onChange={(event) => setNewMultiDialogue((current) => ({ ...current, [entry.kaomoji]: event.target.value }))} placeholder="Thêm lời nhắn mới…" aria-label={`Câu thoại mới cho ${entry.kaomoji}`} /><button type="button" className="primary-button shrink-0 px-3" onClick={() => addMultiDialogue(entry)}><Plus className="h-4 w-4" /><span className="hidden sm:inline">Thêm câu thoại mới</span><span className="sm:hidden">Thêm</span></button></div>
         </article>)}
       </div>
     </PersistentCollapsible>

@@ -25,7 +25,7 @@ export function readLumiWaterMessage() {
 }
 
 export function saveLumiWaterMessage(message: string) {
-  const value = message.trim().slice(0, 280) || DEFAULT_LUMI_WATER_MESSAGE;
+  const value = message.trim() || DEFAULT_LUMI_WATER_MESSAGE;
   try { storage()?.setItem(LUMI_WATER_MESSAGE_STORAGE_KEY, value); } catch { /* storage may be unavailable */ }
   return value;
 }
@@ -35,14 +35,14 @@ export function readLumiDialogueLines() {
     const raw = storage()?.getItem(LUMI_DIALOGUE_LINES_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((line): line is string => typeof line === "string" && Boolean(line.trim())).map((line) => line.trim().slice(0, 280)).slice(0, 20) : [];
+    return Array.isArray(parsed) ? parsed.filter((line): line is string => typeof line === "string" && Boolean(line.trim())).map((line) => line.trim()).slice(0, 20) : [];
   } catch {
     return [];
   }
 }
 
 export function saveLumiDialogueLines(lines: string[]) {
-  const values = Array.from(new Set(lines.map((line) => line.trim().slice(0, 280)).filter(Boolean))).slice(0, 20);
+  const values = Array.from(new Set(lines.map((line) => line.trim()).filter(Boolean))).slice(0, 20);
   try { storage()?.setItem(LUMI_DIALOGUE_LINES_STORAGE_KEY, JSON.stringify(values)); } catch { /* storage may be unavailable */ }
   return values;
 }

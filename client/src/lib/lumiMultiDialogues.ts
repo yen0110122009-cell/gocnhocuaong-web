@@ -67,8 +67,8 @@ function normalizeCustomData(value: unknown, index: number): LumiCustomKaomojiDa
   if (!value || typeof value !== "object") return null;
   const candidate = value as { kaomoji?: unknown; description?: unknown; dialogue?: unknown };
   const kaomoji = typeof candidate.kaomoji === "string" ? candidate.kaomoji.trim().slice(0, 80) : "";
-  const description = typeof candidate.description === "string" ? candidate.description.trim().slice(0, 120) : "";
-  const dialogue = typeof candidate.dialogue === "string" ? candidate.dialogue.trim().slice(0, 280) : "";
+  const description = typeof candidate.description === "string" ? candidate.description.trim() : "";
+  const dialogue = typeof candidate.dialogue === "string" ? candidate.dialogue.trim() : "";
   if (!kaomoji || (!description && !dialogue)) return null;
   return { kaomoji, description, dialogue: dialogue || `lumi-custom-${index}` };
 }
@@ -103,15 +103,15 @@ function normalizeEntry(value: unknown, index: number): LumiKaomojiDialogueEntry
   const candidate = value as { kaomoji?: unknown; group?: unknown; description?: unknown; dialogues?: unknown };
   const kaomoji = typeof candidate.kaomoji === "string" ? candidate.kaomoji.trim().slice(0, 80) : "";
   const group = typeof candidate.group === "string" && validGroups.has(candidate.group as LumiKaomojiDialogueEntry["group"]) ? candidate.group as LumiKaomojiDialogueEntry["group"] : null;
-  const description = typeof candidate.description === "string" ? candidate.description.trim().slice(0, 120) : "Lumi đồng hành";
+  const description = typeof candidate.description === "string" ? candidate.description.trim() : "Lumi đồng hành";
   if (!kaomoji || !group) return null;
   const dialogues = Array.isArray(candidate.dialogues) ? candidate.dialogues.flatMap((item, dialogueIndex) => {
     if (typeof item === "string") {
-      const text = item.trim().slice(0, 280);
+      const text = item.trim();
       return text ? [{ id: `lumi-multi-${index}-${dialogueIndex}`, text }] : [];
     }
     if (!item || typeof item !== "object") return [];
-    const text = typeof item.text === "string" ? item.text.trim().slice(0, 280) : "";
+    const text = typeof item.text === "string" ? item.text.trim() : "";
     return text ? [{ id: typeof item.id === "string" && item.id.trim() ? item.id.trim().slice(0, 100) : `lumi-multi-${index}-${dialogueIndex}`, text }] : [];
   }) : [];
   return { kaomoji, group, description, dialogues: dialogues.slice(0, MAX_LUMI_MULTI_DIALOGUES) };

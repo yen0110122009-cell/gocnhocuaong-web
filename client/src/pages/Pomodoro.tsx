@@ -17,7 +17,7 @@ import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMess
 import { emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues, type LumiCustomDialogue } from "../lib/lumiCustomDialogues";
 import { LUMI_CHECKIN_OPTIONS, LUMI_FOCUS_MESSAGE, LUMI_REST_MESSAGE, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForEmotion, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
-import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
+import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumi as speakLumiWithAudio, speakLumiVietnamese, stopLumiSpeech } from "../lib/lumiSpeech";
 import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { currentPomodoroSessionNumber, nextPomodoroBreakMode, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak } from "../lib/pomodoroFlow";
 
@@ -244,7 +244,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
     }), 1_000);
     return () => window.clearInterval(timer);
   }, [lumiWaterSettings.enabled, lumiWaterSettings.intervalMinutes, lumiWaterSettings.scheduleMode, lumiWaterSettings.dailyTime, lumiWaterSettings.dailyTimes, profile.popupsEnabled, profile.soundEnabled, lumiSpeechEnabled, waterMessage]);
-  useEffect(() => () => { void alertContextRef.current?.close().catch(() => undefined); window.clearTimeout(waterFeedbackTimeoutRef.current); window.speechSynthesis?.cancel(); }, []);
+  useEffect(() => () => { void alertContextRef.current?.close().catch(() => undefined); window.clearTimeout(waterFeedbackTimeoutRef.current); stopLumiSpeech(); }, []);
   useEffect(() => () => window.clearTimeout(celebrationTimeoutRef.current), []);
   useEffect(() => {
     try { window.localStorage.setItem("pomodoro_lumi_timer_badge_visible", showLumiDialog ? "visible" : "hidden"); } catch { /* localStorage may be unavailable */ }
@@ -263,7 +263,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   }, [isVisible]);
 
   function speakLumi(text: string) {
-    speakLumiVietnamese(text, profile.soundEnabled && lumiSpeechEnabled);
+    void speakLumiWithAudio(text, profile.soundEnabled && lumiSpeechEnabled);
   }
 
   function triggerPomodoroAlert(eventId: PomodoroAlertEventId) {

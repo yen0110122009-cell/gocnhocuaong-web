@@ -24,7 +24,7 @@ function normalizeRule(value: unknown, index: number): LumiKeywordRule | null {
   const candidate = value as { id?: unknown; keyword?: unknown; kaomoji?: unknown; dialogue?: unknown };
   const keyword = typeof candidate.keyword === "string" ? candidate.keyword.trim().slice(0, 180) : "";
   const kaomoji = typeof candidate.kaomoji === "string" ? candidate.kaomoji.trim().slice(0, 80) : "";
-  const dialogue = typeof candidate.dialogue === "string" ? candidate.dialogue.trim().slice(0, 280) : "";
+  const dialogue = typeof candidate.dialogue === "string" ? candidate.dialogue.trim() : "";
   if (!keyword || !kaomoji || !dialogue) return null;
   return { id: typeof candidate.id === "string" && candidate.id.trim() ? candidate.id.trim().slice(0, 100) : `lumi-keyword-${index}`, keyword, kaomoji, dialogue };
 }

@@ -40,6 +40,7 @@ jobs:
           GITHUB_ACTIONS: true
           VITE_SUPABASE_URL: https://cuompgnxcbzufaeodgvx.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_7aYuYqRgExVRMDGoC-WuQg_vDv18v4L
+          VITE_SUPABASE_TTS_FUNCTION_URL: https://cuompgnxcbzufaeodgvx.supabase.co/functions/v1/lumi-tts
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

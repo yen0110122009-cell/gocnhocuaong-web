@@ -14,7 +14,8 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("LUMI_WATER_ALERT_SOUNDS");
     expect(source).toContain("POMODORO_ALERT_EVENT_IDS.map");
     expect(source).toContain("playPomodoroAlert");
-    expect(source).toContain("window.speechSynthesis");
+    expect(source).toContain("stopLumiSpeech");
+    expect(speech).toContain("window.speechSynthesis");
     expect(source).not.toContain("new Audio(");
   });
 

@@ -40,12 +40,12 @@ function storage() {
 
 function normalizedDialogue(value: unknown, index: number): LumiCustomDialogue | null {
   if (typeof value === "string") {
-    const text = value.trim().slice(0, 280);
+    const text = value.trim();
     return text ? { id: `legacy-dialogue-${index}`, group: "companionship", text } : null;
   }
   if (!value || typeof value !== "object") return null;
   const candidate = value as Partial<LumiCustomDialogue>;
-  const text = typeof candidate.text === "string" ? candidate.text.trim().slice(0, 280) : "";
+  const text = typeof candidate.text === "string" ? candidate.text.trim() : "";
   const group = typeof candidate.group === "string" && GROUP_IDS.has(candidate.group as LumiDialogueGroup) ? candidate.group as LumiDialogueGroup : null;
   if (!text || !group) return null;
   return { id: typeof candidate.id === "string" && candidate.id.trim() ? candidate.id.trim().slice(0, 100) : `lumi-dialogue-${index}`, group, text };
