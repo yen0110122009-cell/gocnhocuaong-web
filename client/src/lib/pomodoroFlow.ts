@@ -10,6 +10,23 @@ export function nextPomodoroBreakMode(completedFocusSessions: number): Extract<P
   return Math.max(0, Math.floor(completedFocusSessions)) % 4 === 0 ? "longBreak" : "shortBreak";
 }
 
+export function shouldCelebrateAndEnterBreak(completedFocusSessions: number, totalSessions: number) {
+  const completed = Math.max(0, Math.floor(completedFocusSessions));
+  const total = Math.max(1, Math.floor(totalSessions));
+  return completed >= total && nextPomodoroBreakMode(completed) === "longBreak";
+}
+
+export function resetPomodoroForGoalChange(focusMinutes: number) {
+  return {
+    completedFocusSessions: 0,
+    mode: "focus" as const,
+    pendingTransition: null,
+    seconds: Math.max(1, Math.floor(focusMinutes)) * 60,
+    running: false,
+    sessionStartedAt: null,
+  };
+}
+
 export function pomodoroStartSeconds(input: {
   mode: PomodoroFlowMode;
   pendingTransition: "break" | "focus" | null;

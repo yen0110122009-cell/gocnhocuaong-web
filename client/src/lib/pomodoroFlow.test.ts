@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentPomodoroSessionNumber, nextPomodoroBreakMode, pomodoroStartSeconds } from "./pomodoroFlow";
+import { currentPomodoroSessionNumber, nextPomodoroBreakMode, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak } from "./pomodoroFlow";
 
 describe("pomodoroFlow", () => {
   it("shows the first focus session as 1 of the selected goal", () => {
@@ -12,6 +12,13 @@ describe("pomodoroFlow", () => {
     expect(nextPomodoroBreakMode(1)).toBe("shortBreak");
     expect(nextPomodoroBreakMode(3)).toBe("shortBreak");
     expect(nextPomodoroBreakMode(4)).toBe("longBreak");
+    expect(shouldCelebrateAndEnterBreak(4, 4)).toBe(true);
+    expect(shouldCelebrateAndEnterBreak(3, 4)).toBe(false);
+  });
+
+  it("resets the goal to the first focus session when the target changes", () => {
+    expect(resetPomodoroForGoalChange(25)).toEqual({ completedFocusSessions: 0, mode: "focus", pendingTransition: null, seconds: 1500, running: false, sessionStartedAt: null });
+    expect(currentPomodoroSessionNumber("focus", 0, 6)).toBe(1);
   });
 
   it("always restores a valid duration when starting from zero seconds", () => {
