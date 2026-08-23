@@ -69,6 +69,33 @@ function readableTextForBackground(color: string) {
   return luminance > .34 ? "#172033" : "#fff";
 }
 
+type MascotFeedbackMoment = "grab" | "drop" | "reset" | "keyboard";
+const MASCOT_FEEDBACK_NOTES = [261.63, 293.66, 329.63, 392, 440, 523.25] as const;
+function mascotFeedbackFrequency(profile: ProfileState, moment: MascotFeedbackMoment) {
+  const palette = COLOR_PALETTES[profile.activeCosmeticTheme ?? COLOR_PALETTE_IDS[0]] ?? COLOR_PALETTES[COLOR_PALETTE_IDS[0]];
+  const festive = profile.festiveThemeOptions?.enableThemeTone !== false ? festiveThemeFor(profile.defaultAmbientScene) : undefined;
+  const darkMode = document.documentElement.classList.contains("dark") || profile.theme === "dark";
+  const accent = festive
+    ? (darkMode ? festive.colors.dark.accent : festive.colors.light.accent)
+    : (darkMode ? palette.dark.accent : palette.light.accent);
+  const hex = accent.replace("#", "");
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return MASCOT_FEEDBACK_NOTES[3];
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
+  const max = Math.max(...channels);
+  const min = Math.min(...channels);
+  const delta = max - min;
+  let hue = 0;
+  if (delta > 0) {
+    if (max === channels[0]) hue = 60 * (((channels[1] - channels[2]) / delta) % 6);
+    else if (max === channels[1]) hue = 60 * ((channels[2] - channels[0]) / delta + 2);
+    else hue = 60 * ((channels[0] - channels[1]) / delta + 4);
+  }
+  if (hue < 0) hue += 360;
+  const baseIndex = Math.min(MASCOT_FEEDBACK_NOTES.length - 1, Math.round(hue / 360 * (MASCOT_FEEDBACK_NOTES.length - 1)));
+  const offset = { grab: 0, drop: 2, reset: 1, keyboard: 3 }[moment];
+  return MASCOT_FEEDBACK_NOTES[(baseIndex + offset) % MASCOT_FEEDBACK_NOTES.length];
+}
+
 /** Chỉ cô lập bảng chẩn đoán do môi trường chèn ngoài #root, không đụng tới dialog của ứng dụng. */
 function suppressExternalMemoryDiagnostic(scope: ParentNode) {
   const candidates = Array.from(scope.querySelectorAll<HTMLElement>("*"));
@@ -546,7 +573,7 @@ function FloatingEmojiPet({ profile, onProfile, hidden = false }: { profile: Pro
         event.currentTarget.setPointerCapture(event.pointerId);
         setDragging(true);
         triggerMascotHaptic(event.pointerType);
-        playMascotFeedback(profile.soundEnabled, 392);
+        playMascotFeedback(profile.soundEnabled, mascotFeedbackFrequency(profile, "grab"));
       }}
       onPointerMove={(event) => {
         if (!draggingRef.current || !event.isPrimary) return;
@@ -562,7 +589,7 @@ function FloatingEmojiPet({ profile, onProfile, hidden = false }: { profile: Pro
         stopDragging(event);
         commit(next);
         triggerMascotHaptic(event.pointerType);
-        playMascotFeedback(profile.soundEnabled, 659.25);
+        playMascotFeedback(profile.soundEnabled, mascotFeedbackFrequency(profile, "drop"));
       }}
       onPointerCancel={(event) => stopDragging(event)}
       onLostPointerCapture={() => stopDragging()}
@@ -573,12 +600,12 @@ function FloatingEmojiPet({ profile, onProfile, hidden = false }: { profile: Pro
         const next = { x: Math.max(5, Math.min(95, draft.x + delta.x)), y: Math.max(8, Math.min(90, draft.y + delta.y)) };
         setDraft(next);
         commit(next);
-        playMascotFeedback(profile.soundEnabled, 659.25);
+        playMascotFeedback(profile.soundEnabled, mascotFeedbackFrequency(profile, "keyboard"));
       }}
       style={{ left: `${draft.x}%`, top: `${draft.y}%`, touchAction: "none", width: 130, height: 130, fontSize: 130, display: "block", opacity: 1, willChange: "left, top, transform" }}
       className={cn("fixed z-[10000] grid h-[130px] w-[130px] place-items-center -translate-x-1/2 -translate-y-1/2 cursor-grab select-none rounded-full p-1 text-[130px] leading-none transition-[left,top,transform,filter] duration-200 ease-out motion-reduce:transition-none", pet.emoji === "snowman" ? "snow-buddy-button" : "drop-shadow-[0_7px_5px_rgba(25,55,35,.30)]", dragging && "mascot-feedback-drop scale-110 cursor-grabbing duration-0", !dragging && "cursor-grab")}
     >{pet.emoji === "snowman" ? <SnowBuddy roaming={roamingEnabled && !dragging} /> : pet.emoji}</button>
-    <button type="button" aria-label="Đặt lại vị trí linh vật" title="Đặt lại vị trí linh vật" onClick={() => { const next = { x: 50, y: 72 }; clearQueuedPoint(); setDraft(next); lastPersistedRoamPositionRef.current = next; onProfile({ ...profile, appearanceEmojiPet: { ...pet, ...next } }, "Đã đặt lại vị trí linh vật."); playMascotFeedback(profile.soundEnabled, 523.25); }} className="fixed bottom-4 right-4 z-[10001] grid h-9 w-9 place-items-center rounded-full border border-emerald-200 bg-white/95 text-emerald-800 shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:border-emerald-300/30 dark:bg-slate-900/95 dark:text-emerald-200 dark:hover:bg-emerald-950"><RotateCcw className="h-4 w-4" aria-hidden="true" /></button>
+    <button type="button" aria-label="Đặt lại vị trí linh vật" title="Đặt lại vị trí linh vật" onClick={() => { const next = { x: 50, y: 72 }; clearQueuedPoint(); setDraft(next); lastPersistedRoamPositionRef.current = next; onProfile({ ...profile, appearanceEmojiPet: { ...pet, ...next } }, "Đã đặt lại vị trí linh vật."); playMascotFeedback(profile.soundEnabled, mascotFeedbackFrequency(profile, "reset")); }} className="fixed bottom-4 right-4 z-[10001] grid h-9 w-9 place-items-center rounded-full border border-emerald-200 bg-white/95 text-emerald-800 shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:border-emerald-300/30 dark:bg-slate-900/95 dark:text-emerald-200 dark:hover:bg-emerald-950"><RotateCcw className="h-4 w-4" aria-hidden="true" /></button>
   </>;
 }
 function EmojiPetCanvas({ profile, onProfile }: { profile: ProfileState; onProfile: (profile: ProfileState, message?: string) => void }) {
