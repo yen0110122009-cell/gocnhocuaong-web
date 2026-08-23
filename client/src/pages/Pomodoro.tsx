@@ -10,7 +10,7 @@ import {
   type LumiWaterSettings,
   type ProfileState,
 } from "../../../shared/study";
-import { readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
+import { POMODORO_SESSION_KEY, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
 import { LUMI_WATER_ALERT_SOUNDS, isLumiWaterAlertSoundId, playLumiWaterAlert } from "../lib/lumiAlerts";
 import { POMODORO_ALERT_SOUNDS, isPomodoroAlertSoundId, playPomodoroAlert } from "../lib/pomodoroAlerts";
 import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMessage, saveLumiSpeechPreference, saveLumiWaterMessage } from "../lib/lumiPreferences";
@@ -24,7 +24,12 @@ type Mode = "focus" | "shortBreak" | "longBreak";
 type Activity = "flashcards" | "quizzes" | "theory" | "deep" | "reading" | "exercise";
 type LumiSupportKind = "comfort" | "encouragement";
 type View = "pomodoro" | "flashcards" | "quizzes" | "history" | "plans";
-type Props = { profile: ProfileState; config: AppConfig; onProfile: (profile: ProfileState, message?: string) => void; onView: (view: View) => void; isVisible?: boolean };
+type Props = { profile: ProfileState; config: AppConfig; onProfile: (profile: ProfileState, message?: string) => void; onView: (view: View) => void; onOpenDetached?: () => void; isVisible?: boolean };
+const DETACHED_POMODORO_QUERY = "pomodoro-detached";
+const DETACHED_POMODORO_ACTIVE_KEY = "pomodoro_detached_window_active";
+const DETACHED_POMODORO_LEASE_MS = 20_000;
+const isDetachedLeaseActive = (value: string | null) => { const timestamp = Number(value); return Number.isFinite(timestamp) && Date.now() - timestamp < DETACHED_POMODORO_LEASE_MS; };
+function isDetachedPomodoroWindow() { return typeof window !== "undefined" && new URLSearchParams(window.location.search).get(DETACHED_POMODORO_QUERY) === "1"; }
 
 const activities: Array<{ id: Activity; label: string; icon: string }> = [
   { id: "flashcards", label: "Flashcard", icon: "🃏" }, { id: "quizzes", label: "Đề kiểm tra", icon: "📝" }, { id: "theory", label: "Ôn lý thuyết", icon: "📖" }, { id: "deep", label: "Hiểu tận gốc", icon: "🧠" }, { id: "reading", label: "Đọc tài liệu", icon: "📚" }, { id: "exercise", label: "Làm bài tập", icon: "✍️" },
@@ -46,7 +51,8 @@ const celebrationFireworks = [
 const GOAL_CELEBRATION_DURATION_MS = 4_600;
 type AudioContextConstructor = new () => AudioContext;
 
-export default function Pomodoro({ profile, config, onProfile, onView, isVisible = true }: Props) {
+export default function Pomodoro({ profile, config, onProfile, onView, onOpenDetached, isVisible = true }: Props) {
+  const detachedWindow = isDetachedPomodoroWindow();
   const restored = useMemo(() => readPersistedPomodoro(), []);
   const [focus, setFocus] = useState(restored?.focus ?? 25);
   const [shortBreak, setShortBreak] = useState(restored?.shortBreak ?? 5);
@@ -68,6 +74,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const [miniPlayerPinned, setMiniPlayerPinned] = useState(restored?.miniPlayerPinned ?? false);
   const [miniPlayerPosition, setMiniPlayerPosition] = useState({ x: restored?.miniPlayerX ?? 78, y: restored?.miniPlayerY ?? 78 });
   const [lumiPopupPosition, setLumiPopupPosition] = useState({ x: restored?.lumiPopupX ?? 50, y: restored?.lumiPopupY ?? 50 });
+  const [detachedWindowActive, setDetachedWindowActive] = useState(() => { try { return isDetachedLeaseActive(window.localStorage.getItem(DETACHED_POMODORO_ACTIVE_KEY)); } catch { return false; } });
   const [pomodoroAlertSettings, setPomodoroAlertSettings] = useState(() => normalizePomodoroAlertSettings(restored?.pomodoroAlerts ?? profile.audioMixer?.pomodoroAlerts));
   const [goalCelebrationVisible, setGoalCelebrationVisible] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -118,10 +125,38 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, goalCompletedSessions, sessionStartedAt, alertVolume: 0, pomodoroAlerts: pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y, lumiPopupX: lumiPopupPosition.x, lumiPopupY: lumiPopupPosition.y });
   }, [focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, goalCompletedSessions, sessionStartedAt, pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerPosition, lumiPopupPosition]);
   useEffect(() => {
-    if (!running) return;
+    if (!detachedWindow) return;
+    const writeLease = () => { try { window.localStorage.setItem(DETACHED_POMODORO_ACTIVE_KEY, String(Date.now())); } catch { /* localStorage may be unavailable */ } };
+    writeLease();
+    const heartbeat = window.setInterval(writeLease, 10_000);
+    const clearActive = () => { try { window.localStorage.removeItem(DETACHED_POMODORO_ACTIVE_KEY); } catch { /* localStorage may be unavailable */ } };
+    window.addEventListener("beforeunload", clearActive);
+    return () => { window.clearInterval(heartbeat); window.removeEventListener("beforeunload", clearActive); clearActive(); };
+  }, [detachedWindow]);
+  useEffect(() => {
+    const refreshDetachedLease = (value?: string | null) => { try { setDetachedWindowActive(isDetachedLeaseActive(value ?? window.localStorage.getItem(DETACHED_POMODORO_ACTIVE_KEY))); } catch { setDetachedWindowActive(false); } };
+    const onDetachedStorage = (event: StorageEvent) => { if (event.key === DETACHED_POMODORO_ACTIVE_KEY) refreshDetachedLease(event.newValue); };
+    refreshDetachedLease();
+    const leaseCheck = window.setInterval(refreshDetachedLease, 5_000);
+    window.addEventListener("storage", onDetachedStorage);
+    return () => { window.clearInterval(leaseCheck); window.removeEventListener("storage", onDetachedStorage); };
+  }, []);
+  useEffect(() => {
+    if (!running || (!detachedWindow && detachedWindowActive)) return;
     const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value - 1)), 1_000);
     return () => window.clearInterval(timer);
-  }, [running]);
+  }, [running, detachedWindow, detachedWindowActive]);
+  useEffect(() => {
+    const onPomodoroStorage = (event: StorageEvent) => {
+      if (event.key !== POMODORO_SESSION_KEY) return;
+      const saved = readPersistedPomodoro();
+      if (!saved) return;
+      const recovered = recoverRunningSeconds(saved);
+      setSeconds(recovered); setMode(saved.mode); setRunning(saved.running && recovered > 0); setPendingTransition(saved.pendingTransition ?? null); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(saved.goalCompletedSessions ?? 0); setSessionStartedAt(saved.sessionStartedAt); setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak);
+    };
+    window.addEventListener("storage", onPomodoroStorage);
+    return () => window.removeEventListener("storage", onPomodoroStorage);
+  }, [detachedWindow]);
   useEffect(() => {
     if (seconds !== 0 || completionHandled.current) return;
     completionHandled.current = true;
@@ -295,6 +330,11 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     setShowLumiDialog(true);
   }
 
+  function closeDetachedWindow() {
+    if (window.opener) window.close();
+    else toast.info("Hãy đóng tab/cửa sổ này bằng nút đóng của trình duyệt.");
+  }
+
   function startWidgetDrag(event: React.PointerEvent<HTMLElement>) {
     if ((event.target as HTMLElement).closest("button, input, select, textarea, a")) return;
     const rect = event.currentTarget.getBoundingClientRect();
@@ -404,7 +444,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     if (!(running || miniPlayerPinned || showLumiDialog || waterReminderVisible)) return null;
     return <>{showLumiDialog ? lumiTimerBadge : <aside className="pomodoro-pinned-widget fixed w-[min(92vw,22rem)] touch-none select-none rounded-2xl border border-emerald-300/50 bg-[linear-gradient(135deg,#fffdf8_0%,#eff9f0_100%)] p-4 text-slate-900 shadow-2xl" style={{ left: `${miniPlayerPosition.x}%`, top: `${miniPlayerPosition.y}%`, transform: "translate(-50%, -50%)" }} aria-label="Pomodoro Lumi đang chạy" onPointerDown={startWidgetDrag} onPointerMove={moveWidget} onPointerUp={stopWidgetDrag} onPointerCancel={stopWidgetDrag}><div className="lumi-widget-header"><button type="button" className="lumi-avatar-box shadow-inner" aria-label="Mở hộp thoại hỏi thăm của Lumi" onClick={() => { openLumiDialog(); }}><span className={`lumi-kaomoji-text ${lumiKaomoji.length > 8 ? "lumi-kaomoji-text--long" : ""}`}>{lumiKaomoji}</span></button><div className="min-w-0 flex-1"><p className="text-[10px] font-black uppercase tracking-[.16em] text-emerald-800">Lumi · Pomodoro</p><p className="mt-1 font-mono text-3xl font-black">{display}</p><p className="truncate text-xs font-semibold text-slate-600">{labelForMode[mode]} · {lumiEmotion.label} · {subject || "Tự học"}</p><p className="mt-1 truncate text-[11px] font-bold text-emerald-700">{lumiKaomojiDescription}</p><p className="mt-1 line-clamp-2 text-[11px] leading-4 text-slate-600">{lumiActiveDialogue}</p></div></div><div className="mt-3 flex flex-wrap gap-2"><button type="button" className="primary-button flex-1" onClick={begin}>{running ? "Tạm dừng" : "Tiếp tục"}</button><button type="button" className="secondary-button text-xs" onClick={() => onView("pomodoro")}>Mở Pomodoro</button></div>{waterFeedback ? <p className="mt-2 text-xs font-black text-rose-600">{waterFeedback}</p> : null}</aside>}{lumiPopups}</>;
   }
-  return <>{lumiTimerBadge}<div className="space-y-5"><header className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"><div><p className="text-xs font-black uppercase tracking-[.18em] text-red-700 dark:text-red-300">Nhịp học tự quản lý</p><h1 className="mt-2 font-display text-4xl font-black">Pomodoro</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Giữ nhịp tập trung, lưu môn học, nội dung và ghi chú của phiên. Bộ đếm vẫn chạy khi bạn đổi menu.</p></div><div className="flex flex-wrap gap-2"><button type="button" className="secondary-button" onClick={() => setCompactMode((value) => !value)}>{compactMode ? "Mở đầy đủ" : "Thu nhỏ"}</button><button type="button" className="secondary-button" onClick={restore}>Khôi phục phiên</button><button type="button" className="secondary-button" onClick={() => onView("history")}>Lịch sử học</button></div></header>
+  return <>{lumiTimerBadge}<div className="space-y-5"><header className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"><div><p className="text-xs font-black uppercase tracking-[.18em] text-red-700 dark:text-red-300">Nhịp học tự quản lý</p><h1 className="mt-2 font-display text-4xl font-black">Pomodoro</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Giữ nhịp tập trung, lưu môn học, nội dung và ghi chú của phiên. Bộ đếm vẫn chạy khi bạn đổi menu.</p></div><div className="flex flex-wrap gap-2"><button type="button" className="secondary-button" onClick={() => setCompactMode((value) => !value)}>{compactMode ? "Mở đầy đủ" : "Thu nhỏ"}</button><button type="button" className="secondary-button" onClick={restore}>Khôi phục phiên</button><button type="button" className="secondary-button" onClick={() => onView("history")}>Lịch sử học</button>{onOpenDetached && !detachedWindow ? <button type="button" className="primary-button" onClick={onOpenDetached}>↗ Ghim ra màn hình</button> : null}{detachedWindow ? <button type="button" className="secondary-button" onClick={closeDetachedWindow}>Đóng cửa sổ</button> : null}</div></header>
     <section className="grid gap-3" aria-label="Thống kê Pomodoro">
       <div className="panel overflow-hidden p-0"><div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-white/10"><div><p className="text-[11px] font-black uppercase tracking-[.15em] text-emerald-700 dark:text-emerald-300">Lịch sử Pomodoro</p><p className="text-sm font-bold">{completedSessions.length} phiên tập trung đã hoàn thành</p></div><button type="button" className="secondary-button text-xs" onClick={() => onView("history")}>Xem tất cả</button></div>{recentCompletedSessions.length ? <div className="divide-y divide-slate-100 dark:divide-white/10">{recentCompletedSessions.map((item) => <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 px-4 py-2.5 text-sm"><div className="min-w-0"><p className="truncate font-bold">{item.subject || "Tự học"} · {item.topic || "Pomodoro"}</p><p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">{new Date(item.endedAt).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })} · {item.durationMinutes} phút</p></div><span className="self-center text-xs font-black text-emerald-700 dark:text-emerald-300">Đã xong</span></div>)}</div> : <p className="px-4 py-5 text-sm text-slate-500 dark:text-slate-300">Chưa có phiên Pomodoro hoàn thành. Phiên đầu tiên sẽ xuất hiện tại đây.</p>}</div>
     </section>

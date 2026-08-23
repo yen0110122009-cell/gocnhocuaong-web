@@ -2523,6 +2523,30 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
 }
 
 /* Floating Timer Badge: stays above Lumi modal layers while the countdown continues. */
+.detached-pomodoro-window {
+  min-height: 100vh;
+  background: var(--scene-bg, #fffdf8);
+  color: var(--scene-text, #1f2937);
+  padding: 12px;
+}
+
+.detached-pomodoro-window .space-y-5 {
+  gap: 12px;
+}
+
+.detached-pomodoro-window > * {
+  max-width: 100%;
+}
+
+.detached-pomodoro-panel {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  font-weight: 800;
+  text-align: center;
+}
+
 .lumi-timer-badge {
   position: fixed !important;
   top: max(64px, calc(env(safe-area-inset-top) + 12px)) !important;

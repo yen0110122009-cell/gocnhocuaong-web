@@ -6,6 +6,7 @@ describe("Pomodoro feedback contract", () => {
   const source = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
   const presets = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPresets.ts"), "utf8");
   const speech = readFileSync(resolve(process.cwd(), "client/src/lib/lumiSpeech.ts"), "utf8");
+  const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
 
   it("giữ quy định no-BGM với âm báo nước, bốn âm báo Pomodoro và TTS Lumi", () => {
     expect(source).toContain("Cài đặt Lumi và Pomodoro");
@@ -15,6 +16,16 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("playPomodoroAlert");
     expect(source).toContain("window.speechSynthesis");
     expect(source).not.toContain("new Audio(");
+  });
+
+  it("mở Pomodoro thành cửa sổ nổi độc lập và đồng bộ lease", () => {
+    expect(home).toContain("window.open");
+    expect(home).toContain("pomodoro-detached");
+    expect(source).toContain("Ghim ra màn hình");
+    expect(source).toContain("DETACHED_POMODORO_ACTIVE_KEY");
+    expect(source).toContain("DETACHED_POMODORO_LEASE_MS");
+    expect(source).toContain("POMODORO_SESSION_KEY");
+    expect(source).toContain("Đóng cửa sổ");
   });
 
   it("lưu ngữ cảnh học gồm môn, nội dung và ghi chú", () => {
