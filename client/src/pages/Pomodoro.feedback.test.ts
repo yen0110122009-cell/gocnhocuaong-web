@@ -58,6 +58,9 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("lumiKaomojiForPomodoro");
     expect(source).toContain("lumiRoutineMessage");
     expect(source).toContain("LUMI_WELCOME");
+    expect(source).toContain("LUMI_MULTI_DIALOGUES_EVENT");
+    expect(source).toContain("pickRandomLumiDialogue");
+    expect(source).toContain("lumi_multi_dialogues_data");
     expect(source).toContain("waterReminderVisible ? \"(´ー`)旦~~\"");
     expect(source).toContain("Ngoan lắm! Tiếp tục thôi nào ✨");
     expect(source).toContain("LUMI_WATER_MESSAGE");

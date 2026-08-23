@@ -13,6 +13,7 @@ import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMess
 import { emotionThemes } from "../lib/emotionThemes";
 import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues, type LumiCustomDialogue } from "../lib/lumiCustomDialogues";
 import { LUMI_CHECKIN_RESPONSES, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
+import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 
 type Mode = "focus" | "shortBreak" | "longBreak";
 type Activity = "flashcards" | "quizzes" | "theory" | "deep" | "reading" | "exercise";
@@ -66,6 +67,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const [showReasons, setShowReasons] = useState(false);
   const [showLumiDialog, setShowLumiDialog] = useState(false);
   const [lumiDialogResponse, setLumiDialogResponse] = useState<{ group: string; kaomoji: string; text: string } | null>(null);
+  const [lumiDialogIntro, setLumiDialogIntro] = useState<string>(LUMI_WELCOME.text);
   const [supportMessage, setSupportMessage] = useState<{ kind: LumiSupportKind; text: string } | null>(null);
   const [lumiWaterSettings, setLumiWaterSettings] = useState<LumiWaterSettings>(() => normalizeLumiWaterSettings(profile.lumiWaterSettings));
   const [waterSecondsRemaining, setWaterSecondsRemaining] = useState(() => normalizeLumiWaterSettings(profile.lumiWaterSettings).intervalMinutes * 60);
@@ -73,6 +75,8 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const [waterFeedback, setWaterFeedback] = useState<string | null>(null);
   const [waterCelebrated, setWaterCelebrated] = useState(false);
   const [lumiCustomDialogues, setLumiCustomDialogues] = useState<LumiCustomDialogue[]>(() => readLumiCustomDialogues());
+  const [lumiMultiDialogues, setLumiMultiDialogues] = useState<LumiKaomojiDialogueEntry[]>(() => readLumiMultiDialogues());
+  const [lumiWidgetDialogue, setLumiWidgetDialogue] = useState<string | null>(null);
   const [speechEnabledPreference, setSpeechEnabledPreference] = useState(() => readLumiSpeechPreference(profile.lumiSpeechEnabled !== false));
   const [waterMessageDraft, setWaterMessageDraft] = useState(() => readLumiWaterMessage());
   const completedFocusRef = useRef(0);
@@ -95,7 +99,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const lumiKaomoji = waterCelebrated ? LUMI_WELCOME.kaomoji : waterReminderVisible ? "(´ー`)旦~~" : lumiKaomojiForPomodoro(mode, running);
   const lumiEmotion = emotionThemes.find((theme) => theme.id === (profile.emotionTheme ?? "calm")) ?? emotionThemes[0];
   const lumiRoutineDialogue = mode === "focus" && running ? dialoguesForGroup(lumiCustomDialogues, lumiRoutineGroup(mode, running))[0]?.text : undefined;
-  const lumiActiveDialogue = waterCelebrated ? LUMI_WATER_PRAISE : waterReminderVisible ? waterMessage || LUMI_WATER_MESSAGE : lumiRoutineDialogue ?? lumiRoutineMessage(mode, running);
+  const lumiActiveDialogue = waterCelebrated ? LUMI_WATER_PRAISE : waterReminderVisible ? waterMessage || LUMI_WATER_MESSAGE : lumiWidgetDialogue ?? lumiRoutineDialogue ?? lumiRoutineMessage(mode, running);
 
   useEffect(() => {
     writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, goalCompletedSessions, sessionStartedAt, alertVolume: 0, compactMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y });
@@ -126,10 +130,26 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
       setLumiCustomDialogues(detail?.length ? detail : readLumiCustomDialogues());
     };
     const onStorage = (event: StorageEvent) => { if (event.key === "lumi_custom_dialogues") refresh(); };
+    const refreshMultiDialogues = (event?: Event) => {
+      const detail = (event as CustomEvent<LumiKaomojiDialogueEntry[]> | undefined)?.detail;
+      setLumiMultiDialogues(detail?.length ? detail : readLumiMultiDialogues());
+    };
+    const onMultiStorage = (event: StorageEvent) => { if (event.key === "lumi_multi_dialogues_data") refreshMultiDialogues(); };
     window.addEventListener(LUMI_CUSTOM_DIALOGUES_EVENT, refresh);
     window.addEventListener("storage", onStorage);
-    return () => { window.removeEventListener(LUMI_CUSTOM_DIALOGUES_EVENT, refresh); window.removeEventListener("storage", onStorage); };
+    window.addEventListener(LUMI_MULTI_DIALOGUES_EVENT, refreshMultiDialogues);
+    window.addEventListener("storage", onMultiStorage);
+    return () => {
+      window.removeEventListener(LUMI_CUSTOM_DIALOGUES_EVENT, refresh);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(LUMI_MULTI_DIALOGUES_EVENT, refreshMultiDialogues);
+      window.removeEventListener("storage", onMultiStorage);
+    };
   }, []);
+  useEffect(() => {
+    const entry = findLumiKaomojiDialogue(lumiMultiDialogues, lumiKaomoji);
+    setLumiWidgetDialogue(entry ? pickRandomLumiDialogue(entry)?.text ?? null : null);
+  }, [lumiKaomoji, lumiMultiDialogues]);
   useEffect(() => {
     if (!lumiWaterSettings.enabled) { setWaterSecondsRemaining(0); return; }
     setWaterSecondsRemaining(lumiWaterSettings.intervalMinutes * 60);
@@ -191,11 +211,19 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     waterFeedbackTimeoutRef.current = window.setTimeout(() => { setWaterFeedback(null); setWaterCelebrated(false); }, 4_000);
   }
 
-  function openLumiDialog() { setLumiDialogResponse(null); setShowLumiDialog(true); speakLumi(LUMI_WELCOME.text); }
-  function dismissLumiDialog() { setShowLumiDialog(false); setLumiDialogResponse(null); }
+  function openLumiDialog() {
+    const welcomeEntry = findLumiKaomojiDialogue(lumiMultiDialogues, LUMI_WELCOME.kaomoji);
+    const intro = (welcomeEntry ? pickRandomLumiDialogue(welcomeEntry)?.text : null) ?? LUMI_WELCOME.text;
+    setLumiDialogIntro(intro);
+    setLumiDialogResponse(null);
+    setShowLumiDialog(true);
+    speakLumi(intro);
+  }
+  function dismissLumiDialog() { setShowLumiDialog(false); setLumiDialogResponse(null); setLumiDialogIntro(LUMI_WELCOME.text); }
   function chooseLumiFeeling(choice: "tired" | "motivation" | "hug" | "ready") {
     const details = LUMI_CHECKIN_RESPONSES[choice];
-    const text = dialoguesForGroup(lumiCustomDialogues, details.group)[Math.floor(Math.random() * dialoguesForGroup(lumiCustomDialogues, details.group).length)]?.text ?? details.text;
+    const multiEntry = findLumiKaomojiDialogue(lumiMultiDialogues, details.kaomoji);
+    const text = (multiEntry ? pickRandomLumiDialogue(multiEntry)?.text : null) ?? dialoguesForGroup(lumiCustomDialogues, details.group)[Math.floor(Math.random() * dialoguesForGroup(lumiCustomDialogues, details.group).length)]?.text ?? details.text;
     setLumiDialogResponse({ group: details.label, kaomoji: details.kaomoji, text });
     speakLumi(text);
   }
@@ -285,7 +313,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   function choosePreset(value: typeof presets[number]) { if (running && !window.confirm("Đổi nhịp học sẽ dừng phiên hiện tại. Tiếp tục?")) return; setRunning(false); setFocus(value.focus); setShortBreak(value.short); setLongBreak(value.long); setMode("focus"); setSeconds(value.focus * 60); setSessionStartedAt(null); }
   function togglePlan(id: string) { setCheckedPlanItemIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]); }
 
-  const lumiPopups = <>{showLumiDialog ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={dismissLumiDialog}><section className="lumi-popup-modal w-full max-w-md border border-emerald-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-emerald-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-checkin-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">{lumiDialogResponse?.kaomoji ?? LUMI_WELCOME.kaomoji}</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lumi hỏi thăm</p><h2 id="lumi-checkin-title" className="mt-1 font-display text-2xl font-black">{lumiDialogResponse ? lumiDialogResponse.group : "Hôm nay Ong cảm thấy thế nào?"}</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{lumiDialogResponse?.text ?? "Lumi ở đây để lắng nghe. Chọn một điều gần với cảm xúc của Ong nhé."}</p></div>{!lumiDialogResponse ? <div className="lumi-quick-feelings-grid mt-5"><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("tired")}>Mệt mỏi</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("motivation")}>Thiếu động lực</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("hug")}>Cần cái ôm</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("ready")}>Sẵn sàng học</button></div> : <div className="mt-5 flex gap-2"><button type="button" className="secondary-button flex-1 justify-center" onClick={() => setLumiDialogResponse(null)}>Hỏi lại</button><button type="button" className="primary-button flex-1 justify-center" onClick={dismissLumiDialog}>Cảm ơn Lumi</button></div>}</section></div> : null}{waterReminderVisible ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={() => setWaterReminderVisible(false)}><section className="lumi-popup-modal w-full max-w-sm border border-sky-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-sky-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-water-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">(´ー`)旦~~</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Lumi nhắc uống nước</p><h2 id="lumi-water-title" className="mt-1 font-display text-2xl font-black">Đến giờ uống nước rồi!</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{waterMessage || LUMI_WATER_MESSAGE}</p></div><button type="button" className="primary-button mt-5 w-full justify-center" onClick={acknowledgeWater}>Đã uống 💧</button></section></div> : null}</>;
+  const lumiPopups = <>{showLumiDialog ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={dismissLumiDialog}><section className="lumi-popup-modal w-full max-w-md border border-emerald-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-emerald-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-checkin-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">{lumiDialogResponse?.kaomoji ?? LUMI_WELCOME.kaomoji}</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lumi hỏi thăm</p><h2 id="lumi-checkin-title" className="mt-1 font-display text-2xl font-black">{lumiDialogResponse ? lumiDialogResponse.group : "Hôm nay Ong cảm thấy thế nào?"}</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{lumiDialogResponse?.text ?? lumiDialogIntro}</p></div>{!lumiDialogResponse ? <div className="lumi-quick-feelings-grid mt-5"><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("tired")}>Mệt mỏi</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("motivation")}>Thiếu động lực</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("hug")}>Cần cái ôm</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("ready")}>Sẵn sàng học</button></div> : <div className="mt-5 flex gap-2"><button type="button" className="secondary-button flex-1 justify-center" onClick={() => setLumiDialogResponse(null)}>Hỏi lại</button><button type="button" className="primary-button flex-1 justify-center" onClick={dismissLumiDialog}>Cảm ơn Lumi</button></div>}</section></div> : null}{waterReminderVisible ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={() => setWaterReminderVisible(false)}><section className="lumi-popup-modal w-full max-w-sm border border-sky-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-sky-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-water-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">(´ー`)旦~~</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Lumi nhắc uống nước</p><h2 id="lumi-water-title" className="mt-1 font-display text-2xl font-black">Đến giờ uống nước rồi!</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{waterMessage || LUMI_WATER_MESSAGE}</p></div><button type="button" className="primary-button mt-5 w-full justify-center" onClick={acknowledgeWater}>Đã uống 💧</button></section></div> : null}</>;
   const supportButtons = <div className="flex flex-wrap gap-2"><button type="button" className="secondary-button text-xs" onClick={() => askLumi("comfort")}>Cần an ủi</button><button type="button" className="secondary-button text-xs" onClick={() => askLumi("encouragement")}>Cần động viên</button><button type="button" className="secondary-button text-xs" onClick={() => { openLumiDialog(); }}>Hỏi thăm cảm xúc</button></div>;
   if (!isVisible) {
     if (!(running || miniPlayerPinned || showLumiDialog || waterReminderVisible)) return null;

@@ -54,6 +54,12 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(lumi).toContain("Chỉnh sửa");
     expect(lumi).toContain("Xóa");
     expect(lumi).toContain("LUMI_CUSTOM_DIALOGUES_EVENT");
+    expect(lumi).toContain("lumi_multi_dialogues_data");
+    expect(lumi).toContain("Quản lý nhiều câu thoại theo từng biểu tượng");
+    expect(lumi).toContain("Thêm câu thoại mới");
+    expect(lumi).toContain("Khôi phục bộ câu gốc");
+    expect(lumi).toContain("phát luân phiên ngẫu nhiên");
+    expect(lumi).toContain("LUMI_MULTI_DIALOGUES_EVENT");
   });
 
   it("không còn gắn recorder cũ vào menu Lumi", () => {
