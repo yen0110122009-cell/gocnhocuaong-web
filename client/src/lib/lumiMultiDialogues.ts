@@ -12,8 +12,16 @@ export type LumiKaomojiDialogueEntry = {
   dialogues: LumiKaomojiDialogue[];
 };
 
+export type LumiCustomKaomojiData = {
+  kaomoji: string;
+  description: string;
+  dialogue: string;
+};
+
 export const LUMI_MULTI_DIALOGUES_STORAGE_KEY = "lumi_multi_dialogues_data";
 export const LUMI_MULTI_DIALOGUES_EVENT = "gocnhocuaong:lumi-multi-dialogues-updated";
+export const LUMI_CUSTOM_KAOMOJI_STORAGE_KEY = "lumi_custom_kaomoji_data";
+export const LUMI_CUSTOM_KAOMOJI_EVENT = "gocnhocuaong:lumi-custom-kaomoji-updated";
 export const MAX_LUMI_MULTI_DIALOGUES = 100;
 
 export const DEFAULT_LUMI_MULTI_DIALOGUES: LumiKaomojiDialogueEntry[] = [
@@ -55,6 +63,41 @@ function cloneDefaults() {
   return DEFAULT_LUMI_MULTI_DIALOGUES.map((entry) => ({ ...entry, dialogues: entry.dialogues.map((dialogue) => ({ ...dialogue })) }));
 }
 
+function normalizeCustomData(value: unknown, index: number): LumiCustomKaomojiData | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as { kaomoji?: unknown; description?: unknown; dialogue?: unknown };
+  const kaomoji = typeof candidate.kaomoji === "string" ? candidate.kaomoji.trim().slice(0, 80) : "";
+  const description = typeof candidate.description === "string" ? candidate.description.trim().slice(0, 120) : "";
+  const dialogue = typeof candidate.dialogue === "string" ? candidate.dialogue.trim().slice(0, 280) : "";
+  if (!kaomoji || (!description && !dialogue)) return null;
+  return { kaomoji, description, dialogue: dialogue || `lumi-custom-${index}` };
+}
+
+function readCustomKaomojiData(): LumiCustomKaomojiData[] {
+  try {
+    const raw = typeof window === "undefined" ? null : window.localStorage.getItem(LUMI_CUSTOM_KAOMOJI_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed.flatMap((value, index) => { const item = normalizeCustomData(value, index); return item ? [item] : []; }) : [];
+  } catch {
+    return [];
+  }
+}
+
+function mergeCustomKaomojiData(entries: LumiKaomojiDialogueEntry[], customData: LumiCustomKaomojiData[]) {
+  const byKaomoji = new Map(customData.map((item) => [item.kaomoji, item]));
+  return entries.map((entry) => {
+    const custom = byKaomoji.get(entry.kaomoji);
+    if (!custom) return entry;
+    const dialogues = entry.dialogues.map((dialogue) => ({ ...dialogue }));
+    if (custom.dialogue && !custom.dialogue.startsWith("lumi-custom-")) {
+      if (dialogues[0]) dialogues[0] = { ...dialogues[0], text: custom.dialogue };
+      else dialogues.push({ id: `custom-${entry.kaomoji}`, text: custom.dialogue });
+    }
+    return { ...entry, description: custom.description || entry.description, dialogues };
+  });
+}
+
 function normalizeEntry(value: unknown, index: number): LumiKaomojiDialogueEntry | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as { kaomoji?: unknown; group?: unknown; description?: unknown; dialogues?: unknown };
@@ -77,14 +120,49 @@ function normalizeEntry(value: unknown, index: number): LumiKaomojiDialogueEntry
 export function readLumiMultiDialogues(): LumiKaomojiDialogueEntry[] {
   try {
     const raw = typeof window === "undefined" ? null : window.localStorage.getItem(LUMI_MULTI_DIALOGUES_STORAGE_KEY);
-    if (!raw) return cloneDefaults();
+    if (!raw) return mergeCustomKaomojiData(cloneDefaults(), readCustomKaomojiData());
     const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return cloneDefaults();
+    if (!Array.isArray(parsed)) return mergeCustomKaomojiData(cloneDefaults(), readCustomKaomojiData());
     const values = parsed.flatMap((value, index) => { const item = normalizeEntry(value, index); return item ? [item] : []; });
-    return values.length ? values : cloneDefaults();
+    return mergeCustomKaomojiData(values.length ? values : cloneDefaults(), readCustomKaomojiData());
   } catch {
-    return cloneDefaults();
+    return mergeCustomKaomojiData(cloneDefaults(), readCustomKaomojiData());
   }
+}
+
+export function saveLumiCustomKaomojiData(data: LumiCustomKaomojiData[]) {
+  const seen = new Set<string>();
+  const saved = data.flatMap((value, index) => {
+    const item = normalizeCustomData(value, index);
+    if (!item || seen.has(item.kaomoji)) return [];
+    seen.add(item.kaomoji);
+    return [item];
+  });
+  try { if (typeof window !== "undefined") window.localStorage.setItem(LUMI_CUSTOM_KAOMOJI_STORAGE_KEY, JSON.stringify(saved)); } catch { /* localStorage may be unavailable */ }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent<LumiCustomKaomojiData[]>(LUMI_CUSTOM_KAOMOJI_EVENT, { detail: saved }));
+    window.dispatchEvent(new CustomEvent<LumiKaomojiDialogueEntry[]>(LUMI_MULTI_DIALOGUES_EVENT, { detail: readLumiMultiDialogues() }));
+  }
+  return saved;
+}
+
+export function saveLumiCustomKaomojiItem(item: LumiCustomKaomojiData) {
+  const existing = readCustomKaomojiData().filter((value) => value.kaomoji !== item.kaomoji);
+  saveLumiCustomKaomojiData([...existing, item]);
+  return readLumiMultiDialogues();
+}
+
+export function restoreLumiCustomKaomojiItem(kaomoji: string) {
+  saveLumiCustomKaomojiData(readCustomKaomojiData().filter((value) => value.kaomoji !== kaomoji));
+  const defaults = DEFAULT_LUMI_MULTI_DIALOGUES.find((entry) => entry.kaomoji === kaomoji);
+  const current = readLumiMultiDialogues();
+  const restored = defaults ? current.map((entry) => entry.kaomoji === kaomoji ? { ...entry, description: defaults.description, dialogues: entry.dialogues.length ? [{ ...defaults.dialogues[0] }, ...entry.dialogues.slice(1)] : [{ ...defaults.dialogues[0] }] } : entry) : current;
+  return saveLumiMultiDialogues(restored);
+}
+
+export function restoreLumiCustomKaomojiData() {
+  try { if (typeof window !== "undefined") window.localStorage.removeItem(LUMI_CUSTOM_KAOMOJI_STORAGE_KEY); } catch { /* localStorage may be unavailable */ }
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent<LumiCustomKaomojiData[]>(LUMI_CUSTOM_KAOMOJI_EVENT, { detail: [] }));
 }
 
 export function saveLumiMultiDialogues(entries: LumiKaomojiDialogueEntry[]) {
@@ -102,6 +180,7 @@ export function saveLumiMultiDialogues(entries: LumiKaomojiDialogueEntry[]) {
 }
 
 export function restoreLumiMultiDialogues() {
+  restoreLumiCustomKaomojiData();
   return saveLumiMultiDialogues(cloneDefaults());
 }
 

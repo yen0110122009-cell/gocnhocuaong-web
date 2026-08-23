@@ -66,6 +66,23 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(lumi).toContain("Kích hoạt Lumi");
   });
 
+  it("cho phép tùy chỉnh mô tả và câu thoại từng Kaomoji", () => {
+    const lumi = source("client/src/components/ExperienceStudio.tsx");
+    const helper = source("client/src/lib/lumiMultiDialogues.ts");
+    const pomodoro = source("client/src/pages/Pomodoro.tsx");
+    expect(helper).toContain('"lumi_custom_kaomoji_data"');
+    expect(helper).toContain("LumiCustomKaomojiData");
+    expect(helper).toContain("saveLumiCustomKaomojiItem");
+    expect(helper).toContain("restoreLumiCustomKaomojiItem");
+    expect(lumi).toContain("Tên mô tả hành động");
+    expect(lumi).toContain("Câu thoại phát ra");
+    expect(lumi).toContain("Lưu thay đổi");
+    expect(lumi).toContain("Khôi phục mặc định");
+    expect(lumi).toContain("saveLumiCustomKaomojiItem");
+    expect(pomodoro).toContain("lumiKaomojiDescription");
+    expect(pomodoro).toContain("lumiDialogResponse?.description");
+  });
+
   it("không còn gắn recorder cũ vào menu Lumi", () => {
     const home = source("client/src/pages/Home.tsx");
     expect(home).toContain('view === "lumi"');

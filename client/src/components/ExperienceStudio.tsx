@@ -8,7 +8,7 @@ import { readLumiSpeechPreference, saveLumiSpeechPreference } from "../lib/lumiP
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { LUMI_CHECKIN_OPTIONS, LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
 import { speakLumiVietnamese } from "../lib/lumiSpeech";
-import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiMultiDialogues, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
+import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
 
 export type ExperienceStudioProps = {
@@ -41,6 +41,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const [dialogueFilter, setDialogueFilter] = useState<LumiDialogueGroup | "all">("all");
   const [multiDialogues, setMultiDialogues] = useState<LumiKaomojiDialogueEntry[]>(() => readLumiMultiDialogues());
   const [newMultiDialogue, setNewMultiDialogue] = useState<Record<string, string>>({});
+  const [kaomojiDrafts, setKaomojiDrafts] = useState<Record<string, { description: string; dialogue: string }>>(() => Object.fromEntries(readLumiMultiDialogues().map((entry) => [entry.kaomoji, { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "" }])));
   const [keywordRules, setKeywordRules] = useState<LumiKeywordRule[]>(() => readLumiKeywords());
   const [keywordStatus, setKeywordStatus] = useState("");
   const [keywordDraft, setKeywordDraft] = useState("");
@@ -63,9 +64,11 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     const onStorage = (event: StorageEvent) => { if (event.key === "lumi_custom_dialogues") refresh(); };
     const refreshMultiDialogues = (event?: Event) => {
       const customEvent = event as CustomEvent<LumiKaomojiDialogueEntry[]> | undefined;
-      setMultiDialogues(customEvent?.detail?.length ? customEvent.detail : readLumiMultiDialogues());
+      const next = customEvent?.detail?.length ? customEvent.detail : readLumiMultiDialogues();
+      setMultiDialogues(next);
+      setKaomojiDrafts(Object.fromEntries(next.map((entry) => [entry.kaomoji, { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "" }])));
     };
-    const onMultiStorage = (event: StorageEvent) => { if (event.key === "lumi_multi_dialogues_data") refreshMultiDialogues(); };
+    const onMultiStorage = (event: StorageEvent) => { if (event.key === "lumi_multi_dialogues_data" || event.key === "lumi_custom_kaomoji_data") refreshMultiDialogues(); };
     const refreshKeywords = (event?: Event) => {
       const detail = (event as CustomEvent<LumiKeywordRule[]> | undefined)?.detail;
       setKeywordRules(detail?.length ? detail : readLumiKeywords());
@@ -153,6 +156,26 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     if (!text) return;
     persistMultiDialogues(multiDialogues.map((item) => item.kaomoji === entry.kaomoji ? { ...item, dialogues: [...item.dialogues, { id: `lumi-multi-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, text }] } : item));
     setNewMultiDialogue((current) => ({ ...current, [entry.kaomoji]: "" }));
+  }
+
+  function updateKaomojiDraft(entry: LumiKaomojiDialogueEntry, field: "description" | "dialogue", value: string) {
+    setKaomojiDrafts((current) => ({ ...current, [entry.kaomoji]: { description: current[entry.kaomoji]?.description ?? entry.description, dialogue: current[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? "", [field]: value } }));
+  }
+
+  function saveKaomojiCustomization(entry: LumiKaomojiDialogueEntry) {
+    const draft = kaomojiDrafts[entry.kaomoji] ?? { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "" };
+    const description = draft.description.trim().slice(0, 120);
+    const dialogue = draft.dialogue.trim().slice(0, 280);
+    if (!description || !dialogue) { toast.error("Hãy nhập đủ tên mô tả và câu thoại cho Kaomoji."); return; }
+    setMultiDialogues(saveLumiCustomKaomojiItem({ kaomoji: entry.kaomoji, description, dialogue }));
+    toast.success(`Đã lưu tùy chỉnh cho ${entry.kaomoji}.`);
+  }
+
+  function restoreKaomojiCustomization(entry: LumiKaomojiDialogueEntry) {
+    const restored = restoreLumiCustomKaomojiItem(entry.kaomoji);
+    setMultiDialogues(restored);
+    setKaomojiDrafts((current) => ({ ...current, [entry.kaomoji]: { description: DEFAULT_LUMI_MULTI_DIALOGUES.find((item) => item.kaomoji === entry.kaomoji)?.description ?? entry.description, dialogue: DEFAULT_LUMI_MULTI_DIALOGUES.find((item) => item.kaomoji === entry.kaomoji)?.dialogues[0]?.text ?? entry.dialogues[0]?.text ?? "" } }));
+    toast.success(`Đã khôi phục mặc định cho ${entry.kaomoji}.`);
   }
 
   function removeMultiDialogue(entry: LumiKaomojiDialogueEntry, dialogueId: string) {
@@ -273,6 +296,16 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
           <div className="flex items-start gap-3">
             <div className="grid min-h-12 min-w-24 place-items-center rounded-2xl bg-emerald-700 px-2 py-2 text-center font-mono text-sm font-black text-white" title={entry.kaomoji}>{entry.kaomoji}</div>
             <div className="min-w-0 flex-1"><p className="text-xs font-black uppercase tracking-[.12em] text-emerald-700 dark:text-emerald-300">{entry.group}</p><h3 className="mt-1 font-bold">{entry.description}</h3><p className="mt-1 text-xs text-slate-500">{entry.dialogues.length} câu thoại · phát luân phiên ngẫu nhiên</p></div>
+          </div>
+          <div className="mt-4 grid gap-3 rounded-2xl border border-emerald-200/70 bg-emerald-50/60 p-3 dark:border-emerald-300/15 dark:bg-emerald-950/20">
+            <label className="text-xs font-black text-emerald-900 dark:text-emerald-100">Tên mô tả hành động<input className="field mt-1" maxLength={120} value={kaomojiDrafts[entry.kaomoji]?.description ?? entry.description} onChange={(event) => updateKaomojiDraft(entry, "description", event.target.value)} placeholder="Nhập tên mô tả hành động mới…" aria-label={`Tên mô tả cho ${entry.kaomoji}`} /></label>
+            <label className="text-xs font-black text-emerald-900 dark:text-emerald-100">Câu thoại phát ra<textarea className="field mt-1 min-h-20" maxLength={280} value={kaomojiDrafts[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? ""} onChange={(event) => updateKaomojiDraft(entry, "dialogue", event.target.value)} placeholder="Nhập câu thoại/lời nhắn mới…" aria-label={`Câu thoại chính cho ${entry.kaomoji}`} /></label>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="primary-button px-3 py-2 text-xs" onClick={() => saveKaomojiCustomization(entry)}><Save className="h-3.5 w-3.5" />Lưu thay đổi</button>
+              <button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => playMultiDialogue(kaomojiDrafts[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? "")}><Volume2 className="h-3.5 w-3.5" />Nghe thử</button>
+              <button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => restoreKaomojiCustomization(entry)}>🔄 Khôi phục mặc định</button>
+            </div>
+            <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-300">Kaomoji <code>{entry.kaomoji}</code> được giữ cố định; chỉ tên mô tả và câu thoại chính có thể thay đổi.</p>
           </div>
           <div className="mt-3 space-y-2">
             {entry.dialogues.map((dialogue) => <div key={dialogue.id} className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50/80 p-2.5 dark:border-white/10 dark:bg-slate-950/30"><p className="min-w-0 flex-1 text-sm font-semibold leading-6">{dialogue.text}</p><div className="flex shrink-0 gap-1"><button type="button" className="secondary-button !px-2 !py-1.5 text-xs" aria-label={`Nghe thử ${dialogue.text}`} onClick={() => playMultiDialogue(dialogue.text)}><Volume2 className="h-3.5 w-3.5" /><span className="hidden sm:inline">Nghe thử</span></button><button type="button" className="secondary-button !px-2 !py-1.5 text-xs text-rose-700" aria-label={`Xóa câu thoại ${dialogue.text}`} onClick={() => removeMultiDialogue(entry, dialogue.id)}><Trash2 className="h-3.5 w-3.5" /><span className="hidden sm:inline">Xóa</span></button></div></div>)}
