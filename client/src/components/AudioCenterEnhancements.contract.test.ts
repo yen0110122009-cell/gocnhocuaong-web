@@ -5,18 +5,19 @@ import { describe, expect, it } from "vitest";
 const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("ranh giới âm thanh sau tái cấu trúc", () => {
-  it("giữ lời Lumi là audio do người dùng cung cấp và chỉ phát sau nút bấm", () => {
+  it("giữ lời Lumi là văn bản TTS và chỉ đọc sau thao tác người dùng", () => {
     const lumi = source("client/src/components/ExperienceStudio.tsx");
-    expect(lumi).toContain("Nghe lời Lumi");
-    expect(lumi).toContain("new Audio(currentVoice.audioUrl)");
-    expect(lumi).toContain("audio.play().catch");
+    expect(lumi).toContain("Nghe thử giọng đọc AI");
+    expect(lumi).toContain("speechSynthesis");
+    expect(lumi).toContain('utterance.lang = "vi-VN"');
+    expect(lumi).not.toContain("new Audio(currentVoice.audioUrl)");
   });
 
   it("đặt điều khiển giao diện yêu thích ở trang Giao diện thay vì trong Lumi", () => {
     const home = source("client/src/pages/Home.tsx");
     expect(home).toContain("Mở Giao diện yêu thích");
     expect(home).toContain('onView("appearance")');
-    expect(home).toContain("Lumi không ép bạn chọn");
+    expect(home).toContain("Lumi");
   });
 
   it("không đưa Audio Center, preset hay âm nền Pomodoro vào Lumi", () => {

@@ -31,9 +31,12 @@ describe("Lumi và Pomodoro sau tái cấu trúc", () => {
     expect(pomodoro()).not.toContain("startTwoMinutes");
   });
 
-  it("giữ Lumi tập trung vào cảm xúc và lời khích lệ, không chứa preset hay Boss", () => {
-    expect(lumi()).toContain("Lumi đang đồng hành thế nào?");
-    expect(lumi()).toContain("Một lời nhắc nhẹ");
+  it("giữ Lumi tập trung vào Kaomoji và lời khích lệ, không chứa preset hay Boss", () => {
+    expect(lumi()).toContain("Module Kaomoji Lumi bạn đồng hành");
+    expect(lumi()).toContain("Chọn cảm xúc nhanh");
+    expect(lumi()).toContain("Hỏi thăm cảm xúc");
+    expect(lumi()).not.toContain("Trạng thái của hôm nay");
+    expect(lumi()).not.toContain("Một lời nhắc nhẹ");
     expect(lumi()).not.toContain("AudioCenterEnhancements");
     expect(lumi()).not.toContain("Boss Trì Hoãn");
   });
