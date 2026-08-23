@@ -38,10 +38,17 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("lumi-quick-feelings-grid");
     expect(source).toContain("modal-backdrop");
     expect(source).toContain("lumi-popup-modal");
+    expect(source).toContain("lumi-timer-badge");
+    expect(source).toContain('role="timer"');
+    expect(source).toContain("pomodoro_lumi_timer_badge_visible");
     expect(css).toContain(".pomodoro-pinned-widget");
     expect(css).toContain("z-index: 9999 !important");
     expect(css).toContain(".modal-backdrop");
     expect(css).toContain("z-index: 9000");
+    expect(css).toContain(".lumi-timer-badge");
+    expect(css).toContain("z-index: 99999 !important");
+    expect(css).toContain("min-width: 110px");
+    expect(css).toContain("border-radius: 20px");
     expect(css).toContain(".lumi-avatar-box");
     expect(css).toContain(".lumi-kaomoji-text--long");
     expect(css).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
