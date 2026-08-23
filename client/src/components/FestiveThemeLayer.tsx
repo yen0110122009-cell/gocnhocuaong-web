@@ -30,7 +30,7 @@ const pointFor = (position: { top: string; left: string }, size: number): Point 
   y: clamp(viewportValue(position.top, window.innerHeight), 8, Math.max(8, window.innerHeight - size - 8)),
 });
 
-type WanderPattern = "random" | "edge-vertical" | "circular" | "small-orbit" | "horizontal";
+type WanderPattern = "random" | "edge-vertical" | "circular" | "small-orbit" | "horizontal" | "diagonal" | "wave";
 
 function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (point: Point) => void, physics: ReleasePhysics = "float-feather") {
   const [position, setPosition] = useState(initial);
@@ -123,6 +123,14 @@ function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (po
       }
       if (pattern === "horizontal") {
         return { x: clamp(((Math.sin(phase / 6) + 1) / 2) * maxX, 8, maxX), y: clamp(current.y, 8, maxY) };
+      }
+      if (pattern === "diagonal") {
+        const progress = (Math.sin(phase / 3) + 1) / 2;
+        return { x: clamp(progress * maxX, 8, maxX), y: clamp((1 - progress) * maxY, 8, maxY) };
+      }
+      if (pattern === "wave") {
+        const progress = (Math.sin(phase / 4) + 1) / 2;
+        return { x: clamp(progress * maxX, 8, maxX), y: clamp(maxY * .26 + Math.sin(phase / 2) * Math.min(110, maxY * .18), 8, maxY) };
       }
       return { x: clamp(Math.random() * maxX, 8, maxX), y: clamp(Math.random() * maxY, 8, maxY) };
     }),

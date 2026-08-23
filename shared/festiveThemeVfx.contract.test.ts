@@ -32,9 +32,9 @@ describe("festive VFX contract", () => {
     expect(layer).toContain("stableHash");
   });
 
-  it("locks the five student themes to the requested counts and fixed sizes", () => {
+  it("locks the original five student themes to the requested counts and fixed sizes", () => {
     const expected = { sweet_strawberry: ["🍰", 12], black_ribbon: ["⚡", 6], library_chill: ["☕", 8], after_school: ["🍋", 10], classic_academy: ["🎼", 15] } as const;
-    expect(STUDENT_THEME_CONFIGS).toHaveLength(5);
+    expect(STUDENT_THEME_CONFIGS).toHaveLength(10);
     for (const [id, [emoji, count]] of Object.entries(expected)) {
       const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
       expect(theme).toBeTruthy();
@@ -45,6 +45,22 @@ describe("festive VFX contract", () => {
       expect(theme?.groundContainer.items[0]?.size).toBe("100px");
       const decoration = FESTIVE_THEME_DECORATIONS[id]?.[0];
       expect(decoration).toMatchObject({ emoji, count, size: "40px" });
+    }
+  });
+
+  it("locks the five follow-up student themes to the requested counts and fixed sizes", () => {
+    const expected = { cyber_highschool: ["🌟", 14], spring_fresh: ["🌸", 16], summer_ocean: ["🫧", 12], autumn_leaves: ["🍁", 15], winter_snow: ["❄️", 18] } as const;
+    const mascots = { cyber_highschool: "👾", spring_fresh: "🐦", summer_ocean: "🦀", autumn_leaves: "🐿️", winter_snow: "☃️" } as const;
+    const ground = { cyber_highschool: "💿", spring_fresh: "🌱", summer_ocean: "🐚", autumn_leaves: "🌰", winter_snow: "🧊" } as const;
+    for (const [id, [emoji, count]] of Object.entries(expected)) {
+      const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
+      expect(theme).toBeTruthy();
+      expect(theme?.mascot.emoji).toBe(mascots[id as keyof typeof mascots]);
+      expect(theme?.mascot.size).toBe("130px");
+      expect(theme?.groundContainer.itemCount).toBe(25);
+      expect(theme?.groundContainer.items[0]?.emoji).toBe(ground[id as keyof typeof ground]);
+      expect(theme?.groundContainer.items[0]?.size).toBe("100px");
+      expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
     }
   });
 
