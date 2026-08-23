@@ -1,9 +1,38 @@
 import { useEffect, useState } from "react";
 import { DEFAULT_EASTER_EGG_MESSAGE, readEasterEggMessage } from "@/lib/easterEgg";
 
-export function EasterEgg() {
+type EasterEggProps = { soundEnabled?: boolean };
+
+function playCelebrationTone(enabled: boolean) {
+  if (!enabled || typeof window === "undefined") return;
+  try {
+    const AudioContextCtor = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) return;
+    const context = new AudioContextCtor();
+    const start = context.currentTime;
+    [523.25, 659.25, 783.99].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.0001, start + index * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.07, start + index * 0.08 + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + index * 0.08 + 0.22);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(start + index * 0.08);
+      oscillator.stop(start + index * 0.08 + 0.24);
+    });
+    window.setTimeout(() => void context.close(), 550);
+  } catch {
+    // Web Audio may be unavailable or blocked; the visual celebration still works.
+  }
+}
+
+export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState(DEFAULT_EASTER_EGG_MESSAGE);
+  const [celebrating, setCelebrating] = useState(false);
 
   useEffect(() => {
     const syncMessage = () => setMessage(readEasterEggMessage());
@@ -24,6 +53,9 @@ export function EasterEgg() {
   const openMessage = () => {
     setMessage(readEasterEggMessage());
     setOpen(true);
+    setCelebrating(true);
+    playCelebrationTone(soundEnabled);
+    window.setTimeout(() => setCelebrating(false), 1400);
   };
 
   return <>
@@ -33,7 +65,7 @@ export function EasterEgg() {
       aria-haspopup="dialog"
       aria-expanded={open}
       onClick={openMessage}
-      className="easter-egg-trigger fixed bottom-5 right-5 z-[999] grid h-10 w-10 place-items-center rounded-full border border-emerald-200/70 bg-white/85 text-[32px] leading-none shadow-lg shadow-emerald-950/15 backdrop-blur-sm opacity-60 transition duration-200 hover:scale-110 hover:opacity-100 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-300/30 dark:bg-slate-900/85 dark:hover:bg-slate-800"
+      className="easter-egg-trigger fixed top-5 right-5 z-[999] grid h-10 w-10 place-items-center rounded-full border border-emerald-200/70 bg-white/85 text-[32px] leading-none shadow-lg shadow-emerald-950/15 backdrop-blur-sm opacity-60 transition duration-200 hover:scale-110 hover:opacity-100 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-300/30 dark:bg-slate-900/85 dark:hover:bg-slate-800"
     >
       <span aria-hidden="true">🍀</span>
     </button>
@@ -43,6 +75,7 @@ export function EasterEgg() {
       role="presentation"
       onClick={() => setOpen(false)}
     >
+      {celebrating ? <div className="easter-egg-fireworks" aria-hidden="true">{["🎉", "✨", "🎊", "✨", "🎉", "🌟", "🎊", "✨", "🎉", "🌟", "🎊", "✨"].map((emoji, index) => <span key={`${emoji}-${index}`}>{emoji}</span>)}</div> : null}
       <section
         role="dialog"
         aria-modal="true"
