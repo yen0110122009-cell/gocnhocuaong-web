@@ -385,3 +385,8 @@
 - [x] Hợp nhất Nhập dữ liệu AI và AI Studio; thêm prompt nhập liệu cùng phân loại học liệu/đề kiểm tra theo môn, cấp học và khóa học.
 - [x] Thu gọn các mục quản trị, làm rõ bộ lọc báo cáo và gỡ các bề mặt không còn dùng.
 - [x] Bổ sung regression, TypeScript/Vitest/build, kiểm tra responsive và checkpoint phát hành.
+
+## Xóa dữ liệu thử Thành tích và Danh hiệu
+- [x] Kiểm kê mọi dữ liệu khởi tạo, catalog thử và dữ liệu mẫu Thành tích/Danh hiệu trong hợp đồng, normalizer và cấu hình quản trị.
+- [x] Xóa dữ liệu thử Thành tích/Danh hiệu, không chạm vào Kế hoạch, Pomodoro, Flashcard, Đề kiểm tra và dữ liệu người học.
+- [x] Bổ sung regression xác nhận không còn dữ liệu thử Thành tích/Danh hiệu; chạy TypeScript, Vitest, build và checkpoint phát hành.

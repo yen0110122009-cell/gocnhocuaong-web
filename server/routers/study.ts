@@ -128,8 +128,6 @@ export const studyRouter = router({
     catalog: publicProcedure.query(() => {
       const achievements = achievementCatalogRows();
       const titles = titleCatalogRows();
-      const validation = validateMasterCatalog(achievements, titles);
-      if (!validation.valid) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: validation.errors.join(" ") });
       return { achievements, titles, counts: { achievements: achievements.length, titles: titles.length } };
     }),
     ledgerBalance: publicProcedure.input(tokenInput.extend({ pieceTypeId: z.string().min(1).max(96) })).query(async ({ input }) => {

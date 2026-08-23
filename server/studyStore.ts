@@ -1,7 +1,7 @@
 import { randomBytes, scryptSync, timingSafeEqual, createHash, randomUUID } from "node:crypto";
 import { and, desc, eq, gt } from "drizzle-orm";
 import { studyAccounts, studyProfiles, studySessions, studySettings } from "../drizzle/schema";
-import { emptyAppConfig, emptyProfile, normalizeProfile, type AppConfig, type ProfileState, type StudyAccount, type StudyRole } from "../shared/study";
+import { emptyAppConfig, emptyProfile, normalizeProfile, purgeLegacyAchievementConfig, type AppConfig, type ProfileState, type StudyAccount, type StudyRole } from "../shared/study";
 import { canAssignRole, canDeleteAccount, canManageMembers, canModifyAccount, isUnlimitedAccountCode } from "../shared/permissions.ts";
 import { getDb } from "./db";
 
@@ -180,7 +180,7 @@ export async function getAppConfig() {
     await db.insert(studySettings).values({ id: "global", data: JSON.stringify(config), updatedAt: new Date() });
     return config;
   }
-  return jsonFromText<AppConfig>(rows[0].data, emptyAppConfig);
+  return purgeLegacyAchievementConfig(jsonFromText<AppConfig>(rows[0].data, emptyAppConfig));
 }
 
 export function assertAdminOperation(account: Pick<StudyAccount, "role">) {
@@ -198,7 +198,7 @@ function requireAdmin(account: StudyAccount) {
 export async function saveAppConfigForToken(token: string, value: unknown) {
   const { account } = await getStudySession(token);
   requireAdmin(account);
-  const config = { ...emptyAppConfig(), ...(value as Partial<AppConfig>), updatedAt: new Date().toISOString() };
+  const config = purgeLegacyAchievementConfig({ ...emptyAppConfig(), ...(value as Partial<AppConfig>), updatedAt: new Date().toISOString() });
   const db = await database();
   await db.insert(studySettings).values({ id: "global", data: JSON.stringify(config), updatedAt: new Date() }).onDuplicateKeyUpdate({ set: { data: JSON.stringify(config), updatedAt: new Date() } });
   return config;

@@ -1046,12 +1046,8 @@ export const emptyAppConfig = (): AppConfig => ({
     ["completed", "Hoàn thành", "Lumi ăn mừng một phiên đã xong.", "Khi hoàn thành Pomodoro hoặc nhiệm vụ."],
   ].map(([id, name, description, condition]) => ({ id, name, description, condition, enabled: true, createdAt: new Date().toISOString() })),
   mascotVoiceLines: [],
-  wheelRewards: [
-    { id: "starter-xp-20", label: "Mẫu khởi đầu · +20 XP", kind: "xp", value: 20, probability: 45, color: "#22d3ee" },
-    { id: "starter-fragment-1", label: "Mẫu khởi đầu · 1 mảnh ghép", kind: "fragment", value: 1, probability: 30, color: "#f4b942" },
-    { id: "starter-ticket-1", label: "Mẫu khởi đầu · +1 vé quay", kind: "ticket", value: 1, probability: 25, color: "#86efac" },
-  ],
-  wheelTicketsPerAchievement: 1,
+  wheelRewards: [],
+  wheelTicketsPerAchievement: 0,
   dailyFragmentCap: 10,
   collectionConfig: {
     tierValues: [
@@ -1064,13 +1060,7 @@ export const emptyAppConfig = (): AppConfig => ({
     ],
     ticketExchange: { fragmentValue: 10, tickets: 1, enabled: true },
     shopItems: [],
-    rewardSources: [
-      { id: "source-study-session", kind: "studySession", label: "Phiên học hoàn thành", description: "Nhận mảnh khi hoàn thành phiên học; bị giới hạn theo ngày.", enabled: true, dailyCap: 3, rewards: [{ tier: "I", amount: 1 }] },
-      { id: "source-pomodoro-10", kind: "pomodoroMilestone", label: "Mốc 10 Pomodoro", description: "Thưởng một lần khi tổng số Pomodoro hoàn thành chạm mốc.", enabled: true, claimLimit: 1, milestone: 10, rewards: [{ tier: "II", amount: 1 }] },
-      { id: "source-quiz-complete", kind: "quiz", label: "Hoàn thành đề", description: "Thưởng cho mỗi đề hoàn thành; giới hạn theo ngày.", enabled: true, dailyCap: 2, rewards: [{ tier: "I", amount: 1 }] },
-      { id: "source-deep-review", kind: "deepReview", label: "Deep Review", description: "Thưởng khi hoàn thành phiên review sâu.", enabled: true, dailyCap: 2, rewards: [{ tier: "II", amount: 1 }] },
-      { id: "source-streak-7", kind: "streak", label: "Streak 7 ngày", description: "Thưởng một lần ở mốc streak.", enabled: true, claimLimit: 1, milestone: 7, rewards: [{ tier: "III", amount: 1 }] },
-    ],
+    rewardSources: [],
     events: [{
       id: "sample-weekly-plan-event",
       name: "Event mẫu · Tuần kế hoạch đầu tiên",
@@ -1092,19 +1082,29 @@ export const emptyAppConfig = (): AppConfig => ({
     }],
   },
   achievementOverrides: [],
-  levelDefinitions: DEFAULT_LEVEL_DEFINITIONS,
-  customAchievements: [
-    { id: "starter-5-pomodoros", name: "Mẫu khởi đầu · Nhịp tập trung", description: "Hoàn thành 5 phiên Pomodoro.", metric: "pomodoroSessions", threshold: 5, rewardXp: 50, rewardFragments: 0, title: "Người giữ nhịp", titleMeaning: "Bền bỉ duy trì từng phiên học.", enabled: true },
-    { id: "starter-25-cards", name: "Mẫu khởi đầu · Bộ thẻ đầu tiên", description: "Học thuộc 25 Flashcard.", metric: "learnedCards", threshold: 25, rewardXp: 75, rewardFragments: 1, title: "Người gom kiến thức", titleMeaning: "Tích lũy từng mảnh hiểu biết.", enabled: true },
-    { id: "starter-3-quizzes", name: "Mẫu khởi đầu · Ba lần chinh phục", description: "Hoàn thành 3 bài kiểm tra.", metric: "completedQuizzes", threshold: 3, rewardXp: 60, rewardFragments: 0, enabled: true },
-  ],
+  levelDefinitions: [],
+  customAchievements: [],
   updatedAt: new Date().toISOString(),
 });
 
 export const XP_PER_LEVEL = 300;
-export const DEFAULT_LEVEL_DEFINITIONS: LevelDefinition[] = [
-  ["🌱", "Bắt đầu"], ["🌿", "Đang lớn"], ["🌳", "Bền bỉ"], ["🐝", "Vào guồng"], ["👑", "Làm chủ"], ["🔥", "Giữ lửa"], ["💡", "Soi sáng"], ["🧠", "Hiểu sâu"], ["🏛️", "Tích lũy"], ["🌟", "Tỏa sáng"], ["🪽", "Bay xa"], ["♾️", "Không giới hạn"],
-].map(([icon, name], index) => ({ id: `level-${index + 1}`, icon, name, enabled: true }));
+/** Giữ export rỗng để dữ liệu cấp độ cũ không được sinh lại từ hợp đồng tương thích. */
+export const DEFAULT_LEVEL_DEFINITIONS: LevelDefinition[] = [];
+
+/** Duy trì tương thích kiểu dữ liệu cũ nhưng không cho dữ liệu Thành tích/Danh hiệu quay lại cấu hình đang dùng. */
+export function purgeLegacyAchievementConfig(config: AppConfig): AppConfig {
+  return {
+    ...config,
+    collectionConfig: config.collectionConfig ? { ...config.collectionConfig, rewardSources: [] } : config.collectionConfig,
+    achievementOverrides: [],
+    customAchievements: [],
+    deletedAchievementIds: [],
+    deletedTitleIds: [],
+    levelDefinitions: [],
+    wheelRewards: [],
+    wheelTicketsPerAchievement: 0,
+  };
+}
 export const levelForXp = (xp: number) => Math.max(1, Math.floor(Math.max(0, xp) / XP_PER_LEVEL) + 1);
 export const xpForNextLevel = (level: number) => Math.max(XP_PER_LEVEL, Math.max(1, level) * XP_PER_LEVEL);
 
@@ -1203,6 +1203,9 @@ const titleCulturalContext = (seed: string, qualifier: string, specialIndex: num
 };
 
 export function generateAchievements(): Achievement[] {
+  // Catalog cũ chỉ được giữ trong mã để đọc dữ liệu lịch sử tương thích; không sinh dữ liệu mới.
+  return [];
+  /* Legacy catalog retained below for backward-compatible TypeScript structures. */
   const metrics: AchievementMetric[] = ["learnedCards", "completedQuizzes", "xp", "completedSets", "fragments", "pomodoroSessions"];
   const result: Achievement[] = [];
   ranks.forEach(([icon, rankName, difficulty], rank) => {
@@ -1284,6 +1287,8 @@ export function generateAchievements(): Achievement[] {
 }
 
 export function advancedAchievementCards(profile: ProfileState): Achievement[] {
+  // Không còn tạo Thành tích/Danh hiệu từ dữ liệu học tập hiện hành.
+  return [];
   const activities = [...profile.studyActivity].sort((a, b) => Date.parse(a.occurredAt) - Date.parse(b.occurredAt));
   const completed = activities.filter((item) => item.kind === "pomodoro" || item.kind === "quiz");
   let comebackCount = 0;
@@ -1536,7 +1541,7 @@ export function normalizeProfile(value: unknown): ProfileState {
   const merged: ProfileState = {
     ...base,
     ...source,
-    xp: Math.max(0, Number(source.xp) || 0),
+    xp: 0,
     flashcardSets: Array.isArray(source.flashcardSets) ? source.flashcardSets.flatMap((value) => {
       if (!value || typeof value !== "object") return [];
       const set = value as Partial<FlashcardSet>;
@@ -1576,10 +1581,13 @@ export function normalizeProfile(value: unknown): ProfileState {
     planTickets: Math.max(0, Math.floor(Number(source.planTickets) || 0)),
     fragments: source.fragments && typeof source.fragments === "object" ? source.fragments : {},
     fragmentLedger: source.fragmentLedger && typeof source.fragmentLedger === "object" ? Object.fromEntries((Object.entries(source.fragmentLedger) as Array<[FragmentTier, unknown]>).filter(([tier]) => ["I", "II", "III", "IV", "V", "VI"].includes(tier)).map(([tier, value]) => [tier, Math.max(0, Math.floor(Number(value) || 0))])) as Partial<Record<FragmentTier, number>> : {},
-    unlockedAchievementIds: Array.isArray(source.unlockedAchievementIds) ? source.unlockedAchievementIds : [],
-    ownedBadges: Array.isArray(source.ownedBadges) ? source.ownedBadges : [],
+    level: 1,
+    unlockedAchievementIds: [],
+    ownedBadges: [],
+    activeTitle: null,
     inventory: Array.isArray(source.inventory) ? source.inventory : [],
-    achievementUnlockDates: source.achievementUnlockDates && typeof source.achievementUnlockDates === "object" ? source.achievementUnlockDates : {},
+    achievementUnlockDates: {},
+    achievementEvidence: {},
     animationsEnabled: source.animationsEnabled !== false,
     popupsEnabled: source.popupsEnabled !== false,
     pomodoroLumiSupportMode: ["comfort", "encouragement", "off"].includes(String(source.pomodoroLumiSupportMode)) ? source.pomodoroLumiSupportMode as ProfileState["pomodoroLumiSupportMode"] : "encouragement",
@@ -1826,7 +1834,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     currentStreak: Math.max(0, Number(source.currentStreak) || 0),
     bestStreak: Math.max(0, Number(source.bestStreak) || 0),
     streakShields: Math.max(0, Math.min(3, Number(source.streakShields) || 0)),
-    achievementMoments: Array.isArray(source.achievementMoments) ? source.achievementMoments.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AchievementMoment>) : null; if (!item?.id || !item.achievementId) return []; return [{ id: String(item.id), achievementId: String(item.achievementId), createdAt: String(item.createdAt ?? new Date(0).toISOString()), note: String(item.note ?? ""), feeling: String(item.feeling ?? "Tự hào"), mascotVariant: "hoodie" as const, photoUrl: item.photoUrl ? String(item.photoUrl) : undefined, deletedAt: item.deletedAt ? String(item.deletedAt) : undefined }]; }) : [],
+    achievementMoments: [],
     characterProgress: source.characterProgress && typeof source.characterProgress === "object" ? Object.fromEntries(Object.entries(source.characterProgress).flatMap(([characterId, value]) => { const item = value && typeof value === "object" ? (value as Partial<CharacterProgress>) : {}; if (!characterId) return []; const collected = Array.isArray(item.collectedPieceIds) ? item.collectedPieceIds.map(String) : []; const used = Array.isArray(item.usedPieceIds) ? item.usedPieceIds.map(String) : []; const status: CharacterUnlockStatus = item.status === "unlocked" || item.status === "ready" || item.status === "assembling" ? item.status : collected.length ? "assembling" : "locked"; return [[characterId, { characterId, collectedPieceIds: Array.from(new Set(collected)), usedPieceIds: Array.from(new Set(used)), status, assembledAt: item.assembledAt ? String(item.assembledAt) : null, unlockedAt: item.unlockedAt ? String(item.unlockedAt) : null } as CharacterProgress]]; })) : {},
     pomodoroHistory: Array.isArray(source.pomodoroHistory) ? source.pomodoroHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<PomodoroSession>) : null; if (!item?.id) return []; const checkedPlanItemIds = Array.isArray(item.checkedPlanItemIds) ? Array.from(new Set(item.checkedPlanItemIds.map(String).map((id) => id.trim()).filter(Boolean))).slice(0, 30) : undefined; const checkedPlanTitles = Array.isArray(item.checkedPlanTitles) ? Array.from(new Set(item.checkedPlanTitles.map(String).map((title) => title.trim().slice(0, 180)).filter(Boolean))).slice(0, 30) : undefined; return [{ id: String(item.id), startedAt: String(item.startedAt ?? new Date(0).toISOString()), endedAt: String(item.endedAt ?? new Date(0).toISOString()), durationMinutes: Math.max(1, Number(item.durationMinutes) || 1), subject: String(item.subject ?? ""), topic: String(item.topic ?? ""), activity: typeof item.activity === "string" && item.activity.trim() ? item.activity.trim().slice(0, 120) : undefined, notes: typeof item.notes === "string" && item.notes.trim() ? item.notes.trim().slice(0, 2_000) : undefined, checkedPlanItemIds, checkedPlanTitles, sessionNumber: Math.max(1, Number(item.sessionNumber) || 1), totalSessions: Math.max(1, Number(item.totalSessions) || 1), mode: item.mode === "shortBreak" || item.mode === "longBreak" ? item.mode : "focus", status: item.status === "abandoned" || item.status === "skipped" ? item.status : "completed", audioPresetId: item.audioPresetId ? String(item.audioPresetId) : undefined, audioPresetName: item.audioPresetName ? String(item.audioPresetName) : undefined, audioAmbientMix: item.audioAmbientMix && typeof item.audioAmbientMix === "object" ? { morning: Math.max(0, Math.min(100, Number(item.audioAmbientMix.morning) || 0)), storm: Math.max(0, Math.min(100, Number(item.audioAmbientMix.storm) || 0)) } : undefined }]; }) : [],
     aiImportHistory: Array.isArray(source.aiImportHistory) ? source.aiImportHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AiImportRecord>) : null; if (!item?.id || !item.title) return []; return [{ id: String(item.id), title: String(item.title), createdAt: String(item.createdAt ?? new Date(0).toISOString()), target: item.target === "quiz" || item.target === "both" || item.target === "practice" ? item.target : "flashcards", questionCount: Math.max(0, Number(item.questionCount) || 0), flashcardCount: Math.max(0, Number(item.flashcardCount) || 0), prompt: String(item.prompt ?? ""), rawData: String(item.rawData ?? ""), quizId: item.quizId ? String(item.quizId) : undefined, flashcardSetId: item.flashcardSetId ? String(item.flashcardSetId) : undefined }]; }) : [],
@@ -1836,9 +1844,10 @@ export function normalizeProfile(value: unknown): ProfileState {
   merged.avoidanceReasons = Array.isArray(source.avoidanceReasons) ? source.avoidanceReasons : [];
   merged.taskCombos = Array.isArray(source.taskCombos) ? source.taskCombos : [];
   merged.deepLearningEvents = Array.isArray(source.deepLearningEvents) ? source.deepLearningEvents : [];
-  merged.achievementEvidence = source.achievementEvidence && typeof source.achievementEvidence === "object" ? source.achievementEvidence : {};
+  merged.achievementEvidence = {};
   merged.mascotVoiceLines = Array.isArray(source.mascotVoiceLines) ? source.mascotVoiceLines.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<MascotVoiceLine>) : null; if (!item?.id || !item.text) return []; return [{ id: String(item.id), state: String(item.state ?? "achievement"), emotion: item.emotion ? String(item.emotion) as EmotionThemeId : undefined, text: String(item.text), audioUrl: item.audioUrl ? String(item.audioUrl) : undefined, source: item.source === "admin" ? "admin" : "learner", enabled: item.enabled !== false, createdAt: item.createdAt ? String(item.createdAt) : undefined, deletedAt: item.deletedAt ? String(item.deletedAt) : undefined }]; }) : [];
-  merged.level = levelForXp(merged.xp);
+  merged.achievementRewardClaims = {};
+  merged.level = 1;
   return merged;
 }
 
