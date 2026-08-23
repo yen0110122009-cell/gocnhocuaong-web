@@ -19,6 +19,7 @@ export interface FestiveAmbientDecoration {
 export interface FestiveThemeConfig {
   id: string;
   displayName: string;
+  audioDescription: string;
   colors: { light: { bg: string; primary: string; accent: string }; dark: { bg: string; primary: string; accent: string } };
   bgm: { url: string; volume: number; loop: boolean };
   mascot: { emoji: string; size: string; initialPosition: { top: string; left: string }; zIndex: number; draggable: boolean; animation?: FestiveAnimation; clickEffect?: FestiveEffectConfig };
@@ -44,7 +45,25 @@ export const USER_PROVIDED_FESTIVE_AUDIO: Record<string, string> = {
 };
 const item = (emoji: string, size: string, density: number, clickEffect?: FestiveEffectConfig) => ({ emoji, size, density, draggable: true, clickEffect });
 
-export const FESTIVE_THEME_CONFIGS: FestiveThemeConfig[] = [
+/** Mô tả do Ong cung cấp trong pasted_content_20; URL vẫn dùng registry audio đã được kiểm soát. */
+export const FESTIVE_THEME_AUDIO_DESCRIPTIONS: Record<string, string> = {
+  "tet-nguyen-dan": "Âm rộn ràng nhẹ nhàng của tiếng đàn tranh, hòa cùng tiếng pháo hoa xa và tiếng chuông gió đầu xuân.",
+  "gio-to-hung-vuong": "Tiếng trống đồng âm vang trầm hùng kết hợp tiếng sáo trúc thanh tịnh không gian núi rừng.",
+  "ngay-thanh-nien-26-3": "Tiếng Guitar Acoustic trẻ trung, nhịp điệu tươi sáng truyền cảm hứng học tập và cống hiến.",
+  "giai-phong-30-4": "Giai điệu khải hoàn ca không lời du dương, xen lẫn tiếng kèn đồng nhẹ nhàng tạo khí thế tự hào.",
+  "thuong-binh-liet-si-27-7": "Tiếng mưa rơi dịu êm kết hợp tiếng chuông gió tĩnh lặng, mang không khí tri ân và lắng đọng.",
+  "cach-mang-19-8": "Nhịp trống hội hào hùng dồn dập nhẹ, tạo năng lượng tập trung cao độ và quyết tâm.",
+  "quoc-khanh-2-9": "Tiếng đàn bầu truyền thống kết hợp giai điệu quê hương thanh bình, tạo không gian trang trọng.",
+  "tet-trung-thu": "Tiếng dế đêm thu rả rích kết hợp tiếng trống tùng-rinh nhẹ xa xa và giai điệu múa lân vui tươi.",
+  "nha-giao-viet-nam-20-11": "Tiếng đàn Piano du dương, sâu lắng gợi nhớ ký ức mái trường và không gian học tập bình yên.",
+  "quoc-te-phu-nu-8-3": "Âm nhạc Lofi Chill ngọt ngào kết hợp tiếng mưa xuân lất phất dịu dàng.",
+  "tet-doan-ngo-5-5": "Tiếng chim hót líu lo rộn rã trên cành cây hòa cùng không khí rực rỡ của ngày hè.",
+  "vu-lan-bao-hieu": "Tiếng chuông xoay Nepal tĩnh tâm kết hợp tiếng nước chảy suối ngàn, mang lại sự thư thái.",
+  "phu-nu-viet-nam-20-10": "Bản tấu Piano ngọt ngào kết hợp tiếng Violin nhẹ nhàng, êm ái.",
+  "quan-doi-nhan-dan-22-12": "Tiếng bước chân hành quân xa hòa cùng tiếng gió rừng trút lá trầm ấm, kiên cường.",
+};
+
+const FESTIVE_THEME_CONFIG_DATA: Array<Omit<FestiveThemeConfig, "audioDescription">> = [
   { id: "tet-nguyen-dan", displayName: "Tết Nguyên Đán 🧧", colors: { light: { bg: "#FFFBEB", primary: "#991B1B", accent: "#D97706" }, dark: { bg: "#2A0808", primary: "#FACC15", accent: "#EF4444" } }, bgm: { url: arcade, volume: .35, loop: true }, mascot: { emoji: "🦁", size: "95px", initialPosition: { top: "20%", left: "45%" }, zIndex: 100, draggable: true, animation: "bounce", clickEffect: { type: "scale-bounce", intensity: 1.3, durationMs: 350 } }, groundContainer: { height: "60px", bottom: "0px", zIndex: 50, rippleEffect: false, items: [item("🧧", "28px", .6, { type: "shake", intensity: 1.15, durationMs: 300 }), item("🌸", "24px", .4, { type: "particle-burst", intensity: 1.2, durationMs: 450 })] } },
   { id: "gio-to-hung-vuong", displayName: "Giỗ Tổ Hùng Vương 👑", colors: { light: { bg: "#FEF3C7", primary: "#78350F", accent: "#B45309" }, dark: { bg: "#1C1917", primary: "#F59E0B", accent: "#FCD34D" } }, bgm: { url: arcade, volume: .35, loop: true }, mascot: { emoji: "🦅", size: "95px", initialPosition: { top: "15%", left: "40%" }, zIndex: 100, draggable: true, animation: "sine-wave", clickEffect: { type: "pulse-glow", intensity: 1.25, durationMs: 400 } }, groundContainer: { height: "55px", bottom: "0px", zIndex: 50, rippleEffect: true, items: [item("🪷", "26px", .5, { type: "ripple-wave", intensity: 1.2, durationMs: 500 }), item("🪵", "24px", .5, { type: "scale-bounce", intensity: 1.1, durationMs: 250 })] } },
   { id: "ngay-thanh-nien-26-3", displayName: "Ngày Thành Lập Đoàn 26/3 💙", colors: { light: { bg: "#EFF6FF", primary: "#1D4ED8", accent: "#2563EB" }, dark: { bg: "#0B132B", primary: "#60A5FA", accent: "#93C5FD" } }, bgm: { url: birds, volume: .35, loop: true }, mascot: { emoji: "⭐", size: "85px", initialPosition: { top: "25%", left: "48%" }, zIndex: 100, draggable: true }, groundContainer: { height: "50px", bottom: "0px", zIndex: 50, items: [item("🌿", "22px", .7), item("📘", "22px", .3)] } },
@@ -60,6 +79,11 @@ export const FESTIVE_THEME_CONFIGS: FestiveThemeConfig[] = [
   { id: "phu-nu-viet-nam-20-10", displayName: "Ngày Phụ Nữ Việt Nam 20/10 🌹", colors: { light: { bg: "#FFF1F2", primary: "#BE123C", accent: "#E11D48" }, dark: { bg: "#4C0519", primary: "#FB7185", accent: "#FDA4AF" } }, bgm: { url: birds, volume: .35, loop: true }, mascot: { emoji: "🌹", size: "90px", initialPosition: { top: "18%", left: "44%" }, zIndex: 100, draggable: true, animation: "circular" }, groundContainer: { height: "60px", bottom: "0px", zIndex: 50, rippleEffect: false, items: [item("💖", "22px", .5), item("💐", "24px", .5)] } },
   { id: "quan-doi-nhan-dan-22-12", displayName: "QĐND Việt Nam 22/12 🎖️", colors: { light: { bg: "#F0FDF4", primary: "#14532D", accent: "#15803D" }, dark: { bg: "#052E16", primary: "#4ADE80", accent: "#86EFAC" } }, bgm: { url: arcade, volume: .35, loop: true }, mascot: { emoji: "🪖", size: "85px", initialPosition: { top: "22%", left: "45%" }, zIndex: 100, draggable: true, animation: "bounce" }, groundContainer: { height: "55px", bottom: "0px", zIndex: 50, rippleEffect: false, items: [item("🎖️", "22px", .5), item("⭐", "22px", .5)] } },
 ];
+
+export const FESTIVE_THEME_CONFIGS: FestiveThemeConfig[] = FESTIVE_THEME_CONFIG_DATA.map((theme) => ({
+  ...theme,
+  audioDescription: FESTIVE_THEME_AUDIO_DESCRIPTIONS[theme.id] ?? "Âm nền lễ hội do Ong chọn.",
+}));
 
 /**
  * Cấu hình hiệu ứng theme: mỗi theme có 28 hạt emoji (nằm trong mức 25–35

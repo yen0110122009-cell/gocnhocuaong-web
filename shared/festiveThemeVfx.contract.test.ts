@@ -42,6 +42,16 @@ describe("festive VFX contract", () => {
     expect(layer).not.toContain("document.querySelectorAll<HTMLAudioElement>(\"audio\")");
   });
 
+  it("separates festive tone and VFX state while leaving the personal companion independent", () => {
+    expect(layer).toContain("toneEnabled = true");
+    expect(layer).toContain("vfxEnabled = true");
+    expect(layer).toContain("if (!config || !resolvedVfxEnabled) return null");
+    expect(layer).toContain("if (!config || !resolvedToneEnabled)");
+    expect(home).toContain('root.dataset.festiveTone');
+    expect(home).toContain('root.dataset.festiveVfx');
+    expect(home).toContain("festiveOptions.enableAmbientAudio");
+  });
+
   it("registers exactly ten user-provided festive audio sources and plays only after a user gesture", () => {
     expect(Object.keys(USER_PROVIDED_FESTIVE_AUDIO)).toHaveLength(10);
     expect(home).toContain("FESTIVE_AUDIO_FALLBACKS");

@@ -1,6 +1,7 @@
 export type StudyRole = "Member" | "Admin" | "Founder";
 
 import { grantFragmentSourceReward } from "./fragmentSystem";
+import { normalizeCosmeticPaletteId, type CosmeticPaletteId } from "./colorPalettes";
 
 export const EDUCATION_LEVELS = ["Mẫu giáo", "Tiểu học", "THCS", "THPT", "Đại học/Sinh viên", "Khóa học tự do"] as const;
 export type EducationLevel = typeof EDUCATION_LEVELS[number];
@@ -138,7 +139,8 @@ export type FragmentRarity = "common" | "rare" | "special" | "legendary";
 export type FragmentTier = "I" | "II" | "III" | "IV" | "V" | "VI";
 export type FragmentTierConfig = { tier: FragmentTier; label: string; value: number; rarity: FragmentRarity; enabled: boolean };
 export type CollectionProfileLevel = { id: string; label: string; requiredValue: number; description: string; unlocked: boolean };
-export type CosmeticThemeId = "ong-red" | "forest-green" | "sunset-amber" | "ocean-blue" | "lavender-dream" | "rose-garden" | "midnight-indigo" | "mint-cocoa" | "terracotta-cream" | "berry-ice" | "jade-ivory" | "copper-night" | "coral-sky" | "plum-gold" | "sakura-ink" | "neon-aurora";
+export type CosmeticThemeId = CosmeticPaletteId;
+export type FestiveThemeOptions = { enableThemeTone: boolean; enableAmbientAudio: boolean; enableVFX: boolean };
 export type CosmeticBackgroundId = "paper-grid" | "leaf-drift" | "sunrise-glow" | "night-stars";
 export type CollectionShopItem = { id: string; name: string; description: string; kind: "profileFrame" | "profileBackground" | "icon" | "decorativeBadge" | "mascotAccessory" | "profileEffect" | "historyTheme" | "colorTheme" | "animatedBackground"; price: number; currency: "collectionTicket" | "fragmentValue"; rarity: "common" | "rare" | "epic" | "legendary"; stock: number | null; enabled: boolean; cosmeticType?: "theme" | "background"; cosmeticId?: CosmeticThemeId | CosmeticBackgroundId; previewClass?: string; deletedAt?: string; };
 export type RewardSourceKind = "achievement" | "studySession" | "pomodoroMilestone" | "quiz" | "deepReview" | "scoreImprovement" | "streak" | "task" | "event";
@@ -770,6 +772,8 @@ export type ProfileState = {
   collectionInventory?: string[];
   collectionValueSpent?: number;
   activeCosmeticTheme?: CosmeticThemeId;
+  /** Ba lựa chọn độc lập của theme lễ hội; không ảnh hưởng linh vật emoji cá nhân. */
+  festiveThemeOptions?: FestiveThemeOptions;
   activeCosmeticBackground?: CosmeticBackgroundId;
   achievementUnlockDates: Record<string, string>;
   soundEnabled: boolean;
@@ -1007,6 +1011,7 @@ export const emptyProfile = (): ProfileState => ({
   showMascot: true,
   showLumi: true,
   defaultAmbientScene: undefined,
+  festiveThemeOptions: { enableThemeTone: true, enableAmbientAudio: true, enableVFX: true },
   favoriteAmbientScenes: [],
   sceneEffectPreferences: { leaves: 28, snow: 62, puddles: 64, snowmanX: 90, snowmanY: 5 },
   sceneAutomation: { enabled: false, applyFixedHolidays: true, timeRules: [{ id: "morning", label: "Buổi sáng", scene: "morning", startHour: 5, endHour: 11 }, { id: "summer-day", label: "Ban ngày", scene: "summer", startHour: 11, endHour: 17 }, { id: "spring-evening", label: "Buổi tối", scene: "spring", startHour: 17, endHour: 22 }, { id: "night", label: "Đêm", scene: "night", startHour: 22, endHour: 5 }] },
@@ -1626,6 +1631,12 @@ export function normalizeProfile(value: unknown): ProfileState {
     animationsEnabled: source.animationsEnabled !== false,
     popupsEnabled: source.popupsEnabled !== false,
     pomodoroLumiSupportMode: ["comfort", "encouragement", "off"].includes(String(source.pomodoroLumiSupportMode)) ? source.pomodoroLumiSupportMode as ProfileState["pomodoroLumiSupportMode"] : "encouragement",
+    activeCosmeticTheme: normalizeCosmeticPaletteId(source.activeCosmeticTheme),
+    festiveThemeOptions: {
+      enableThemeTone: source.festiveThemeOptions?.enableThemeTone !== false,
+      enableAmbientAudio: source.festiveThemeOptions?.enableAmbientAudio !== false,
+      enableVFX: source.festiveThemeOptions?.enableVFX !== false,
+    },
     emotionTheme: ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(String(source.emotionTheme)) ? source.emotionTheme as ProfileState["emotionTheme"] : "calm",
     companionEmotionMedia: source.companionEmotionMedia && typeof source.companionEmotionMedia === "object" ? Object.fromEntries(Object.entries(source.companionEmotionMedia).flatMap(([emotion, value]) => {
       if (!["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(emotion) || !value || typeof value !== "object") return [];

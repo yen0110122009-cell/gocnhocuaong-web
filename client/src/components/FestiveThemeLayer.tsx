@@ -110,13 +110,16 @@ function visualClass(effect?: FestiveEffectConfig) {
   return effect ? `festive-effect-${effect.type}` : "";
 }
 
-export function FestiveThemeLayer({ scene, soundEnabled = true }: { scene?: string; soundEnabled?: boolean }) {
+export function FestiveThemeLayer({ scene, soundEnabled = true, toneEnabled = true, vfxEnabled = true }: { scene?: string; soundEnabled?: boolean; toneEnabled?: boolean; vfxEnabled?: boolean }) {
   const theme = festiveThemeFor(scene);
+  const [shellOptions, setShellOptions] = useState(() => ({ toneEnabled: document.documentElement.dataset.festiveTone !== "false", vfxEnabled: document.documentElement.dataset.festiveVfx !== "false" }));
   const [effect, setEffect] = useState<{ id: number; config: FestiveEffectConfig } | null>(null);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const effectTimeout = useRef<number | undefined>(undefined);
   const config = theme;
+  const resolvedToneEnabled = toneEnabled && shellOptions.toneEnabled;
+  const resolvedVfxEnabled = vfxEnabled && shellOptions.vfxEnabled;
   const mascotSize = config ? 130 : 0;
   const initialMascotPosition = useMemo(() => config ? pointFor(config.mascot.initialPosition, mascotSize) : { x: 0, y: 0 }, [config?.id, mascotSize]);
   const triggerEffect = (clickEffect: FestiveEffectConfig | undefined, point: Point, emoji: string, allowRipple = false) => {
@@ -138,13 +141,21 @@ export function FestiveThemeLayer({ scene, soundEnabled = true }: { scene?: stri
   };
   useEffect(() => () => window.clearTimeout(effectTimeout.current), []);
   useEffect(() => {
+    const handleOptions = (event: Event) => {
+      const options = (event as CustomEvent<{ toneEnabled?: boolean; vfxEnabled?: boolean }>).detail;
+      if (options) setShellOptions({ toneEnabled: options.toneEnabled !== false, vfxEnabled: options.vfxEnabled !== false });
+    };
+    window.addEventListener("study:festive-options", handleOptions);
+    return () => window.removeEventListener("study:festive-options", handleOptions);
+  }, []);
+  useEffect(() => {
     // Âm nền được Home quản lý bằng phần tử audio duy nhất; không tắt mọi audio
     // để không làm gián đoạn âm báo hoặc bản ghi Lumi/Pomodoro.
     void soundEnabled;
   }, [soundEnabled]);
   useEffect(() => {
     const root = document.documentElement;
-    if (!config) { delete root.dataset.festiveTheme; return; }
+    if (!config || !resolvedToneEnabled) { delete root.dataset.festiveTheme; return; }
     root.dataset.festiveTheme = config.id;
     const palette = config.colors.light;
     root.style.setProperty("--festive-bg", palette.bg);
@@ -164,8 +175,8 @@ export function FestiveThemeLayer({ scene, soundEnabled = true }: { scene?: stri
       delete root.dataset.festiveTheme;
       ["--festive-bg", "--festive-primary", "--festive-accent", "--festive-ink", "--festive-panel"].forEach((name) => root.style.removeProperty(name));
     };
-  }, [config?.id]);
-  if (!config) return null;
+  }, [config?.id, resolvedToneEnabled]);
+  if (!config || !resolvedVfxEnabled) return null;
   return <FestiveThemeContent theme={config} mascotSize={mascotSize} initialMascotPosition={initialMascotPosition} triggerEffect={triggerEffect} effect={effect} particles={particles} ripples={ripples} />;
 }
 

@@ -1995,6 +1995,36 @@ body::after,
 .festive-ambient-bounce { animation: festive-ambient-bounce 2.8s cubic-bezier(.34, 1.56, .64, 1) infinite; }
 .festive-ambient-rest { opacity: .88; }
 #vfx-stage { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+
+/* Palette chính thức: biến được Home đặt từ shared/colorPalettes.ts cho đủ 18 tone. */
+:root[data-cosmetic-theme] #root > div.min-h-screen {
+  background: var(--palette-bg) !important;
+  color: var(--palette-text-primary) !important;
+  isolation: isolate;
+}
+:root[data-cosmetic-theme] #root > div.min-h-screen > aside,
+:root[data-cosmetic-theme] #root > div.min-h-screen header {
+  background: color-mix(in srgb, var(--palette-card) 92%, transparent) !important;
+  color: var(--palette-text-primary) !important;
+  border-color: var(--palette-border) !important;
+}
+:root[data-cosmetic-theme] #root > div.min-h-screen :is(.panel, .study-card, .secondary-button, .icon-button, .icon-text-button, .input, .textarea, input, textarea, select) {
+  background-color: var(--palette-card) !important;
+  color: var(--palette-text-primary) !important;
+  border-color: var(--palette-border) !important;
+}
+:root[data-cosmetic-theme] #root > div.min-h-screen :is(.panel, .study-card) :is(p, small, label, .text-slate-500, .text-slate-600) { color: var(--palette-text-secondary) !important; }
+:root[data-cosmetic-theme] #root > div.min-h-screen :is(.primary-button, [aria-pressed="true"]) { background-color: var(--palette-accent) !important; color: #fff !important; }
+:root[data-cosmetic-theme] #root > div.min-h-screen :is(button, input, select, textarea):focus-visible { outline-color: var(--palette-accent) !important; }
+
+/* Chỉ là nền của shell: không có pointer events, không thêm lớp phủ thao tác. */
+.bg-starry-twinkle::before, .bg-aurora-glow::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.bg-starry-twinkle::before { background-image: radial-gradient(circle at 12% 18%, rgba(255,255,255,.95) 0 1px, transparent 2px), radial-gradient(circle at 68% 12%, rgba(255,255,255,.8) 0 1px, transparent 2px), radial-gradient(circle at 78% 72%, rgba(255,255,255,.72) 0 1.5px, transparent 2.5px); background-size: 122px 110px, 184px 164px, 230px 206px; animation: palette-twinkle 3.6s ease-in-out infinite alternate; }
+.bg-aurora-glow::before { background: radial-gradient(ellipse at 14% 18%, rgba(34,211,238,.23), transparent 46%), radial-gradient(ellipse at 80% 10%, rgba(168,85,247,.26), transparent 42%), radial-gradient(ellipse at 55% 82%, rgba(45,212,191,.16), transparent 45%); filter: blur(8px); animation: palette-aurora 8s var(--ease-in-out, ease-in-out) infinite alternate; }
+.bg-starry-twinkle > :not(#vfx-stage), .bg-aurora-glow > :not(#vfx-stage) { position: relative; z-index: 1; }
+@keyframes palette-twinkle { from { opacity: .35; transform: scale(1); } to { opacity: .9; transform: scale(1.02); } }
+@keyframes palette-aurora { from { opacity: .45; transform: translate3d(-2%, 0, 0) scale(1); } to { opacity: .9; transform: translate3d(2%, -1%, 0) scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .bg-starry-twinkle::before, .bg-aurora-glow::before { animation: none; } }
 .festive-visual-effects { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .festive-ground { position: absolute; inset-inline: 0; pointer-events: none; }
 .festive-ground-item, .festive-mascot, .festive-mascot-reset { pointer-events: auto; }

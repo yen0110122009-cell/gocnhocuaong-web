@@ -422,3 +422,11 @@
 - [x] Chuẩn hóa đúng ba layer: nội dung, VFX stage và menu/header; loại lớp phủ/icon lơ lửng dư thừa, giữ VFX dưới menu.
 - [x] Xác minh và bảo vệ năm physics khi thả icon cùng fallback Web Audio an toàn sau cử chỉ đầu tiên.
 - [x] Bổ sung regression, chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.
+
+## Palette 18 tone và công tắc Theme lễ hội
+- [x] Thay hệ tone hiện tại bằng đủ 18 palette sáng/tối theo đặc tả, có token màu tương phản cao cho nền, chữ, card, viền và accent.
+- [x] Áp dụng `bg-starry-twinkle` và `bg-aurora-glow` có reduced-motion cho đúng các tone màn đêm/huyền bí.
+- [x] Bổ sung trình chọn và toggle Sáng/Tối hoạt động cho toàn bộ 18 tone, lưu lựa chọn mà không làm mất trạng thái giao diện.
+- [x] Thêm ba công tắc lưu bền cho từng theme lễ hội: tone màu, âm nền và linh vật/icon VFX; khi tắt phải ngừng đúng lớp tương ứng.
+- [x] Đồng bộ dữ liệu 14 theme: dải màu sáng/tối tương phản cao, mô tả âm thanh và hành vi fallback an toàn, không thêm nguồn audio không kiểm chứng.
+- [x] Bổ sung regression, chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.

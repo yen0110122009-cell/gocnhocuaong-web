@@ -44,6 +44,7 @@ describe("expanded theme catalog contract", () => {
     expect(FESTIVE_THEME_CONFIGS).toHaveLength(14);
     for (const theme of FESTIVE_THEME_CONFIGS) {
       expect(AMBIENT_SCENE_IDS).toContain(theme.id);
+      expect(theme.audioDescription.length).toBeGreaterThan(24);
       expect(festiveAmbientFor(theme.id)).toMatchObject({ url: USER_PROVIDED_FESTIVE_AUDIO[theme.id] ?? theme.bgm.url, volume: theme.bgm.volume * 100 });
     }
     const normalized = normalizeProfile({ ...emptyProfile(), personalStudyPresets: [{ id: "holiday", name: "Quốc khánh", ambientScene: "quoc-khanh-2-9" }] });
@@ -94,10 +95,14 @@ describe("expanded theme catalog contract", () => {
   it("exposes a dedicated Vietnamese holiday picker with the existing gesture audio dialog", () => {
     const source = home();
     expect(source).toContain('aria-labelledby="festive-theme-title"');
-    expect(source).toContain("14 theme lễ hội có âm nền");
+    expect(source).toContain("Tùy chọn theme đang chọn");
     expect(source).toContain("FESTIVE_THEME_CONFIGS.map((theme)");
     expect(source).toContain("chooseAudioTheme({ id: theme.id, label: theme.displayName })");
     expect(source).toContain("festiveAmbientFor(theme.id)");
+    expect(source).toContain("enableThemeTone");
+    expect(source).toContain("enableAmbientAudio");
+    expect(source).toContain("enableVFX");
+    expect(source).toContain("audioDescription");
   });
 
   it("returns the selected scene and tone to their clean defaults while stopping preview audio", () => {

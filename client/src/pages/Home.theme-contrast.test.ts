@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { COLOR_PALETTE_IDS } from "../../../shared/colorPalettes";
 
 const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
 const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
@@ -18,10 +19,10 @@ function contrast(foreground: string, background: string) {
 
 describe("tone giao diện và typography tương phản cao", () => {
   it("cung cấp bộ tone mở rộng có thể lưu trong profile", () => {
-    for (const id of ["lavender-dream", "rose-garden", "midnight-indigo", "mint-cocoa", "terracotta-cream", "berry-ice", "jade-ivory", "copper-night", "coral-sky", "plum-gold", "sakura-ink", "neon-aurora"]) {
-      expect(home).toContain(`id: "${id}"`);
-      expect(study).toContain(`"${id}"`);
-    }
+    expect(COLOR_PALETTE_IDS).toHaveLength(18);
+    expect(home).toContain("COLOR_PALETTES");
+    expect(home).toContain("COLOR_PALETTE_IDS");
+    expect(study).toContain("normalizeCosmeticPaletteId");
   });
 
   it("gắn tone được chọn vào shell và tổng quan Kế hoạch", () => {
