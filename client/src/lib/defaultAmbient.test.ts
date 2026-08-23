@@ -6,7 +6,7 @@ describe("default ambient asset", () => {
     expect(DEFAULT_AMBIENT_ASSET.source).toBe("built_in");
     expect(DEFAULT_AMBIENT_ASSET.category).toBe("background");
     expect(DEFAULT_AMBIENT_ASSET.target).toBe("rain");
-    expect(DEFAULT_AMBIENT_RAIN_URL).toMatch(/\/audio\/rain-and-thunder\.ogg$/);
+    expect(DEFAULT_AMBIENT_RAIN_URL).toMatch(/\/audio\/rain-and-thunder\.mp3$/);
     expect(DEFAULT_AMBIENT_ASSET.url).toBe(DEFAULT_AMBIENT_RAIN_URL);
     expect(DEFAULT_AMBIENT_RAIN_URL).not.toContain("manus.space");
   });
@@ -15,10 +15,10 @@ describe("default ambient asset", () => {
     expect(DEFAULT_AMBIENT_ASSETS).toHaveLength(4);
     expect(DEFAULT_AMBIENT_MORNING_ASSET.target).toBe("morning");
     expect(DEFAULT_AMBIENT_MORNING_ASSET.name).toBe("Buổi sáng");
-    expect(DEFAULT_AMBIENT_MORNING_ASSET.url).toMatch(/\/audio\/bird-singing\.ogg$/);
+    expect(DEFAULT_AMBIENT_MORNING_ASSET.url).toMatch(/\/audio\/bird-singing\.mp3$/);
     expect(DEFAULT_AMBIENT_STORM_ASSET.target).toBe("storm");
     expect(DEFAULT_AMBIENT_STORM_ASSET.name).toBe("Bão nhẹ");
-    expect(DEFAULT_AMBIENT_STORM_ASSET.url).toMatch(/\/audio\/rain-and-thunder\.ogg$/);
+    expect(DEFAULT_AMBIENT_STORM_ASSET.url).toMatch(/\/audio\/rain-and-thunder\.mp3$/);
     expect(DEFAULT_AMBIENT_MORNING_ASSET.url).not.toContain("manus.space");
     expect(DEFAULT_AMBIENT_STORM_ASSET.url).not.toContain("manus.space");
   });

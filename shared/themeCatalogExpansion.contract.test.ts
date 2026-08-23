@@ -82,7 +82,7 @@ describe("expanded theme catalog contract", () => {
   });
 
   it("ships every required local audio file", () => {
-    for (const file of ["rain-and-thunder.ogg", "turning-a-page.ogg", "bird-singing.ogg", "synthetic-bell.ogg"]) {
+    for (const file of ["rain-and-thunder.mp3", "turning-a-page.mp3", "bird-singing.mp3", "synthetic-bell.mp3"]) {
       const bytes = readFileSync(resolve(root, "client/public/audio", file));
       expect(bytes.byteLength).toBeGreaterThan(1024);
     }
@@ -94,6 +94,9 @@ describe("expanded theme catalog contract", () => {
     expect(source).toContain("void player.play().then(() => {");
     expect(source).not.toContain("player.load();");
     expect(source).toContain("fallbackUrl");
+    expect(source).toContain("const [audioPanelOpen, setAudioPanelOpen] = useState(false);");
+    expect(source).toContain("{audioTheme ? <audio ref={audioRef}");
+    expect(source).toContain("{audioPanelOpen && audioTheme ? <div role=\"dialog\"");
     expect(source).toContain("const fullCatalogSceneCards = AMBIENT_SCENE_IDS.filter((id) => Boolean(AUDIO_BACKED_SCENE_AUDIO[id]))");
     expect(source).toContain("Nguồn âm thanh:");
     expect(source).toContain('touchAction: "none"');
