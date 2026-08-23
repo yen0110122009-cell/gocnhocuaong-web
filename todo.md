@@ -438,3 +438,20 @@
 - [x] Đảm bảo âm báo kết thúc chỉ phát một lần cho mỗi lần chuyển trạng thái và việc mở cài đặt không can thiệp âm nền trang web đang phát.
 - [x] Đổi mọi bề mặt và dữ liệu hiển thị còn dùng thuật ngữ “Vé” sang “Mảnh ghép”, không tác động tới dữ liệu học tập.
 - [x] Bổ sung regression, kiểm tra TypeScript/Vitest/build, kiểm tra desktop/mobile và checkpoint phát hành.
+
+## Khắc phục đăng nhập và thống kê Pomodoro/Mảnh ghép
+- [x] Tái hiện, truy vết và khắc phục lỗi đăng nhập mà không làm lộ thông tin mã được cấp hoặc ảnh hưởng chế độ khách.
+- [x] Thêm bảng thống kê nhỏ, dễ đọc về các phiên Pomodoro đã hoàn thành và tổng số Mảnh ghép hiện có.
+- [x] Bổ sung regression cho đăng nhập và dữ liệu thống kê; kiểm tra TypeScript, Vitest, build, responsive và checkpoint phát hành.
+
+## Khẩn cấp: nền màu và linh vật theme
+- [x] Khôi phục token nền màu khi vào ứng dụng và khi đổi palette/theme.
+- [x] Bảo đảm linh vật và icon đáy của theme được render rõ trong VFX stage.
+- [x] Khôi phục kéo thả Pointer Capture tự do cho linh vật và icon mà không tạo lớp phủ chặn thao tác.
+
+## Đối chiếu lại đặc tả chưa đạt
+- [x] Sửa luồng Nghe thử âm nền để thao tác trực tiếp phát được hoặc báo nguồn lỗi rõ ràng, không chỉ lặp lại yêu cầu nhấn thử.
+- [x] Xác nhận linh vật kho/custom hiển thị ngay ở 130px, đi dạo 4–5 giây và kéo thả được sau đổi lựa chọn.
+- [x] Hoàn thiện token sáng/tối tương phản cao và mô tả âm thanh cho đủ 14 theme lễ hội.
+- [x] Xác nhận ba công tắc `enableThemeTone`, `enableAmbientAudio`, `enableVFX` tác động độc lập, lưu bền và không ngắt âm báo Pomodoro.
+- [x] Đối chiếu lại thời lượng Focus/nghỉ, mục tiêu phiên, chuyển tự động/thủ công, âm báo một lần và thuật ngữ Mảnh ghép.

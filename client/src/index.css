@@ -1937,22 +1937,15 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   opacity: .16 !important;
   color: var(--scene-accent-alt) !important;
 }
-/* Scene boundary: palettes may recolor the shell, but no scene owns a full-screen pseudo-element.
-   This removes every legacy fixed veil (including body layers) from the computed layout, so it
-   cannot sit above a button, keyboard focus target, sidebar, or mobile backdrop after login. */
-body::before,
-body::after,
+/* Cảnh nền chỉ nằm trong shell. Chúng luôn ở dưới nội dung và không nhận thao tác,
+   nên khôi phục được hiệu ứng mà không tạo lớp phủ chặn menu, bàn phím hay mobile backdrop. */
 :root[data-ambient-scene] #root > div.min-h-screen::before,
 :root[data-ambient-scene] #root > div.min-h-screen::after {
-  content: none !important;
-  display: none !important;
-  position: static !important;
-  inset: auto !important;
-  z-index: auto !important;
-  opacity: 0 !important;
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
   pointer-events: none !important;
-  background: none !important;
-  animation: none !important;
 }
 :root[data-ambient-scene] body,
 :root[data-ambient-scene] #root > div.min-h-screen {
@@ -1969,8 +1962,8 @@ body::after,
 @keyframes mascot-reset-feedback { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(.9) rotate(-12deg); } 100% { transform: translate(-50%, -50%) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .mascot-feedback-drop, .mascot-feedback-reset { animation: none; } }
 /* Theme Ngày Lễ Hội: mọi lớp trang trí mặc định không nhận thao tác; chỉ mascot/ground-item là điều khiển kéo thả. */
-:root[data-festive-theme]:not(.dark) .min-h-screen { background-color: var(--festive-light-bg) !important; }
-:root.dark[data-festive-theme] .min-h-screen { background-color: var(--festive-dark-bg) !important; }
+:root[data-festive-theme]:not(.dark) #root > div.min-h-screen { background: var(--festive-light-bg) !important; }
+:root.dark[data-festive-theme] #root > div.min-h-screen { background: var(--festive-dark-bg) !important; }
 :root[data-festive-theme]:not(.dark) .min-h-screen { color: var(--festive-light-text, #172033) !important; }
 :root.dark[data-festive-theme] .min-h-screen { color: var(--festive-dark-text, #f8fafc) !important; }
 :root[data-festive-theme]:not(.dark) .min-h-screen :is(aside, header, nav, .panel, .study-card, article, section, input, textarea, select) { background-color: color-mix(in srgb, var(--festive-light-bg) 10%, white) !important; color: var(--festive-light-text, #172033) !important; border-color: color-mix(in srgb, var(--festive-light-primary) 34%, #64748b) !important; }
@@ -1999,25 +1992,25 @@ body::after,
 #vfx-stage .festive-mascot-reset, #vfx-stage .festive-ground-item { z-index: 10000 !important; }
 
 /* Palette chính thức: biến được Home đặt từ shared/colorPalettes.ts cho đủ 18 tone. */
-:root[data-cosmetic-theme] #root > div.min-h-screen {
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen {
   background: var(--palette-bg) !important;
   color: var(--palette-text-primary) !important;
   isolation: isolate;
 }
-:root[data-cosmetic-theme] #root > div.min-h-screen > aside,
-:root[data-cosmetic-theme] #root > div.min-h-screen header {
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen > aside,
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen header {
   background: color-mix(in srgb, var(--palette-card) 92%, transparent) !important;
   color: var(--palette-text-primary) !important;
   border-color: var(--palette-border) !important;
 }
-:root[data-cosmetic-theme] #root > div.min-h-screen :is(.panel, .study-card, .secondary-button, .icon-button, .icon-text-button, .input, .textarea, input, textarea, select) {
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(.panel, .study-card, .secondary-button, .icon-button, .icon-text-button, .input, .textarea, input, textarea, select) {
   background-color: var(--palette-card) !important;
   color: var(--palette-text-primary) !important;
   border-color: var(--palette-border) !important;
 }
-:root[data-cosmetic-theme] #root > div.min-h-screen :is(.panel, .study-card) :is(p, small, label, .text-slate-500, .text-slate-600) { color: var(--palette-text-secondary) !important; }
-:root[data-cosmetic-theme] #root > div.min-h-screen :is(.primary-button, [aria-pressed="true"]) { background-color: var(--palette-accent) !important; color: #fff !important; }
-:root[data-cosmetic-theme] #root > div.min-h-screen :is(button, input, select, textarea):focus-visible { outline-color: var(--palette-accent) !important; }
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(.panel, .study-card) :is(p, small, label, .text-slate-500, .text-slate-600) { color: var(--palette-text-secondary) !important; }
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(.primary-button, [aria-pressed="true"]) { background-color: var(--palette-accent) !important; color: #fff !important; }
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(button, input, select, textarea):focus-visible { outline-color: var(--palette-accent) !important; }
 
 /* Chỉ là nền của shell: không có pointer events, không thêm lớp phủ thao tác. */
 .bg-starry-twinkle::before, .bg-aurora-glow::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; }
@@ -2027,8 +2020,8 @@ body::after,
 @keyframes palette-twinkle { from { opacity: .35; transform: scale(1); } to { opacity: .9; transform: scale(1.02); } }
 @keyframes palette-aurora { from { opacity: .45; transform: translate3d(-2%, 0, 0) scale(1); } to { opacity: .9; transform: translate3d(2%, -1%, 0) scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { .bg-starry-twinkle::before, .bg-aurora-glow::before { animation: none; } }
-.festive-visual-effects { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
-.festive-ground { position: absolute; inset-inline: 0; pointer-events: none; }
+.festive-visual-effects { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.festive-ground { position: fixed; inset-inline: 0; pointer-events: none; }
 .festive-ground-item, .festive-mascot, .festive-mascot-reset { pointer-events: auto; }
 .festive-ground-item { display: grid; place-items: center; line-height: 1; filter: drop-shadow(0 7px 9px rgb(0 0 0 / .2)); }
 .festive-ground-item { transition: left 220ms var(--ease-out), top 220ms var(--ease-out), filter 160ms var(--ease-out); }
@@ -2048,7 +2041,7 @@ body::after,
 @media (prefers-reduced-motion: reduce) {
   .festive-ground-item { transition: none !important; animation: none !important; }
 }
-.festive-mascot { position: absolute; display: grid; place-items: center; min-width: 130px; min-height: 130px; line-height: 1; }
+.festive-mascot { position: fixed; display: grid; place-items: center; min-width: 130px; min-height: 130px; line-height: 1; }
 .festive-mascot.mascot { width: 130px !important; height: 130px !important; font-size: 130px !important; }
 .festive-mascot-emoji.is-dragging { animation-play-state: paused; }
 .festive-particle { position: fixed; display: block; font-size: 1.1rem; animation: festive-particle-out 600ms cubic-bezier(.23,1,.32,1) forwards; }
@@ -2076,3 +2069,56 @@ body::after,
 @keyframes festive-ambient-diagonal { from { transform: translate3d(-7vw, 4vh, 0) rotate(-12deg); } to { transform: translate3d(106vw, 70vh, 0) rotate(22deg); } }
 @keyframes festive-ambient-bounce { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 45% { transform: translate3d(0, -20px, 0) scale(1.08); } 65% { transform: translate3d(0, -5px, 0) scale(.98); } }
 @media (prefers-reduced-motion: reduce) { .festive-mascot-emoji, .festive-particle, .festive-ripple, .festive-ambient-decoration { animation: none !important; } }
+
+/* Recovery contract: palette và VFX luôn thắng các lớp cảnh legacy. */
+:root[data-cosmetic-theme] #root > div.min-h-screen {
+  background: var(--palette-bg, var(--interface-soft, #f8fafc)) !important;
+  color: var(--palette-text-primary, var(--foreground, #18212f)) !important;
+}
+:root[data-cosmetic-theme] #root > div.min-h-screen > aside,
+:root[data-cosmetic-theme] #root > div.min-h-screen header {
+  background: var(--palette-card, var(--card, #ffffff)) !important;
+  color: var(--palette-text-primary, var(--foreground, #18212f)) !important;
+  border-color: var(--palette-border, color-mix(in srgb, var(--palette-accent, #2563eb) 30%, transparent)) !important;
+}
+:root[data-cosmetic-theme] #root :is(.bg-white, .bg-card, [class*="bg-white"], [class*="bg-\[#fff"], [class*="bg-\[#f8"]) {
+  background-color: var(--palette-card, var(--card, #ffffff)) !important;
+  color: var(--palette-text-primary, var(--foreground, #18212f)) !important;
+  border-color: var(--palette-border, color-mix(in srgb, var(--palette-accent, #2563eb) 30%, transparent)) !important;
+}
+:root[data-cosmetic-theme] #root :is(input, textarea, select) {
+  background-color: var(--palette-card, #ffffff) !important;
+  color: var(--palette-text-primary, #18212f) !important;
+  border-color: var(--palette-border, color-mix(in srgb, var(--palette-accent, #2563eb) 30%, transparent)) !important;
+}
+:root.dark[data-cosmetic-theme] #root > div.min-h-screen,
+:root.dark[data-cosmetic-theme] #root :is(.bg-white, .bg-card, [class*="bg-white"], [class*="bg-\[#fff"], [class*="bg-\[#f8"]) {
+  background-color: var(--palette-card, #172033) !important;
+  color: var(--palette-text-primary, #f3f4f6) !important;
+}
+
+#vfx-stage {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+}
+#vfx-stage :is(.festive-mascot, .festive-ground-item) {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  touch-action: none !important;
+}
+#vfx-stage .festive-mascot,
+#vfx-stage .festive-mascot.mascot {
+  width: 130px !important;
+  height: 130px !important;
+  min-width: 130px !important;
+  min-height: 130px !important;
+  font-size: 130px !important;
+  z-index: 10000 !important;
+}

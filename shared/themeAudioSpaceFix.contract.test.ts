@@ -13,12 +13,12 @@ describe("theme audio and space scene fix", () => {
   it("starts and stops theme audio through one stable popup audio element", () => {
     expect(home).toContain('<audio ref={audioRef} src={audioTheme.url}');
     expect(home).toContain("const toggleThemeAudio = () => {");
-    expect(home).toContain("setAudioUnlocked(true)");
+    expect(home).toContain("void player.play()");
     expect(home).toContain("const handleThemeAudioError = () => {");
     expect(home).toContain("audioUnavailable");
     expect(home).toContain("onError={handleThemeAudioError}");
-    expect(home).toContain("player.load();");
     expect(home).toContain("player.pause();");
+    expect(home).not.toContain("setAudioUnlocked(true)");
     expect(home).not.toContain("const player = audioRef.current ?? new Audio();");
   });
 

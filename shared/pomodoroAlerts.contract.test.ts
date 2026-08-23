@@ -46,4 +46,13 @@ describe("pomodoro Web Audio alerts", () => {
     expect(pomodoroSource).toContain("completionHandled.current");
     expect(pomodoroSource).toContain("Đã đạt mục tiêu Pomodoro và nhận 1 Mảnh ghép.");
   });
+
+  it("shows a compact completed-session history and the current total of Mảnh ghép", () => {
+    expect(pomodoroSource).toContain('aria-label="Thống kê Pomodoro và Mảnh ghép"');
+    expect(pomodoroSource).toContain("recentCompletedSessions");
+    expect(pomodoroSource).toContain("totalFragments");
+    expect(pomodoroSource).toContain("Mảnh ghép đang có");
+    expect(pomodoroSource).toContain("Lịch sử Pomodoro");
+    expect(pomodoroSource).toContain("Xem tất cả");
+  });
 });

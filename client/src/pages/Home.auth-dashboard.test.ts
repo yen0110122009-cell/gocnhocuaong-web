@@ -61,7 +61,8 @@ describe("auth dashboard source accessibility", () => {
     expect(source).toContain("session?.account.isGuest");
     expect(source).toContain("Chế độ khách không lưu thay đổi");
     expect(source).toContain("enabled: Boolean(token) && !session?.account.isGuest && !isGitHubPages");
-    expect(source).toContain("if (profileData.error && !session?.account.isGuest)");
+    expect(source).toContain("const tokenRejected =");
+    expect(source).toContain("if (tokenRejected) {");
     expect(source).toContain("protectDashboardFromExternalMemoryDiagnostic");
     expect(source).toContain("MEMORY_DIAGNOSTIC_PATTERN");
     expect(source).toContain("memory usage");

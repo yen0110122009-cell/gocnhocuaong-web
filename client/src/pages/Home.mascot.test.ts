@@ -23,7 +23,9 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
 
   it("để linh vật đi dạo trong viewport nhưng không chặn menu hoặc thao tác học", () => {
     expect(source).toContain("if (!pet || hidden) return null;");
-    expect(source).toContain('<FestiveThemeLayer scene={profile.defaultAmbientScene} soundEnabled={profile.soundEnabled}><FloatingEmojiPet profile={profile} onProfile={persistProfile} /></FestiveThemeLayer>');
+    expect(source).toContain("<FestiveThemeLayer");
+    expect(source).toContain("><FloatingEmojiPet profile={profile} onProfile={persistProfile} /></FestiveThemeLayer>");
+    expect(source).toContain("vfxEnabled={profile.festiveThemeOptions?.enableVFX !== false}");
     expect(source).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
     expect(source).toContain("if (!pet || !roamingEnabled || dragging || reducedMotion) return;");
     expect(source).not.toContain('pointer-events-none fixed inset-0 z-[45]');

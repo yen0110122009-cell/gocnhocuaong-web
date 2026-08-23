@@ -34,8 +34,9 @@ describe("festive VFX contract", () => {
 
   it("keeps one non-blocking high-priority VFX stage and never pauses unrelated learning audio", () => {
     expect(css).toContain("#vfx-stage { position: fixed; inset: 0; z-index: 9999 !important; pointer-events: none;");
-    expect(css).toContain(".festive-visual-effects { position: absolute; inset: 0; z-index: 1; pointer-events: none;");
-    expect(css).toContain(".festive-ground { position: absolute; inset-inline: 0; pointer-events: none;");
+    expect(css).toContain(".festive-visual-effects { position: fixed; inset: 0; z-index: 1; pointer-events: none;");
+    expect(css).toContain(".festive-ground { position: fixed; inset-inline: 0; pointer-events: none;");
+    expect(css).toContain(".festive-mascot { position: fixed; display: grid; place-items: center; min-width: 130px;");
     expect(css).toContain(".min-h-screen > aside");
     expect(css).toContain("z-index: 100 !important");
     expect(layer).toContain("zIndex: 60");
@@ -50,14 +51,18 @@ describe("festive VFX contract", () => {
     expect(home).toContain('root.dataset.festiveTone');
     expect(home).toContain('root.dataset.festiveVfx');
     expect(home).toContain("festiveOptions.enableAmbientAudio");
+    expect(home).toContain("toneEnabled={profile.festiveThemeOptions?.enableThemeTone !== false}");
+    expect(home).toContain("vfxEnabled={profile.festiveThemeOptions?.enableVFX !== false}");
     expect(layer).toContain("personalMascot={children}");
   });
 
   it("registers exactly ten user-provided festive audio sources and plays only after a user gesture", () => {
     expect(Object.keys(USER_PROVIDED_FESTIVE_AUDIO)).toHaveLength(10);
     expect(home).toContain("FESTIVE_AUDIO_FALLBACKS");
-    expect(home).toContain("setAudioUnlocked(true)");
     expect(home).toContain("handleThemeAudioError");
     expect(home).toContain("fallbackUrl");
+    expect(home).toContain("void player.play().then(() => {");
+    expect(home).not.toContain("player.load();");
+    expect(home).toContain("Không thể phát nguồn âm nền này.");
   });
 });

@@ -83,7 +83,8 @@ describe("expanded theme catalog contract", () => {
   it("keeps theme/audio controls single-source and removes visual-only cards", () => {
     const source = home();
     expect(source).toContain("const toggleThemeAudio = () => {");
-    expect(source).toContain("setAudioUnlocked(true)");
+    expect(source).toContain("void player.play().then(() => {");
+    expect(source).not.toContain("player.load();");
     expect(source).toContain("fallbackUrl");
     expect(source).toContain("const fullCatalogSceneCards = AMBIENT_SCENE_IDS.filter((id) => Boolean(AUDIO_BACKED_SCENE_AUDIO[id]))");
     expect(source).toContain("Nguồn âm thanh:");

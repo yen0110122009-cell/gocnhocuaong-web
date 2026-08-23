@@ -129,7 +129,17 @@ export default function Home() {
   useEffect(() => { if (profileData.data?.profile) setProfile(normalizeProfile(profileData.data.profile)); }, [profileData.data]);
   useEffect(() => { if (!isGitHubPages) return; let active = true; void cloudRestoreSession().then(async (data) => { if (!active || !data) return; setSession(data); const [nextProfile, nextConfig] = await Promise.all([cloudLoadProfile(data.account.id), cloudLoadConfig()]); if (active) { setProfile(nextProfile); setConfig(nextConfig); } }).catch(() => undefined); return () => { active = false; }; }, []);
   useEffect(() => { if (configData.data) setConfig(configData.data as AppConfig); }, [configData.data]);
-  useEffect(() => { if (profileData.error && !session?.account.isGuest) { sessionStorage.removeItem(SESSION_KEY); setSession(null); } }, [profileData.error, session?.account.isGuest]);
+  useEffect(() => {
+    if (!profileData.error || session?.account.isGuest) return;
+    const trpcCode = (profileData.error as { data?: { code?: string } }).data?.code;
+    const message = profileData.error.message ?? "";
+    const tokenRejected = trpcCode === "UNAUTHORIZED" || trpcCode === "FORBIDDEN" || /token (không hợp lệ|hết hạn)|unauthorized|forbidden|phiên (đã )?hết hạn/i.test(message);
+    // Không đăng xuất người dùng chỉ vì lỗi mạng, lỗi tải hồ sơ hoặc lỗi máy chủ tạm thời.
+    if (tokenRejected) {
+      sessionStorage.removeItem(SESSION_KEY);
+      setSession(null);
+    }
+  }, [profileData.error, session?.account.isGuest]);
   useEffect(() => {
     const root = document.documentElement;
     const applyAppearance = () => {
@@ -194,7 +204,7 @@ export default function Home() {
   const matches = search ? [...profile.flashcardSets.map((x) => ({ label: x.title, to: "flashcards" as View })), ...profile.quizzes.map((x) => ({ label: x.title, to: "quizzes" as View })), ...(profile.studyPlanItems ?? []).map((x) => ({ label: `${x.title} · Kế hoạch`, to: "plans" as View }))].filter((x) => x.label.toLowerCase().includes(search.toLowerCase())).slice(0, 5) : [];
   const pendingPlanItems = (profile.studyPlanItems ?? []).filter((item) => !item.completed);
   const completedPlanItems = (profile.studyPlanItems ?? []).filter((item) => item.completed);
-  return <div className="min-h-screen bg-[#fffdf8] text-slate-800 dark:bg-[#241b16] dark:text-slate-100"><FestiveThemeLayer scene={profile.defaultAmbientScene} soundEnabled={profile.soundEnabled}><FloatingEmojiPet profile={profile} onProfile={persistProfile} /></FestiveThemeLayer><aside className={cn("fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#eadfd2] bg-white/95 p-4 backdrop-blur dark:border-white/10 dark:bg-[#241b16]/95 xl:translate-x-0", menu ? "translate-x-0" : "-translate-x-full", "transition-transform")}><Brand /><div className="my-6 flex items-center gap-3 rounded-2xl bg-[#fff7dc] p-3 dark:bg-[#3a2a1d]"><AudioOnlyCompanion label="Lumi" /><p className="text-xs font-bold leading-5 text-[#8e1b1b] dark:text-amber-100">Lumi đồng hành<br /><span className="font-medium text-amber-800/80 dark:text-amber-200/80">Mỗi ngày một bước tiến</span></p></div> <nav className="mt-2 space-y-1">{nav.filter((x) => !x.admin || isAdmin(account)).map((x) => <Nav key={x.id} item={x} active={view === x.id} onClick={() => { setView(x.id); setMenu(false); }} />)}</nav><button type="button" className="mt-auto rounded-3xl border border-amber-200 bg-amber-50 p-4 text-left text-amber-950 transition hover:border-amber-300 hover:bg-amber-100/70 dark:border-amber-400/30 dark:bg-amber-950/25 dark:text-amber-100" onClick={() => { setView("plans"); setMenu(false); }}><p className="text-xs font-bold uppercase tracking-widest text-amber-800/80 dark:text-amber-200/80">Kế hoạch hôm nay</p><p className="mt-2 font-display text-3xl font-bold">{pendingPlanItems.length}</p><p className="mt-1 text-sm font-semibold">việc đang chờ</p><p className="mt-3 text-xs leading-5 text-amber-900/80 dark:text-amber-100/80">Đã hoàn thành {completedPlanItems.length} việc. Mở Kế hoạch để tiếp tục từng bước.</p></button></aside>{menu && <button className="fixed inset-0 z-40 bg-slate-950/50 xl:hidden" onClick={() => setMenu(false)} aria-label="Đóng menu" />}<div className="xl:pl-72"><header className="sticky top-0 z-40 flex h-[74px] items-center gap-3 border-b border-[#eadfd2] bg-[#fffdf8]/95 px-4 backdrop-blur dark:border-white/10 dark:bg-[#241b16]/90 sm:px-7"><button onClick={() => setMenu(true)} className="icon-button xl:hidden" aria-label="Mở menu"><Menu className="h-5 w-5" /></button><div className="relative max-w-xl flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input aria-label={`Tìm kiếm trong ${BRAND.naturalName}`} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Tìm Flashcard, đề hoặc Kế hoạch…" className="h-10 w-full rounded-xl border border-[#eadfd2] bg-white pl-9 pr-3 text-sm outline-none focus:border-[#c62828] focus:ring-2 focus:ring-[#c62828]/15 dark:border-white/10 dark:bg-slate-900" />{matches.length > 0 && <div className="absolute top-12 w-full rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-slate-900">{matches.map((x, i) => <button aria-label={`Mở kết quả tìm kiếm: ${x.label}`} key={i} onClick={() => { setView(x.to); setSearch(""); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5">{x.label}</button>)}</div>}</div><button aria-label={profile.theme === "dark" ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"} onClick={() => persistProfile({ ...profile, theme: profile.theme === "dark" ? "light" : "dark" })} className="icon-button">{profile.theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button><button aria-label={profile.soundEnabled ? "Tắt âm thanh" : "Bật âm thanh"} onClick={() => persistProfile({ ...profile, soundEnabled: !profile.soundEnabled })} className="icon-button">{profile.soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button><div className="hidden gap-2 border-l border-slate-200 pl-3 sm:flex dark:border-white/10"><span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#f4b942] to-[#c62828] font-bold text-white">{account.name[0]}</span><span className="hidden lg:block"><b className="block max-w-32 truncate text-sm">{account.name}</b><small className="text-xs text-slate-500">{account.isGuest ? "Chỉ tham quan" : account.role}</small></span></div></header>{account.isGuest && <div role="status" className="mx-4 mt-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-300/35 dark:bg-amber-300/10 dark:text-amber-100 sm:mx-7"><b>Chế độ khách:</b> bạn chỉ có thể tham quan. Mọi thay đổi và tiến trình Flashcard/đề kiểm tra sẽ không được lưu. Muốn dùng tài khoản để lưu hành trình? Hãy liên hệ xét duyệt ở màn đăng nhập.</div>}<main data-scroll-reveal-root className="mx-auto max-w-[1500px] p-4 sm:p-7"><Views view={view} account={account} profile={profile} config={config} token={token} onView={setView} onProfile={persistProfile} onConfig={persistConfig} onLogout={() => { if (!account.isGuest) { if (isGitHubPages) cloudSignOut(); else logout.mutate({ token }); } sessionStorage.removeItem(SESSION_KEY); setSession(null); }} /></main></div><MenuHelpGuide currentView={view} isAdmin={isAdmin(account)} isUnlimitedAccount={false} onNavigate={(nextView) => setView(nextView)} /></div>;
+  return <div className="min-h-screen bg-[#fffdf8] text-slate-800 dark:bg-[#241b16] dark:text-slate-100"><FestiveThemeLayer scene={profile.defaultAmbientScene} soundEnabled={profile.soundEnabled} toneEnabled={profile.festiveThemeOptions?.enableThemeTone !== false} vfxEnabled={profile.festiveThemeOptions?.enableVFX !== false}><FloatingEmojiPet profile={profile} onProfile={persistProfile} /></FestiveThemeLayer><aside className={cn("fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#eadfd2] bg-white/95 p-4 backdrop-blur dark:border-white/10 dark:bg-[#241b16]/95 xl:translate-x-0", menu ? "translate-x-0" : "-translate-x-full", "transition-transform")}><Brand /><div className="my-6 flex items-center gap-3 rounded-2xl bg-[#fff7dc] p-3 dark:bg-[#3a2a1d]"><AudioOnlyCompanion label="Lumi" /><p className="text-xs font-bold leading-5 text-[#8e1b1b] dark:text-amber-100">Lumi đồng hành<br /><span className="font-medium text-amber-800/80 dark:text-amber-200/80">Mỗi ngày một bước tiến</span></p></div> <nav className="mt-2 space-y-1">{nav.filter((x) => !x.admin || isAdmin(account)).map((x) => <Nav key={x.id} item={x} active={view === x.id} onClick={() => { setView(x.id); setMenu(false); }} />)}</nav><button type="button" className="mt-auto rounded-3xl border border-amber-200 bg-amber-50 p-4 text-left text-amber-950 transition hover:border-amber-300 hover:bg-amber-100/70 dark:border-amber-400/30 dark:bg-amber-950/25 dark:text-amber-100" onClick={() => { setView("plans"); setMenu(false); }}><p className="text-xs font-bold uppercase tracking-widest text-amber-800/80 dark:text-amber-200/80">Kế hoạch hôm nay</p><p className="mt-2 font-display text-3xl font-bold">{pendingPlanItems.length}</p><p className="mt-1 text-sm font-semibold">việc đang chờ</p><p className="mt-3 text-xs leading-5 text-amber-900/80 dark:text-amber-100/80">Đã hoàn thành {completedPlanItems.length} việc. Mở Kế hoạch để tiếp tục từng bước.</p></button></aside>{menu && <button className="fixed inset-0 z-40 bg-slate-950/50 xl:hidden" onClick={() => setMenu(false)} aria-label="Đóng menu" />}<div className="xl:pl-72"><header className="sticky top-0 z-40 flex h-[74px] items-center gap-3 border-b border-[#eadfd2] bg-[#fffdf8]/95 px-4 backdrop-blur dark:border-white/10 dark:bg-[#241b16]/90 sm:px-7"><button onClick={() => setMenu(true)} className="icon-button xl:hidden" aria-label="Mở menu"><Menu className="h-5 w-5" /></button><div className="relative max-w-xl flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input aria-label={`Tìm kiếm trong ${BRAND.naturalName}`} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Tìm Flashcard, đề hoặc Kế hoạch…" className="h-10 w-full rounded-xl border border-[#eadfd2] bg-white pl-9 pr-3 text-sm outline-none focus:border-[#c62828] focus:ring-2 focus:ring-[#c62828]/15 dark:border-white/10 dark:bg-slate-900" />{matches.length > 0 && <div className="absolute top-12 w-full rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-slate-900">{matches.map((x, i) => <button aria-label={`Mở kết quả tìm kiếm: ${x.label}`} key={i} onClick={() => { setView(x.to); setSearch(""); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5">{x.label}</button>)}</div>}</div><button aria-label={profile.theme === "dark" ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"} onClick={() => persistProfile({ ...profile, theme: profile.theme === "dark" ? "light" : "dark" })} className="icon-button">{profile.theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button><button aria-label={profile.soundEnabled ? "Tắt âm thanh" : "Bật âm thanh"} onClick={() => persistProfile({ ...profile, soundEnabled: !profile.soundEnabled })} className="icon-button">{profile.soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button><div className="hidden gap-2 border-l border-slate-200 pl-3 sm:flex dark:border-white/10"><span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#f4b942] to-[#c62828] font-bold text-white">{account.name[0]}</span><span className="hidden lg:block"><b className="block max-w-32 truncate text-sm">{account.name}</b><small className="text-xs text-slate-500">{account.isGuest ? "Chỉ tham quan" : account.role}</small></span></div></header>{account.isGuest && <div role="status" className="mx-4 mt-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 dark:border-amber-300/35 dark:bg-amber-300/10 dark:text-amber-100 sm:mx-7"><b>Chế độ khách:</b> bạn chỉ có thể tham quan. Mọi thay đổi và tiến trình Flashcard/đề kiểm tra sẽ không được lưu. Muốn dùng tài khoản để lưu hành trình? Hãy liên hệ xét duyệt ở màn đăng nhập.</div>}<main data-scroll-reveal-root className="mx-auto max-w-[1500px] p-4 sm:p-7"><Views view={view} account={account} profile={profile} config={config} token={token} onView={setView} onProfile={persistProfile} onConfig={persistConfig} onLogout={() => { if (!account.isGuest) { if (isGitHubPages) cloudSignOut(); else logout.mutate({ token }); } sessionStorage.removeItem(SESSION_KEY); setSession(null); }} /></main></div><MenuHelpGuide currentView={view} isAdmin={isAdmin(account)} isUnlimitedAccount={false} onNavigate={(nextView) => setView(nextView)} /></div>;
 }
 
 export function Login({ onSubmit, onGuest, loading, error, staticHost = false }: { onSubmit: (data: { name: string; password: string; code: string; email?: string }) => void | Promise<void>; onGuest: () => void; loading: boolean; error?: string; staticHost?: boolean }) {
@@ -525,7 +535,6 @@ function AppearanceStudio({ profile, onProfile }: { profile: ProfileState; onPro
   const [audioTheme, setAudioTheme] = useState<{ id: string; label: string; url: string; fallbackUrl?: string; volume?: number } | null>(null);
   const [audioVolume, setAudioVolume] = useState(42);
   const [audioEnabled, setAudioEnabled] = useState(false);
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [audioUnavailable, setAudioUnavailable] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioThemeTriggerRef = useRef<HTMLElement | null>(null);
@@ -553,7 +562,6 @@ function AppearanceStudio({ profile, onProfile }: { profile: ProfileState; onPro
       return;
     }
     setAudioEnabled(false);
-    setAudioUnlocked(false);
     setAudioUnavailable(false);
     setAudioVolume(audio.volume ?? 42);
     setAudioTheme({ id: scene.id, label: audio.label, url: audio.url, fallbackUrl: FESTIVE_AUDIO_FALLBACKS[scene.id], volume: audio.volume });
@@ -563,13 +571,11 @@ function AppearanceStudio({ profile, onProfile }: { profile: ProfileState; onPro
     if (!player) return;
     player.volume = audioVolume / 100;
     const audioAllowed = !festiveThemeFor(audioTheme?.id) || festiveOptions.enableAmbientAudio;
-    if (!audioTheme || !audioEnabled || !audioUnlocked || !audioAllowed) {
+    if (!audioTheme || !audioEnabled || !audioAllowed) {
       player.pause();
       return;
     }
-    player.load();
-    void player.play().catch(() => undefined);
-  }, [audioTheme, audioEnabled, audioUnlocked, audioVolume, festiveOptions.enableAmbientAudio]);
+  }, [audioTheme, audioEnabled, audioVolume, festiveOptions.enableAmbientAudio]);
   useEffect(() => {
     if (!audioTheme) return;
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") dismissAudioTheme(); };
@@ -579,21 +585,24 @@ function AppearanceStudio({ profile, onProfile }: { profile: ProfileState; onPro
   const toggleThemeAudio = () => {
     const player = audioRef.current;
     if (audioEnabled) { player?.pause(); setAudioEnabled(false); return; }
-    setAudioEnabled(true);
-    setAudioUnlocked(true);
     if (!player) return;
     player.volume = audioVolume / 100;
-    void player.play().catch(() => { setAudioEnabled(false); setAudioUnlocked(false); toast.info("Trình duyệt chỉ cho phép phát âm nền sau thao tác trực tiếp. Hãy nhấn Nghe thử một lần nữa."); });
+    void player.play().then(() => {
+      setAudioEnabled(true);
+    }).catch(() => {
+      setAudioEnabled(false);
+      toast.error("Không thể phát nguồn âm nền này. Hãy kiểm tra quyền âm thanh hoặc thử lại sau khi nguồn đã tải xong.");
+    });
   };
   const handleThemeAudioError = () => {
     if (audioTheme?.fallbackUrl && audioTheme.url !== audioTheme.fallbackUrl) {
       setAudioTheme({ ...audioTheme, url: audioTheme.fallbackUrl, fallbackUrl: undefined });
+      setAudioEnabled(false);
       toast.info("Nguồn âm nền chính không tải được, đang chuyển sang nguồn dự phòng.");
       return;
     }
     audioRef.current?.pause();
     setAudioEnabled(false);
-    setAudioUnlocked(false);
     setAudioUnavailable(true);
     toast.error("Nguồn âm nền hiện chưa tải được. Âm thanh đã tắt để không làm gián đoạn thao tác.");
   };
