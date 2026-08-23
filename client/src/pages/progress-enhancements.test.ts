@@ -10,10 +10,12 @@ describe("progress enhancements", () => {
     expect(source).toContain("flashcardSets: [set");
   });
 
-  it("filters progress reports by date, subject and quiz mode", () => {
+  it("filters reports theo thời gian, metadata của đề đã tạo và chế độ làm đề", () => {
     const source = readFileSync(resolve(process.cwd(), "client/src/pages/ProgressReports.tsx"), "utf8");
     expect(source).toContain("Lọc khoảng thời gian tiến bộ");
-    expect(source).toContain("Lọc môn học tiến bộ");
+    expect(source).toContain("Lọc môn của đề đã tạo");
+    expect(source).toContain("Lọc khóa học của đề đã tạo");
+    expect(source).toContain("Lọc cấp học của đề đã tạo");
     expect(source).toContain("Lọc chế độ làm đề tiến bộ");
     expect(source).toContain("completedAt");
   });

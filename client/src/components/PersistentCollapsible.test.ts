@@ -1,57 +1,35 @@
-import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
 
 describe("PersistentCollapsible contract", () => {
   const source = readFileSync(resolve(process.cwd(), "client/src/components/PersistentCollapsible.tsx"), "utf8");
 
-  it("defaults every section to collapsed unless a saved state exists", () => {
+  it("mặc định thu gọn khi chưa có lựa chọn đã lưu", () => {
     expect(source).toContain("defaultOpen = false");
-    expect(source).toContain("saved === null ? defaultOpen : saved === \"open\"");
+    expect(source).toContain('saved === null ? defaultOpen : saved === "open"');
   });
 
-  it("persists each section independently and exposes an accessible toggle", () => {
+  it("lưu trạng thái độc lập và có nút truy cập được bằng bàn phím", () => {
     expect(source).toContain("gocnhocuaong:collapse:${storageKey}");
     expect(source).toContain("aria-expanded={open}");
     expect(source).toContain("localStorage.setItem");
   });
 });
 
-
-describe("Item-level collapse scope contract", () => {
-  const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
-  const museum = readFileSync(resolve(process.cwd(), "client/src/pages/MuseumJourney.tsx"), "utf8");
-  const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
-  const experienceStudio = readFileSync(resolve(process.cwd(), "client/src/components/ExperienceStudio.tsx"), "utf8");
-
-  it("does not wrap an entire routed View in one collapsible container", () => {
+describe("phạm vi thu gọn hiện tại", () => {
+  it("đặt các nhóm quản trị vào khóa riêng, không bao toàn bộ route", () => {
+    const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+    const workspace = readFileSync(resolve(process.cwd(), "client/src/pages/AdminWorkspace.tsx"), "utf8");
     expect(home).not.toContain("storageKey={`view-${view}`}");
-    expect(home).not.toContain("<PersistentCollapsible");
+    expect(workspace).toContain('storageKey="admin-members"');
+    expect(workspace).toContain('storageKey="admin-events"');
   });
 
-  it("uses separate storage keys for independently collapsible content sections", () => {
-    expect(museum).toContain('storageKey="museum-achievement-museum"');
-    expect(museum).toContain('storageKey="museum-fragment-vault"');
-    expect(museum).toContain('storageKey="museum-characters"');
+  it("giữ Pomodoro chỉ có âm báo thay vì âm nền hoặc preset cũ", () => {
+    const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
+    expect(pomodoro).toContain("Âm báo và chuyển phiên");
+    expect(pomodoro).not.toContain("startBackground");
     expect(pomodoro).not.toContain('storageKey="pomodoro-audio-center"');
-    expect(pomodoro).toContain('storageKey="pomodoro-weekly-goal-history"');
-    expect(experienceStudio).not.toContain('storageKey="experience-ambient-audio"');
-    expect(experienceStudio).toContain('storageKey="experience-lumi-favorite-scenes"');
-    expect(experienceStudio).toContain('storageKey="experience-emotion-command"');
-    expect(experienceStudio).toContain('storageKey="experience-lumi-speech-library"');
   });
 });
-
-
-describe("background audio contract", () => {
-  const source = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
-
-  it("documents alert playback and preserves the audio unlock helper without ambient playback", () => {
-    expect(source).toContain("resume");
-    expect(source).toContain("playSequence");
-    expect(source).not.toContain("startBackground");
-    expect(source).not.toContain("backgroundVolume");
-  });
-});
-
-void 0;

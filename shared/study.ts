@@ -2,6 +2,9 @@ export type StudyRole = "Member" | "Admin" | "Founder";
 
 import { grantFragmentSourceReward } from "./fragmentSystem";
 
+export const EDUCATION_LEVELS = ["Mẫu giáo", "Tiểu học", "THCS", "THPT", "Đại học/Sinh viên", "Khóa học tự do"] as const;
+export type EducationLevel = typeof EDUCATION_LEVELS[number];
+
 export type Flashcard = {
   id: string;
   front: string;
@@ -15,6 +18,8 @@ export type FlashcardSet = {
   title: string;
   subject: string;
   topic: string;
+  educationLevel?: EducationLevel;
+  course?: string;
   difficulty: "Cơ bản" | "Trung bình" | "Nâng cao";
   createdAt: string;
   studyCount: number;
@@ -75,6 +80,8 @@ export type Quiz = {
   title: string;
   subject: string;
   topic: string;
+  educationLevel?: EducationLevel;
+  course?: string;
   difficulty: "Cơ bản" | "Trung bình" | "Nâng cao";
   durationMinutes: number;
   createdAt: string;
@@ -690,6 +697,24 @@ export const DEFAULT_STUDY_CORNER_ENVIRONMENT: StudyCornerEnvironment = {
   reduceMotion: false,
 };
 
+export type StudyPlanReward = "fragment" | "ticket";
+
+export type StudyPlanItem = {
+  id: string;
+  title: string;
+  subject?: string;
+  course?: string;
+  scheduledFor: string;
+  cadence: "day" | "week";
+  completed: boolean;
+  completedAt?: string;
+  /** Dấu nhận thưởng một lần; bỏ tick không làm mất hay cấp lại phần thưởng. */
+  rewardGrantedAt?: string;
+  reward: StudyPlanReward;
+  rewardAmount: number;
+  notes?: string;
+};
+
 export type ProfileState = {
   xp: number;
   level: number;
@@ -754,6 +779,12 @@ export type ProfileState = {
   lumiCongratulationMessages?: Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>>;
   /** Cách Lumi đồng hành trong phiên Pomodoro; có thể tắt hoàn toàn lời nhắc. */
   pomodoroLumiSupportMode?: "comfort" | "encouragement" | "off";
+  /** Kế hoạch ngày-tuần thay thế luồng Thành tích/Cấp độ trên giao diện học tập. */
+  studyPlanItems?: StudyPlanItem[];
+  /** Mảnh ghép nhận trực tiếp từ các mục Kế hoạch đã hoàn tất. */
+  planFragments?: number;
+  /** Vé quay nhận trực tiếp từ các mục Kế hoạch đã hoàn tất. */
+  planTickets?: number;
   theme: "light" | "dark";
   lastActivityAt: string | null;
   currentStreak: number;
@@ -790,6 +821,14 @@ export type PomodoroSession = {
   durationMinutes: number;
   subject: string;
   topic: string;
+  /** Hoạt động người học chọn trước khi bắt đầu, ví dụ ôn lý thuyết hoặc làm bài tập. */
+  activity?: string;
+  /** Ghi chú tự do của phiên học, được hiển thị trong Lịch sử học. */
+  notes?: string;
+  /** Các mục Kế hoạch đã được liên kết với phiên, giữ ID để không mất ngữ cảnh. */
+  checkedPlanItemIds?: string[];
+  /** Ảnh chụp nhãn mục Kế hoạch tại thời điểm lưu lịch sử. */
+  checkedPlanTitles?: string[];
   sessionNumber: number;
   totalSessions: number;
   mode: "focus" | "shortBreak" | "longBreak";
@@ -927,6 +966,9 @@ export const emptyProfile = (): ProfileState => ({
   companionEmotionMedia: {},
   lumiVoiceRecordingTrash: {},
   pomodoroLumiSupportMode: "encouragement",
+  studyPlanItems: [],
+  planFragments: 0,
+  planTickets: 0,
   showMascot: true,
   showLumi: true,
   defaultAmbientScene: undefined,
@@ -1029,7 +1071,25 @@ export const emptyAppConfig = (): AppConfig => ({
       { id: "source-deep-review", kind: "deepReview", label: "Deep Review", description: "Thưởng khi hoàn thành phiên review sâu.", enabled: true, dailyCap: 2, rewards: [{ tier: "II", amount: 1 }] },
       { id: "source-streak-7", kind: "streak", label: "Streak 7 ngày", description: "Thưởng một lần ở mốc streak.", enabled: true, claimLimit: 1, milestone: 7, rewards: [{ tier: "III", amount: 1 }] },
     ],
-    events: [],
+    events: [{
+      id: "sample-weekly-plan-event",
+      name: "Event mẫu · Tuần kế hoạch đầu tiên",
+      description: "Event tham khảo để kiểm tra cách hiển thị nhiệm vụ và phần thưởng của Kế hoạch. Admin có thể sửa hoặc lưu trữ event này.",
+      startsAt: "2026-08-01T00:00:00.000Z",
+      endsAt: "2026-12-31T23:59:59.000Z",
+      status: "active",
+      difficulty: "Dễ",
+      objective: "Hoàn thành 3 phiên học có chủ đích trong tuần.",
+      tasks: [{ id: "sample-weekly-plan-task", title: "Hoàn thành 3 phiên học", description: "Ghi nhận ba phiên học hoặc Pomodoro hoàn tất trong tuần.", target: 3, metric: "studySession" }],
+      rewards: [{ type: "ticket", amount: 1, label: "1 vé kế hoạch" }],
+      fragmentRewards: [{ tier: "I", amount: 2, label: "2 mảnh ghép Cấp I" }],
+      participationConditions: [],
+      claimLimit: 1,
+      approvalStatus: "approved",
+      aiDraft: false,
+      createdAt: "2026-08-01T00:00:00.000Z",
+      updatedAt: "2026-08-01T00:00:00.000Z",
+    }],
   },
   achievementOverrides: [],
   levelDefinitions: DEFAULT_LEVEL_DEFINITIONS,
@@ -1471,18 +1531,49 @@ export function normalizeProfile(value: unknown): ProfileState {
     if (!quiz.id || !quiz.title || !Array.isArray(quiz.questions)) return [];
     const mode: QuizMode = quiz.mode === "review" ? "review" : "test";
     const timerMode: QuizTimerMode = quiz.timerMode === "unlimited" || mode === "review" ? "unlimited" : "timed";
-    return [{ ...quiz, id: String(quiz.id), title: String(quiz.title), subject: String(quiz.subject ?? ""), topic: String(quiz.topic ?? ""), difficulty: quiz.difficulty ?? "Trung bình", durationMinutes: Math.max(0, Number(quiz.durationMinutes) || 0), createdAt: String(quiz.createdAt ?? new Date(0).toISOString()), questions: quiz.questions as QuizQuestion[], mode, timerMode } as Quiz];
+    return [{ ...quiz, id: String(quiz.id), title: String(quiz.title), subject: String(quiz.subject ?? ""), topic: String(quiz.topic ?? ""), course: typeof quiz.course === "string" && quiz.course.trim() ? quiz.course.trim().slice(0, 100) : undefined, educationLevel: EDUCATION_LEVELS.includes(quiz.educationLevel as EducationLevel) ? quiz.educationLevel as EducationLevel : undefined, difficulty: quiz.difficulty ?? "Trung bình", durationMinutes: Math.max(0, Number(quiz.durationMinutes) || 0), createdAt: String(quiz.createdAt ?? new Date(0).toISOString()), questions: quiz.questions as QuizQuestion[], mode, timerMode } as Quiz];
   }) : [];
   const merged: ProfileState = {
     ...base,
     ...source,
     xp: Math.max(0, Number(source.xp) || 0),
-    flashcardSets: Array.isArray(source.flashcardSets) ? source.flashcardSets : [],
+    flashcardSets: Array.isArray(source.flashcardSets) ? source.flashcardSets.flatMap((value) => {
+      if (!value || typeof value !== "object") return [];
+      const set = value as Partial<FlashcardSet>;
+      if (!set.id || !set.title || !Array.isArray(set.cards)) return [];
+      return [{ ...set, id: String(set.id), title: String(set.title), subject: String(set.subject ?? ""), topic: String(set.topic ?? ""), course: typeof set.course === "string" && set.course.trim() ? set.course.trim().slice(0, 100) : undefined, educationLevel: EDUCATION_LEVELS.includes(set.educationLevel as EducationLevel) ? set.educationLevel as EducationLevel : undefined, difficulty: set.difficulty ?? "Trung bình", createdAt: String(set.createdAt ?? new Date(0).toISOString()), studyCount: Math.max(0, Number(set.studyCount) || 0), cards: set.cards as Flashcard[] } as FlashcardSet];
+    }) : [],
     quizzes: normalizedQuizzes,
     flashcardSetTrash: Array.isArray(source.flashcardSetTrash) ? source.flashcardSetTrash : [],
     quizTrash: Array.isArray(source.quizTrash) ? source.quizTrash : [],
     attempts: Array.isArray(source.attempts) ? source.attempts.flatMap((value) => { const attempt = value && typeof value === "object" ? (value as Partial<QuizAttempt>) : null; if (!attempt?.id || !attempt.quizId) return []; return [{ id: String(attempt.id), quizId: String(attempt.quizId), completedAt: String(attempt.completedAt ?? new Date(0).toISOString()), correct: Math.max(0, Number(attempt.correct) || 0), total: Math.max(0, Number(attempt.total) || 0), accuracy: Math.max(0, Math.min(100, Number(attempt.accuracy) || 0)), durationSeconds: Math.max(0, Number(attempt.durationSeconds) || 0), answers: Array.isArray(attempt.answers) ? attempt.answers : [] }]; }) : [],
     studyActivity: Array.isArray(source.studyActivity) ? source.studyActivity.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<StudyActivity>) : null; if (!item?.id || (item.kind !== "flashcard" && item.kind !== "quiz" && item.kind !== "wheel" && item.kind !== "pomodoro")) return []; return [{ id: String(item.id), occurredAt: String(item.occurredAt ?? new Date(0).toISOString()), kind: item.kind, quantity: Math.max(0, Number(item.quantity) || 0), durationSeconds: Math.max(0, Number(item.durationSeconds) || 0), xpEarned: Math.max(0, Number(item.xpEarned) || 0), correct: item.correct === undefined ? undefined : Math.max(0, Number(item.correct) || 0), total: item.total === undefined ? undefined : Math.max(0, Number(item.total) || 0) }]; }) : [],
+    studyPlanItems: Array.isArray(source.studyPlanItems) ? (() => {
+      const seenPlanIds = new Set<string>();
+      return source.studyPlanItems.flatMap((value) => {
+      const item = value && typeof value === "object" ? (value as Partial<StudyPlanItem>) : null;
+      if (!item?.id || !item.title) return [];
+      const id = String(item.id);
+      if (seenPlanIds.has(id)) return [];
+      seenPlanIds.add(id);
+      return [{
+        id,
+        title: String(item.title).slice(0, 160),
+        subject: typeof item.subject === "string" && item.subject.trim() ? item.subject.trim().slice(0, 80) : undefined,
+        course: typeof item.course === "string" && item.course.trim() ? item.course.trim().slice(0, 100) : undefined,
+        scheduledFor: typeof item.scheduledFor === "string" && item.scheduledFor ? item.scheduledFor.slice(0, 10) : new Date().toISOString().slice(0, 10),
+        cadence: item.cadence === "week" ? "week" : "day",
+        completed: item.completed === true,
+        completedAt: typeof item.completedAt === "string" && item.completedAt ? item.completedAt : undefined,
+        rewardGrantedAt: typeof item.rewardGrantedAt === "string" && item.rewardGrantedAt ? item.rewardGrantedAt : undefined,
+        reward: item.reward === "ticket" ? "ticket" : "fragment",
+        rewardAmount: Math.max(1, Math.min(9, Math.floor(Number(item.rewardAmount) || 1))),
+        notes: typeof item.notes === "string" && item.notes.trim() ? item.notes.trim().slice(0, 500) : undefined,
+      } satisfies StudyPlanItem];
+      });
+    })() : [],
+    planFragments: Math.max(0, Math.floor(Number(source.planFragments) || 0)),
+    planTickets: Math.max(0, Math.floor(Number(source.planTickets) || 0)),
     fragments: source.fragments && typeof source.fragments === "object" ? source.fragments : {},
     fragmentLedger: source.fragmentLedger && typeof source.fragmentLedger === "object" ? Object.fromEntries((Object.entries(source.fragmentLedger) as Array<[FragmentTier, unknown]>).filter(([tier]) => ["I", "II", "III", "IV", "V", "VI"].includes(tier)).map(([tier, value]) => [tier, Math.max(0, Math.floor(Number(value) || 0))])) as Partial<Record<FragmentTier, number>> : {},
     unlockedAchievementIds: Array.isArray(source.unlockedAchievementIds) ? source.unlockedAchievementIds : [],
@@ -1737,7 +1828,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     streakShields: Math.max(0, Math.min(3, Number(source.streakShields) || 0)),
     achievementMoments: Array.isArray(source.achievementMoments) ? source.achievementMoments.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AchievementMoment>) : null; if (!item?.id || !item.achievementId) return []; return [{ id: String(item.id), achievementId: String(item.achievementId), createdAt: String(item.createdAt ?? new Date(0).toISOString()), note: String(item.note ?? ""), feeling: String(item.feeling ?? "Tự hào"), mascotVariant: "hoodie" as const, photoUrl: item.photoUrl ? String(item.photoUrl) : undefined, deletedAt: item.deletedAt ? String(item.deletedAt) : undefined }]; }) : [],
     characterProgress: source.characterProgress && typeof source.characterProgress === "object" ? Object.fromEntries(Object.entries(source.characterProgress).flatMap(([characterId, value]) => { const item = value && typeof value === "object" ? (value as Partial<CharacterProgress>) : {}; if (!characterId) return []; const collected = Array.isArray(item.collectedPieceIds) ? item.collectedPieceIds.map(String) : []; const used = Array.isArray(item.usedPieceIds) ? item.usedPieceIds.map(String) : []; const status: CharacterUnlockStatus = item.status === "unlocked" || item.status === "ready" || item.status === "assembling" ? item.status : collected.length ? "assembling" : "locked"; return [[characterId, { characterId, collectedPieceIds: Array.from(new Set(collected)), usedPieceIds: Array.from(new Set(used)), status, assembledAt: item.assembledAt ? String(item.assembledAt) : null, unlockedAt: item.unlockedAt ? String(item.unlockedAt) : null } as CharacterProgress]]; })) : {},
-    pomodoroHistory: Array.isArray(source.pomodoroHistory) ? source.pomodoroHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<PomodoroSession>) : null; if (!item?.id) return []; return [{ id: String(item.id), startedAt: String(item.startedAt ?? new Date(0).toISOString()), endedAt: String(item.endedAt ?? new Date(0).toISOString()), durationMinutes: Math.max(1, Number(item.durationMinutes) || 1), subject: String(item.subject ?? ""), topic: String(item.topic ?? ""), sessionNumber: Math.max(1, Number(item.sessionNumber) || 1), totalSessions: Math.max(1, Number(item.totalSessions) || 1), mode: item.mode === "shortBreak" || item.mode === "longBreak" ? item.mode : "focus", status: item.status === "abandoned" || item.status === "skipped" ? item.status : "completed", audioPresetId: item.audioPresetId ? String(item.audioPresetId) : undefined, audioPresetName: item.audioPresetName ? String(item.audioPresetName) : undefined, audioAmbientMix: item.audioAmbientMix && typeof item.audioAmbientMix === "object" ? { morning: Math.max(0, Math.min(100, Number(item.audioAmbientMix.morning) || 0)), storm: Math.max(0, Math.min(100, Number(item.audioAmbientMix.storm) || 0)) } : undefined }]; }) : [],
+    pomodoroHistory: Array.isArray(source.pomodoroHistory) ? source.pomodoroHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<PomodoroSession>) : null; if (!item?.id) return []; const checkedPlanItemIds = Array.isArray(item.checkedPlanItemIds) ? Array.from(new Set(item.checkedPlanItemIds.map(String).map((id) => id.trim()).filter(Boolean))).slice(0, 30) : undefined; const checkedPlanTitles = Array.isArray(item.checkedPlanTitles) ? Array.from(new Set(item.checkedPlanTitles.map(String).map((title) => title.trim().slice(0, 180)).filter(Boolean))).slice(0, 30) : undefined; return [{ id: String(item.id), startedAt: String(item.startedAt ?? new Date(0).toISOString()), endedAt: String(item.endedAt ?? new Date(0).toISOString()), durationMinutes: Math.max(1, Number(item.durationMinutes) || 1), subject: String(item.subject ?? ""), topic: String(item.topic ?? ""), activity: typeof item.activity === "string" && item.activity.trim() ? item.activity.trim().slice(0, 120) : undefined, notes: typeof item.notes === "string" && item.notes.trim() ? item.notes.trim().slice(0, 2_000) : undefined, checkedPlanItemIds, checkedPlanTitles, sessionNumber: Math.max(1, Number(item.sessionNumber) || 1), totalSessions: Math.max(1, Number(item.totalSessions) || 1), mode: item.mode === "shortBreak" || item.mode === "longBreak" ? item.mode : "focus", status: item.status === "abandoned" || item.status === "skipped" ? item.status : "completed", audioPresetId: item.audioPresetId ? String(item.audioPresetId) : undefined, audioPresetName: item.audioPresetName ? String(item.audioPresetName) : undefined, audioAmbientMix: item.audioAmbientMix && typeof item.audioAmbientMix === "object" ? { morning: Math.max(0, Math.min(100, Number(item.audioAmbientMix.morning) || 0)), storm: Math.max(0, Math.min(100, Number(item.audioAmbientMix.storm) || 0)) } : undefined }]; }) : [],
     aiImportHistory: Array.isArray(source.aiImportHistory) ? source.aiImportHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AiImportRecord>) : null; if (!item?.id || !item.title) return []; return [{ id: String(item.id), title: String(item.title), createdAt: String(item.createdAt ?? new Date(0).toISOString()), target: item.target === "quiz" || item.target === "both" || item.target === "practice" ? item.target : "flashcards", questionCount: Math.max(0, Number(item.questionCount) || 0), flashcardCount: Math.max(0, Number(item.flashcardCount) || 0), prompt: String(item.prompt ?? ""), rawData: String(item.rawData ?? ""), quizId: item.quizId ? String(item.quizId) : undefined, flashcardSetId: item.flashcardSetId ? String(item.flashcardSetId) : undefined }]; }) : [],
     wrongAnswerReviews: Array.isArray(source.wrongAnswerReviews) ? source.wrongAnswerReviews.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<WrongAnswerReview>) : null; if (!item?.id || !item.attemptId || !item.questionId) return []; return [{ id: String(item.id), attemptId: String(item.attemptId), questionId: String(item.questionId), question: String(item.question ?? ""), learnerAnswer: String(item.learnerAnswer ?? ""), correctAnswer: String(item.correctAnswer ?? ""), whyWrong: String(item.whyWrong ?? ""), knowledgeGap: String(item.knowledgeGap ?? ""), correctThinking: Array.isArray(item.correctThinking) ? item.correctThinking.map(String) : [], commonMistake: String(item.commonMistake ?? ""), retryQuestion: String(item.retryQuestion ?? ""), retryAnswer: String(item.retryAnswer ?? ""), source: String(item.source ?? "Chưa cung cấp"), needsVerification: item.needsVerification === true, createdAt: String(item.createdAt ?? new Date(0).toISOString()) }]; }) : [],
   };

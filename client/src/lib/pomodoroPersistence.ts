@@ -12,6 +12,8 @@ export type PersistedPomodoroSession = {
   subject: string;
   topic: string;
   activity: string;
+  notes: string;
+  checkedPlanItemIds: string[];
   totalSessions: number;
   sessionStartedAt: string | null;
   backgroundSound?: string;
@@ -50,6 +52,8 @@ export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null =
       subject: typeof value.subject === "string" ? value.subject : "",
       topic: typeof value.topic === "string" ? value.topic : "",
       activity: typeof value.activity === "string" ? value.activity : "theory",
+      notes: typeof value.notes === "string" ? value.notes.slice(0, 2_000) : "",
+      checkedPlanItemIds: Array.isArray(value.checkedPlanItemIds) ? Array.from(new Set(value.checkedPlanItemIds.map(String).map((id) => id.trim()).filter(Boolean))).slice(0, 30) : [],
       totalSessions: finiteNumber(value.totalSessions, 4, 1, 20),
       sessionStartedAt: typeof value.sessionStartedAt === "string" ? value.sessionStartedAt : null,
       backgroundSound: typeof value.backgroundSound === "string" ? value.backgroundSound : "Mưa nhẹ",

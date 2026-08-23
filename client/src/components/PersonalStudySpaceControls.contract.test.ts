@@ -88,21 +88,18 @@ describe("StudyCorner contracts", () => {
     const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
     expect(study).toContain("PersonalPomodoroAmbientPreset");
     expect(study).toContain("personalPomodoroAmbientPresets");
-    expect(pomodoro).toContain("Âm báo Pomodoro");
+    expect(pomodoro).toContain("Âm báo và chuyển phiên");
     expect(pomodoro).not.toContain("Preset tỷ lệ của tôi");
     expect(pomodoro).not.toContain('storageKey="pomodoro-audio-center"');
-    expect(pomodoro).toContain('aria-label="Âm báo và chuyển phiên Pomodoro"');
+    expect(pomodoro).toContain("Nghe thử âm báo");
   });
 
-  it("keeps Audio Center volumes separated by source and uses clean assets only", () => {
-    const audio = readFileSync(resolve(process.cwd(), "client/src/components/ExperienceStudio.tsx"), "utf8");
+  it("giữ dữ liệu mixer tương thích nhưng không đặt Audio Center trong màn Lumi rút gọn", () => {
+    const lumi = readFileSync(resolve(process.cwd(), "client/src/components/ExperienceStudio.tsx"), "utf8");
     expect(study).toContain("memberVoice");
     expect(study).toContain("AudioMixerSettings");
-    expect(audio).toContain("AudioChannelVolumes");
-    expect(audio).toContain("updateAudioChannelVolume");
-    expect(audio).toContain("playCleanAmbientAsset");
-    expect(audio).not.toContain("item.category === \"background\"");
-    expect(audio).toContain("preferredMemberVoice");
-    expect(audio).toContain("const fade =");
+    expect(lumi).not.toContain("AudioChannelVolumes");
+    expect(lumi).not.toContain("updateAudioChannelVolume");
+    expect(lumi).not.toContain("playCleanAmbientAsset");
   });
 });

@@ -375,3 +375,13 @@
 - [x] Đối chiếu toàn bộ yêu cầu trong `pasted_content.txt` với registry, renderer, token màu, audio và tương tác đang có.
 - [x] Bổ sung hoặc chuẩn hóa các cấu hình theme/tương tác tương thích, không dùng URL âm thanh mẫu hoặc chưa được người dùng cung cấp.
 - [x] Bổ sung regression, TypeScript/Vitest/build, kiểm tra responsive và checkpoint phát hành.
+
+## Tái cấu trúc theo `pasted_content_12.txt`
+- [x] Kiểm kê mọi bề mặt Thành tích, Cấp độ, Danh hiệu, Bảo tàng hành trình, Bản đồ kiến thức, hồ sơ/dữ liệu liên quan và các phụ thuộc quản trị.
+- [x] Thiết kế và bổ sung Kế hoạch ngày-tuần: tạo/sửa/xóa, tick mục tiêu, phần thưởng mảnh ghép hoặc vé quay, thu gọn/mở rộng và event mẫu có thể quản lý.
+- [x] Gỡ các cơ chế Pomodoro đã yêu cầu: cấp độ/EXP, Ong–Trì hoãn, Boss Trì Hoãn, combo, nhiệm vụ siêu nhỏ và preset Pomodoro; giữ và làm nổi bật Chống trì hoãn.
+- [x] Đồng bộ mô tả công việc và các mục đã tick của Pomodoro vào lịch sử học/lịch sử Pomodoro.
+- [x] Tạo mục Bạn đồng hành Lumi riêng, chuyển thư viện bản ghi và điều khiển Lumi về đó, bổ sung lời nhắc ở mini Pomodoro và điều hướng Giao diện yêu thích không ép chọn.
+- [x] Hợp nhất Nhập dữ liệu AI và AI Studio; thêm prompt nhập liệu cùng phân loại học liệu/đề kiểm tra theo môn, cấp học và khóa học.
+- [x] Thu gọn các mục quản trị, làm rõ bộ lọc báo cáo và gỡ các bề mặt không còn dùng.
+- [x] Bổ sung regression, TypeScript/Vitest/build, kiểm tra responsive và checkpoint phát hành.

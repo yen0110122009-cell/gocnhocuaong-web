@@ -7,6 +7,7 @@ import { PersistentCollapsible as CollapsiblePanel } from "@/components/Persiste
 import { MenuHelpGuide } from "@/components/MenuHelpGuide";
 import ProfileTitleSelector from "@/components/ProfileTitleSelector";
 import { EmotionCompanionMediaControls } from "@/components/EmotionCompanionMediaControls";
+import { StudyPlanDashboard } from "@/components/StudyPlanDashboard";
 import { MistakeBook } from "@/components/MistakeBook";
 import { EnergyStudyMode } from "@/components/EnergyStudyMode";
 import { StudyHealthDashboard } from "@/components/StudyHealthDashboard";
@@ -34,7 +35,7 @@ function ExperienceStudioDeferred(props: ExperienceStudioProps) {
   if (!mounted) return <AudioCenterLoadingSkeleton />;
   return <Suspense fallback={<AudioCenterLoadingSkeleton />}><ExperienceStudio {...props} /></Suspense>;
 }
-const AdminEnhanced = React.lazy(() => import("./AdminContentHub"));
+const AdminEnhanced = React.lazy(() => import("./AdminWorkspace"));
 const MuseumEnhanced = React.lazy(() => import("./MuseumJourney"));
 const QuizEnhanced = React.lazy(() => import("./QuizEnhanced"));
 const WheelEnhanced = React.lazy(() => import("./WheelEnhanced"));
@@ -54,7 +55,7 @@ import { addCustomAchievement, addWheelReward, deleteCustomAchievement, deleteWh
 import { isGitHubPages, noEmailLoginHint, openFullstackLogin } from "@/lib/runtime";
 import { cloudLoadConfig, cloudLoadProfile, cloudLogin, cloudRestoreSession, cloudSaveConfig, cloudSaveProfile, cloudSignOut, cloudStateWarning } from "@/lib/cloudStateAuth";
 
-type View = "dashboard" | "focus" | "pomodoro" | "knowledge" | "history" | "exam" | "progress" | "studio" | "ai-import" | "flashcards" | "quizzes" | "learning-trash" | "achievements" | "museum" | "wheel" | "account" | "admin" | "mistakes" | "energy" | "health" | "lab" | "appearance";
+type View = "dashboard" | "plans" | "lumi" | "focus" | "pomodoro" | "knowledge" | "history" | "exam" | "progress" | "studio" | "ai-import" | "flashcards" | "quizzes" | "learning-trash" | "achievements" | "museum" | "wheel" | "account" | "admin" | "mistakes" | "energy" | "health" | "lab" | "appearance";
 const SESSION_KEY = "study_historia_session_v1";
 const uid = () => crypto.randomUUID();
 const isAdmin = (a: StudyAccount) => canManageLearningConfig(a.role);
@@ -101,7 +102,7 @@ function protectDashboardFromExternalMemoryDiagnostic() {
   return () => { observers.forEach((observer) => observer.disconnect()); };
 }
 const nav: { id: View; label: string; icon: typeof LayoutDashboard; admin?: boolean; special111?: boolean }[] = [
-  { id: "dashboard", label: "Trang chủ", icon: LayoutDashboard }, { id: "focus", label: "Ôn tập thông minh", icon: Sparkles }, { id: "ai-import", label: "Nhập dữ liệu AI", icon: FileUp }, { id: "pomodoro", label: "Pomodoro", icon: Clock3 }, { id: "knowledge", label: "Bản đồ kiến thức", icon: BarChart3 }, { id: "history", label: "Lịch sử học", icon: History }, { id: "exam", label: "Tôi sắp kiểm tra", icon: Flag }, { id: "progress", label: "Tiến trình", icon: BarChart3 }, { id: "studio", label: "AI Studio", icon: BrainCircuit }, { id: "flashcards", label: "Flashcard", icon: BookOpen }, { id: "quizzes", label: "Đề kiểm tra", icon: CircleHelp }, { id: "learning-trash", label: "Thùng rác học liệu", icon: Trash2 }, { id: "achievements", label: "Thành tích", icon: Trophy }, { id: "museum", label: "Bảo tàng hành trình", icon: History }, { id: "wheel", label: "Vòng quay tri thức", icon: Dices }, { id: "account", label: "Tài khoản", icon: UsersRound }, { id: "appearance", label: "Giao diện & tone màu", icon: Palette }, { id: "admin", label: "Admin Panel", icon: ShieldCheck, admin: true },
+  { id: "dashboard", label: "Trang chủ", icon: LayoutDashboard }, { id: "plans", label: "Kế hoạch", icon: Check }, { id: "pomodoro", label: "Pomodoro", icon: Clock3 }, { id: "lumi", label: "Bạn đồng hành Lumi", icon: Sparkles }, { id: "studio", label: "AI Studio & Nhập dữ liệu", icon: BrainCircuit }, { id: "flashcards", label: "Flashcard", icon: BookOpen }, { id: "quizzes", label: "Đề kiểm tra", icon: CircleHelp }, { id: "learning-trash", label: "Thùng rác học liệu", icon: Trash2 }, { id: "history", label: "Lịch sử học", icon: History }, { id: "appearance", label: "Giao diện & tone màu", icon: Palette }, { id: "admin", label: "Admin Panel", icon: ShieldCheck, admin: true },
 ];
 
 function storedSession(): StudySession | null { try { const item = sessionStorage.getItem(SESSION_KEY); return item ? JSON.parse(item) as StudySession : null; } catch { return null; } }
@@ -267,16 +268,23 @@ function EmotionThemeController({ profile, onProfile, children }: { profile: Pro
   return <>{children}</>;
 }
 
+function LumiCompanion({ profile, config, onProfile, onView }: { profile: ProfileState; config: AppConfig; onProfile: (p: ProfileState, m?: string) => void; onView: (v: View) => void }) {
+  const selected = profile.emotionTheme ?? "calm";
+  return <><Heading eyebrow="Bạn đồng hành Lumi" title="Một không gian riêng để được lắng nghe" text="Lumi lưu lời chúc, lời an ủi và bản ghi âm ở đây. Mọi lựa chọn giao diện yêu thích được quản lý riêng trong Giao diện & tone màu." action={<button className="secondary-button" onClick={() => onView("appearance")}><Palette className="h-4 w-4" />Mở Giao diện yêu thích</button>} /><section className="panel mb-5 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-display text-xl font-bold">Giao diện yêu thích</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">Đặt dấu sao và áp dụng giao diện ở mục Giao diện & tone màu. Lumi không ép bạn chọn hay hiển thị catalog tại đây.</p></div><button className="secondary-button shrink-0" onClick={() => onView("appearance")}><Star className="h-4 w-4" />Đi tới Giao diện</button></div></section><ExperienceStudioDeferred selected={selected} onSelect={(emotion) => onProfile({ ...profile, emotionTheme: emotion }, "Đã đổi trạng thái đồng hành của Lumi.")} profile={profile} onProfile={onProfile} onStartTwoMinutes={() => onView("pomodoro")} customContent={config.customContent} mascotStates={config.mascotStates} voiceLines={config.mascotVoiceLines} /><section className="mt-5"><EmotionCompanionMediaControls profile={profile} emotion={selected} onProfile={onProfile} /></section></>;
+}
+
 function Views({ view, account, profile, config, token, onView, onProfile, onConfig, onLogout }: { view: View; account: StudyAccount; profile: ProfileState; config: AppConfig; token: string; onView: (v: View) => void; onProfile: (p: ProfileState, m?: string) => void; onConfig: (c: AppConfig, m?: string) => void; onLogout: () => void }) {
   let content: React.ReactNode;
   if (view === "dashboard") { content = <Dashboard account={account} profile={profile} config={config} onView={onView} onProfile={onProfile} />; }
+  else if (view === "plans") { content = <StudyPlanDashboard profile={profile} onProfile={onProfile} onOpenPomodoro={() => onView("pomodoro")} />; }
+  else if (view === "lumi") { content = <LumiCompanion profile={profile} config={config} onProfile={onProfile} onView={onView} />; }
   else if (view === "focus") { content = <FocusHub profile={profile} config={config} onView={onView} onProfile={onProfile} />; }
   else if (view === "pomodoro") { content = null; }
   else if (view === "knowledge") { content = <KnowledgeMap profile={profile} onView={onView} />; }
   else if (view === "history") { content = <StudyHistory profile={profile} />; }
   else if (view === "exam") { content = <ExamPrep profile={profile} onView={onView} />; }
   else if (view === "progress") { content = <><LearningProgress profile={profile} onView={onView} /><ProgressReports profile={profile} /></>; }
-  else if (view === "studio") { content = <Studio profile={profile} onProfile={onProfile} onView={onView} token={token} />; }
+  else if (view === "studio") { content = <><Studio profile={profile} onProfile={onProfile} onView={onView} token={token} /><section className="mt-5"><AIDataImport profile={profile} onProfile={onProfile} onView={onView} /></section></>; }
   else if (view === "ai-import") { content = <AIDataImport profile={profile} onProfile={onProfile} onView={onView} />; }
   else if (view === "flashcards") { content = <Cards profile={profile} config={config} onProfile={onProfile} />; }
   else if (view === "quizzes") { content = <QuizEnhanced profile={profile} config={config} onProfile={onProfile} />; }

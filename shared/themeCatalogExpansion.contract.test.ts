@@ -7,7 +7,6 @@ import { resolve } from "node:path";
 
 const root = resolve(process.cwd());
 const study = () => readFileSync(resolve(root, "shared/study.ts"), "utf8");
-const studio = () => readFileSync(resolve(root, "client/src/components/ExperienceStudio.tsx"), "utf8");
 const ambient = () => readFileSync(resolve(root, "client/src/lib/defaultAmbient.ts"), "utf8");
 const styles = () => readFileSync(resolve(root, "client/src/index.css"), "utf8");
 const home = () => readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
@@ -75,7 +74,6 @@ describe("expanded theme catalog contract", () => {
     expect(ambient()).toContain("heavy_wind_storm.ogg");
     expect(ambient()).toContain("morning_birds_acoustic.ogg");
     expect(ambient()).toContain('target: "coffee"');
-    expect(studio()).toContain("PROVIDED_THEME_AMBIENT_ASSETS[scene as keyof typeof PROVIDED_THEME_AMBIENT_ASSETS]");
     expect(ambient()).toContain('target: "fairy-tale"');
     expect(ambient()).not.toContain("pixel.ogg");
     expect(ambient()).not.toContain("pirate.mp3");
@@ -85,8 +83,6 @@ describe("expanded theme catalog contract", () => {
     const source = home();
     expect(source).toContain("const toggleThemeAudio = () => setAudioEnabled((enabled) => !enabled)");
     expect(source).toContain("const fullCatalogSceneCards = AMBIENT_SCENE_IDS.filter((id) => Boolean(AUDIO_BACKED_SCENE_AUDIO[id]))");
-    expect(studio()).toContain('const AUDIO_BACKED_SCENE_IDS = new Set<AmbientScene>');
-    expect(studio()).toContain('"fairy-tale"');
     expect(source).toContain("Nguồn âm thanh:");
     expect(source).toContain('touchAction: "none"');
     expect(source).toContain("z-[45]");

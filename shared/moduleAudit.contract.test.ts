@@ -20,11 +20,7 @@ describe("module audit and distraction-control contracts", () => {
   });
 
   it("provides independent controls and app-wide data attributes for distraction reduction", () => {
-    const studio = source("client/src/components/ExperienceStudio.tsx");
     const home = source("client/src/pages/Home.tsx");
-    expect(studio).toContain("animationsEnabled");
-    expect(studio).toContain("popupsEnabled");
-    expect(studio).toContain("soundEnabled");
     expect(home).toContain("dataset.animations");
     expect(home).toContain("dataset.popups");
     expect(home).toContain("dataset.sound");

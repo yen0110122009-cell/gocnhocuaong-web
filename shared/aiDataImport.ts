@@ -1,4 +1,4 @@
-import type { Flashcard, FlashcardSet, Quiz, QuizQuestion } from "./study";
+import type { EducationLevel, Flashcard, FlashcardSet, Quiz, QuizQuestion } from "./study";
 
 export type ImportTarget = "quiz" | "flashcards" | "both" | "practice";
 export type ImportQuestionType = "multiple" | "boolean" | "short" | "mixed";
@@ -11,6 +11,8 @@ export type AiImportOptions = {
   title?: string;
   subject?: string;
   topic?: string;
+  course?: string;
+  educationLevel?: EducationLevel;
   extraRequest?: string;
   quizMode?: "test" | "review";
   timerMode?: "timed" | "unlimited";
@@ -68,10 +70,10 @@ export function buildExternalAiPrompt(options: AiImportOptions): string {
     "Nếu tài liệu không đủ căn cứ để xác định đáp án hoặc lời giải, đặt needsVerification=true và ghi rõ cần xác minh; tuyệt đối không tự bịa.",
     "Không tự tạo thêm thông tin ngoài tài liệu nếu không được yêu cầu. Sau khi phân tích, hãy xuất dữ liệu theo JSON hợp lệ mà website có thể kiểm tra.",
     `Mục tiêu: ${target}. Loại câu: ${type}. Số lượng: ${quantity}.`,
-    `Chủ đề: ${clean(options.topic) || "theo tài liệu"}. Môn: ${clean(options.subject) || "theo tài liệu"}.`,
+    `Môn: ${clean(options.subject) || "theo tài liệu"}. Chủ đề: ${clean(options.topic) || "theo tài liệu"}. Khóa học/học phần: ${clean(options.course) || "Chưa xác định"}. Cấp học: ${clean(options.educationLevel) || "Chưa xác định"}.`,
     clean(options.title) ? `Tên nguồn/tài liệu: ${clean(options.title)}.` : "",
     clean(options.extraRequest) ? `Yêu cầu bổ sung: ${clean(options.extraRequest)}.` : "",
-    "Schema bắt buộc: {\"questions\":[{\"type\":\"multiple|boolean|short\",\"question\":\"...\",\"options\":[\"...\"],\"answer\":\"...\",\"explanation\":\"...\",\"source\":\"...\",\"deepExplanation\":{\"knowledge\":\"...\",\"formula\":\"...\",\"givenData\":\"...\",\"solutionSteps\":[\"Bước 1...\"],\"whyThisMethod\":\"...\",\"commonMistakes\":[\"...\"],\"alternativeSolution\":\"...\",\"deepQuestions\":[{\"question\":\"...\",\"answer\":\"...\",\"explanation\":\"...\"}],\"variationExplanation\":\"...\",\"needsVerification\":false}}]}. Với multiple phải có options và answer khớp một lựa chọn; boolean dùng answer Đúng hoặc Sai; short dùng answer ngắn gọn.",
+    "Schema bắt buộc: {\"metadata\":{\"subject\":\"...\",\"course\":\"...\",\"educationLevel\":\"Mẫu giáo|Tiểu học|THCS|THPT|Đại học/Sinh viên|Khóa học tự do\"},\"questions\":[{\"type\":\"multiple|boolean|short\",\"question\":\"...\",\"options\":[\"...\"],\"answer\":\"...\",\"explanation\":\"...\",\"source\":\"...\",\"deepExplanation\":{\"knowledge\":\"...\",\"formula\":\"...\",\"givenData\":\"...\",\"solutionSteps\":[\"Bước 1...\"],\"whyThisMethod\":\"...\",\"commonMistakes\":[\"...\"],\"alternativeSolution\":\"...\",\"deepQuestions\":[{\"question\":\"...\",\"answer\":\"...\",\"explanation\":\"...\"}],\"variationExplanation\":\"...\",\"needsVerification\":false}}]}. Các metadata phải khớp dữ liệu người dùng đã cung cấp, không được đoán. Với multiple phải có options và answer khớp một lựa chọn; boolean dùng answer Đúng hoặc Sai; short dùng answer ngắn gọn.",
     "Chỉ trả về JSON, không bọc bằng Markdown và không thêm lời bình ngoài JSON.",
   ].filter(Boolean).join("\n\n");
 }
@@ -209,13 +211,13 @@ export function validateExternalAiData(raw: string, maxFlashcards = 27): ImportV
   return { valid: errors.length === 0, errors, warnings, questions };
 }
 
-export function convertImportToFlashcards(validation: ImportValidation, metadata: { title: string; subject: string; topic: string; difficulty?: FlashcardSet["difficulty"] }, now = new Date().toISOString()): FlashcardSet {
+export function convertImportToFlashcards(validation: ImportValidation, metadata: { title: string; subject: string; topic: string; course?: string; educationLevel?: EducationLevel; difficulty?: FlashcardSet["difficulty"] }, now = new Date().toISOString()): FlashcardSet {
   const cards: Flashcard[] = validation.questions.slice(0, 27).map((question) => ({ id: `${metadata.title}-${question.id}`, front: question.prompt, back: [question.answer, question.explanation].filter(Boolean).join("\n\n"), status: "new", starred: false }));
-  return { id: `set-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, difficulty: metadata.difficulty ?? "Trung bình", createdAt: now, studyCount: 0, cards };
+  return { id: `set-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, course: metadata.course, educationLevel: metadata.educationLevel, difficulty: metadata.difficulty ?? "Trung bình", createdAt: now, studyCount: 0, cards };
 }
 
-export function convertImportToQuiz(validation: ImportValidation, metadata: { title: string; subject: string; topic: string; difficulty?: Quiz["difficulty"]; durationMinutes?: number; mode?: Quiz["mode"]; timerMode?: Quiz["timerMode"] }, now = new Date().toISOString()): Quiz {
+export function convertImportToQuiz(validation: ImportValidation, metadata: { title: string; subject: string; topic: string; course?: string; educationLevel?: EducationLevel; difficulty?: Quiz["difficulty"]; durationMinutes?: number; mode?: Quiz["mode"]; timerMode?: Quiz["timerMode"] }, now = new Date().toISOString()): Quiz {
   const questions: QuizQuestion[] = validation.questions.map((question) => ({ id: question.id, type: question.type, prompt: question.prompt, options: question.options, answer: question.answer, explanation: question.explanation, deepExplanation: question.deepExplanation }));
   const mode = metadata.mode ?? "test";
-  return { id: `quiz-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, difficulty: metadata.difficulty ?? "Trung bình", durationMinutes: metadata.durationMinutes ?? 30, createdAt: now, questions, mode, timerMode: metadata.timerMode ?? (mode === "review" ? "unlimited" : "timed") };
+  return { id: `quiz-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, course: metadata.course, educationLevel: metadata.educationLevel, difficulty: metadata.difficulty ?? "Trung bình", durationMinutes: metadata.durationMinutes ?? 30, createdAt: now, questions, mode, timerMode: metadata.timerMode ?? (mode === "review" ? "unlimited" : "timed") };
 }

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Clipboard, Eye, FileUp, History, RefreshCw, Sparkles, Trash2, WandSparkles } from "lucide-react";
 import { toast } from "sonner";
 import { buildExternalAiPrompt, convertImportToFlashcards, convertImportToQuiz, validateExternalAiData, type AiImportOptions, type ImportTarget, type ImportQuestionType } from "../../../shared/aiDataImport";
-import type { ProfileState } from "../../../shared/study";
+import { EDUCATION_LEVELS, type EducationLevel, type ProfileState } from "../../../shared/study";
 
 type Props = { profile: ProfileState; onProfile: (profile: ProfileState, message?: string) => void; onView: (view: "flashcards" | "quizzes") => void };
 const uid = () => crypto.randomUUID();
@@ -16,6 +16,8 @@ export default function AIDataImport({ profile, onProfile, onView }: Props) {
   const [title, setTitle] = useState("Tài liệu lịch sử mới");
   const [subject, setSubject] = useState("Lịch sử Việt Nam");
   const [topic, setTopic] = useState("");
+  const [course, setCourse] = useState("");
+  const [educationLevel, setEducationLevel] = useState<EducationLevel>("THCS");
   const [extraRequest, setExtraRequest] = useState("");
   const [quizMode, setQuizMode] = useState<"test" | "review">("test");
   const [timerMode, setTimerMode] = useState<"timed" | "unlimited">("timed");
@@ -24,7 +26,7 @@ export default function AIDataImport({ profile, onProfile, onView }: Props) {
   const [documentName, setDocumentName] = useState("");
   const [prompt, setPrompt] = useState("");
   const [validated, setValidated] = useState<ReturnType<typeof validateExternalAiData> | null>(null);
-  const options = useMemo<AiImportOptions>(() => ({ target, questionType, quantity, customQuantity, title, subject, topic, extraRequest, quizMode, timerMode, durationMinutes }), [target, questionType, quantity, customQuantity, title, subject, topic, extraRequest, quizMode, timerMode, durationMinutes]);
+  const options = useMemo<AiImportOptions>(() => ({ target, questionType, quantity, customQuantity, title, subject, topic, course, educationLevel, extraRequest, quizMode, timerMode, durationMinutes }), [target, questionType, quantity, customQuantity, title, subject, topic, course, educationLevel, extraRequest, quizMode, timerMode, durationMinutes]);
   const makePrompt = () => { setPrompt(buildExternalAiPrompt(options)); toast.success("Đã tạo prompt cho AI bên ngoài."); };
   const validate = () => { const result = validateExternalAiData(rawData); setValidated(result); result.valid ? toast.success(`Dữ liệu hợp lệ: ${result.questions.length} câu.`) : toast.error(`${result.errors.length} lỗi cần sửa trước khi nhập.`); };
   const copyPrompt = async () => { const value = prompt || buildExternalAiPrompt(options); setPrompt(value); await navigator.clipboard?.writeText(value); toast.success("Đã sao chép prompt."); };
@@ -38,8 +40,8 @@ export default function AIDataImport({ profile, onProfile, onView }: Props) {
     const now = new Date().toISOString();
     const shouldCards = target === "flashcards" || target === "both" || target === "practice";
     const shouldQuiz = target === "quiz" || target === "both" || target === "practice";
-    const set = shouldCards ? convertImportToFlashcards(result, { title, subject, topic }) : undefined;
-    const quiz = shouldQuiz ? convertImportToQuiz(result, { title, subject, topic, mode: quizMode, timerMode: quizMode === "review" ? "unlimited" : timerMode, durationMinutes: Math.max(1, durationMinutes) }) : undefined;
+    const set = shouldCards ? convertImportToFlashcards(result, { title, subject, topic, course, educationLevel }) : undefined;
+    const quiz = shouldQuiz ? convertImportToQuiz(result, { title, subject, topic, course, educationLevel, mode: quizMode, timerMode: quizMode === "review" ? "unlimited" : timerMode, durationMinutes: Math.max(1, durationMinutes) }) : undefined;
     const record = { id: uid(), title, createdAt: now, target, questionCount: quiz?.questions.length ?? 0, flashcardCount: set?.cards.length ?? 0, prompt, rawData, quizId: quiz?.id, flashcardSetId: set?.id };
     onProfile({ ...profile, flashcardSets: set ? [set, ...profile.flashcardSets] : profile.flashcardSets, quizzes: quiz ? [quiz, ...profile.quizzes] : profile.quizzes, aiImportHistory: [record, ...profile.aiImportHistory].slice(0, 50) }, `Đã tạo ${record.flashcardCount} Flashcard và ${record.questionCount} câu hỏi.`);
     onView(set ? "flashcards" : "quizzes");
@@ -64,6 +66,8 @@ export default function AIDataImport({ profile, onProfile, onView }: Props) {
             </>}
             <label className="text-sm font-bold">Tên tài liệu<input aria-label="Tên tài liệu" value={title} onChange={(e) => setTitle(e.target.value)} className="input mt-2 w-full" /></label>
             <label className="text-sm font-bold">Môn học<input aria-label="Môn học AI" value={subject} onChange={(e) => setSubject(e.target.value)} className="input mt-2 w-full" /></label>
+            <label className="text-sm font-bold">Cấp học<select aria-label="Cấp học AI" value={educationLevel} onChange={(e) => setEducationLevel(e.target.value as EducationLevel)} className="select mt-2 w-full">{EDUCATION_LEVELS.map((level) => <option key={level} value={level}>{level}</option>)}</select></label>
+            <label className="text-sm font-bold">Khóa học/học phần<input aria-label="Khóa học AI" value={course} onChange={(e) => setCourse(e.target.value)} className="input mt-2 w-full" placeholder="Ví dụ: Toán 8 · Học kỳ I" /></label>
             <label className="text-sm font-bold sm:col-span-2">Chủ đề<input aria-label="Chủ đề AI" value={topic} onChange={(e) => setTopic(e.target.value)} className="input mt-2 w-full" /></label>
           </div>
           <label className="mt-4 block text-sm font-bold">Yêu cầu bổ sung<textarea aria-label="Yêu cầu bổ sung cho AI" value={extraRequest} onChange={(e) => setExtraRequest(e.target.value)} className="textarea mt-2 w-full" rows={3} placeholder="Giữ nguyên đáp án, cảnh báo mâu thuẫn nguồn…" /></label>
