@@ -94,8 +94,10 @@ describe("expanded theme catalog contract", () => {
     expect(source).toContain("void player.play().then(() => {");
     expect(source).not.toContain("player.load();");
     expect(source).toContain("fallbackUrl");
+    expect(source).toContain("audio.url !== DEFAULT_AMBIENT_RAIN_URL");
+    expect(source).toContain("onLoadStart={() => setAudioUnavailable(false)}");
     expect(source).toContain("const [audioPanelOpen, setAudioPanelOpen] = useState(false);");
-    expect(source).toContain("{audioTheme ? <audio ref={audioRef}");
+    expect(source).toContain("{audioTheme ? <audio key={`${audioTheme.id}:${audioTheme.url}`}");
     expect(source).toContain("{audioPanelOpen && audioTheme ? <div role=\"dialog\"");
     expect(source).toContain("const fullCatalogSceneCards = AMBIENT_SCENE_IDS.filter((id) => Boolean(AUDIO_BACKED_SCENE_AUDIO[id]))");
     expect(source).toContain("Nguồn âm thanh:");
