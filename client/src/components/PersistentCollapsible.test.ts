@@ -14,6 +14,8 @@ describe("PersistentCollapsible contract", () => {
     expect(source).toContain("gocnhocuaong:collapse:${storageKey}");
     expect(source).toContain("aria-expanded={open}");
     expect(source).toContain("localStorage.setItem");
+    expect(source).toContain('gocnhocuaong:collapse-all');
+    expect(source).toContain('typeof detail?.open === "boolean"');
   });
 });
 
@@ -24,6 +26,8 @@ describe("phạm vi thu gọn hiện tại", () => {
     expect(home).not.toContain("storageKey={`view-${view}`}");
     expect(workspace).toContain('storageKey="admin-members"');
     expect(workspace).toContain('storageKey="admin-events"');
+    expect(home).toContain('gocnhocuaong:collapse-all');
+    expect(home).toContain('setSectionsCollapsed(true)');
   });
 
   it("giữ Pomodoro chỉ có âm báo thay vì âm nền hoặc preset cũ", () => {

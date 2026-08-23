@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { emptyAppConfig, normalizeProfile } from "./study";
 
@@ -17,6 +19,14 @@ describe("Kế hoạch tự quản lý", () => {
     expect(profile.studyPlanItems.find((item) => item.id === "daily-1")).toMatchObject({ cadence: "day", completed: true, rewardGrantedAt: "2026-08-23T08:00:01.000Z" });
     expect(profile.studyPlanItems.find((item) => item.id === "weekly-1")).toMatchObject({ cadence: "week", reward: "fragment", rewardAmount: 1 });
     expect(profile.planFragments).toBe(3);
+  });
+
+  it("không cộng hoặc hiển thị Mảnh ghép trong Kế hoạch", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/components/StudyPlanDashboard.tsx"), "utf8");
+    expect(source).not.toContain("planFragments");
+    expect(source).not.toContain("Mảnh ghép");
+    expect(source).not.toContain("shouldGrant");
+    expect(source).toContain("Đã đánh dấu hoàn thành mục tiêu.");
   });
 
   it("có đúng một event mẫu, không chứa phần thưởng XP", () => {

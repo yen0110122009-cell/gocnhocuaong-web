@@ -34,8 +34,16 @@ export function PersistentCollapsible({
       const detail = (event as CustomEvent<{ storageKey?: string }>).detail;
       if (detail?.storageKey === storageKey) setOpen(true);
     };
+    const handleGlobalRequest = (event: Event) => {
+      const detail = (event as CustomEvent<{ open?: boolean }>).detail;
+      if (typeof detail?.open === "boolean") setOpen(detail.open);
+    };
     window.addEventListener("gocnhocuaong:open-collapsible", handleOpenRequest);
-    return () => window.removeEventListener("gocnhocuaong:open-collapsible", handleOpenRequest);
+    window.addEventListener("gocnhocuaong:collapse-all", handleGlobalRequest);
+    return () => {
+      window.removeEventListener("gocnhocuaong:open-collapsible", handleOpenRequest);
+      window.removeEventListener("gocnhocuaong:collapse-all", handleGlobalRequest);
+    };
   }, [storageKey]);
 
   useEffect(() => {

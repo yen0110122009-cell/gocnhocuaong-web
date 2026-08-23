@@ -1,5 +1,6 @@
 import { Copy, Download, Eye, EyeOff, GripVertical, LoaderCircle, Mic, Play, Search, Star, Trash2, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import type { CompanionEmotionMedia, EmotionThemeId, LumiVoiceRecording, LumiVoiceRecordingTrashEntry, ProfileState } from "../../../shared/study";
 import { emotionThemes } from "../lib/emotionThemes";
 import { trpc } from "../lib/trpc";
@@ -25,9 +26,11 @@ const COLOR_LABELS = [
   { id: "gray", label: "Xám", className: "bg-slate-500" },
 ] as const;
 const COLOR_LABEL_IDS = new Set<string>(COLOR_LABELS.map((color) => color.id));
+const MAX_LUMI_RECORDING_MS = 120_000;
 
 function getToken() { try { return JSON.parse(sessionStorage.getItem("study_historia_session_v1") || "{}").token as string || ""; } catch { return ""; } }
 function toDataUrl(file: File) { return new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(new Error("Không thể đọc tệp.")); reader.onload = () => resolve(String(reader.result)); reader.readAsDataURL(file); }); }
+function formatDuration(milliseconds: number) { const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000)); return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`; }
 
 function recordingsFromMedia(media: CompanionEmotionMedia | undefined, targetEmotion: EmotionThemeId): LumiVoiceRecording[] {
   if (media?.lumiVoiceRecordings?.length) return media.lumiVoiceRecordings;
@@ -58,6 +61,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const [uploadProgress, setUploadProgress] = useState(0);
   const [failedUpload, setFailedUpload] = useState<{ file: File; kind: MediaKind; recordingId?: string; targetEmotion?: EmotionThemeId } | null>(null);
   const [recording, setRecording] = useState(false);
+  const [recordingElapsedMs, setRecordingElapsedMs] = useState(0);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "synced" | "conflict" | "error">("idle");
   const [showCloudHistory, setShowCloudHistory] = useState(false);
@@ -81,6 +85,8 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const visualizerFrameRef = useRef<number | null>(null);
+  const recordingTimerRef = useRef<number | null>(null);
+  const recordingStartedAtRef = useRef<number | null>(null);
   const [recordingLevels, setRecordingLevels] = useState<number[]>(() => Array.from({ length: 32 }, () => 0));
   const undoTimerRef = useRef<number | null>(null);
   const uploadProgressTimerRef = useRef<number | null>(null);
@@ -157,6 +163,12 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     const context = audioContextRef.current;
     audioContextRef.current = null;
     if (context) void context.close().catch(() => undefined);
+    if (recordingTimerRef.current !== null) window.clearInterval(recordingTimerRef.current);
+    recordingTimerRef.current = null;
+    recordingStartedAtRef.current = null;
+    const recorder = recorderRef.current;
+    recorderRef.current = null;
+    if (recorder && recorder.state !== "inactive") recorder.stop();
   }, []);
   const libraryItems = useMemo<LibraryItem[]>(() => emotionThemes.flatMap((theme) => {
 
@@ -276,8 +288,23 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     draw();
   }
 
+  function clearRecordingTimer() {
+    if (recordingTimerRef.current !== null) window.clearInterval(recordingTimerRef.current);
+    recordingTimerRef.current = null;
+    recordingStartedAtRef.current = null;
+  }
+
+  function stopRecording() {
+    const recorder = recorderRef.current;
+    clearRecordingTimer();
+    recorderRef.current = null;
+    setRecording(false);
+    stopVisualizer();
+    if (recorder && recorder.state !== "inactive") recorder.stop();
+  }
+
   async function toggleRecord() {
-    if (recording) { recorderRef.current?.stop(); recorderRef.current = null; setRecording(false); stopVisualizer(); return; }
+    if (recording) { stopRecording(); return; }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { alert("Trình duyệt này chưa hỗ trợ ghi âm. Bạn vẫn có thể tải tệp âm thanh lên."); return; }
     let stream: MediaStream | null = null;
     try {
@@ -299,6 +326,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
       }
       recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
       recorder.onstop = () => {
+        clearRecordingTimer();
         stream?.getTracks().forEach((track) => track.stop());
         const actualType = recorder.mimeType || mimeType || "audio/webm";
         const extension = actualType.includes("mp4") ? "m4a" : actualType.includes("ogg") ? "ogg" : "webm";
@@ -306,7 +334,21 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
         if (!file.size) { alert("Bản thu đang trống. Hãy kiểm tra micro, nói thử vài giây rồi ghi lại."); return; }
         void uploadFile(file, "lumi-voice");
       };
-      recorderRef.current = recorder; recorder.start(1_000); setRecording(true);
+      recorderRef.current = recorder;
+      recorder.start(1_000);
+      recordingStartedAtRef.current = Date.now();
+      setRecordingElapsedMs(0);
+      recordingTimerRef.current = window.setInterval(() => {
+        const startedAt = recordingStartedAtRef.current;
+        if (!startedAt) return;
+        const elapsed = Math.min(MAX_LUMI_RECORDING_MS, Date.now() - startedAt);
+        setRecordingElapsedMs(elapsed);
+        if (elapsed >= MAX_LUMI_RECORDING_MS) {
+          toast.info("Đã đủ 2 phút ghi âm Lumi", { description: "Bản thu sẽ được dừng và lưu tự động." });
+          stopRecording();
+        }
+      }, 250);
+      setRecording(true);
     } catch (error) {
       stream?.getTracks().forEach((track) => track.stop());
       stopVisualizer();
@@ -530,7 +572,7 @@ export function EmotionCompanionMediaControls({ profile, emotion, onProfile }: P
     <div className="mt-4 grid gap-3 sm:grid-cols-3">
       <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3"><p className="text-xs font-black text-amber-800">Giọng Ong</p><p className="mt-3 text-xs leading-5 text-amber-800">Khu vực này chỉ quản lý bản thu âm thanh của Ong.</p></div>
       <div className="rounded-xl border border-red-200 bg-red-50/60 p-3"><p className="text-xs font-black text-[#8e1b1b]">Lumi</p><p className="mt-3 text-xs leading-5 text-[#8e1b1b]">Lumi đồng hành bằng lời nói theo cảm xúc; bản thu vẫn được giữ và có thể phát lại.</p></div>
-      <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-3 sm:col-span-2"><p className="text-xs font-black text-violet-800">Thêm bản thu cho {emotionLabel}</p><p className="mt-1 text-xs leading-5 text-violet-800">Bản thu mới được gắn với cảm xúc hiện tại. Nhấn nút phát trên mỗi thẻ để nghe lời Lumi.</p>{recording ? <><p className="mt-2 rounded-lg bg-red-100 px-2.5 py-2 text-[11px] font-black text-red-800" role="status" aria-live="polite">Đang thu âm từ micro của thiết bị. Hãy nói lời động viên, rồi nhấn nút đỏ để lưu.</p><div className="mt-2 flex h-14 items-center gap-1 rounded-lg border border-red-200 bg-white px-3" role="img" aria-label="Sóng âm đang ghi âm"><span className="sr-only">Visualizer đang phản hồi theo âm thanh micro</span>{recordingLevels.map((level, index) => <span key={index} className="w-full rounded-full bg-red-500 transition-[height] duration-75" style={{ height: `${Math.max(8, Math.round(level * 48))}px` }} />)}</div></> : busy ? <p className="mt-2 rounded-lg bg-violet-100 px-2.5 py-2 text-[11px] font-black text-violet-800" role="status" aria-live="polite">Đang xử lý tệp, vui lòng giữ nguyên trang trong giây lát.</p> : null}<div className="mt-3 flex flex-wrap gap-2"><VoiceInput /><button type="button" onClick={() => void toggleRecord()} disabled={Boolean(busy)} aria-pressed={recording} aria-busy={recording} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white transition active:scale-[.98] ${recording ? "animate-pulse bg-red-600" : "bg-violet-700"}`}>{recording ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}{recording ? "Đang ghi âm… Nhấn để dừng" : "Ghi âm Lumi"}</button></div></div>
+      <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-3 sm:col-span-2"><p className="text-xs font-black text-violet-800">Thêm bản thu cho {emotionLabel}</p><p className="mt-1 text-xs leading-5 text-violet-800">Bản thu mới được gắn với cảm xúc hiện tại. Bạn có thể nói một đoạn dài khoảng 1–2 phút; bản thu tối đa 2:00 và sẽ tự lưu khi đủ thời lượng.</p>{recording ? <><p className="mt-2 rounded-lg bg-red-100 px-2.5 py-2 text-[11px] font-black text-red-800" role="status" aria-live="polite">Đang thu âm từ micro. Đã ghi {formatDuration(recordingElapsedMs)} / 2:00. Hãy nói lời động viên, rồi nhấn nút đỏ để lưu.</p><div className="mt-2 flex h-14 items-center gap-1 rounded-lg border border-red-200 bg-white px-3" role="img" aria-label="Sóng âm đang ghi âm"><span className="sr-only">Visualizer đang phản hồi theo âm thanh micro</span>{recordingLevels.map((level, index) => <span key={index} className="w-full rounded-full bg-red-500 transition-[height] duration-75" style={{ height: `${Math.max(8, Math.round(level * 48))}px` }} />)}</div></> : busy ? <p className="mt-2 rounded-lg bg-violet-100 px-2.5 py-2 text-[11px] font-black text-violet-800" role="status" aria-live="polite">Đang xử lý tệp, vui lòng giữ nguyên trang trong giây lát.</p> : null}<div className="mt-3 flex flex-wrap gap-2"><VoiceInput /><button type="button" onClick={() => void toggleRecord()} disabled={Boolean(busy)} aria-pressed={recording} aria-busy={recording} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white transition active:scale-[.98] ${recording ? "animate-pulse bg-red-600" : "bg-violet-700"}`}>{recording ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}{recording ? "Đang ghi âm… Nhấn để dừng" : "Ghi âm Lumi"}</button></div></div>
     </div>
 
     <section className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-3" aria-label="Bộ sưu tập bản thu giọng Lumi">

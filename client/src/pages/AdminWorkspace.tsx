@@ -50,11 +50,11 @@ export default function AdminWorkspace({ account, config, onConfig }: Props) {
       <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Theo dõi thành viên, tổ chức Event học tập và lưu các cấu hình cần thiết cho nhóm.</p>
     </div>
 
-    <PersistentCollapsible storageKey="admin-members" eyebrow="Truy cập" title="Quản lý thành viên" defaultOpen>
+    <PersistentCollapsible storageKey="admin-members" eyebrow="Truy cập" title="Quản lý thành viên">
       <AdminEnhanced account={account} config={config} onConfig={onConfig} />
     </PersistentCollapsible>
 
-    <PersistentCollapsible storageKey="admin-events" eyebrow="Kế hoạch chung" title={`Event học tập (${visibleEvents.length})`} defaultOpen>
+    <PersistentCollapsible storageKey="admin-events" eyebrow="Kế hoạch chung" title={`Event học tập (${visibleEvents.length})`}>
       <div className="grid gap-5 xl:grid-cols-[.8fr_1.2fr]">
         <form onSubmit={(event) => { event.preventDefault(); addEvent(); }} className="rounded-2xl border border-slate-200 p-4 dark:border-white/10">
           <h2 className="font-display text-lg font-bold">Tạo Event</h2>
