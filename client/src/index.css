@@ -2205,3 +2205,48 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
   animation: none;
   transform: translate(calc(-50% + var(--firework-x)), calc(-50% + var(--firework-y))) scale(.9);
 }
+
+/* Màn hình đăng nhập không có profile/theme; không để token scene còn sót lại làm đổi màu form. */
+#root > main.min-h-screen {
+  background: #fffdf8 !important;
+  color: #2f211e !important;
+}
+#root > main.min-h-screen > div > form {
+  background: #ffffff !important;
+  border-color: #eadfd2 !important;
+  color: #2f211e !important;
+  box-shadow: 0 24px 70px rgb(142 27 27 / .12) !important;
+}
+#root > main.min-h-screen > div > form :is(input:not([type="checkbox"]), select, textarea) {
+  background: #fffdf8 !important;
+  color: #2f211e !important;
+  border-color: #d6c4b6 !important;
+}
+#root > main.min-h-screen > div > form :is(input:not([type="checkbox"]), select, textarea)::placeholder {
+  color: #756863 !important;
+}
+#root > main.min-h-screen > div > form :is(input:not([type="checkbox"]), select, textarea):focus {
+  border-color: #c62828 !important;
+  box-shadow: 0 0 0 3px rgb(198 40 40 / .14) !important;
+}
+#root > main.min-h-screen > div > form > div > :is(button[type="button"], a) {
+  color: #8e1b1b !important;
+}
+#root > main.min-h-screen > div > form > div > button[type="submit"] {
+  background: #c62828 !important;
+  color: #ffffff !important;
+}
+#root > main.min-h-screen > div > form > div > .login-guest-button {
+  background: #fff7dc !important;
+  border-color: #f1cf70 !important;
+  color: #5b3514 !important;
+}
+#root > main.min-h-screen > div > form > section {
+  background: #f5f7f2 !important;
+  border-color: #dcebdc !important;
+  color: #2e7d32 !important;
+}
+@media (max-width: 767px) {
+  #root > main.min-h-screen { padding: 1.25rem .875rem !important; }
+  #root > main.min-h-screen > div > form { padding: 1.25rem !important; }
+}
