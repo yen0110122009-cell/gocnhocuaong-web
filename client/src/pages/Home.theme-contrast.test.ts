@@ -100,4 +100,11 @@ describe("tone giao diện và typography tương phản cao", () => {
     expect(css).toContain("var(--palette-accent-ink, #fff)");
     expect(css).toContain("button[aria-current=\"page\"]");
   });
+
+  it("giữ sidebar festive tương phản ngay cả khi chưa hover", () => {
+    expect(css).toContain(":root[data-festive-theme] #root > div.min-h-screen > aside nav button {");
+    expect(css).toContain(":root[data-festive-theme] #root > div.min-h-screen > aside nav button[aria-current=\"page\"] {");
+    expect(css).toContain("background-color: var(--festive-primary) !important;");
+    expect(css).toContain("color: var(--festive-primary-ink, #fff) !important;");
+  });
 });

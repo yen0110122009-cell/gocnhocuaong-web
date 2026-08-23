@@ -2261,3 +2261,40 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
   #root > main.min-h-screen { padding: 1.25rem .875rem !important; }
   #root > main.min-h-screen > div > form { padding: 1.25rem !important; }
 }
+
+
+/* Festive navigation contrast: không để menu rơi về nền trắng/chữ trắng; active luôn nổi bằng primary của theme. */
+:root[data-festive-theme] #root > div.min-h-screen > aside nav button {
+  background-color: color-mix(in srgb, var(--festive-panel) 90%, #000 10%) !important;
+  background-image: none !important;
+  color: var(--festive-ink) !important;
+  border: 1px solid color-mix(in srgb, var(--festive-primary) 22%, transparent) !important;
+}
+:root[data-festive-theme] #root > div.min-h-screen > aside nav button:hover,
+:root[data-festive-theme] #root > div.min-h-screen > aside nav button:focus-visible {
+  background-color: color-mix(in srgb, var(--festive-primary) 24%, var(--festive-panel)) !important;
+  background-image: none !important;
+  color: var(--festive-primary-ink, #fff) !important;
+  border-color: var(--festive-primary) !important;
+}
+:root[data-festive-theme] #root > div.min-h-screen > aside nav button[aria-current="page"] {
+  background-color: var(--festive-primary) !important;
+  background-image: none !important;
+  color: var(--festive-primary-ink, #fff) !important;
+  border-color: var(--festive-primary) !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--festive-primary) 28%, transparent) !important;
+}
+:root[data-festive-theme] #root > div.min-h-screen > aside nav button[aria-current="page"] > svg {
+  color: currentColor !important;
+}
+:root[data-festive-theme] #root > div.min-h-screen > aside > button {
+  background-color: color-mix(in srgb, var(--festive-panel) 88%, var(--festive-accent) 12%) !important;
+  background-image: none !important;
+  color: var(--festive-ink) !important;
+  border-color: color-mix(in srgb, var(--festive-primary) 30%, transparent) !important;
+}
+:root[data-festive-theme] #root > div.min-h-screen > aside > div {
+  background-color: color-mix(in srgb, var(--festive-panel) 82%, var(--festive-accent) 18%) !important;
+  background-image: none !important;
+  color: var(--festive-ink) !important;
+}
