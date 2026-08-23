@@ -27,4 +27,29 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("Cần động viên");
     expect(source).toContain('role="status"');
   });
+
+  it("giữ Kaomoji trong avatar riêng và widget nổi trên modal", () => {
+    const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
+    expect(source).toContain("lumi-widget-header");
+    expect(source).toContain("lumi-avatar-box");
+    expect(source).toContain("lumi-kaomoji-text");
+    expect(source).toContain("lumi-kaomoji-text--long");
+    expect(source).toContain("lumi-quick-feelings-grid");
+    expect(source).toContain("modal-backdrop");
+    expect(source).toContain("lumi-popup-modal");
+    expect(css).toContain(".pomodoro-pinned-widget");
+    expect(css).toContain("z-index: 9999 !important");
+    expect(css).toContain(".modal-backdrop");
+    expect(css).toContain("z-index: 9000");
+    expect(css).toContain(".lumi-avatar-box");
+    expect(css).toContain(".lumi-kaomoji-text--long");
+    expect(css).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
+  });
+
+  it("có đủ bốn nút cảm xúc trong lưới hai cột", () => {
+    expect(source).toContain("Mệt mỏi");
+    expect(source).toContain("Thiếu động lực");
+    expect(source).toContain("Cần cái ôm");
+    expect(source).toContain("Sẵn sàng học");
+  });
 });
