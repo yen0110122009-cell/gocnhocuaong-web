@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { DEFAULT_EASTER_EGG_MESSAGE, EASTER_EGG_UPDATED_EVENT, readEasterEggMessage } from "@/lib/easterEgg";
+import { DEFAULT_EASTER_EGG_MESSAGE, EASTER_EGG_UPDATED_EVENT } from "@/lib/easterEgg";
+import { EASTER_EGG_MESSAGES_UPDATED_EVENT, pickEasterEggMessage, readEasterEggMessages, type EasterEggPopupMessage } from "@/lib/easterEggMessages";
 
 type EasterEggProps = { soundEnabled?: boolean };
 
@@ -32,19 +33,34 @@ function playCelebrationTone(enabled: boolean) {
 
 export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
   const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState(DEFAULT_EASTER_EGG_MESSAGE);
+  const [messages, setMessages] = useState<EasterEggPopupMessage[]>(() => readEasterEggMessages());
+  const [message, setMessage] = useState(() => readEasterEggMessages()[0]?.message ?? DEFAULT_EASTER_EGG_MESSAGE);
   const [celebrating, setCelebrating] = useState(false);
 
   useEffect(() => {
-    const syncMessage = () => setMessage(readEasterEggMessage());
-    syncMessage();
-    window.addEventListener(EASTER_EGG_UPDATED_EVENT, syncMessage);
-    window.addEventListener("storage", syncMessage);
+    const syncMessages = (event?: Event) => {
+      const detail = (event as CustomEvent<EasterEggPopupMessage[]> | undefined)?.detail;
+      const next = detail?.length ? detail : readEasterEggMessages();
+      setMessages(next);
+      setMessage((current) => next.some((item) => item.message === current) ? current : next[0]?.message ?? DEFAULT_EASTER_EGG_MESSAGE);
+    };
+    const syncLegacyMessage = () => syncMessages();
+    syncMessages();
+    window.addEventListener(EASTER_EGG_MESSAGES_UPDATED_EVENT, syncMessages);
+    window.addEventListener(EASTER_EGG_UPDATED_EVENT, syncLegacyMessage);
+    window.addEventListener("storage", syncLegacyMessage);
     return () => {
-      window.removeEventListener(EASTER_EGG_UPDATED_EVENT, syncMessage);
-      window.removeEventListener("storage", syncMessage);
+      window.removeEventListener(EASTER_EGG_MESSAGES_UPDATED_EVENT, syncMessages);
+      window.removeEventListener(EASTER_EGG_UPDATED_EVENT, syncLegacyMessage);
+      window.removeEventListener("storage", syncLegacyMessage);
     };
   }, []);
+
+  useEffect(() => {
+    if (!open || messages.length < 2) return;
+    const timer = window.setInterval(() => setMessage((current) => pickEasterEggMessage(messages, current)), 6_000);
+    return () => window.clearInterval(timer);
+  }, [open, messages]);
 
   useEffect(() => {
     if (!open) return;
@@ -55,12 +71,15 @@ export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
+  const showNextMessage = () => setMessage((current) => pickEasterEggMessage(messages, current));
   const openMessage = () => {
-    setMessage(readEasterEggMessage());
+    const next = readEasterEggMessages();
+    setMessages(next);
+    setMessage(pickEasterEggMessage(next));
     setOpen(true);
     setCelebrating(true);
     playCelebrationTone(soundEnabled);
-    window.setTimeout(() => setCelebrating(false), 1400);
+    window.setTimeout(() => setCelebrating(false), 1_400);
   };
 
   const modal = open ? <div
@@ -78,8 +97,12 @@ export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
     >
       <p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lời nhắn từ bạn 🍀</p>
       <h2 id="easter-egg-title" className="sr-only">Lời nhắn từ bạn</h2>
-      <p className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-center text-base font-bold leading-7 text-emerald-950 dark:border-emerald-300/20 dark:bg-emerald-950/30 dark:text-emerald-50">{message || DEFAULT_EASTER_EGG_MESSAGE}</p>
-      <button type="button" onClick={() => setOpen(false)} className="primary-button mt-5 w-full justify-center">Đóng</button>
+      <p className="mt-4 max-h-[60vh] overflow-y-auto whitespace-pre-line break-words rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-center text-base font-bold leading-7 text-emerald-950 dark:border-emerald-300/20 dark:bg-emerald-950/30 dark:text-emerald-50">{message || DEFAULT_EASTER_EGG_MESSAGE}</p>
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        <button type="button" onClick={showNextMessage} className="secondary-button w-full justify-center" disabled={messages.length < 2}>Lời nhắn khác</button>
+        <button type="button" onClick={() => setOpen(false)} className="primary-button w-full justify-center">Đóng</button>
+      </div>
+      <p className="mt-3 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">{messages.length} lời nhắn · Tự đổi sau 6 giây</p>
     </section>
   </div> : null;
 
