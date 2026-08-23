@@ -10,12 +10,29 @@ type PersistentCollapsibleProps = {
   defaultOpen?: boolean;
 };
 
+const COLLAPSED_STATE_STORAGE_KEY = "app_sections_collapsed_state";
+
 function readOpenState(storageKey: string, defaultOpen: boolean) {
   try {
+    const aggregate = window.localStorage.getItem(COLLAPSED_STATE_STORAGE_KEY);
+    if (aggregate) {
+      const parsed = JSON.parse(aggregate) as Record<string, unknown>;
+      if (typeof parsed[storageKey] === "boolean") return !parsed[storageKey];
+    }
     const saved = window.localStorage.getItem(`gocnhocuaong:collapse:${storageKey}`);
     return saved === null ? defaultOpen : saved === "open";
   } catch {
     return defaultOpen;
+  }
+}
+
+function writeCollapsedState(storageKey: string, collapsed: boolean) {
+  try {
+    const raw = window.localStorage.getItem(COLLAPSED_STATE_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) as Record<string, unknown> : {};
+    window.localStorage.setItem(COLLAPSED_STATE_STORAGE_KEY, JSON.stringify({ ...parsed, [storageKey]: collapsed }));
+  } catch {
+    // Storage can be unavailable in private browsing; the control remains usable in memory.
   }
 }
 
@@ -52,6 +69,7 @@ export function PersistentCollapsible({
     } catch {
       // Storage can be unavailable in private browsing; the control remains usable in memory.
     }
+    writeCollapsedState(storageKey, !open);
   }, [open, storageKey]);
 
   return (
@@ -81,6 +99,7 @@ export function usePersistentDisclosure(storageKey: string, defaultOpen = false)
     } catch {
       // no-op
     }
+    writeCollapsedState(storageKey, !open);
   }, [open, storageKey]);
   return { open, setOpen, toggle: () => setOpen((value) => !value) };
 }

@@ -8,6 +8,7 @@ import { readLumiSpeechPreference, saveLumiSpeechPreference } from "../lib/lumiP
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
 import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiMultiDialogues, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
+import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
 
 export type ExperienceStudioProps = {
   selected: EmotionId;
@@ -53,6 +54,11 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const [dialogueFilter, setDialogueFilter] = useState<LumiDialogueGroup | "all">("all");
   const [multiDialogues, setMultiDialogues] = useState<LumiKaomojiDialogueEntry[]>(() => readLumiMultiDialogues());
   const [newMultiDialogue, setNewMultiDialogue] = useState<Record<string, string>>({});
+  const [keywordRules, setKeywordRules] = useState<LumiKeywordRule[]>(() => readLumiKeywords());
+  const [keywordStatus, setKeywordStatus] = useState("");
+  const [keywordDraft, setKeywordDraft] = useState("");
+  const [keywordKaomojiDraft, setKeywordKaomojiDraft] = useState("(つ_ <｡)");
+  const [keywordDialogueDraft, setKeywordDialogueDraft] = useState("");
   const lumiKaomoji = lumiKaomojiForEmotion(selected);
 
   const activeGroup = dialogueGroupForEmotion(selected);
@@ -73,15 +79,24 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       setMultiDialogues(customEvent?.detail?.length ? customEvent.detail : readLumiMultiDialogues());
     };
     const onMultiStorage = (event: StorageEvent) => { if (event.key === "lumi_multi_dialogues_data") refreshMultiDialogues(); };
+    const refreshKeywords = (event?: Event) => {
+      const detail = (event as CustomEvent<LumiKeywordRule[]> | undefined)?.detail;
+      setKeywordRules(detail?.length ? detail : readLumiKeywords());
+    };
+    const onKeywordStorage = (event: StorageEvent) => { if (event.key === "lumi_custom_keywords") refreshKeywords(); };
     window.addEventListener(LUMI_CUSTOM_DIALOGUES_EVENT, refresh);
     window.addEventListener("storage", onStorage);
-    window.addEventListener(LUMI_MULTI_DIALOGUES_EVENT, refreshMultiDialogues);
-    window.addEventListener("storage", onMultiStorage);
+      window.addEventListener(LUMI_MULTI_DIALOGUES_EVENT, refreshMultiDialogues);
+      window.addEventListener("storage", onMultiStorage);
+      window.addEventListener(LUMI_KEYWORDS_EVENT, refreshKeywords);
+      window.addEventListener("storage", onKeywordStorage);
     return () => {
       window.removeEventListener(LUMI_CUSTOM_DIALOGUES_EVENT, refresh);
       window.removeEventListener("storage", onStorage);
       window.removeEventListener(LUMI_MULTI_DIALOGUES_EVENT, refreshMultiDialogues);
       window.removeEventListener("storage", onMultiStorage);
+      window.removeEventListener(LUMI_KEYWORDS_EVENT, refreshKeywords);
+      window.removeEventListener("storage", onKeywordStorage);
     };
   }, []);
 
@@ -168,6 +183,45 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     toast.success("Đã khôi phục bộ câu thoại gốc của Lumi.");
   }
 
+  function emotionForKeywordKaomoji(kaomoji: string): EmotionId {
+    if (kaomoji.includes("つ≧") || kaomoji.includes("づ")) return "lonely";
+    if (kaomoji.includes("(´ー") || kaomoji.includes("🥛")) return "calm";
+    if (kaomoji.includes("٩(ˊ") || kaomoji.includes("ง’")) return "focused";
+    if (kaomoji.includes("٩(◕") || kaomoji.includes("ω ^")) return "happy";
+    return "tired";
+  }
+
+  function activateKeywordStatus() {
+    const matched = findLumiKeywordRule(keywordRules, keywordStatus);
+    if (!matched) { toast.info("Chưa tìm thấy từ khóa Lumi phù hợp."); return; }
+    onSelect(emotionForKeywordKaomoji(matched.kaomoji));
+    if (profile && onProfile) onProfile({ ...profile, emotionTheme: emotionForKeywordKaomoji(matched.kaomoji) }, `Lumi đã nhận diện: ${matched.keyword}.`);
+    setActiveMessage(matched.dialogue);
+    speakLumi(matched.dialogue, speechEnabled);
+    toast.success(`Lumi đã kích hoạt ${matched.kaomoji}.`);
+  }
+
+  function addKeywordRule() {
+    const keyword = keywordDraft.trim().slice(0, 180);
+    const dialogue = keywordDialogueDraft.trim().slice(0, 280);
+    if (!keyword || !dialogue) return;
+    setKeywordRules(saveLumiKeywords([...keywordRules, { id: `lumi-keyword-${Date.now()}`, keyword, kaomoji: keywordKaomojiDraft, dialogue }]));
+    setKeywordDraft("");
+    setKeywordDialogueDraft("");
+  }
+
+  function editKeywordRule(rule: LumiKeywordRule) {
+    const keyword = window.prompt("Từ khóa, phân tách bằng dấu phẩy", rule.keyword)?.trim();
+    if (!keyword) return;
+    const dialogue = window.prompt("Lời thoại kích hoạt", rule.dialogue)?.trim();
+    if (!dialogue) return;
+    setKeywordRules(saveLumiKeywords(keywordRules.map((item) => item.id === rule.id ? { ...item, keyword, dialogue } : item)));
+  }
+
+  function removeKeywordRule(id: string) {
+    setKeywordRules(saveLumiKeywords(keywordRules.filter((rule) => rule.id !== id)));
+  }
+
   const visibleDialogues = dialogueFilter === "all" ? dialogues : dialogues.filter((dialogue) => dialogue.group === dialogueFilter);
 
   return <div className="space-y-5" aria-label="Module Kaomoji Lumi bạn đồng hành">
@@ -200,6 +254,20 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Lọc nhóm lời thoại">{[{ id: "all", label: "Tất cả", emoji: "✨" }, ...LUMI_DIALOGUE_GROUPS].map((group) => <button key={group.id} type="button" role="tab" aria-selected={dialogueFilter === group.id} onClick={() => setDialogueFilter(group.id as LumiDialogueGroup | "all")} className={`rounded-full border px-3 py-1.5 text-xs font-black ${dialogueFilter === group.id ? "border-emerald-700 bg-emerald-700 text-white" : "border-emerald-200 bg-white text-emerald-800 dark:border-emerald-300/20 dark:bg-slate-950/30 dark:text-emerald-100"}`}>{group.emoji} {group.label}</button>)}</div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">{visibleDialogues.map((dialogue) => { const group = LUMI_DIALOGUE_GROUPS.find((item) => item.id === dialogue.group); const editing = editingId === dialogue.id; return <article key={dialogue.id} className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.035]"><div className="flex items-start justify-between gap-3"><span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-100">{group?.emoji} {group?.label}</span>{dialogue.isDefault ? <span className="text-[10px] font-bold text-slate-400">Mặc định</span> : null}</div>{editing ? <textarea className="field mt-3 min-h-20 text-sm" value={editingText} maxLength={280} onChange={(event) => setEditingText(event.target.value)} aria-label={`Chỉnh sửa câu thoại ${dialogue.id}`} autoFocus /> : <p className="mt-3 min-h-12 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-100">{dialogue.text}</p>}<div className="mt-3 flex flex-wrap gap-2">{editing ? <><button type="button" className="primary-button px-3 py-2 text-xs" onClick={() => saveEdit(dialogue)}><Save className="h-3.5 w-3.5" />Lưu sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => setEditingId(null)}>Hủy</button></> : <><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => showDialogue(dialogue.text)}><Volume2 className="h-3.5 w-3.5" />Nghe thử giọng đọc AI</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => startEdit(dialogue)}><Save className="h-3.5 w-3.5" />Chỉnh sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs text-rose-700" onClick={() => removeDialogue(dialogue.id)}><Trash2 className="h-3.5 w-3.5" />Xóa</button></>}</div></article>; })}</div>
     </section>
+
+    <PersistentCollapsible storageKey="lumi-keywords" eyebrow="Tự động hóa Lumi" title="Từ khóa phát hiện cảm xúc">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div><p className="text-xs font-black uppercase tracking-[.16em] text-amber-700 dark:text-amber-300">Keyword detection</p><h2 className="mt-1 font-display text-2xl font-black">Tự động kích hoạt Kaomoji & lời thoại</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Nhập một trạng thái như “mệt”, “đuối” hoặc từ khóa bạn tự thêm để Lumi chọn đúng biểu cảm và câu nói.</p></div>
+        <span className="rounded-full bg-amber-50 px-3 py-2 text-xs font-black text-amber-800 dark:bg-amber-400/10 dark:text-amber-100">{keywordRules.length} nhóm từ khóa</span>
+      </div>
+      <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/60 p-3 dark:border-amber-300/15 dark:bg-amber-950/20">
+        <div className="flex gap-2"><input className="field min-w-0 flex-1" value={keywordStatus} onChange={(event) => setKeywordStatus(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") activateKeywordStatus(); }} placeholder="Ví dụ: hôm nay mình hơi mệt…" aria-label="Trạng thái để Lumi phát hiện từ khóa" /><button type="button" className="primary-button shrink-0" onClick={activateKeywordStatus}>Kích hoạt Lumi</button></div>
+        <p className="mt-2 text-xs font-semibold text-slate-500">Từ khóa được quét không phân biệt hoa thường và có thể phân tách bằng dấu phẩy.</p>
+      </div>
+      <div className="mt-4 grid gap-2 rounded-2xl border border-amber-100 bg-white/80 p-3 dark:border-amber-300/15 dark:bg-white/[.035]"><div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"><input className="field" value={keywordDraft} maxLength={180} onChange={(event) => setKeywordDraft(event.target.value)} placeholder="Từ khóa: mệt, đuối, hết pin…" aria-label="Từ khóa Lumi mới" /><select className="field" value={keywordKaomojiDraft} onChange={(event) => setKeywordKaomojiDraft(event.target.value)} aria-label="Kaomoji kích hoạt">{multiDialogues.map((entry) => <option key={entry.kaomoji} value={entry.kaomoji}>{entry.kaomoji} · {entry.description}</option>)}</select></div><div className="mt-2 flex gap-2"><input className="field min-w-0 flex-1" value={keywordDialogueDraft} maxLength={280} onChange={(event) => setKeywordDialogueDraft(event.target.value)} placeholder="Lời thoại khi phát hiện từ khóa…" aria-label="Lời thoại từ khóa Lumi mới" /><button type="button" className="primary-button shrink-0" onClick={addKeywordRule}><Plus className="h-4 w-4" />Thêm từ khóa mới</button></div></div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">{keywordRules.map((rule) => <article key={rule.id} className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.035]"><div className="flex items-start gap-3"><div className="grid min-h-12 min-w-24 place-items-center rounded-2xl bg-amber-500 px-2 py-2 text-center font-mono text-sm font-black text-white">{rule.kaomoji}</div><div className="min-w-0 flex-1"><p className="text-xs font-black uppercase tracking-[.12em] text-amber-700 dark:text-amber-300">{rule.keyword}</p><p className="mt-2 text-sm font-semibold leading-6">{rule.dialogue}</p></div></div><div className="mt-3 flex flex-wrap gap-2"><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => { setActiveMessage(rule.dialogue); speakLumi(rule.dialogue, speechEnabled); }}><Volume2 className="h-3.5 w-3.5" />Nghe thử</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => editKeywordRule(rule)}><Save className="h-3.5 w-3.5" />Chỉnh sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs text-rose-700" onClick={() => removeKeywordRule(rule.id)}><Trash2 className="h-3.5 w-3.5" />Xóa</button></div></article>)}</div>
+      <div className="mt-3 flex items-center justify-between gap-3"><p className="text-xs text-slate-500">Lưu tại <code>lumi_custom_keywords</code> và đồng bộ ngay trong tab.</p><button type="button" className="secondary-button text-xs" onClick={() => setKeywordRules(saveLumiKeywords(DEFAULT_LUMI_KEYWORDS))}>Khôi phục từ khóa gốc</button></div>
+    </PersistentCollapsible>
 
     <PersistentCollapsible storageKey="lumi-multi-dialogues" eyebrow="Kaomoji Lumi" title="Quản lý nhiều câu thoại theo từng biểu tượng">
       <div className="flex flex-wrap items-start justify-between gap-3">

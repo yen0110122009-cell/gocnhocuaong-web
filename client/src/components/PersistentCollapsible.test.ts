@@ -12,6 +12,8 @@ describe("PersistentCollapsible contract", () => {
 
   it("lưu trạng thái độc lập và có nút truy cập được bằng bàn phím", () => {
     expect(source).toContain("gocnhocuaong:collapse:${storageKey}");
+    expect(source).toContain('app_sections_collapsed_state');
+    expect(source).toContain("writeCollapsedState(storageKey, !open)");
     expect(source).toContain("aria-expanded={open}");
     expect(source).toContain("localStorage.setItem");
     expect(source).toContain('gocnhocuaong:collapse-all');
