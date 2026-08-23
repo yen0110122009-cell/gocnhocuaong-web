@@ -8,7 +8,8 @@ describe("Focus Hub learning support", () => {
     expect(source).toContain("Ôn lại thông minh");
     expect(source).toContain("Học 10 phút");
     expect(source).toContain("Kế hoạch tự quản lý");
-    expect(source).toContain("Mảnh ghép Kế hoạch");
+    expect(source).not.toContain("Mảnh ghép Kế hoạch");
+    expect(source).not.toContain("Từ mục tiêu đã nhận");
     expect(source).toContain("Không cần hoàn hảo");
   });
 });

@@ -258,7 +258,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   }, [showLumiDialog]);
   useEffect(() => {
     if (!isVisible) return;
-    const onSpeechUnavailable = () => toast.warning("Chưa tìm thấy voice tiếng Việt vi-VN trong trình duyệt. Lumi đã chặn fallback để không đọc sai ngôn ngữ.", { duration: 7000 });
+    const onSpeechUnavailable = () => undefined;
     window.addEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
     return () => window.removeEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
   }, [isVisible]);

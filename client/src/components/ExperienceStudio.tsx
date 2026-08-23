@@ -56,7 +56,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     setSpeechEnabled(readLumiSpeechPreference(profile?.lumiSpeechEnabled !== false));
   }, [profile?.lumiSpeechEnabled]);
   useEffect(() => {
-    const onSpeechUnavailable = () => toast.warning("Trình duyệt chưa có giọng đọc tiếng Việt vi-VN. Lumi không phát giọng mặc định để tránh đọc sai ngôn ngữ; hãy cài/bật voice tiếng Việt trong hệ điều hành hoặc Chrome.", { duration: 7000 });
+    const onSpeechUnavailable = () => undefined;
     window.addEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
     return () => window.removeEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
   }, []);
