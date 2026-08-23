@@ -1994,28 +1994,30 @@ body::after,
 .festive-ambient-diagonal { animation: festive-ambient-diagonal 7.4s linear infinite; }
 .festive-ambient-bounce { animation: festive-ambient-bounce 2.8s cubic-bezier(.34, 1.56, .64, 1) infinite; }
 .festive-ambient-rest { opacity: .88; }
-.festive-ambient-decorations { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
-.festive-visual-effects { position: fixed; inset: 0; z-index: 65; pointer-events: none; overflow: hidden; }
-.festive-ground { pointer-events: none; }
+#vfx-stage { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+.festive-visual-effects { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.festive-ground { position: absolute; inset-inline: 0; pointer-events: none; }
 .festive-ground-item, .festive-mascot, .festive-mascot-reset { pointer-events: auto; }
 .festive-ground-item { display: grid; place-items: center; line-height: 1; filter: drop-shadow(0 7px 9px rgb(0 0 0 / .2)); }
 .festive-ground-item { transition: left 220ms var(--ease-out), top 220ms var(--ease-out), filter 160ms var(--ease-out); }
 .festive-ground-item.is-dragging { transition: none; filter: drop-shadow(0 14px 16px rgb(0 0 0 / .3)); }
-.festive-physics-bounce:not(.is-dragging) { animation: festive-ground-bounce 1.8s cubic-bezier(.34, 1.56, .64, 1) infinite; }
-.festive-physics-orbit:not(.is-dragging) { animation: festive-ground-orbit 4.6s ease-in-out infinite; }
-.festive-physics-float:not(.is-dragging) { animation: festive-ground-float 3.2s ease-in-out infinite; }
-.festive-physics-snap:not(.is-dragging) { animation: festive-ground-pulse 2.4s ease-in-out infinite; }
-@keyframes festive-ground-bounce { 50% { transform: translateY(-10px) scale(1.035); } }
-@keyframes festive-ground-orbit { 50% { transform: translate(7px, -7px) rotate(5deg); } }
-@keyframes festive-ground-float { 50% { transform: translateY(-8px) rotate(-2deg); } }
-@keyframes festive-ground-pulse { 50% { transform: scale(1.04); filter: drop-shadow(0 0 12px var(--festive-light-accent, #f4b942)); } }
+.festive-physics-gravity-heavy.is-released { animation: festive-heavy-impact 620ms cubic-bezier(.25,.8,.25,1); }
+.festive-physics-float-feather.is-released { animation: festive-feather-drift 3.5s ease-in-out infinite; }
+.festive-physics-sticker-pin.is-released { transform: rotate(-2deg) scale(.98); filter: drop-shadow(0 4px 4px rgb(0 0 0 / .18)); }
+.festive-physics-bounce-elastic.is-released { animation: festive-elastic-bounce 760ms cubic-bezier(.34,1.56,.64,1); }
+.festive-physics-vanish-ghost.is-released { animation: festive-ghost-vanish 1.5s cubic-bezier(.23,1,.32,1) forwards; }
+@keyframes festive-heavy-impact { 0% { transform: translateY(-38px) scale(1.03); } 72% { transform: translateY(0) scale(.93); } 100% { transform: translateY(0) scale(1); } }
+@keyframes festive-feather-drift { 50% { transform: translate3d(18px, -26px, 0) rotate(5deg); } }
+@keyframes festive-elastic-bounce { 0% { transform: translateY(-55px) scale(.94); } 55% { transform: translateY(0) scale(1.1); } 74% { transform: translateY(-19px) scale(.98); } 100% { transform: translateY(0) scale(1); } }
+@keyframes festive-ghost-vanish { to { transform: scale(.18) translateY(-32px); opacity: 0; } }
 .min-h-screen > aside,
 .min-h-screen > .xl\:pl-72 > header { z-index: 100 !important; }
 .min-h-screen > button[aria-label="Đóng menu"] { z-index: 95 !important; }
 @media (prefers-reduced-motion: reduce) {
   .festive-ground-item { transition: none !important; animation: none !important; }
 }
-.festive-mascot { position: fixed; }
+.festive-mascot { position: absolute; display: grid; place-items: center; min-width: 130px; min-height: 130px; line-height: 1; }
+.festive-mascot.mascot { width: 130px !important; height: 130px !important; font-size: 130px !important; }
 .festive-mascot-emoji.is-dragging { animation-play-state: paused; }
 .festive-particle { position: fixed; display: block; font-size: 1.1rem; animation: festive-particle-out 600ms cubic-bezier(.23,1,.32,1) forwards; }
 .festive-ripple { position: fixed; border: 2px solid var(--festive-light-accent, #f4b942); border-radius: 999px; transform: translate(-50%, -50%) scale(.15); opacity: .9; animation: festive-ripple-out 650ms ease-out forwards; }

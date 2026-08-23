@@ -19,20 +19,23 @@ describe("festive VFX contract", () => {
     expect(layer).toContain("* 28");
     expect(layer).toContain("setPointerCapture");
     expect(layer).toContain("releasePointerCapture");
-    expect(layer).toContain('"ground", "float", "bounce", "orbit", "snap"');
-    expect(layer).toContain('physics === "bounce"');
-    expect(layer).toContain('physics === "orbit"');
-    expect(layer).toContain('physics === "snap"');
+    expect(layer).toContain('"gravity-heavy", "float-feather", "sticker-pin", "bounce-elastic", "vanish-ghost"');
+    expect(layer).toContain('physics === "gravity-heavy"');
+    expect(layer).toContain('physics === "bounce-elastic"');
+    expect(layer).toContain('physics === "vanish-ghost"');
     expect(layer).toContain("active.velocityX * 80");
     expect(layer).toContain("bottomGap");
     expect(layer).toContain("displaySize = clamp(Math.max(100, size * 2), 100, 140)");
-    expect(layer).toContain("const mascotSize = config ? clamp(pixels(config.mascot.size), 100, 140) : 0");
+    expect(layer).toContain("const mascotSize = config ? 130 : 0");
+    expect(layer).toContain("bindMascotDrag(mascot)");
+    expect(layer).toContain("width: 130, height: 130, fontSize: 130");
     expect(layer).toContain("stableHash");
   });
 
-  it("keeps visual overlays below navigation and never pauses unrelated learning audio", () => {
-    expect(css).toContain(".festive-ambient-decorations { position: fixed; inset: 0; z-index: 50;");
-    expect(css).toContain(".festive-visual-effects { position: fixed; inset: 0; z-index: 65;");
+  it("keeps one non-blocking VFX stage below navigation and never pauses unrelated learning audio", () => {
+    expect(css).toContain("#vfx-stage { position: fixed; inset: 0; z-index: 50; pointer-events: none;");
+    expect(css).toContain(".festive-visual-effects { position: absolute; inset: 0; z-index: 1; pointer-events: none;");
+    expect(css).toContain(".festive-ground { position: absolute; inset-inline: 0; pointer-events: none;");
     expect(css).toContain(".min-h-screen > aside");
     expect(css).toContain("z-index: 100 !important");
     expect(layer).toContain("zIndex: 60");

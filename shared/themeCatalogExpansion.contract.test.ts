@@ -50,7 +50,7 @@ describe("expanded theme catalog contract", () => {
     expect(normalized.personalStudyPresets[0]?.ambientScene).toBe("quoc-khanh-2-9");
   });
 
-  it("gives every festive theme a bounded emoji-only decoration layer", () => {
+  it("gives every festive theme a bounded emoji-only interactive ground layer", () => {
     const renderer = readFileSync(resolve(root, "client/src/components/FestiveThemeLayer.tsx"), "utf8");
     const css = styles();
     for (const theme of FESTIVE_THEME_CONFIGS) {
@@ -60,13 +60,13 @@ describe("expanded theme catalog contract", () => {
       expect(decorations.reduce((total, decoration) => total + decoration.count, 0)).toBeLessThanOrEqual(35);
       expect(decorations.every((decoration) => !decoration.emoji.includes("http"))).toBe(true);
     }
-    expect(renderer).toContain("festive-ambient-decorations");
-    expect(renderer).toContain("FESTIVE_THEME_DECORATIONS");
-    expect(css).toContain(".festive-ambient-decorations { position: fixed; inset: 0; z-index: 50; overflow: hidden; pointer-events: none; }");
-    expect(css).toContain("festive-ambient-fall");
-    expect(css).toContain("festive-ambient-bounce");
+    expect(renderer).toContain("groundItems");
+    expect(renderer).toContain("groundContainer.items");
+    expect(renderer).toContain('id="vfx-stage"');
+    expect(css).toContain("#vfx-stage { position: fixed; inset: 0; z-index: 50; pointer-events: none;");
+    expect(css).toContain(".festive-ground-item");
     expect(Object.values(FESTIVE_THEME_DECORATIONS).flat().some((decoration) => decoration.motion === "bounce")).toBe(true);
-    expect(css).toContain(".festive-ambient-decoration { animation: none !important; }");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
   });
 
   it("maps only directly supplied audio URLs and keeps the rest metadata-only", () => {

@@ -414,3 +414,11 @@
 - [x] Lưu cấu hình độc lập cho Bắt đầu phiên học, Kết thúc phiên học, Bắt đầu nghỉ, Kết thúc nghỉ: bật/tắt, âm báo và âm lượng chung 0–200%.
 - [x] Bổ sung bảng cài đặt có chọn âm, công tắc và Nghe thử cho từng sự kiện; tăng mặc định âm báo để rõ, to và dài hơn.
 - [x] Bổ sung regression, chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.
+
+## Kế hoạch ngày từ câu lệnh AI và sửa MOV/VFX
+- [x] Thêm khung nhập việc cần hoàn thành hôm nay, tạo prompt có thể sao chép và chuyển câu lệnh thành bản nháp Kế hoạch ngày có thể chỉnh sửa trước khi lưu.
+- [x] Duy trì chế độ khách không lưu dữ liệu và không gọi dịch vụ AI khi chưa có thao tác chủ đích của người dùng.
+- [x] Khôi phục linh vật MOV trong `#vfx-stage`: hiển thị 130px, Pointer Capture, gắn lại kéo-thả khi đổi lựa chọn và tự đi dạo toàn màn hình khi không kéo.
+- [x] Chuẩn hóa đúng ba layer: nội dung, VFX stage và menu/header; loại lớp phủ/icon lơ lửng dư thừa, giữ VFX dưới menu.
+- [x] Xác minh và bảo vệ năm physics khi thả icon cùng fallback Web Audio an toàn sau cử chỉ đầu tiên.
+- [x] Bổ sung regression, chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.

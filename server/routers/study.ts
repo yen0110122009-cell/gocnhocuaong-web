@@ -148,6 +148,50 @@ export const studyRouter = router({
     }),
   }),
   ai: router({
+    generateDailyPlan: publicProcedure.input(tokenInput.extend({ request: z.string().min(8).max(4000) })).mutation(async ({ input }) => {
+      try {
+        const { account } = await getStudySession(input.token);
+        if (account.isGuest) throw new Error("Chế độ khách chỉ cho phép xem. Hãy đăng nhập để tạo và lưu Kế hoạch với AI.");
+        const schema = {
+          type: "object",
+          properties: {
+            overview: { type: "string" },
+            items: {
+              type: "array",
+              minItems: 1,
+              maxItems: 10,
+              items: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  subject: { type: "string" },
+                  course: { type: "string" },
+                  notes: { type: "string" },
+                  estimatedMinutes: { type: "integer", minimum: 5, maximum: 480 },
+                },
+                required: ["title", "subject", "course", "notes", "estimatedMinutes"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["overview", "items"],
+          additionalProperties: false,
+        };
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "Bạn là trợ lý lập Kế hoạch học tập bằng tiếng Việt. Chỉ trả về JSON đúng schema. Chia yêu cầu hôm nay thành các việc cụ thể, khả thi, có thời lượng; không tự thêm deadline, dữ liệu cá nhân hoặc phần thưởng. Mỗi mục có title ngắn, subject/course có thể là chuỗi rỗng nếu người dùng không nêu, notes nêu bước thực hiện rõ ràng." },
+            { role: "user", content: `Hãy lập Kế hoạch cho hôm nay từ yêu cầu sau:\n${input.request}` },
+          ],
+          response_format: { type: "json_schema", json_schema: { name: "daily_study_plan", strict: true, schema } },
+          maxTokens: 3000,
+        });
+        const content = response.choices?.[0]?.message?.content;
+        const text = typeof content === "string" ? content : JSON.stringify(content ?? {});
+        const parsed = JSON.parse(text) as { overview: string; items: Array<{ title: string; subject: string; course: string; notes: string; estimatedMinutes: number }> };
+        if (!Array.isArray(parsed.items) || parsed.items.length === 0) throw new Error("AI chưa tạo được mục Kế hoạch hợp lệ. Hãy thử mô tả rõ hơn.");
+        return parsed;
+      } catch (error) { return asTrpcError(error); }
+    }),
     generateFromDocument: publicProcedure.input(tokenInput.extend({
       mode: z.enum(["cards", "quiz", "both"]),
       prompt: z.string().min(20).max(30000),

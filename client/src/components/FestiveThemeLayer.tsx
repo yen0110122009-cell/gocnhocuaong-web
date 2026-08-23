@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
-import { FESTIVE_THEME_DECORATIONS, festiveThemeFor, type FestiveClickEffect, type FestiveEffectConfig, type FestiveThemeConfig } from "@/lib/festiveThemes";
+import { festiveThemeFor, type FestiveEffectConfig, type FestiveThemeConfig } from "@/lib/festiveThemes";
 
 type Point = { x: number; y: number };
 type Particle = { id: number; x: number; y: number; emoji: string; offsetX: number; offsetY: number };
 type Ripple = { id: number; x: number; y: number; size: number };
-type ReleasePhysics = "ground" | "float" | "bounce" | "orbit" | "snap";
+type ReleasePhysics = "gravity-heavy" | "float-feather" | "sticker-pin" | "bounce-elastic" | "vanish-ghost";
 
-const RELEASE_PHYSICS: readonly ReleasePhysics[] = ["ground", "float", "bounce", "orbit", "snap"];
+const RELEASE_PHYSICS: readonly ReleasePhysics[] = ["gravity-heavy", "float-feather", "sticker-pin", "bounce-elastic", "vanish-ghost"];
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 const pixels = (value: string) => Number.parseFloat(value) || 24;
@@ -24,11 +24,14 @@ const pointFor = (position: { top: string; left: string }, size: number): Point 
   y: clamp(window.innerHeight * (Number.parseFloat(position.top) / 100), 8, Math.max(8, window.innerHeight - size - 8)),
 });
 
-function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (point: Point) => void, physics: ReleasePhysics = "float") {
+function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (point: Point) => void, physics: ReleasePhysics = "float-feather") {
   const [position, setPosition] = useState(initial);
   const [dragging, setDragging] = useState(false);
+  const [releasedPhysics, setReleasedPhysics] = useState<ReleasePhysics | null>(null);
   const drag = useRef<{ id: number; offsetX: number; offsetY: number; moved: boolean; lastX: number; lastY: number; lastAt: number; velocityX: number; velocityY: number } | null>(null);
+  const releaseTimeout = useRef<number | undefined>(undefined);
   useEffect(() => setPosition(initial), [initial.x, initial.y]);
+  useEffect(() => () => window.clearTimeout(releaseTimeout.current), []);
   const move = (clientX: number, clientY: number, offsetX: number, offsetY: number) => setPosition({
     x: clamp(clientX - offsetX, 6, Math.max(6, window.innerWidth - size - 6)),
     y: clamp(clientY - offsetY, 6, Math.max(6, window.innerHeight - size - 6)),
@@ -38,6 +41,8 @@ function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (po
     onPointerDown: (event: React.PointerEvent<HTMLElement>) => {
       if (!enabled) return;
       const rect = event.currentTarget.getBoundingClientRect();
+      window.clearTimeout(releaseTimeout.current);
+      setReleasedPhysics(null);
       drag.current = { id: event.pointerId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top, moved: false, lastX: event.clientX, lastY: event.clientY, lastAt: performance.now(), velocityX: 0, velocityY: 0 };
       event.currentTarget.setPointerCapture(event.pointerId);
       setDragging(true);
@@ -62,23 +67,21 @@ function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (po
       drag.current = null;
       setDragging(false);
       if (!active.moved) onTap({ x: event.clientX, y: event.clientY });
-      if (active.moved) setPosition((current) => {
+      if (active.moved) {
+        setReleasedPhysics(physics);
+        setPosition((current) => {
         const maxX = Math.max(6, window.innerWidth - size - 6);
         const maxY = Math.max(6, window.innerHeight - size - 6);
         const inertialX = clamp(current.x + active.velocityX * 80, 6, maxX);
         const inertialY = clamp(current.y + active.velocityY * 54, 6, maxY);
-        if (physics === "ground") return { x: inertialX, y: maxY };
-        if (physics === "bounce") return { x: inertialX, y: clamp(inertialY - Math.min(84, Math.abs(active.velocityY) * 96), 6, maxY) };
-        if (physics === "orbit") {
-          const centerX = Math.max(6, (window.innerWidth - size) / 2);
-          const centerY = Math.max(6, (window.innerHeight - size) / 2);
-          const angle = Math.atan2(inertialY - centerY, inertialX - centerX) + Math.sign(active.velocityX || 1) * .35;
-          const radius = clamp(Math.hypot(inertialX - centerX, inertialY - centerY), 56, Math.min(window.innerWidth, window.innerHeight) * .36);
-          return { x: clamp(centerX + Math.cos(angle) * radius, 6, maxX), y: clamp(centerY + Math.sin(angle) * radius, 6, maxY) };
+        if (physics === "gravity-heavy" || physics === "bounce-elastic") return { x: inertialX, y: maxY };
+        if (physics === "vanish-ghost") {
+          releaseTimeout.current = window.setTimeout(() => { setPosition(initial); setReleasedPhysics(null); }, 1500);
+          return { x: inertialX, y: inertialY };
         }
-        if (physics === "snap") return { x: clamp(Math.round(inertialX / 24) * 24, 6, maxX), y: clamp(Math.round(inertialY / 24) * 24, 6, maxY) };
         return { x: inertialX, y: inertialY };
       });
+      }
     },
     onPointerCancel: (event: React.PointerEvent<HTMLElement>) => {
       const active = drag.current;
@@ -95,9 +98,13 @@ function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (po
       const direction = directions[event.key];
       setPosition((current) => ({ x: clamp(current.x + direction.x, 6, Math.max(6, window.innerWidth - size - 6)), y: clamp(current.y + direction.y, 6, Math.max(6, window.innerHeight - size - 6)) }));
     },
-    reset: () => setPosition(initial),
+    reset: () => { window.clearTimeout(releaseTimeout.current); setReleasedPhysics(null); setPosition(initial); },
+    wander: () => setPosition({ x: clamp(Math.random() * Math.max(8, window.innerWidth - size - 8), 8, Math.max(8, window.innerWidth - size - 8)), y: clamp(Math.random() * Math.max(8, window.innerHeight - size - 8), 8, Math.max(8, window.innerHeight - size - 8)) }),
+    releasedPhysics,
   };
 }
+
+function bindMascotDrag(handlers: Pick<ReturnType<typeof useDraggable>, "onPointerDown" | "onPointerMove" | "onPointerUp" | "onPointerCancel" | "onKeyDown">) { return handlers; }
 
 function visualClass(effect?: FestiveEffectConfig) {
   return effect ? `festive-effect-${effect.type}` : "";
@@ -110,7 +117,7 @@ export function FestiveThemeLayer({ scene, soundEnabled = true }: { scene?: stri
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const effectTimeout = useRef<number | undefined>(undefined);
   const config = theme;
-  const mascotSize = config ? clamp(pixels(config.mascot.size), 100, 140) : 0;
+  const mascotSize = config ? 130 : 0;
   const initialMascotPosition = useMemo(() => config ? pointFor(config.mascot.initialPosition, mascotSize) : { x: 0, y: 0 }, [config?.id, mascotSize]);
   const triggerEffect = (clickEffect: FestiveEffectConfig | undefined, point: Point, emoji: string, allowRipple = false) => {
     if (!clickEffect) return;
@@ -163,7 +170,7 @@ export function FestiveThemeLayer({ scene, soundEnabled = true }: { scene?: stri
 }
 
 function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, triggerEffect, effect, particles, ripples }: { theme: FestiveThemeConfig; mascotSize: number; initialMascotPosition: Point; triggerEffect: (effect: FestiveEffectConfig | undefined, point: Point, emoji: string, ripple?: boolean) => void; effect: { id: number; config: FestiveEffectConfig } | null; particles: Particle[]; ripples: Ripple[] }) {
-  const mascot = useDraggable(initialMascotPosition, mascotSize, theme.mascot.draggable, (point) => triggerEffect(theme.mascot.clickEffect, point, theme.mascot.emoji), "float");
+  const mascot = useDraggable(initialMascotPosition, mascotSize, theme.mascot.draggable, (point) => triggerEffect(theme.mascot.clickEffect, point, theme.mascot.emoji), "float-feather");
   const groundItems = useMemo(() => {
     const totalDensity = theme.groundContainer.items.reduce((sum, item) => sum + item.density, 0) || 1;
     const counts = theme.groundContainer.items.map((item) => Math.max(1, Math.round((item.density / totalDensity) * 28)));
@@ -181,16 +188,14 @@ function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, trigger
       physics: RELEASE_PHYSICS[index % RELEASE_PHYSICS.length],
     }));
   }, [theme.id]);
-  const ambientDecorations = useMemo(() => (FESTIVE_THEME_DECORATIONS[theme.id] ?? []).flatMap((decoration, groupIndex) => Array.from({ length: decoration.count }, (_, index) => ({
-    ...decoration,
-    id: `${theme.id}-${groupIndex}-${index}`,
-    left: `${(groupIndex * 19 + index * 37 + 7) % 96}%`,
-    top: decoration.motion === "rest" ? `${84 + ((index * 7) % 12)}%` : `${(groupIndex * 23 + index * 17 + 4) % 78}%`,
-    delay: `${-((groupIndex * 0.9 + index * 0.41) % 5.8)}s`,
-  }))), [theme.id]);
-  return <>
-    <div className="festive-ambient-decorations" aria-hidden="true">{ambientDecorations.map((decoration) => <span key={decoration.id} className={`festive-ambient-decoration festive-ambient-${decoration.motion}`} style={{ left: decoration.left, top: decoration.top, fontSize: decoration.size, animationDelay: decoration.delay }}>{decoration.emoji}</span>)}</div>
-    <button type="button" className="festive-mascot" aria-label={`Linh vật ${theme.displayName}; kéo thả hoặc dùng phím mũi tên để di chuyển`} title="Kéo thả linh vật · mũi tên để di chuyển" style={{ width: mascotSize, height: mascotSize, left: mascot.position.x, top: mascot.position.y, zIndex: 60, touchAction: "none" }} onPointerDown={mascot.onPointerDown} onPointerMove={mascot.onPointerMove} onPointerUp={mascot.onPointerUp} onPointerCancel={mascot.onPointerCancel} onKeyDown={mascot.onKeyDown}>
+  useEffect(() => {
+    if (!theme.mascot.draggable || mascot.dragging) return;
+    const interval = window.setInterval(() => mascot.wander(), 4500);
+    return () => window.clearInterval(interval);
+  }, [theme.id, theme.mascot.draggable, mascot.dragging]);
+  const mascotDragBindings = bindMascotDrag(mascot);
+  return <div id="vfx-stage" aria-label="Hiệu ứng lễ hội tương tác">
+    <button type="button" className="festive-mascot mascot" aria-label={`Linh vật ${theme.displayName}; kéo thả hoặc dùng phím mũi tên để di chuyển`} title="Kéo thả linh vật · mũi tên để di chuyển" style={{ width: 130, height: 130, fontSize: 130, left: mascot.position.x, top: mascot.position.y, zIndex: 60, touchAction: "none" }} {...mascotDragBindings}>
       <span key={effect?.id} className={`festive-mascot-emoji ${mascot.dragging ? "is-dragging" : ""} ${theme.mascot.animation ? `festive-auto-${theme.mascot.animation}` : ""} ${effect ? visualClass(effect.config) : ""}`} style={{ "--festive-intensity": effect?.config.intensity ?? 1.12, "--festive-duration": `${effect?.config.durationMs ?? 400}ms` } as React.CSSProperties}>{theme.mascot.emoji}</span>
     </button>
     <button type="button" className="festive-mascot-reset" aria-label="Đặt lại vị trí linh vật lễ hội" title="Đặt lại vị trí linh vật" style={{ left: mascot.position.x + mascotSize - 18, top: mascot.position.y - 12, zIndex: 61 }} onClick={mascot.reset}><RotateCcw aria-hidden="true" size={14} /></button>
@@ -198,7 +203,7 @@ function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, trigger
       {groundItems.map((item) => <GroundItem key={item.id} item={item} left={item.left} bottomGap={item.bottomGap} physics={item.physics} onTrigger={(point) => triggerEffect(item.clickEffect, point, item.emoji, theme.groundContainer.rippleEffect === true)} />)}
     </div>
     <div className="festive-visual-effects" aria-hidden="true">{particles.map((particle) => <span key={particle.id} className="festive-particle" style={{ left: particle.x, top: particle.y, "--particle-x": `${particle.offsetX}px`, "--particle-y": `${particle.offsetY}px` } as React.CSSProperties}>{particle.emoji}</span>)}{ripples.map((ripple) => <span key={ripple.id} className="festive-ripple" style={{ left: ripple.x, top: ripple.y, width: ripple.size, height: ripple.size }} />)}</div>
-  </>;
+  </div>;
 }
 
 function GroundItem({ item, left, bottomGap, physics, onTrigger }: { item: FestiveThemeConfig["groundContainer"]["items"][number] & { id: string }; left: string; bottomGap: number; physics: ReleasePhysics; onTrigger: (point: Point) => void }) {
@@ -207,5 +212,5 @@ function GroundItem({ item, left, bottomGap, physics, onTrigger }: { item: Festi
   const interactiveSize = displaySize + 12;
   const initial = useMemo(() => ({ x: clamp(window.innerWidth * (Number.parseFloat(left) / 100), 6, Math.max(6, window.innerWidth - interactiveSize - 6)), y: clamp(window.innerHeight - interactiveSize - bottomGap, 6, Math.max(6, window.innerHeight - interactiveSize - 6)) }), [bottomGap, interactiveSize, left]);
   const draggable = useDraggable(initial, interactiveSize, item.draggable, (point) => onTrigger(point), physics);
-  return <button type="button" className={`festive-ground-item festive-physics-${physics} ${draggable.dragging ? "is-dragging" : ""}`} data-physics={physics} tabIndex={0} aria-label={`Đồ vật lễ hội ${item.emoji}; có thể kéo thả`} style={{ left: draggable.position.x, top: draggable.position.y, width: interactiveSize, height: interactiveSize, fontSize: displaySize, touchAction: "none" }} onPointerDown={draggable.onPointerDown} onPointerMove={draggable.onPointerMove} onPointerUp={draggable.onPointerUp} onPointerCancel={draggable.onPointerCancel} onKeyDown={draggable.onKeyDown}>{item.emoji}</button>;
+  return <button type="button" className={`festive-ground-item festive-physics-${physics} ${draggable.releasedPhysics === physics ? "is-released" : ""} ${draggable.dragging ? "is-dragging" : ""}`} data-physics={physics} tabIndex={0} aria-label={`Đồ vật lễ hội ${item.emoji}; có thể kéo thả`} style={{ left: draggable.position.x, top: draggable.position.y, width: interactiveSize, height: interactiveSize, fontSize: displaySize, touchAction: "none" }} onPointerDown={draggable.onPointerDown} onPointerMove={draggable.onPointerMove} onPointerUp={draggable.onPointerUp} onPointerCancel={draggable.onPointerCancel} onKeyDown={draggable.onKeyDown}>{item.emoji}</button>;
 }

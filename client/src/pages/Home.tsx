@@ -292,7 +292,7 @@ function CleanLearningProgress({ profile, onView }: { profile: ProfileState; onV
 function Views({ view, account, profile, config, token, onView, onProfile, onConfig, onLogout }: { view: View; account: StudyAccount; profile: ProfileState; config: AppConfig; token: string; onView: (v: View) => void; onProfile: (p: ProfileState, m?: string) => void; onConfig: (c: AppConfig, m?: string) => void; onLogout: () => void }) {
   let content: React.ReactNode;
   if (view === "dashboard") { content = <CleanDashboard account={account} profile={profile} onView={onView} />; }
-  else if (view === "plans") { content = <StudyPlanDashboard profile={profile} onProfile={onProfile} onOpenPomodoro={() => onView("pomodoro")} />; }
+  else if (view === "plans") { content = <StudyPlanDashboard profile={profile} onProfile={onProfile} token={token} isGuest={account.isGuest} onOpenPomodoro={() => onView("pomodoro")} />; }
   else if (view === "lumi") { content = <LumiCompanion profile={profile} config={config} onProfile={onProfile} onView={onView} />; }
   else if (view === "focus") { content = <FocusHub profile={profile} config={config} onView={onView} onProfile={onProfile} />; }
   else if (view === "pomodoro") { content = null; }
