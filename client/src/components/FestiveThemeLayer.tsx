@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
-import { festiveThemeFor, type FestiveEffectConfig, type FestiveThemeConfig } from "@/lib/festiveThemes";
+import { FESTIVE_THEME_DECORATIONS, festiveThemeFor, type FestiveEffectConfig, type FestiveThemeConfig } from "@/lib/festiveThemes";
 
 type Point = { x: number; y: number };
 type Particle = { id: number; x: number; y: number; emoji: string; offsetX: number; offsetY: number };
@@ -19,10 +19,18 @@ function readableInk(color: string) {
   const luminance = channels.map((channel) => channel <= .03928 ? channel / 12.92 : Math.pow((channel + .055) / 1.055, 2.4)).reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
   return luminance > .34 ? "#172033" : "#f8fafc";
 }
+const viewportValue = (value: string, viewport: number) => {
+  const normalized = value.trim();
+  if (normalized.endsWith("px")) return Number.parseFloat(normalized) || 0;
+  if (normalized.endsWith("vw") || normalized.endsWith("vh")) return viewport * ((Number.parseFloat(normalized) || 0) / 100);
+  return viewport * ((Number.parseFloat(normalized) || 0) / 100);
+};
 const pointFor = (position: { top: string; left: string }, size: number): Point => ({
-  x: clamp(window.innerWidth * (Number.parseFloat(position.left) / 100), 8, Math.max(8, window.innerWidth - size - 8)),
-  y: clamp(window.innerHeight * (Number.parseFloat(position.top) / 100), 8, Math.max(8, window.innerHeight - size - 8)),
+  x: clamp(viewportValue(position.left, window.innerWidth), 8, Math.max(8, window.innerWidth - size - 8)),
+  y: clamp(viewportValue(position.top, window.innerHeight), 8, Math.max(8, window.innerHeight - size - 8)),
 });
+
+type WanderPattern = "random" | "edge-vertical" | "circular" | "small-orbit" | "horizontal";
 
 function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (point: Point) => void, physics: ReleasePhysics = "float-feather") {
   const [position, setPosition] = useState(initial);
@@ -99,7 +107,25 @@ function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (po
       setPosition((current) => ({ x: clamp(current.x + direction.x, 6, Math.max(6, window.innerWidth - size - 6)), y: clamp(current.y + direction.y, 6, Math.max(6, window.innerHeight - size - 6)) }));
     },
     reset: () => { window.clearTimeout(releaseTimeout.current); setReleasedPhysics(null); setPosition(initial); },
-    wander: () => setPosition({ x: clamp(Math.random() * Math.max(8, window.innerWidth - size - 8), 8, Math.max(8, window.innerWidth - size - 8)), y: clamp(Math.random() * Math.max(8, window.innerHeight - size - 8), 8, Math.max(8, window.innerHeight - size - 8)) }),
+    wander: (pattern: WanderPattern = "random") => setPosition((current) => {
+      const maxX = Math.max(8, window.innerWidth - size - 8);
+      const maxY = Math.max(8, window.innerHeight - size - 8);
+      const phase = Date.now() / 1000;
+      if (pattern === "edge-vertical") {
+        const x = Math.round(phase / 5) % 2 === 0 ? 12 : maxX - 12;
+        return { x: clamp(x, 8, maxX), y: clamp(90 + ((Math.sin(phase / 5) + 1) / 2) * Math.max(0, maxY - 90), 8, maxY) };
+      }
+      if (pattern === "circular" || pattern === "small-orbit") {
+        const radius = pattern === "small-orbit" ? 80 : Math.min(150, Math.max(90, window.innerWidth * .16));
+        const centerX = maxX / 2;
+        const centerY = Math.max(100, maxY * .36);
+        return { x: clamp(centerX + Math.cos(phase / (pattern === "small-orbit" ? 2.5 : 4)) * radius, 8, maxX), y: clamp(centerY + Math.sin(phase / (pattern === "small-orbit" ? 2.5 : 4)) * radius, 8, maxY) };
+      }
+      if (pattern === "horizontal") {
+        return { x: clamp(((Math.sin(phase / 6) + 1) / 2) * maxX, 8, maxX), y: clamp(current.y, 8, maxY) };
+      }
+      return { x: clamp(Math.random() * maxX, 8, maxX), y: clamp(Math.random() * maxY, 8, maxY) };
+    }),
     releasedPhysics,
   };
 }
@@ -162,20 +188,23 @@ export function FestiveThemeLayer({ scene, soundEnabled = true, toneEnabled = tr
     root.style.setProperty("--festive-primary", palette.primary);
     root.style.setProperty("--festive-primary-ink", readableInk(palette.primary));
     root.style.setProperty("--festive-accent", palette.accent);
-    root.style.setProperty("--festive-ink", readableInk(palette.bg));
-    root.style.setProperty("--festive-panel", palette.bg);
+    root.style.setProperty("--festive-ink", palette.textPrimary ?? readableInk(palette.bg));
+    root.style.setProperty("--festive-secondary-ink", palette.textSecondary ?? palette.textPrimary ?? readableInk(palette.bg));
+    root.style.setProperty("--festive-panel", palette.panel ?? (palette.bg.startsWith("#") ? palette.bg : "#ffffff"));
     root.style.setProperty("--festive-light-bg", config.colors.light.bg);
     root.style.setProperty("--festive-light-primary", config.colors.light.primary);
     root.style.setProperty("--festive-light-accent", config.colors.light.accent);
-    root.style.setProperty("--festive-light-text", readableInk(config.colors.light.bg));
+    root.style.setProperty("--festive-light-text", config.colors.light.textPrimary ?? readableInk(config.colors.light.bg));
+    root.style.setProperty("--festive-light-secondary-text", config.colors.light.textSecondary ?? config.colors.light.textPrimary ?? readableInk(config.colors.light.bg));
     root.style.setProperty("--festive-dark-bg", config.colors.dark.bg);
     root.style.setProperty("--festive-dark-primary", config.colors.dark.primary);
     root.style.setProperty("--festive-dark-primary-ink", readableInk(config.colors.dark.primary));
     root.style.setProperty("--festive-dark-accent", config.colors.dark.accent);
-    root.style.setProperty("--festive-dark-text", readableInk(config.colors.dark.bg));
+    root.style.setProperty("--festive-dark-text", config.colors.dark.textPrimary ?? readableInk(config.colors.dark.bg));
+    root.style.setProperty("--festive-dark-secondary-text", config.colors.dark.textSecondary ?? config.colors.dark.textPrimary ?? readableInk(config.colors.dark.bg));
     return () => {
       delete root.dataset.festiveTheme;
-      ["--festive-bg", "--festive-primary", "--festive-primary-ink", "--festive-accent", "--festive-ink", "--festive-panel", "--festive-dark-primary-ink"].forEach((name) => root.style.removeProperty(name));
+      ["--festive-bg", "--festive-primary", "--festive-primary-ink", "--festive-accent", "--festive-ink", "--festive-secondary-ink", "--festive-panel", "--festive-dark-primary-ink", "--festive-light-secondary-text", "--festive-dark-secondary-text"].forEach((name) => root.style.removeProperty(name));
     };
   }, [config?.id, resolvedToneEnabled]);
   if (!config || !resolvedVfxEnabled) return children ? <div id="vfx-stage" className="vfx-stage-personal" aria-label="Linh vật cá nhân tương tác">{children}</div> : null;
@@ -185,9 +214,10 @@ export function FestiveThemeLayer({ scene, soundEnabled = true, toneEnabled = tr
 function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, triggerEffect, effect, particles, ripples, personalMascot }: { theme: FestiveThemeConfig; mascotSize: number; initialMascotPosition: Point; triggerEffect: (effect: FestiveEffectConfig | undefined, point: Point, emoji: string, ripple?: boolean) => void; effect: { id: number; config: FestiveEffectConfig } | null; particles: Particle[]; ripples: Ripple[]; personalMascot?: React.ReactNode }) {
   const mascot = useDraggable(initialMascotPosition, mascotSize, theme.mascot.draggable, (point) => triggerEffect(theme.mascot.clickEffect, point, theme.mascot.emoji), "float-feather");
   const groundItems = useMemo(() => {
+    const targetCount = theme.groundContainer.itemCount ?? 28;
     const totalDensity = theme.groundContainer.items.reduce((sum, item) => sum + item.density, 0) || 1;
-    const counts = theme.groundContainer.items.map((item) => Math.max(1, Math.round((item.density / totalDensity) * 28)));
-    const difference = 28 - counts.reduce((sum, count) => sum + count, 0);
+    const counts = theme.groundContainer.items.map((item) => Math.max(1, Math.round((item.density / totalDensity) * targetCount)));
+    const difference = targetCount - counts.reduce((sum, count) => sum + count, 0);
     counts[counts.length - 1] = Math.max(1, counts[counts.length - 1] + difference);
     const candidates = theme.groundContainer.items.flatMap((item, itemIndex) => Array.from({ length: counts[itemIndex] }, (_, index) => ({
       ...item,
@@ -197,15 +227,20 @@ function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, trigger
     const shuffled = [...candidates].sort((left, right) => stableHash(`${theme.id}:${left.id}`) - stableHash(`${theme.id}:${right.id}`));
     return shuffled.map((item, index) => ({
       ...item,
-      left: `${((index * (100 / 28)) + (stableHash(`${theme.id}:${item.id}:x`) % 3)) % 100}%`,
+      left: `${((index * (100 / targetCount)) + (stableHash(`${theme.id}:${item.id}:x`) % 3)) % 100}%`,
       physics: RELEASE_PHYSICS[index % RELEASE_PHYSICS.length],
     }));
   }, [theme.id]);
+  const ambientDecorations = useMemo(() => (FESTIVE_THEME_DECORATIONS[theme.id] ?? []).flatMap((decoration, decorationIndex) => Array.from({ length: decoration.count }, (_, index) => {
+    const seed = stableHash(`${theme.id}:ambient:${decorationIndex}:${index}`);
+    const durationMs = decoration.durationMs ?? (decoration.motion === "rise" ? 9600 : 8800);
+    return { ...decoration, id: `${decorationIndex}-${index}`, left: `${8 + (seed % 84)}%`, top: `${(seed * 17) % 96}%`, animationDelay: `${-((index * (decoration.staggerMs ?? 420)) % durationMs)}ms`, animationDuration: `${durationMs}ms` };
+  })), [theme.id]);
   useEffect(() => {
     if (!theme.mascot.draggable || mascot.dragging) return;
-    const interval = window.setInterval(() => mascot.wander(), 4500);
+    const interval = window.setInterval(() => mascot.wander(theme.mascot.wanderPattern ?? "random"), theme.mascot.wanderIntervalMs ?? 4500);
     return () => window.clearInterval(interval);
-  }, [theme.id, theme.mascot.draggable, mascot.dragging]);
+  }, [theme.id, theme.mascot.draggable, theme.mascot.wanderIntervalMs, mascot.dragging]);
   const mascotDragBindings = bindMascotDrag(mascot);
   return <div id="vfx-stage" aria-label="Hiệu ứng lễ hội tương tác">
     <button type="button" className="festive-mascot mascot" aria-label={`Linh vật ${theme.displayName}; kéo thả hoặc dùng phím mũi tên để di chuyển`} title="Kéo thả linh vật · mũi tên để di chuyển" style={{ width: 130, height: 130, fontSize: 130, left: mascot.position.x, top: mascot.position.y, zIndex: 60, touchAction: "none" }} {...mascotDragBindings}>
@@ -213,16 +248,16 @@ function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, trigger
     </button>
     <button type="button" className="festive-mascot-reset" aria-label="Đặt lại vị trí linh vật lễ hội" title="Đặt lại vị trí linh vật" style={{ left: mascot.position.x + mascotSize - 18, top: mascot.position.y - 12, zIndex: 61 }} onClick={mascot.reset}><RotateCcw aria-hidden="true" size={14} /></button>
     <div className="festive-ground" style={{ height: theme.groundContainer.height, bottom: theme.groundContainer.bottom, zIndex: 55 }}>
-      {groundItems.map((item) => <GroundItem key={item.id} item={item} left={item.left} bottomGap={item.bottomGap} physics={item.physics} onTrigger={(point) => triggerEffect(item.clickEffect, point, item.emoji, theme.groundContainer.rippleEffect === true)} />)}
+      {groundItems.map((item) => <GroundItem key={item.id} item={item} left={item.left} bottomGap={item.bottomGap} physics={item.physics} exactSize={theme.groundContainer.exactSize === true} onTrigger={(point) => triggerEffect(item.clickEffect, point, item.emoji, theme.groundContainer.rippleEffect === true)} />)}
     </div>
-    <div className="festive-visual-effects" aria-hidden="true">{particles.map((particle) => <span key={particle.id} className="festive-particle" style={{ left: particle.x, top: particle.y, "--particle-x": `${particle.offsetX}px`, "--particle-y": `${particle.offsetY}px` } as React.CSSProperties}>{particle.emoji}</span>)}{ripples.map((ripple) => <span key={ripple.id} className="festive-ripple" style={{ left: ripple.x, top: ripple.y, width: ripple.size, height: ripple.size }} />)}</div>
+    <div className="festive-visual-effects" aria-hidden="true"><div className="festive-ambient-decorations">{ambientDecorations.map((decoration) => <span key={decoration.id} className={`festive-ambient-decoration festive-ambient-${decoration.motion}`} style={{ left: decoration.left, top: decoration.top, fontSize: decoration.size, animationDelay: decoration.animationDelay, animationDuration: decoration.animationDuration }}>{decoration.emoji}</span>)}</div>{particles.map((particle) => <span key={particle.id} className="festive-particle" style={{ left: particle.x, top: particle.y, "--particle-x": `${particle.offsetX}px`, "--particle-y": `${particle.offsetY}px` } as React.CSSProperties}>{particle.emoji}</span>)}{ripples.map((ripple) => <span key={ripple.id} className="festive-ripple" style={{ left: ripple.x, top: ripple.y, width: ripple.size, height: ripple.size }} />)}</div>
     {personalMascot}
   </div>;
 }
 
-function GroundItem({ item, left, bottomGap, physics, onTrigger }: { item: FestiveThemeConfig["groundContainer"]["items"][number] & { id: string }; left: string; bottomGap: number; physics: ReleasePhysics; onTrigger: (point: Point) => void }) {
+function GroundItem({ item, left, bottomGap, physics, exactSize = false, onTrigger }: { item: FestiveThemeConfig["groundContainer"]["items"][number] & { id: string }; left: string; bottomGap: number; physics: ReleasePhysics; exactSize?: boolean; onTrigger: (point: Point) => void }) {
   const size = pixels(item.size);
-  const displaySize = clamp(Math.max(100, size * 2), 100, 140);
+  const displaySize = exactSize ? size : clamp(Math.max(100, size * 2), 100, 140);
   const interactiveSize = displaySize + 12;
   const initial = useMemo(() => ({ x: clamp(window.innerWidth * (Number.parseFloat(left) / 100), 6, Math.max(6, window.innerWidth - interactiveSize - 6)), y: clamp(window.innerHeight - interactiveSize - bottomGap, 6, Math.max(6, window.innerHeight - interactiveSize - 6)) }), [bottomGap, interactiveSize, left]);
   const draggable = useDraggable(initial, interactiveSize, item.draggable, (point) => onTrigger(point), physics);

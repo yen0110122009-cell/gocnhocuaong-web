@@ -1,6 +1,7 @@
 import { LOCAL_AMBIENT_AUDIO, LOCAL_FESTIVE_AUDIO } from "@/lib/audioAssets";
 
-export type FestiveAnimation = "sine-wave" | "bounce" | "float" | "circular";
+export type FestiveAnimation = "sine-wave" | "bounce" | "float" | "circular" | "tilt" | "edge-patrol" | "wing-flap" | "small-orbit" | "jitter";
+export type FestiveWanderPattern = "random" | "edge-vertical" | "circular" | "small-orbit" | "horizontal";
 
 export type FestiveClickEffect = "scale-bounce" | "shake" | "particle-burst" | "ripple-wave" | "pulse-glow";
 
@@ -11,22 +12,24 @@ export interface FestiveEffectConfig {
 }
 
 /** Hạt trang trí thuần emoji; renderer luôn đặt lớp này dưới nội dung và không nhận pointer events. */
-export type FestiveAmbientMotion = "fall" | "rise" | "drift" | "glow" | "diagonal" | "bounce" | "rest";
+export type FestiveAmbientMotion = "fall" | "rise" | "drift" | "glow" | "diagonal" | "bounce" | "rest" | "sine" | "flash";
 export interface FestiveAmbientDecoration {
   emoji: string;
   motion: FestiveAmbientMotion;
   count: number;
   size: string;
+  durationMs?: number;
+  staggerMs?: number;
 }
 
 export interface FestiveThemeConfig {
   id: string;
   displayName: string;
   audioDescription: string;
-  colors: { light: { bg: string; primary: string; accent: string }; dark: { bg: string; primary: string; accent: string } };
+  colors: { light: { bg: string; primary: string; accent: string; textPrimary?: string; textSecondary?: string; panel?: string }; dark: { bg: string; primary: string; accent: string; textPrimary?: string; textSecondary?: string; panel?: string } };
   bgm: { url: string; volume: number; loop: boolean };
-  mascot: { emoji: string; size: string; initialPosition: { top: string; left: string }; zIndex: number; draggable: boolean; animation?: FestiveAnimation; clickEffect?: FestiveEffectConfig };
-  groundContainer: { height: string; bottom: string; zIndex: number; rippleEffect?: boolean; items: Array<{ emoji: string; size: string; density: number; draggable: boolean; clickEffect?: FestiveEffectConfig }> };
+  mascot: { emoji: string; size: string; initialPosition: { top: string; left: string }; zIndex: number; draggable: boolean; wanderIntervalMs?: number; wanderPattern?: FestiveWanderPattern; animation?: FestiveAnimation; clickEffect?: FestiveEffectConfig };
+  groundContainer: { height: string; bottom: string; zIndex: number; rippleEffect?: boolean; itemCount?: number; exactSize?: boolean; items: Array<{ emoji: string; size: string; density: number; draggable: boolean; clickEffect?: FestiveEffectConfig }> };
 }
 
 const arcade = LOCAL_AMBIENT_AUDIO.bell;
@@ -72,17 +75,34 @@ const FESTIVE_THEME_CONFIG_DATA: Array<Omit<FestiveThemeConfig, "audioDescriptio
   { id: "quan-doi-nhan-dan-22-12", displayName: "QĐND Việt Nam 22/12 🎖️", colors: { light: { bg: "#F0FDF4", primary: "#14532D", accent: "#15803D" }, dark: { bg: "#052E16", primary: "#4ADE80", accent: "#86EFAC" } }, bgm: { url: LOCAL_FESTIVE_AUDIO["quan-doi-nhan-dan-22-12"], volume: .35, loop: true }, mascot: { emoji: "🪖", size: "85px", initialPosition: { top: "22%", left: "45%" }, zIndex: 100, draggable: true, animation: "bounce" }, groundContainer: { height: "55px", bottom: "0px", zIndex: 50, rippleEffect: false, items: [item("🎖️", "22px", .5), item("⭐", "22px", .5)] } },
 ];
 
+
+/** Năm theme Nữ sinh theo đặc tả mới; tách khỏi 14 theme lễ hội để không đổi contract cũ. */
+const STUDENT_THEME_CONFIG_DATA: Array<Omit<FestiveThemeConfig, "audioDescription">> = [
+  { id: "sweet_strawberry", displayName: "Nữ sinh Dâu Tây 🍓", colors: { light: { bg: "linear-gradient(135deg, #FFF0F5, #FFE4E1)", primary: "#F43F5E", accent: "#F43F5E", textPrimary: "#881337", textSecondary: "#9D174D", panel: "#FFFFFF" }, dark: { bg: "linear-gradient(135deg, #4C0519, #881337)", primary: "#FB7185", accent: "#FB7185", textPrimary: "#FFE4E8", textSecondary: "#FECDD3", panel: "#23050C" } }, bgm: { url: LOCAL_AMBIENT_AUDIO.bell, volume: .30, loop: true }, mascot: { emoji: "🐱", size: "130px", initialPosition: { top: "200px", left: "150px" }, zIndex: 100, draggable: true, wanderIntervalMs: 3500, wanderPattern: "random", animation: "tilt" }, groundContainer: { height: "120px", bottom: "0px", zIndex: 55, itemCount: 25, exactSize: true, items: [item("🍓", "100px", 1)] } },
+  { id: "black_ribbon", displayName: "Nữ sinh Cool Girl 🖤", colors: { light: { bg: "linear-gradient(135deg, #F8FAFC, #E2E8F0)", primary: "#64748B", accent: "#64748B", textPrimary: "#0F172A", textSecondary: "#1E293B", panel: "#FFFFFF" }, dark: { bg: "linear-gradient(135deg, #090D16, #181825)", primary: "#CBA6F7", accent: "#CBA6F7", textPrimary: "#CDD6F4", textSecondary: "#A6ADC8", panel: "#11111B" } }, bgm: { url: LOCAL_AMBIENT_AUDIO.storm, volume: .28, loop: true }, mascot: { emoji: "🕶️", size: "130px", initialPosition: { top: "150px", left: "100px" }, zIndex: 100, draggable: true, wanderIntervalMs: 5000, wanderPattern: "edge-vertical", animation: "edge-patrol" }, groundContainer: { height: "120px", bottom: "0px", zIndex: 55, itemCount: 25, exactSize: true, items: [item("🖤", "100px", 1)] } },
+  { id: "library_chill", displayName: "Nữ sinh Thư viện 📖", colors: { light: { bg: "linear-gradient(135deg, #FFFBEB, #FEF3C7)", primary: "#D97706", accent: "#D97706", textPrimary: "#451A03", textSecondary: "#78350F", panel: "#FFFFFF" }, dark: { bg: "linear-gradient(135deg, #2E1000, #451A03)", primary: "#F59E0B", accent: "#F59E0B", textPrimary: "#FEF3C7", textSecondary: "#FDE68A", panel: "#1C0A00" } }, bgm: { url: LOCAL_AMBIENT_AUDIO.bookPages, volume: .28, loop: true }, mascot: { emoji: "🦉", size: "130px", initialPosition: { top: "80px", left: "50vw" }, zIndex: 100, draggable: true, wanderIntervalMs: 4000, wanderPattern: "circular", animation: "wing-flap" }, groundContainer: { height: "120px", bottom: "0px", zIndex: 55, itemCount: 25, exactSize: true, items: [item("📖", "100px", 1)] } },
+  { id: "after_school", displayName: "Nữ sinh Tan Trường 🎒", colors: { light: { bg: "linear-gradient(135deg, #FEF9C3, #FEF08A)", primary: "#EAB308", accent: "#EAB308", textPrimary: "#713F12", textSecondary: "#854D0E", panel: "#FFFFFF" }, dark: { bg: "linear-gradient(135deg, #422006, #713F12)", primary: "#FACC15", accent: "#FACC15", textPrimary: "#FEF08A", textSecondary: "#FEF08A", panel: "#1C0D02" } }, bgm: { url: LOCAL_AMBIENT_AUDIO.morning, volume: .30, loop: true }, mascot: { emoji: "🐝", size: "130px", initialPosition: { top: "300px", left: "200px" }, zIndex: 100, draggable: true, wanderIntervalMs: 2500, wanderPattern: "small-orbit", animation: "jitter" }, groundContainer: { height: "120px", bottom: "0px", zIndex: 55, itemCount: 25, exactSize: true, items: [item("🎒", "100px", 1)] } },
+  { id: "classic_academy", displayName: "Nữ sinh Nghệ thuật 🎻", colors: { light: { bg: "linear-gradient(135deg, #E0F2FE, #BAE6FD)", primary: "#0284C7", accent: "#0284C7", textPrimary: "#0369A1", textSecondary: "#075985", panel: "#FFFFFF" }, dark: { bg: "linear-gradient(135deg, #082F49, #0C4A6E)", primary: "#38BDF8", accent: "#38BDF8", textPrimary: "#E0F2FE", textSecondary: "#7DD3FC", panel: "#031825" } }, bgm: { url: LOCAL_AMBIENT_AUDIO.morning, volume: .28, loop: true }, mascot: { emoji: "🦢", size: "130px", initialPosition: { top: "250px", left: "400px" }, zIndex: 100, draggable: true, wanderIntervalMs: 6000, wanderPattern: "horizontal", animation: "float" }, groundContainer: { height: "120px", bottom: "0px", zIndex: 55, itemCount: 25, exactSize: true, items: [item("🎻", "100px", 1)] } },
+];
+
+export const STUDENT_THEME_CONFIGS: FestiveThemeConfig[] = STUDENT_THEME_CONFIG_DATA.map((theme) => ({ ...theme, audioDescription: "Âm nền tích hợp theo đặc tả Nữ sinh; link YouTube chỉ là tham chiếu." }));
+
 export const FESTIVE_THEME_CONFIGS: FestiveThemeConfig[] = FESTIVE_THEME_CONFIG_DATA.map((theme) => ({
   ...theme,
   audioDescription: FESTIVE_THEME_AUDIO_DESCRIPTIONS[theme.id] ?? "Âm nền lễ hội do Ong chọn.",
 }));
 
 /**
- * Cấu hình hiệu ứng theme: mỗi theme có 28 hạt emoji (nằm trong mức 25–35
- * của đặc tả), không dùng ảnh, canvas hay một URL media mới.
+ * Cấu hình hiệu ứng theme: 14 theme lễ hội giữ 28 hạt; 5 theme Nữ sinh
+ * dùng số lượng và kích thước cố định theo đặc tả riêng, không dùng ảnh/canvas.
  */
 export const FESTIVE_THEME_DECORATIONS: Record<string, FestiveAmbientDecoration[]> = {
   "tet-nguyen-dan": [{ emoji: "🧧", motion: "fall", count: 7, size: "1.25rem" }, { emoji: "🌸", motion: "drift", count: 8, size: "1.1rem" }, { emoji: "✨", motion: "glow", count: 7, size: "1rem" }, { emoji: "🏮", motion: "bounce", count: 6, size: "1.25rem" }],
+  "sweet_strawberry": [{ emoji: "🍰", motion: "fall", count: 12, size: "40px", durationMs: 6000, staggerMs: 500 }],
+  "black_ribbon": [{ emoji: "⚡", motion: "flash", count: 6, size: "40px", durationMs: 1800, staggerMs: 300 }],
+  "library_chill": [{ emoji: "☕", motion: "rise", count: 8, size: "40px", durationMs: 7000, staggerMs: 500 }],
+  "after_school": [{ emoji: "🍋", motion: "diagonal", count: 10, size: "40px", durationMs: 3500, staggerMs: 350 }],
+  "classic_academy": [{ emoji: "🎼", motion: "sine", count: 15, size: "40px", durationMs: 8000, staggerMs: 450 }],
   "gio-to-hung-vuong": [{ emoji: "🪷", motion: "rise", count: 7, size: "1.15rem" }, { emoji: "✨", motion: "glow", count: 7, size: "1rem" }, { emoji: "🍃", motion: "drift", count: 8, size: "1rem" }, { emoji: "🪵", motion: "rest", count: 6, size: "1.1rem" }],
   "ngay-thanh-nien-26-3": [{ emoji: "⭐", motion: "diagonal", count: 7, size: "1rem" }, { emoji: "📘", motion: "rise", count: 7, size: "1rem" }, { emoji: "🌿", motion: "drift", count: 8, size: "1.05rem" }, { emoji: "💙", motion: "glow", count: 6, size: "1rem" }],
   "giai-phong-30-4": [{ emoji: "🎈", motion: "rise", count: 7, size: "1.1rem" }, { emoji: "🕊️", motion: "drift", count: 7, size: "1.05rem" }, { emoji: "🎉", motion: "fall", count: 8, size: "1.1rem" }, { emoji: "✨", motion: "glow", count: 6, size: "1rem" }],
@@ -99,4 +119,6 @@ export const FESTIVE_THEME_DECORATIONS: Record<string, FestiveAmbientDecoration[
 };
 
 export const FESTIVE_THEME_IDS = FESTIVE_THEME_CONFIGS.map((theme) => theme.id);
-export const festiveThemeFor = (scene?: string) => FESTIVE_THEME_CONFIGS.find((theme) => theme.id === scene);
+export const STUDENT_THEME_IDS = STUDENT_THEME_CONFIGS.map((theme) => theme.id);
+const ALL_THEME_CONFIGS = [...FESTIVE_THEME_CONFIGS, ...STUDENT_THEME_CONFIGS];
+export const festiveThemeFor = (scene?: string) => ALL_THEME_CONFIGS.find((theme) => theme.id === scene);

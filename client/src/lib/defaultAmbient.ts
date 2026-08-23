@@ -1,5 +1,5 @@
 import type { PersonalAudioAsset, PersonalStudyPreset } from "../../../shared/study";
-import { LOCAL_AMBIENT_AUDIO } from "@/lib/audioAssets";
+import { LOCAL_AMBIENT_AUDIO, LOCAL_FESTIVE_AUDIO } from "@/lib/audioAssets";
 
 export const DEFAULT_AMBIENT_RAIN_URL = LOCAL_AMBIENT_AUDIO.rain;
 export const DEFAULT_AMBIENT_BOOK_PAGES_URL = LOCAL_AMBIENT_AUDIO.bookPages;
@@ -114,11 +114,11 @@ export const PROVIDED_THEME_AMBIENT_ASSETS = {
   stormy_season: { id: "provided-theme-stormy-season", name: "Bão giật · Gió và sấm", description: "Dark Ambient Synth & storm wind", url: LOCAL_AMBIENT_AUDIO.rain, target: "stormy_season", source: "provided" },
   morning_chill: { id: "provided-theme-morning-chill", name: "Nắng ban mai · Chim sớm", description: "Acoustic Guitar & morning birds", url: LOCAL_AMBIENT_AUDIO.morning, target: "morning_chill", source: "provided" },
   coffee: { id: "provided-theme-coffee", name: "Quán Cà Phê · Lofi Jazz", description: "Lofi Jazz & coffee shop rain", url: LOCAL_AMBIENT_AUDIO.bell, target: "coffee", source: "provided" },
-  sweet_strawberry: { id: "provided-theme-sweet-strawberry", name: "Nữ sinh Dâu Tây · Music Box", description: "Acoustic Guitar vui tươi & music box", url: LOCAL_AMBIENT_AUDIO.bell, target: "sweet_strawberry", source: "provided" },
-  black_ribbon: { id: "provided-theme-black-ribbon", name: "Nữ sinh Cool Girl · Lo-Fi Synth", description: "Lo-Fi Synth trầm & bass sâu", url: LOCAL_AMBIENT_AUDIO.bell, target: "black_ribbon", source: "provided" },
-  library_chill: { id: "provided-theme-library-chill", name: "Nữ sinh Thư viện · Library Chill", description: "Mưa ngoài cửa sổ & piano chậm", url: LOCAL_AMBIENT_AUDIO.bell, target: "library_chill", source: "provided" },
-  after_school: { id: "provided-theme-after-school", name: "Nữ sinh Tan trường · 8-bit", description: "Nhịp phách tươi vui kiểu arcade", url: LOCAL_AMBIENT_AUDIO.bell, target: "after_school", source: "provided" },
-  classic_academy: { id: "provided-theme-classic-academy", name: "Nữ sinh Nghệ thuật · Cổ điển", description: "Hòa tấu violin & piano", url: LOCAL_AMBIENT_AUDIO.morning, target: "classic_academy", source: "provided" },
+  sweet_strawberry: { id: "provided-theme-sweet-strawberry", name: "Nữ sinh Dâu Tây · Music Box", description: "Acoustic Guitar vui tươi & music box", url: LOCAL_FESTIVE_AUDIO["tet-nguyen-dan"], target: "sweet_strawberry", source: "provided" },
+  black_ribbon: { id: "provided-theme-black-ribbon", name: "Nữ sinh Cool Girl · Lo-Fi Synth", description: "Lo-Fi Synth trầm & bass sâu", url: LOCAL_AMBIENT_AUDIO.storm, target: "black_ribbon", source: "provided" },
+  library_chill: { id: "provided-theme-library-chill", name: "Nữ sinh Thư viện · Library Chill", description: "Mưa ngoài cửa sổ & piano chậm", url: LOCAL_AMBIENT_AUDIO.bookPages, target: "library_chill", source: "provided" },
+  after_school: { id: "provided-theme-after-school", name: "Nữ sinh Tan trường · 8-bit", description: "Nhịp phách tươi vui kiểu arcade", url: LOCAL_AMBIENT_AUDIO.morning, target: "after_school", source: "provided" },
+  classic_academy: { id: "provided-theme-classic-academy", name: "Nữ sinh Nghệ thuật · Cổ điển", description: "Hòa tấu violin & piano", url: LOCAL_FESTIVE_AUDIO["nha-giao-viet-nam-20-11"], target: "classic_academy", source: "provided" },
   cyber_highschool: { id: "provided-theme-cyber-highschool", name: "Nữ sinh Y2K Cyber · Synthwave", description: "Pop Y2K Synthwave sôi động", url: LOCAL_AMBIENT_AUDIO.bell, target: "cyber_highschool", source: "provided" },
   "spring-blossom": { id: "provided-theme-spring-blossom", name: "Mùa Xuân Thanh Tân", description: "BGM từ tài liệu tham chiếu", url: LOCAL_AMBIENT_AUDIO.morning, target: "spring-blossom", source: "provided" },
   "summer-beach": { id: "provided-theme-summer-beach", name: "Mùa Hạ Biển Xanh & Nắng Vàng", description: "BGM từ tài liệu tham chiếu", url: LOCAL_AMBIENT_AUDIO.rain, target: "summer-beach", source: "provided" },

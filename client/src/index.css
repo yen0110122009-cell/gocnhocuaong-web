@@ -1965,10 +1965,13 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 /* Theme Ngày Lễ Hội: mọi lớp trang trí mặc định không nhận thao tác; chỉ mascot/ground-item là điều khiển kéo thả. */
 :root[data-festive-theme]:not(.dark) #root > div.min-h-screen { background: var(--festive-light-bg) !important; }
 :root.dark[data-festive-theme] #root > div.min-h-screen { background: var(--festive-dark-bg) !important; }
+:root[data-festive-theme] body { background: var(--festive-bg) !important; color: var(--festive-ink, #172033) !important; }
 :root[data-festive-theme]:not(.dark) .min-h-screen { color: var(--festive-light-text, #172033) !important; }
 :root.dark[data-festive-theme] .min-h-screen { color: var(--festive-dark-text, #f8fafc) !important; }
-:root[data-festive-theme]:not(.dark) .min-h-screen :is(aside, header, nav, .panel, .study-card, article, section, input, textarea, select) { background-color: color-mix(in srgb, var(--festive-light-bg) 10%, white) !important; color: var(--festive-light-text, #172033) !important; border-color: color-mix(in srgb, var(--festive-light-primary) 34%, #64748b) !important; }
-:root.dark[data-festive-theme] .min-h-screen :is(aside, header, nav, .panel, .study-card, article, section, input, textarea, select) { background-color: color-mix(in srgb, var(--festive-dark-bg) 82%, #111827) !important; color: var(--festive-dark-text, #f8fafc) !important; border-color: color-mix(in srgb, var(--festive-dark-primary) 50%, #94a3b8) !important; }
+:root[data-festive-theme]:not(.dark) .min-h-screen :is(aside, header, nav, .panel, .study-card, article, section, input, textarea, select) { background-color: var(--festive-panel, #fff) !important; color: var(--festive-light-text, #172033) !important; border-color: color-mix(in srgb, var(--festive-light-primary) 34%, #64748b) !important; }
+:root.dark[data-festive-theme] .min-h-screen :is(aside, header, nav, .panel, .study-card, article, section, input, textarea, select) { background-color: var(--festive-panel, #111827) !important; color: var(--festive-dark-text, #f8fafc) !important; border-color: color-mix(in srgb, var(--festive-dark-primary) 50%, #94a3b8) !important; }
+:root[data-festive-theme]:not(.dark) .min-h-screen :is(p, small, label, .text-slate-500, .text-slate-600) { color: var(--festive-light-secondary-text, var(--festive-light-text, #172033)) !important; }
+:root.dark[data-festive-theme] .min-h-screen :is(p, small, label, .text-slate-500, .text-slate-600) { color: var(--festive-dark-secondary-text, var(--festive-dark-text, #f8fafc)) !important; }
 /* Theo yêu cầu catalog chỉ giữ theme đã có nguồn âm nền: các thẻ “Chỉ giao diện” không còn hiện như một lựa chọn có thể mở. */
 :root [aria-label$=", chỉ giao diện"] { display: none !important; }
 .festive-mascot, .festive-ground-item, .festive-mascot-reset { position: fixed; display: grid; place-items: center; border: 0; background: transparent; cursor: grab; user-select: none; -webkit-user-select: none; }
@@ -2065,6 +2068,11 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 .festive-auto-bounce { animation: festive-bounce 2.4s ease-in-out infinite; }
 .festive-auto-float { animation: festive-float 3.4s ease-in-out infinite; }
 .festive-auto-circular { animation: festive-circular 5.2s linear infinite; }
+.festive-auto-tilt { animation: festive-mascot-tilt 3.5s ease-in-out infinite; }
+.festive-auto-edge-patrol { animation: festive-mascot-edge-patrol 5s ease-in-out infinite alternate; }
+.festive-auto-wing-flap { animation: festive-mascot-wing-flap 2.2s ease-in-out infinite; }
+.festive-auto-jitter { animation: festive-mascot-jitter .18s linear infinite; }
+
 @keyframes festive-scale-bounce { 0%, 100% { transform: scale(1); } 45% { transform: scale(var(--festive-intensity, 1.12)); } }
 @keyframes festive-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
 @keyframes festive-pulse-glow { 0%, 100% { filter: drop-shadow(0 7px 9px rgb(0 0 0 / .2)); } 50% { filter: drop-shadow(0 0 13px var(--festive-light-accent, #f4b942)); } }
@@ -2074,8 +2082,14 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 @keyframes festive-bounce { 50% { transform: translateY(-12px) scale(1.04); } }
 @keyframes festive-float { 50% { transform: translateY(-9px) rotate(-3deg); } }
 @keyframes festive-circular { to { transform: rotate(360deg) translateX(10px) rotate(-360deg); } }
+@keyframes festive-mascot-tilt { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
+@keyframes festive-mascot-edge-patrol { from { transform: translateX(-7px) scale(.95); } to { transform: translateX(7px) scale(1.05); } }
+@keyframes festive-mascot-wing-flap { 0%, 100% { transform: rotate(-2deg) scale(1); } 50% { transform: rotate(15deg) scale(1.03); } }
+@keyframes festive-mascot-jitter { 0%, 100% { transform: translateX(-1px) rotate(-1deg); } 50% { transform: translateX(1px) rotate(1deg); } }
 @keyframes festive-ambient-fall { from { transform: translate3d(0, -12vh, 0) rotate(0deg); } to { transform: translate3d(6vw, 112vh, 0) rotate(150deg); } }
-@keyframes festive-ambient-rise { from { transform: translate3d(0, 15vh, 0) rotate(0deg); } to { transform: translate3d(-4vw, -105vh, 0) rotate(-120deg); } }
+@keyframes festive-ambient-rise { from { transform: translate3d(0, 15vh, 0) rotate(0deg); opacity: 1; } to { transform: translate3d(-4vw, -105vh, 0) rotate(-120deg); opacity: 0; } }
+@keyframes festive-ambient-flash { 0%, 100% { opacity: .08; transform: scale(.9); filter: drop-shadow(0 0 0 transparent); } 18%, 34% { opacity: 1; transform: scale(1.2); filter: drop-shadow(0 0 12px currentColor); } 48% { opacity: .08; transform: scale(.9); } }
+@keyframes festive-ambient-sine { 0% { transform: translate3d(-7vw, 10vh, 0) rotate(-8deg); } 50% { transform: translate3d(5vw, -2vh, 0) rotate(8deg); } 100% { transform: translate3d(13vw, -15vh, 0) rotate(-5deg); } }
 @keyframes festive-ambient-drift { 50% { transform: translate3d(20px, -13px, 0) rotate(8deg); } }
 @keyframes festive-ambient-glow { 50% { transform: scale(1.22); opacity: 1; filter: drop-shadow(0 0 10px var(--festive-light-accent, #f4b942)); } }
 @keyframes festive-ambient-diagonal { from { transform: translate3d(-7vw, 4vh, 0) rotate(-12deg); } to { transform: translate3d(106vw, 70vh, 0) rotate(22deg); } }

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FESTIVE_THEME_CONFIGS, FESTIVE_THEME_DECORATIONS, USER_PROVIDED_FESTIVE_AUDIO } from "../client/src/lib/festiveThemes";
+import { FESTIVE_THEME_CONFIGS, FESTIVE_THEME_DECORATIONS, STUDENT_THEME_CONFIGS, USER_PROVIDED_FESTIVE_AUDIO } from "../client/src/lib/festiveThemes";
 
 const layer = readFileSync(resolve(process.cwd(), "client/src/components/FestiveThemeLayer.tsx"), "utf8");
 const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
@@ -16,7 +16,7 @@ describe("festive VFX contract", () => {
   });
 
   it("uses a 28-item interactive ground layer with Pointer Capture and five release physics", () => {
-    expect(layer).toContain("* 28");
+    expect(layer).toContain("const targetCount = theme.groundContainer.itemCount ?? 28");
     expect(layer).toContain("setPointerCapture");
     expect(layer).toContain("releasePointerCapture");
     expect(layer).toContain('"gravity-heavy", "float-feather", "sticker-pin", "bounce-elastic", "vanish-ghost"');
@@ -25,11 +25,27 @@ describe("festive VFX contract", () => {
     expect(layer).toContain('physics === "vanish-ghost"');
     expect(layer).toContain("active.velocityX * 80");
     expect(layer).toContain("bottomGap");
-    expect(layer).toContain("displaySize = clamp(Math.max(100, size * 2), 100, 140)");
+    expect(layer).toContain("displaySize = exactSize ? size : clamp(Math.max(100, size * 2), 100, 140)");
     expect(layer).toContain("const mascotSize = config ? 130 : 0");
     expect(layer).toContain("bindMascotDrag(mascot)");
     expect(layer).toContain("width: 130, height: 130, fontSize: 130");
     expect(layer).toContain("stableHash");
+  });
+
+  it("locks the five student themes to the requested counts and fixed sizes", () => {
+    const expected = { sweet_strawberry: ["🍰", 12], black_ribbon: ["⚡", 6], library_chill: ["☕", 8], after_school: ["🍋", 10], classic_academy: ["🎼", 15] } as const;
+    expect(STUDENT_THEME_CONFIGS).toHaveLength(5);
+    for (const [id, [emoji, count]] of Object.entries(expected)) {
+      const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
+      expect(theme).toBeTruthy();
+      expect(theme?.mascot.emoji).toBe(({ sweet_strawberry: "🐱", black_ribbon: "🕶️", library_chill: "🦉", after_school: "🐝", classic_academy: "🦢" } as const)[id as keyof typeof expected]);
+      expect(theme?.mascot.size).toBe("130px");
+      expect(theme?.groundContainer.itemCount).toBe(25);
+      expect(theme?.groundContainer.items[0]?.emoji).toBe(({ sweet_strawberry: "🍓", black_ribbon: "🖤", library_chill: "📖", after_school: "🎒", classic_academy: "🎻" } as const)[id as keyof typeof expected]);
+      expect(theme?.groundContainer.items[0]?.size).toBe("100px");
+      const decoration = FESTIVE_THEME_DECORATIONS[id]?.[0];
+      expect(decoration).toMatchObject({ emoji, count, size: "40px" });
+    }
   });
 
   it("keeps one non-blocking high-priority VFX stage and never pauses unrelated learning audio", () => {
