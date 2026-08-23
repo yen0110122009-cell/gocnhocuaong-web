@@ -17,8 +17,10 @@ describe("pomodoroFlow", () => {
   });
 
   it("resets the goal to the first focus session when the target changes", () => {
-    expect(resetPomodoroForGoalChange(25)).toEqual({ completedFocusSessions: 0, mode: "focus", pendingTransition: null, seconds: 1500, running: false, sessionStartedAt: null });
-    expect(currentPomodoroSessionNumber("focus", 0, 6)).toBe(1);
+    expect(currentPomodoroSessionNumber("focus", 3, 4)).toBe(4);
+    const reset = resetPomodoroForGoalChange(25);
+    expect(reset).toEqual({ completedFocusSessions: 0, mode: "focus", pendingTransition: null, seconds: 1500, running: false, sessionStartedAt: null });
+    expect(currentPomodoroSessionNumber(reset.mode, reset.completedFocusSessions, 2)).toBe(1);
   });
 
   it("always restores a valid duration when starting from zero seconds", () => {
