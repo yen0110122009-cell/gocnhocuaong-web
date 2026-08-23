@@ -1,7 +1,7 @@
 import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Flag, BrainCircuit, FileText, Target, Pause, Play, RotateCcw, Pencil, Trash2, Undo2 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { applyStudyActivityRewards, deepLearningXpForAttempt, type AppConfig, type FlashcardSet, type PaperQuizSession, type ProfileState, type Quiz, type QuizQuestion } from "../../../shared/study";
+import { type AppConfig, type FlashcardSet, type PaperQuizSession, type ProfileState, type Quiz, type QuizQuestion } from "../../../shared/study";
 import { buildWrongAnswerDeepPrompt, parseWrongAnswerDeepData } from "../../../shared/aiDataImport";
 import type { WrongAnswerReview } from "../../../shared/study";
 import { buildQuizAttempt, normalizeQuizAnswer } from "../../../shared/quizPersistence";
@@ -75,10 +75,13 @@ export default function QuizEnhanced({ profile, config, onProfile }: Props) {
     const durationSeconds = active.durationMinutes * 60 - seconds;
     const attempt = buildQuizAttempt({ quiz: active, answers, flagged: flags, durationSeconds, id: crypto.randomUUID() });
     const enriched = { ...attempt, mode, thoughts };
-    const deepBonus = mode === "deep" ? deepLearningXpForAttempt(enriched, active, thoughts) : 0;
-    const xp = 20 + attempt.correct * 8 + deepBonus;
-    const reward = applyStudyActivityRewards({ ...profile, attempts: [enriched, ...profile.attempts] }, { id: `quiz-${attempt.id}`, occurredAt: attempt.completedAt, kind: "quiz", quantity: attempt.total, durationSeconds, xpEarned: xp, correct: attempt.correct, total: attempt.total }, config);
-    setLastAttemptId(attempt.id); setResult(attempt.correct); onProfile({ ...reward.profile, deepLearningEvents: mode === "deep" ? [...(reward.profile.deepLearningEvents ?? []), { id: crypto.randomUUID(), occurredAt: attempt.completedAt, kind: "explained", xpEarned: deepBonus, sourceId: attempt.id }] : reward.profile.deepLearningEvents }, `Đã lưu kết quả · +${xp} XP${deepBonus ? ` · Hiểu sâu +${deepBonus}` : ""}${reward.newlyUnlocked.length ? ` · Mở khóa ${reward.newlyUnlocked.length} thành tích` : ""}.`);
+    const nextProfile: ProfileState = {
+      ...profile,
+      attempts: [enriched, ...profile.attempts],
+      studyActivity: [{ id: `quiz-${attempt.id}`, occurredAt: attempt.completedAt, kind: "quiz", quantity: attempt.total, durationSeconds, xpEarned: 0, correct: attempt.correct, total: attempt.total }, ...(profile.studyActivity ?? [])],
+      deepLearningEvents: mode === "deep" ? [...(profile.deepLearningEvents ?? []), { id: crypto.randomUUID(), occurredAt: attempt.completedAt, kind: "explained", xpEarned: 0, sourceId: attempt.id }] : profile.deepLearningEvents,
+    };
+    setLastAttemptId(attempt.id); setResult(attempt.correct); onProfile(nextProfile, `Đã lưu kết quả: ${attempt.correct}/${attempt.total} câu đúng.`);
   };
 
   const finishPaper = () => {
@@ -169,4 +172,4 @@ function HistoryList({ profile, config }: { profile: ProfileState; config: AppCo
 
 function Answer({ question, value, set }: { question: QuizQuestion; value: string; set: (value: string) => void }) { if (question.type === "short") return <textarea aria-label="Câu trả lời ngắn" value={value} onChange={(e) => set(e.target.value)} rows={4} className="textarea mt-6" placeholder="Nhập câu trả lời…" />; const options = question.type === "boolean" ? ["Đúng", "Sai"] : question.options ?? []; return <div className="mt-6 grid gap-3">{options.map((option) => <button aria-pressed={value === option} aria-label={`Chọn đáp án ${option}`} onClick={() => set(option)} className={cn("rounded-xl border p-4 text-left text-sm font-bold", value === option ? "border-amber-400 bg-amber-50 text-amber-900 dark:bg-amber-400/10 dark:text-amber-100" : "border-slate-200 dark:border-white/10")} key={option}>{option}</button>)}</div>; }
 function Heading({ title, text }: { title: string; text: string }) { return <div className="mb-7"><p className="text-xs font-bold uppercase tracking-[.18em] text-amber-700 dark:text-amber-300">Đề kiểm tra</p><h1 className="mt-2 font-display text-3xl font-bold text-slate-950 dark:text-white">{title}</h1><p className="mt-2 text-sm leading-6 text-slate-500">{text}</p></div>; }
-function Empty() { return <><Heading title="Tự đánh giá sau mỗi chặng học" text="Tạo đề trong AI Studio, sau đó quay lại để luyện tập và nhận XP." /><div className="panel grid min-h-52 place-items-center p-8 text-center"><p className="text-sm text-slate-500">Chưa có đề kiểm tra cho tài khoản này.</p></div></>; }
+function Empty() { return <><Heading title="Tự đánh giá sau mỗi chặng học" text="Tạo đề trong AI Studio, sau đó quay lại để luyện tập và lưu kết quả." /><div className="panel grid min-h-52 place-items-center p-8 text-center"><p className="text-sm text-slate-500">Chưa có đề kiểm tra cho tài khoản này.</p></div></>; }

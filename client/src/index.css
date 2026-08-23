@@ -1128,7 +1128,7 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root[data-ambient-scene="snow"] body::after { left: calc(var(--snowman-x, 88) * 1%); right: auto; bottom: calc(var(--snowman-y, 5) * 1%); transform: translateX(-50%); animation: snowman-positioned-bob 5.2s ease-in-out infinite alternate; }
 @keyframes snowman-positioned-bob { from { transform: translateX(-50%) translateY(0) rotate(-1deg); } to { transform: translateX(-50%) translateY(-5px) rotate(1deg); } }
 
-/* Tone mở rộng: mỗi bộ luôn có mực chữ đậm, chữ phụ và nền cấp độ riêng để tên
+/* Tone mở rộng: mỗi bộ luôn có mực chữ đậm và chữ phụ để nội dung
    không chìm vào nền sáng hoặc cảnh đậm. */
 :root[data-cosmetic-theme="lavender-dream"] { --interface-primary:#7350ae; --interface-secondary:#d679ac; --interface-soft:#f6efff; --interface-ink:#27183e; }
 :root[data-cosmetic-theme="rose-garden"] { --interface-primary:#ad3c67; --interface-secondary:#567a47; --interface-soft:#fff1f5; --interface-ink:#401424; }
@@ -1143,16 +1143,11 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 :root[data-cosmetic-theme="sakura-ink"] { --interface-primary:#a44670; --interface-secondary:#384661; --interface-soft:#fff2f7; --interface-ink:#3b1729; }
 :root[data-cosmetic-theme="neon-aurora"] { --interface-primary:#0d736d; --interface-secondary:#8b4ac7; --interface-soft:#ecfffc; --interface-ink:#083c40; }
 
-:root[data-cosmetic-theme] { --cosmetic-text: var(--interface-ink, #202a22); --cosmetic-text-strong: color-mix(in srgb, var(--interface-ink, #202a22) 92%, black); --cosmetic-muted: color-mix(in srgb, var(--interface-ink, #202a22) 76%, var(--interface-soft, white)); --cosmetic-level-bg: linear-gradient(135deg, color-mix(in srgb, var(--interface-primary) 95%, #171717), color-mix(in srgb, var(--interface-secondary) 88%, #171717)); --cosmetic-level-ink: #ffffff; }
+:root[data-cosmetic-theme] { --cosmetic-text: var(--interface-ink, #202a22); --cosmetic-text-strong: color-mix(in srgb, var(--interface-ink, #202a22) 92%, black); --cosmetic-muted: color-mix(in srgb, var(--interface-ink, #202a22) 76%, var(--interface-soft, white)); }
 :root[data-cosmetic-theme] #root > div.min-h-screen :is(main h1, main h2, main h3, main h4, main h5, main b, main strong, aside b, header b) { color: var(--cosmetic-text-strong) !important; text-shadow: 0 1px 0 color-mix(in srgb, var(--interface-soft) 70%, transparent); }
 :root[data-cosmetic-theme] #root > div.min-h-screen :is(main p, main span, main small, main label, main li, aside p, aside span, header p, header span) { color: var(--cosmetic-text) !important; }
 :root[data-cosmetic-theme] #root > div.min-h-screen :is(.text-muted-foreground, [class*="text-slate-"], [class*="text-stone-"], [class*="text-gray-"]) { color: var(--cosmetic-muted) !important; opacity: 1 !important; }
-:root[data-cosmetic-theme] .level-status-card { background: var(--cosmetic-level-bg) !important; border: 1px solid color-mix(in srgb, var(--interface-secondary) 64%, white) !important; box-shadow: 0 16px 34px color-mix(in srgb, var(--interface-primary) 38%, transparent) !important; color: var(--cosmetic-level-ink) !important; }
-:root[data-cosmetic-theme] .level-status-card :is(p, span, b, small) { color: var(--cosmetic-level-ink) !important; text-shadow: 0 1px 2px rgba(0,0,0,.28); }
-:root[data-cosmetic-theme] .level-status-card .level-status-kicker { color: color-mix(in srgb, var(--cosmetic-level-ink) 88%, var(--interface-secondary)) !important; }
-:root[data-cosmetic-theme] .level-status-card .level-status-xp { color: color-mix(in srgb, var(--cosmetic-level-ink) 84%, var(--interface-secondary)) !important; }
-
-:root.dark[data-cosmetic-theme] { --cosmetic-text:#f4f7fc; --cosmetic-text-strong:#ffffff; --cosmetic-muted:#d5deea; --cosmetic-level-bg:linear-gradient(135deg, color-mix(in srgb, var(--interface-primary) 64%, #10131d), color-mix(in srgb, var(--interface-secondary) 57%, #10131d)); --cosmetic-level-ink:#ffffff; }
+:root.dark[data-cosmetic-theme] { --cosmetic-text:#f4f7fc; --cosmetic-text-strong:#ffffff; --cosmetic-muted:#d5deea; }
 :root.dark[data-cosmetic-theme] #root > div.min-h-screen :is(main h1, main h2, main h3, main h4, main h5, main b, main strong, aside b, header b) { color: var(--cosmetic-text-strong) !important; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
 :root.dark[data-cosmetic-theme] #root > div.min-h-screen :is(main p, main span, main small, main label, main li, aside p, aside span, header p, header span) { color: var(--cosmetic-text) !important; }
 
@@ -1430,8 +1425,8 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   opacity: .92;
 }
 
-/* Tuyết bám mảnh ở đầu các khu điều hướng/cấp độ, đủ nhận diện nhưng không lấn nội dung. */
-:root[data-ambient-scene="snow"] #root > div.min-h-screen :is(aside, header, .level-status-card) {
+/* Tuyết bám mảnh ở đầu các khu điều hướng, đủ nhận diện nhưng không lấn nội dung. */
+:root[data-ambient-scene="snow"] #root > div.min-h-screen :is(aside, header) {
   border-top: 4px solid rgba(255, 255, 255, .94) !important;
   box-shadow: inset 0 5px 11px rgba(255, 255, 255, .6), 0 -2px 10px rgba(255, 255, 255, .56);
 }
@@ -1982,8 +1977,6 @@ body::after,
 :root.dark[data-festive-theme] .min-h-screen :is(aside, header, nav, .panel, .study-card, article, section, input, textarea, select) { background-color: color-mix(in srgb, var(--festive-dark-bg) 82%, #111827) !important; color: var(--festive-dark-text, #f8fafc) !important; border-color: color-mix(in srgb, var(--festive-dark-primary) 50%, #94a3b8) !important; }
 /* Theo yêu cầu catalog chỉ giữ theme đã có nguồn âm nền: các thẻ “Chỉ giao diện” không còn hiện như một lựa chọn có thể mở. */
 :root [aria-label$=", chỉ giao diện"] { display: none !important; }
-:root[data-festive-theme]:not(.dark) .level-status-card { background: color-mix(in srgb, var(--festive-light-primary) 82%, white); color: #1f130d; }
-:root.dark[data-festive-theme] .level-status-card { background: color-mix(in srgb, var(--festive-dark-primary) 78%, #101114); color: #fff8ed; }
 .festive-mascot, .festive-ground-item, .festive-mascot-reset { position: fixed; display: grid; place-items: center; border: 0; background: transparent; cursor: grab; user-select: none; -webkit-user-select: none; }
 .festive-mascot:active, .festive-ground-item:active { cursor: grabbing; }
 .festive-mascot:focus-visible, .festive-ground-item:focus-visible, .festive-mascot-reset:focus-visible { outline: 3px solid var(--festive-light-accent, #f4b942); outline-offset: 3px; border-radius: 999px; }
@@ -2006,6 +1999,22 @@ body::after,
 .festive-ground { pointer-events: none; }
 .festive-ground-item, .festive-mascot, .festive-mascot-reset { pointer-events: auto; }
 .festive-ground-item { display: grid; place-items: center; line-height: 1; filter: drop-shadow(0 7px 9px rgb(0 0 0 / .2)); }
+.festive-ground-item { transition: left 220ms var(--ease-out), top 220ms var(--ease-out), filter 160ms var(--ease-out); }
+.festive-ground-item.is-dragging { transition: none; filter: drop-shadow(0 14px 16px rgb(0 0 0 / .3)); }
+.festive-physics-bounce:not(.is-dragging) { animation: festive-ground-bounce 1.8s cubic-bezier(.34, 1.56, .64, 1) infinite; }
+.festive-physics-orbit:not(.is-dragging) { animation: festive-ground-orbit 4.6s ease-in-out infinite; }
+.festive-physics-float:not(.is-dragging) { animation: festive-ground-float 3.2s ease-in-out infinite; }
+.festive-physics-snap:not(.is-dragging) { animation: festive-ground-pulse 2.4s ease-in-out infinite; }
+@keyframes festive-ground-bounce { 50% { transform: translateY(-10px) scale(1.035); } }
+@keyframes festive-ground-orbit { 50% { transform: translate(7px, -7px) rotate(5deg); } }
+@keyframes festive-ground-float { 50% { transform: translateY(-8px) rotate(-2deg); } }
+@keyframes festive-ground-pulse { 50% { transform: scale(1.04); filter: drop-shadow(0 0 12px var(--festive-light-accent, #f4b942)); } }
+.min-h-screen > aside,
+.min-h-screen > .xl\:pl-72 > header { z-index: 100 !important; }
+.min-h-screen > button[aria-label="Đóng menu"] { z-index: 95 !important; }
+@media (prefers-reduced-motion: reduce) {
+  .festive-ground-item { transition: none !important; animation: none !important; }
+}
 .festive-mascot { position: fixed; }
 .festive-mascot-emoji.is-dragging { animation-play-state: paused; }
 .festive-particle { position: fixed; display: block; font-size: 1.1rem; animation: festive-particle-out 600ms cubic-bezier(.23,1,.32,1) forwards; }

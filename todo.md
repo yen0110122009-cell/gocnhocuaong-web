@@ -396,3 +396,14 @@
 - [x] Chuẩn hóa lớp VFX toàn màn hình: icon lễ hội đáy 80–140px, kéo thả pointer capture, physics khi thả và sidebar/header luôn ở lớp trên.
 - [x] Cập nhật linh vật tự do di chuyển, token màu toàn cục và cơ chế mở khóa âm thanh sau cử chỉ đầu tiên mà không thêm URL audio mới.
 - [x] Bổ sung regression, kiểm thử TypeScript/Vitest/build và xác minh desktop/mobile trước checkpoint phát hành.
+
+## Gỡ bề mặt Thành tích, Cấp độ và Danh hiệu còn sót
+- [x] Kiểm kê toàn bộ trang, menu, thẻ, lịch sử và quản trị còn hiển thị Thành tích, Cấp độ hoặc Danh hiệu.
+- [x] Gỡ các phần giao diện legacy đã kiểm kê, nhưng không ảnh hưởng Kế hoạch, Pomodoro, Lumi và dữ liệu học tập.
+- [x] Bổ sung regression; chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.
+
+## Nâng cấp VFX và âm thanh từ `pasted_content_15/16`
+- [x] Đối chiếu renderer lễ hội hiện có với kích thước 100–140px, 5 physics khi thả, Pointer Capture, lớp dưới menu và reduced-motion.
+- [x] Hoàn thiện mở khóa audio sau cử chỉ đầu tiên bằng một phần tử audio ổn định, chỉ dùng URL đã được người dùng cung cấp hoặc audio đã audit.
+- [x] Kiểm tra khả dụng của 10 URL âm thanh được cung cấp; không tạo asset local giả, và ghi nhận fallback an toàn khi một URL không tải được.
+- [x] Bổ sung regression cho physics, kích thước, lớp VFX/audio unlock; chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.

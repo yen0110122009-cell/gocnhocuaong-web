@@ -28,6 +28,20 @@ export interface FestiveThemeConfig {
 const arcade = "https://actions.google.com/sounds/v1/science_fiction/8bit_arcade.ogg";
 const birds = "https://actions.google.com/sounds/v1/ambiences/outdoor_birds_cicadas.ogg";
 const wind = "https://actions.google.com/sounds/v1/ambiences/wind_in_trees.ogg";
+
+/** Mười nguồn CDN được người dùng cung cấp trong pasted_content_16. Không tạo file local giả. */
+export const USER_PROVIDED_FESTIVE_AUDIO: Record<string, string> = {
+  "tet-nguyen-dan": "https://actions.google.com/sounds/v1/ambiences/fireworks.ogg",
+  "gio-to-hung-vuong": "https://actions.google.com/sounds/v1/impacts/drum_roll.ogg",
+  "ngay-thanh-nien-26-3": "https://actions.google.com/sounds/v1/cartoon/upbeat_bell_melody.ogg",
+  "giai-phong-30-4": "https://actions.google.com/sounds/v1/foley/trumpet_fanfare.ogg",
+  "thuong-binh-liet-si-27-7": "https://actions.google.com/sounds/v1/foley/wind_chimes.ogg",
+  "cach-mang-19-8": "https://actions.google.com/sounds/v1/impacts/marching_snare.ogg",
+  "quoc-khanh-2-9": "https://actions.google.com/sounds/v1/human_voices/cheering_crowd.ogg",
+  "tet-trung-thu": "https://actions.google.com/sounds/v1/cartoon/wood_block_tune.ogg",
+  "nha-giao-viet-nam-20-11": "https://actions.google.com/sounds/v1/music/piano_chord.ogg",
+  "quoc-te-phu-nu-8-3": "https://actions.google.com/sounds/v1/cartoon/harp_glissando.ogg",
+};
 const item = (emoji: string, size: string, density: number, clickEffect?: FestiveEffectConfig) => ({ emoji, size, density, draggable: true, clickEffect });
 
 export const FESTIVE_THEME_CONFIGS: FestiveThemeConfig[] = [

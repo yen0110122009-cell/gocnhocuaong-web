@@ -24,12 +24,12 @@ describe("tone giao diện và typography tương phản cao", () => {
     }
   });
 
-  it("gắn tone được chọn vào cả shell và thẻ cấp độ hiện tại", () => {
+  it("gắn tone được chọn vào shell và tổng quan Kế hoạch", () => {
     expect(home).toContain("activeCosmeticTheme");
-    expect(home).toContain("level-status-card");
+    expect(home).toContain("Kế hoạch hôm nay");
     expect(home).toContain("root.dataset.cosmeticTheme");
-    expect(css).toContain("level-status-card");
-    expect(css).toContain("--cosmetic-level-bg");
+    expect(css).not.toContain("level-status-card");
+    expect(css).toContain("--cosmetic-text-strong");
   });
 
   it("áp dụng token chữ tương phản cao trên nền sáng và tối", () => {

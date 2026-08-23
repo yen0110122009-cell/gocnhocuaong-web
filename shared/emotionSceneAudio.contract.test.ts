@@ -21,7 +21,7 @@ describe("Lumi và Pomodoro sau tái cấu trúc", () => {
     expect(pomodoro()).toContain("notes");
     expect(pomodoro()).toContain("Cần an ủi");
     expect(pomodoro()).toContain("Cần động viên");
-    expect(pomodoro()).toContain("Không có XP hay Thành tích tự động");
+    expect(pomodoro()).toContain("Đã hoàn thành phiên.");
   });
 
   it("không để Pomodoro gọi lại chuỗi thưởng XP hoặc cơ chế trì hoãn cũ", () => {

@@ -25,9 +25,9 @@ describe("Quản trị thành viên và Event", () => {
     expect(workspace).toContain('rewardType === "fragment"');
   });
 
-  it("không đưa Thành tích, Cấp độ, Danh hiệu, Bảo tàng hoặc Vòng quay vào workspace mới", () => {
+  it("giữ workspace tối giản với quản lý thành viên và Event", () => {
     const workspace = source("client/src/pages/AdminWorkspace.tsx");
-    expect(workspace).toContain("không còn nằm trong bề mặt quản trị");
+    expect(workspace).toContain("Quản lý thành viên và Event");
     expect(workspace).not.toContain("AchievementCatalogAdmin");
     expect(workspace).not.toContain("WheelEnhanced");
   });

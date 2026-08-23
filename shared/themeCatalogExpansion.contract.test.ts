@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AMBIENT_SCENE_IDS, emptyProfile, normalizeProfile } from "./study";
-import { FESTIVE_THEME_CONFIGS, FESTIVE_THEME_DECORATIONS } from "../client/src/lib/festiveThemes";
+import { FESTIVE_THEME_CONFIGS, FESTIVE_THEME_DECORATIONS, USER_PROVIDED_FESTIVE_AUDIO } from "../client/src/lib/festiveThemes";
 import { festiveAmbientFor } from "../client/src/lib/festiveAmbient";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -44,7 +44,7 @@ describe("expanded theme catalog contract", () => {
     expect(FESTIVE_THEME_CONFIGS).toHaveLength(14);
     for (const theme of FESTIVE_THEME_CONFIGS) {
       expect(AMBIENT_SCENE_IDS).toContain(theme.id);
-      expect(festiveAmbientFor(theme.id)).toMatchObject({ url: theme.bgm.url, volume: theme.bgm.volume * 100 });
+      expect(festiveAmbientFor(theme.id)).toMatchObject({ url: USER_PROVIDED_FESTIVE_AUDIO[theme.id] ?? theme.bgm.url, volume: theme.bgm.volume * 100 });
     }
     const normalized = normalizeProfile({ ...emptyProfile(), personalStudyPresets: [{ id: "holiday", name: "Quốc khánh", ambientScene: "quoc-khanh-2-9" }] });
     expect(normalized.personalStudyPresets[0]?.ambientScene).toBe("quoc-khanh-2-9");
@@ -81,7 +81,9 @@ describe("expanded theme catalog contract", () => {
 
   it("keeps theme/audio controls single-source and removes visual-only cards", () => {
     const source = home();
-    expect(source).toContain("const toggleThemeAudio = () => setAudioEnabled((enabled) => !enabled)");
+    expect(source).toContain("const toggleThemeAudio = () => {");
+    expect(source).toContain("setAudioUnlocked(true)");
+    expect(source).toContain("fallbackUrl");
     expect(source).toContain("const fullCatalogSceneCards = AMBIENT_SCENE_IDS.filter((id) => Boolean(AUDIO_BACKED_SCENE_AUDIO[id]))");
     expect(source).toContain("Nguồn âm thanh:");
     expect(source).toContain('touchAction: "none"');

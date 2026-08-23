@@ -5,10 +5,13 @@ import { FESTIVE_THEME_DECORATIONS, festiveThemeFor, type FestiveClickEffect, ty
 type Point = { x: number; y: number };
 type Particle = { id: number; x: number; y: number; emoji: string; offsetX: number; offsetY: number };
 type Ripple = { id: number; x: number; y: number; size: number };
-type ReleasePhysics = "ground" | "float";
+type ReleasePhysics = "ground" | "float" | "bounce" | "orbit" | "snap";
+
+const RELEASE_PHYSICS: readonly ReleasePhysics[] = ["ground", "float", "bounce", "orbit", "snap"];
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 const pixels = (value: string) => Number.parseFloat(value) || 24;
+const stableHash = (value: string) => Array.from(value).reduce((hash, character) => ((hash * 31) + character.charCodeAt(0)) >>> 0, 7);
 function readableInk(color: string) {
   const hex = color.trim().replace("#", "");
   if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "#172033";
@@ -64,7 +67,17 @@ function useDraggable(initial: Point, size: number, enabled: boolean, onTap: (po
         const maxY = Math.max(6, window.innerHeight - size - 6);
         const inertialX = clamp(current.x + active.velocityX * 80, 6, maxX);
         const inertialY = clamp(current.y + active.velocityY * 54, 6, maxY);
-        return physics === "ground" ? { x: inertialX, y: maxY } : { x: inertialX, y: inertialY };
+        if (physics === "ground") return { x: inertialX, y: maxY };
+        if (physics === "bounce") return { x: inertialX, y: clamp(inertialY - Math.min(84, Math.abs(active.velocityY) * 96), 6, maxY) };
+        if (physics === "orbit") {
+          const centerX = Math.max(6, (window.innerWidth - size) / 2);
+          const centerY = Math.max(6, (window.innerHeight - size) / 2);
+          const angle = Math.atan2(inertialY - centerY, inertialX - centerX) + Math.sign(active.velocityX || 1) * .35;
+          const radius = clamp(Math.hypot(inertialX - centerX, inertialY - centerY), 56, Math.min(window.innerWidth, window.innerHeight) * .36);
+          return { x: clamp(centerX + Math.cos(angle) * radius, 6, maxX), y: clamp(centerY + Math.sin(angle) * radius, 6, maxY) };
+        }
+        if (physics === "snap") return { x: clamp(Math.round(inertialX / 24) * 24, 6, maxX), y: clamp(Math.round(inertialY / 24) * 24, 6, maxY) };
+        return { x: inertialX, y: inertialY };
       });
     },
     onPointerCancel: (event: React.PointerEvent<HTMLElement>) => {
@@ -97,7 +110,7 @@ export function FestiveThemeLayer({ scene, soundEnabled = true }: { scene?: stri
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const effectTimeout = useRef<number | undefined>(undefined);
   const config = theme;
-  const mascotSize = config ? pixels(config.mascot.size) : 0;
+  const mascotSize = config ? clamp(pixels(config.mascot.size), 100, 140) : 0;
   const initialMascotPosition = useMemo(() => config ? pointFor(config.mascot.initialPosition, mascotSize) : { x: 0, y: 0 }, [config?.id, mascotSize]);
   const triggerEffect = (clickEffect: FestiveEffectConfig | undefined, point: Point, emoji: string, allowRipple = false) => {
     if (!clickEffect) return;
@@ -156,12 +169,17 @@ function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, trigger
     const counts = theme.groundContainer.items.map((item) => Math.max(1, Math.round((item.density / totalDensity) * 28)));
     const difference = 28 - counts.reduce((sum, count) => sum + count, 0);
     counts[counts.length - 1] = Math.max(1, counts[counts.length - 1] + difference);
-    return theme.groundContainer.items.flatMap((item, itemIndex) => Array.from({ length: counts[itemIndex] }, (_, index) => ({
+    const candidates = theme.groundContainer.items.flatMap((item, itemIndex) => Array.from({ length: counts[itemIndex] }, (_, index) => ({
       ...item,
       id: `${itemIndex}-${index}`,
-      left: `${((itemIndex * 17 + index * (100 / counts[itemIndex]) + 2) % 100)}%`,
       bottomGap: (itemIndex * 11 + index * 17) % 41,
     })));
+    const shuffled = [...candidates].sort((left, right) => stableHash(`${theme.id}:${left.id}`) - stableHash(`${theme.id}:${right.id}`));
+    return shuffled.map((item, index) => ({
+      ...item,
+      left: `${((index * (100 / 28)) + (stableHash(`${theme.id}:${item.id}:x`) % 3)) % 100}%`,
+      physics: RELEASE_PHYSICS[index % RELEASE_PHYSICS.length],
+    }));
   }, [theme.id]);
   const ambientDecorations = useMemo(() => (FESTIVE_THEME_DECORATIONS[theme.id] ?? []).flatMap((decoration, groupIndex) => Array.from({ length: decoration.count }, (_, index) => ({
     ...decoration,
@@ -177,17 +195,17 @@ function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, trigger
     </button>
     <button type="button" className="festive-mascot-reset" aria-label="Đặt lại vị trí linh vật lễ hội" title="Đặt lại vị trí linh vật" style={{ left: mascot.position.x + mascotSize - 18, top: mascot.position.y - 12, zIndex: 61 }} onClick={mascot.reset}><RotateCcw aria-hidden="true" size={14} /></button>
     <div className="festive-ground" style={{ height: theme.groundContainer.height, bottom: theme.groundContainer.bottom, zIndex: 55 }}>
-      {groundItems.map((item) => <GroundItem key={item.id} item={item} left={item.left} bottomGap={item.bottomGap} onTrigger={(point) => triggerEffect(item.clickEffect, point, item.emoji, theme.groundContainer.rippleEffect === true)} />)}
+      {groundItems.map((item) => <GroundItem key={item.id} item={item} left={item.left} bottomGap={item.bottomGap} physics={item.physics} onTrigger={(point) => triggerEffect(item.clickEffect, point, item.emoji, theme.groundContainer.rippleEffect === true)} />)}
     </div>
     <div className="festive-visual-effects" aria-hidden="true">{particles.map((particle) => <span key={particle.id} className="festive-particle" style={{ left: particle.x, top: particle.y, "--particle-x": `${particle.offsetX}px`, "--particle-y": `${particle.offsetY}px` } as React.CSSProperties}>{particle.emoji}</span>)}{ripples.map((ripple) => <span key={ripple.id} className="festive-ripple" style={{ left: ripple.x, top: ripple.y, width: ripple.size, height: ripple.size }} />)}</div>
   </>;
 }
 
-function GroundItem({ item, left, bottomGap, onTrigger }: { item: FestiveThemeConfig["groundContainer"]["items"][number] & { id: string }; left: string; bottomGap: number; onTrigger: (point: Point) => void }) {
+function GroundItem({ item, left, bottomGap, physics, onTrigger }: { item: FestiveThemeConfig["groundContainer"]["items"][number] & { id: string }; left: string; bottomGap: number; physics: ReleasePhysics; onTrigger: (point: Point) => void }) {
   const size = pixels(item.size);
-  const displaySize = clamp(Math.max(80, size * 2), 80, 140);
+  const displaySize = clamp(Math.max(100, size * 2), 100, 140);
   const interactiveSize = displaySize + 12;
   const initial = useMemo(() => ({ x: clamp(window.innerWidth * (Number.parseFloat(left) / 100), 6, Math.max(6, window.innerWidth - interactiveSize - 6)), y: clamp(window.innerHeight - interactiveSize - bottomGap, 6, Math.max(6, window.innerHeight - interactiveSize - 6)) }), [bottomGap, interactiveSize, left]);
-  const draggable = useDraggable(initial, interactiveSize, item.draggable, (point) => onTrigger(point), "ground");
-  return <button type="button" className="festive-ground-item" tabIndex={0} aria-label={`Đồ vật lễ hội ${item.emoji}; có thể kéo thả`} style={{ left: draggable.position.x, top: draggable.position.y, width: interactiveSize, height: interactiveSize, fontSize: displaySize, touchAction: "none" }} onPointerDown={draggable.onPointerDown} onPointerMove={draggable.onPointerMove} onPointerUp={draggable.onPointerUp} onPointerCancel={draggable.onPointerCancel} onKeyDown={draggable.onKeyDown}>{item.emoji}</button>;
+  const draggable = useDraggable(initial, interactiveSize, item.draggable, (point) => onTrigger(point), physics);
+  return <button type="button" className={`festive-ground-item festive-physics-${physics} ${draggable.dragging ? "is-dragging" : ""}`} data-physics={physics} tabIndex={0} aria-label={`Đồ vật lễ hội ${item.emoji}; có thể kéo thả`} style={{ left: draggable.position.x, top: draggable.position.y, width: interactiveSize, height: interactiveSize, fontSize: displaySize, touchAction: "none" }} onPointerDown={draggable.onPointerDown} onPointerMove={draggable.onPointerMove} onPointerUp={draggable.onPointerUp} onPointerCancel={draggable.onPointerCancel} onKeyDown={draggable.onKeyDown}>{item.emoji}</button>;
 }
