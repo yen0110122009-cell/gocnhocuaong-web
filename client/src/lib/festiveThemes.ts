@@ -7,6 +7,15 @@ export interface FestiveEffectConfig {
   durationMs: number;
 }
 
+/** Hạt trang trí thuần emoji; renderer luôn đặt lớp này dưới nội dung và không nhận pointer events. */
+export type FestiveAmbientMotion = "fall" | "rise" | "drift" | "glow" | "diagonal" | "bounce" | "rest";
+export interface FestiveAmbientDecoration {
+  emoji: string;
+  motion: FestiveAmbientMotion;
+  count: number;
+  size: string;
+}
+
 export interface FestiveThemeConfig {
   id: string;
   displayName: string;
@@ -37,6 +46,27 @@ export const FESTIVE_THEME_CONFIGS: FestiveThemeConfig[] = [
   { id: "phu-nu-viet-nam-20-10", displayName: "Ngày Phụ Nữ Việt Nam 20/10 🌹", colors: { light: { bg: "#FFF1F2", primary: "#BE123C", accent: "#E11D48" }, dark: { bg: "#4C0519", primary: "#FB7185", accent: "#FDA4AF" } }, bgm: { url: birds, volume: .35, loop: true }, mascot: { emoji: "🌹", size: "90px", initialPosition: { top: "18%", left: "44%" }, zIndex: 100, draggable: true, animation: "circular" }, groundContainer: { height: "60px", bottom: "0px", zIndex: 50, rippleEffect: false, items: [item("💖", "22px", .5), item("💐", "24px", .5)] } },
   { id: "quan-doi-nhan-dan-22-12", displayName: "QĐND Việt Nam 22/12 🎖️", colors: { light: { bg: "#F0FDF4", primary: "#14532D", accent: "#15803D" }, dark: { bg: "#052E16", primary: "#4ADE80", accent: "#86EFAC" } }, bgm: { url: arcade, volume: .35, loop: true }, mascot: { emoji: "🪖", size: "85px", initialPosition: { top: "22%", left: "45%" }, zIndex: 100, draggable: true, animation: "bounce" }, groundContainer: { height: "55px", bottom: "0px", zIndex: 50, rippleEffect: false, items: [item("🎖️", "22px", .5), item("⭐", "22px", .5)] } },
 ];
+
+/**
+ * Cấu hình hiệu ứng theme: mỗi theme có 28 hạt emoji (nằm trong mức 25–35
+ * của đặc tả), không dùng ảnh, canvas hay một URL media mới.
+ */
+export const FESTIVE_THEME_DECORATIONS: Record<string, FestiveAmbientDecoration[]> = {
+  "tet-nguyen-dan": [{ emoji: "🧧", motion: "fall", count: 7, size: "1.25rem" }, { emoji: "🌸", motion: "drift", count: 8, size: "1.1rem" }, { emoji: "✨", motion: "glow", count: 7, size: "1rem" }, { emoji: "🏮", motion: "bounce", count: 6, size: "1.25rem" }],
+  "gio-to-hung-vuong": [{ emoji: "🪷", motion: "rise", count: 7, size: "1.15rem" }, { emoji: "✨", motion: "glow", count: 7, size: "1rem" }, { emoji: "🍃", motion: "drift", count: 8, size: "1rem" }, { emoji: "🪵", motion: "rest", count: 6, size: "1.1rem" }],
+  "ngay-thanh-nien-26-3": [{ emoji: "⭐", motion: "diagonal", count: 7, size: "1rem" }, { emoji: "📘", motion: "rise", count: 7, size: "1rem" }, { emoji: "🌿", motion: "drift", count: 8, size: "1.05rem" }, { emoji: "💙", motion: "glow", count: 6, size: "1rem" }],
+  "giai-phong-30-4": [{ emoji: "🎈", motion: "rise", count: 7, size: "1.1rem" }, { emoji: "🕊️", motion: "drift", count: 7, size: "1.05rem" }, { emoji: "🎉", motion: "fall", count: 8, size: "1.1rem" }, { emoji: "✨", motion: "glow", count: 6, size: "1rem" }],
+  "thuong-binh-liet-si-27-7": [{ emoji: "🌼", motion: "drift", count: 7, size: "1rem" }, { emoji: "🕯️", motion: "glow", count: 7, size: "1rem" }, { emoji: "🎗️", motion: "fall", count: 8, size: "1rem" }, { emoji: "🍂", motion: "rest", count: 6, size: "1rem" }],
+  "cach-mang-19-8": [{ emoji: "🚩", motion: "diagonal", count: 7, size: "1rem" }, { emoji: "⭐", motion: "glow", count: 7, size: "1rem" }, { emoji: "✨", motion: "fall", count: 8, size: "1rem" }, { emoji: "🍃", motion: "drift", count: 6, size: "1rem" }],
+  "quoc-khanh-2-9": [{ emoji: "🎆", motion: "glow", count: 7, size: "1.15rem" }, { emoji: "🎈", motion: "rise", count: 7, size: "1.1rem" }, { emoji: "⭐", motion: "diagonal", count: 8, size: "1rem" }, { emoji: "🚩", motion: "rest", count: 6, size: "1rem" }],
+  "tet-trung-thu": [{ emoji: "🏮", motion: "rise", count: 7, size: "1.15rem" }, { emoji: "✨", motion: "glow", count: 7, size: "1rem" }, { emoji: "🌙", motion: "drift", count: 8, size: "1rem" }, { emoji: "🥮", motion: "rest", count: 6, size: "1.05rem" }],
+  "nha-giao-viet-nam-20-11": [{ emoji: "💐", motion: "drift", count: 7, size: "1.1rem" }, { emoji: "📚", motion: "rise", count: 7, size: "1rem" }, { emoji: "✨", motion: "glow", count: 8, size: "1rem" }, { emoji: "✒️", motion: "rest", count: 6, size: "1rem" }],
+  "quoc-te-phu-nu-8-3": [{ emoji: "🌷", motion: "drift", count: 7, size: "1.1rem" }, { emoji: "🌸", motion: "fall", count: 7, size: "1rem" }, { emoji: "💖", motion: "glow", count: 8, size: "1rem" }, { emoji: "🎀", motion: "rest", count: 6, size: "1rem" }],
+  "tet-doan-ngo-5-5": [{ emoji: "🍇", motion: "rise", count: 7, size: "1rem" }, { emoji: "✨", motion: "glow", count: 7, size: "1rem" }, { emoji: "🍃", motion: "drift", count: 8, size: "1rem" }, { emoji: "🥟", motion: "rest", count: 6, size: "1rem" }],
+  "vu-lan-bao-hieu": [{ emoji: "🪷", motion: "rise", count: 7, size: "1.1rem" }, { emoji: "🕯️", motion: "glow", count: 7, size: "1rem" }, { emoji: "✨", motion: "drift", count: 8, size: "1rem" }, { emoji: "🌊", motion: "rest", count: 6, size: "1rem" }],
+  "phu-nu-viet-nam-20-10": [{ emoji: "🌹", motion: "drift", count: 7, size: "1.1rem" }, { emoji: "💖", motion: "glow", count: 7, size: "1rem" }, { emoji: "💐", motion: "fall", count: 8, size: "1.05rem" }, { emoji: "🎀", motion: "rest", count: 6, size: "1rem" }],
+  "quan-doi-nhan-dan-22-12": [{ emoji: "🎖️", motion: "diagonal", count: 7, size: "1rem" }, { emoji: "⭐", motion: "glow", count: 7, size: "1rem" }, { emoji: "🍃", motion: "drift", count: 8, size: "1rem" }, { emoji: "🪖", motion: "rest", count: 6, size: "1rem" }],
+};
 
 export const FESTIVE_THEME_IDS = FESTIVE_THEME_CONFIGS.map((theme) => theme.id);
 export const festiveThemeFor = (scene?: string) => FESTIVE_THEME_CONFIGS.find((theme) => theme.id === scene);

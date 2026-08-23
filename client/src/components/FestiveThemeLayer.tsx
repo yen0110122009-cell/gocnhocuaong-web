@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
-import { festiveThemeFor, type FestiveClickEffect, type FestiveEffectConfig, type FestiveThemeConfig } from "@/lib/festiveThemes";
+import { FESTIVE_THEME_DECORATIONS, festiveThemeFor, type FestiveClickEffect, type FestiveEffectConfig, type FestiveThemeConfig } from "@/lib/festiveThemes";
 
 type Point = { x: number; y: number };
 type Particle = { id: number; x: number; y: number; emoji: string; offsetX: number; offsetY: number };
@@ -123,7 +123,15 @@ export function FestiveThemeLayer({ scene, soundEnabled = true }: { scene?: stri
 function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, triggerEffect, effect, particles, ripples }: { theme: FestiveThemeConfig; mascotSize: number; initialMascotPosition: Point; triggerEffect: (effect: FestiveEffectConfig | undefined, point: Point, emoji: string, ripple?: boolean) => void; effect: { id: number; config: FestiveEffectConfig } | null; particles: Particle[]; ripples: Ripple[] }) {
   const mascot = useDraggable(initialMascotPosition, mascotSize, theme.mascot.draggable, (point) => triggerEffect(theme.mascot.clickEffect, point, theme.mascot.emoji));
   const groundItems = useMemo(() => theme.groundContainer.items.flatMap((item, itemIndex) => Array.from({ length: Math.max(1, Math.round(item.density * 6)) }, (_, index) => ({ ...item, id: `${itemIndex}-${index}`, left: `${((itemIndex * 23 + index * (74 / Math.max(1, Math.round(item.density * 6))) + 6) % 92)}%` }))), [theme.id]);
+  const ambientDecorations = useMemo(() => (FESTIVE_THEME_DECORATIONS[theme.id] ?? []).flatMap((decoration, groupIndex) => Array.from({ length: decoration.count }, (_, index) => ({
+    ...decoration,
+    id: `${theme.id}-${groupIndex}-${index}`,
+    left: `${(groupIndex * 19 + index * 37 + 7) % 96}%`,
+    top: decoration.motion === "rest" ? `${84 + ((index * 7) % 12)}%` : `${(groupIndex * 23 + index * 17 + 4) % 78}%`,
+    delay: `${-((groupIndex * 0.9 + index * 0.41) % 5.8)}s`,
+  }))), [theme.id]);
   return <>
+    <div className="festive-ambient-decorations" aria-hidden="true">{ambientDecorations.map((decoration) => <span key={decoration.id} className={`festive-ambient-decoration festive-ambient-${decoration.motion}`} style={{ left: decoration.left, top: decoration.top, fontSize: decoration.size, animationDelay: decoration.delay }}>{decoration.emoji}</span>)}</div>
     <button type="button" className="festive-mascot" aria-label={`Linh vật ${theme.displayName}; kéo thả hoặc dùng phím mũi tên để di chuyển`} title="Kéo thả linh vật · mũi tên để di chuyển" style={{ width: mascotSize, height: mascotSize, left: mascot.position.x, top: mascot.position.y, zIndex: theme.mascot.zIndex, touchAction: "none" }} onPointerDown={mascot.onPointerDown} onPointerMove={mascot.onPointerMove} onPointerUp={mascot.onPointerUp} onKeyDown={mascot.onKeyDown}>
       <span key={effect?.id} className={`festive-mascot-emoji ${mascot.dragging ? "is-dragging" : ""} ${theme.mascot.animation ? `festive-auto-${theme.mascot.animation}` : ""} ${effect ? visualClass(effect.config) : ""}`} style={{ "--festive-intensity": effect?.config.intensity ?? 1.12, "--festive-duration": `${effect?.config.durationMs ?? 400}ms` } as React.CSSProperties}>{theme.mascot.emoji}</span>
     </button>

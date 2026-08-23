@@ -545,6 +545,12 @@ function AppearanceStudio({ profile, onProfile }: { profile: ProfileState; onPro
   }, [audioTheme]);
   const toggleThemeAudio = () => setAudioEnabled((enabled) => !enabled);
   const updateThemeAudioVolume = (value: number) => { setAudioVolume(value); if (audioRef.current) audioRef.current.volume = value / 100; };
+  const resetAppearance = () => {
+    audioRef.current?.pause();
+    setAudioEnabled(false);
+    setAudioTheme(null);
+    onProfile({ ...profile, defaultAmbientScene: undefined, activeCosmeticTheme: undefined }, "Đã khôi phục giao diện mặc định và dừng âm nền xem trước.");
+  };
   const favorites = profile.favoriteAmbientScenes ?? [];
   const [favoritesOpen, setFavoritesOpen] = useState(true);
   const toggleFavorite = (scene: string) => {
@@ -552,7 +558,7 @@ function AppearanceStudio({ profile, onProfile }: { profile: ProfileState; onPro
     onProfile({ ...profile, favoriteAmbientScenes: next }, favorites.includes(scene as never) ? "Đã bỏ khỏi Giao diện yêu thích." : "Đã thêm vào Giao diện yêu thích.");
   };
   return <div className="space-y-5">
-    <Heading eyebrow="Giao diện cá nhân" title="Chọn tone màu phối hợp" text="Các tone được phối theo cặp màu để giao diện vẫn dễ đọc ở cả chế độ sáng và tối. Lựa chọn được lưu vào hồ sơ của Ong." />
+    <div className="flex flex-wrap items-start justify-between gap-3"><Heading eyebrow="Giao diện cá nhân" title="Chọn tone màu phối hợp" text="Các tone được phối theo cặp màu để giao diện vẫn dễ đọc ở cả chế độ sáng và tối. Lựa chọn được lưu vào hồ sơ của Ong." /><button type="button" className="secondary-button" onClick={resetAppearance}><RotateCcw className="h-4 w-4" />Khôi phục giao diện</button></div>
     <section className="panel p-5 sm:p-6" aria-labelledby="favorite-interface-title">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-amber-700 dark:text-amber-300">Giao diện yêu thích</p><h2 id="favorite-interface-title" className="mt-1 font-display text-2xl font-bold">Kho theme đã đánh dấu sao</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Không giới hạn số lượng. Nhấn một theme để áp dụng ngay, hoặc chọn cảnh rồi bấm sao để lưu.</p></div><button type="button" className="secondary-button" aria-expanded={favoritesOpen} onClick={() => setFavoritesOpen((open) => !open)}>{favoritesOpen ? "Thu gọn" : "Mở danh sách"}</button></div>
       {favoritesOpen ? <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{favorites.length ? favorites.map((scene) => <button key={scene} type="button" onClick={() => onProfile({ ...profile, defaultAmbientScene: scene }, `Đã áp dụng giao diện ${favoriteSceneLabels[scene] ?? scene}.`)} className={cn("flex items-center justify-between gap-3 rounded-2xl border p-3 text-left transition hover:-translate-y-0.5", profile.defaultAmbientScene === scene ? "border-amber-500 bg-amber-50 ring-2 ring-amber-200 dark:bg-amber-950/30" : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/60")}><span className="min-w-0"><b className="block truncate text-sm">{favoriteSceneLabels[scene] ?? scene}</b><span className="text-xs text-slate-500 dark:text-slate-300">{profile.defaultAmbientScene === scene ? "Đang dùng" : "Nhấn để áp dụng"}</span></span><span className="flex items-center gap-1"><Star className="h-4 w-4 fill-amber-400 text-amber-500" /><span role="button" tabIndex={0} aria-label={`Bỏ yêu thích ${favoriteSceneLabels[scene] ?? scene}`} onClick={(event) => { event.stopPropagation(); toggleFavorite(scene); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); toggleFavorite(scene); } }} className="rounded-lg p-1 text-amber-500 hover:bg-amber-100">×</span></span></button>) : <p className="rounded-2xl border border-dashed border-amber-300 bg-amber-50/60 p-4 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/20 dark:text-amber-100">Chưa có theme yêu thích. Chọn một cảnh bên dưới rồi bấm “Thêm cảnh đang chọn”.</p>}</div> : null}

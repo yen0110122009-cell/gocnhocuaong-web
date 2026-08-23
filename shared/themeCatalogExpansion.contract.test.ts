@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AMBIENT_SCENE_IDS, emptyProfile, normalizeProfile } from "./study";
-import { FESTIVE_THEME_CONFIGS } from "../client/src/lib/festiveThemes";
+import { FESTIVE_THEME_CONFIGS, FESTIVE_THEME_DECORATIONS } from "../client/src/lib/festiveThemes";
 import { festiveAmbientFor } from "../client/src/lib/festiveAmbient";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -51,6 +51,25 @@ describe("expanded theme catalog contract", () => {
     expect(normalized.personalStudyPresets[0]?.ambientScene).toBe("quoc-khanh-2-9");
   });
 
+  it("gives every festive theme a bounded emoji-only decoration layer", () => {
+    const renderer = readFileSync(resolve(root, "client/src/components/FestiveThemeLayer.tsx"), "utf8");
+    const css = styles();
+    for (const theme of FESTIVE_THEME_CONFIGS) {
+      const decorations = FESTIVE_THEME_DECORATIONS[theme.id];
+      expect(decorations).toBeDefined();
+      expect(decorations.reduce((total, decoration) => total + decoration.count, 0)).toBeGreaterThanOrEqual(25);
+      expect(decorations.reduce((total, decoration) => total + decoration.count, 0)).toBeLessThanOrEqual(35);
+      expect(decorations.every((decoration) => !decoration.emoji.includes("http"))).toBe(true);
+    }
+    expect(renderer).toContain("festive-ambient-decorations");
+    expect(renderer).toContain("FESTIVE_THEME_DECORATIONS");
+    expect(css).toContain(".festive-ambient-decorations { position: fixed; inset: 0; z-index: 45; overflow: hidden; pointer-events: none; }");
+    expect(css).toContain("festive-ambient-fall");
+    expect(css).toContain("festive-ambient-bounce");
+    expect(Object.values(FESTIVE_THEME_DECORATIONS).flat().some((decoration) => decoration.motion === "bounce")).toBe(true);
+    expect(css).toContain(".festive-ambient-decoration { animation: none !important; }");
+  });
+
   it("maps only directly supplied audio URLs and keeps the rest metadata-only", () => {
     expect(ambient()).toContain("rain_heavy_loud.ogg");
     expect(ambient()).toContain("heavy_wind_storm.ogg");
@@ -81,6 +100,14 @@ describe("expanded theme catalog contract", () => {
     expect(source).toContain("FESTIVE_THEME_CONFIGS.map((theme)");
     expect(source).toContain("chooseAudioTheme({ id: theme.id, label: theme.displayName })");
     expect(source).toContain("festiveAmbientFor(theme.id)");
+  });
+
+  it("returns the selected scene and tone to their clean defaults while stopping preview audio", () => {
+    const source = home();
+    expect(source).toContain("const resetAppearance = () => {");
+    expect(source).toContain("audioRef.current?.pause()");
+    expect(source).toContain("defaultAmbientScene: undefined, activeCosmeticTheme: undefined");
+    expect(source).toContain("Khôi phục giao diện");
   });
 
   it("uses a clean default scene instead of a decorative morning overlay", () => {

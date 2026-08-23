@@ -1951,6 +1951,15 @@ body::after,
 .festive-mascot-reset { width: 28px; height: 28px; border-radius: 999px; background: color-mix(in srgb, var(--festive-light-accent, #f4b942) 90%, white); color: #25120b; box-shadow: 0 5px 14px rgb(0 0 0 / .18); cursor: pointer; }
 .festive-ground { position: fixed; inset-inline: 0; pointer-events: none; }
 .festive-ground-item { pointer-events: auto; padding: 0; line-height: 1; filter: drop-shadow(0 6px 6px rgb(0 0 0 / .17)); }
+.festive-ambient-decorations { position: fixed; inset: 0; z-index: 45; overflow: hidden; pointer-events: none; }
+.festive-ambient-decoration { position: fixed; display: block; line-height: 1; opacity: .78; filter: drop-shadow(0 3px 5px rgb(0 0 0 / .12)); will-change: transform, opacity; }
+.festive-ambient-fall { animation: festive-ambient-fall 8.8s linear infinite; }
+.festive-ambient-rise { animation: festive-ambient-rise 9.6s linear infinite; }
+.festive-ambient-drift { animation: festive-ambient-drift 6.8s ease-in-out infinite; }
+.festive-ambient-glow { animation: festive-ambient-glow 3.2s ease-in-out infinite; }
+.festive-ambient-diagonal { animation: festive-ambient-diagonal 7.4s linear infinite; }
+.festive-ambient-bounce { animation: festive-ambient-bounce 2.8s cubic-bezier(.34, 1.56, .64, 1) infinite; }
+.festive-ambient-rest { opacity: .88; }
 .festive-visual-effects { position: fixed; inset: 0; z-index: 110; pointer-events: none; overflow: hidden; }
 .festive-particle { position: fixed; display: block; font-size: 1.1rem; animation: festive-particle-out 600ms cubic-bezier(.23,1,.32,1) forwards; }
 .festive-ripple { position: fixed; border: 2px solid var(--festive-light-accent, #f4b942); border-radius: 999px; transform: translate(-50%, -50%) scale(.15); opacity: .9; animation: festive-ripple-out 650ms ease-out forwards; }
@@ -1970,4 +1979,10 @@ body::after,
 @keyframes festive-bounce { 50% { transform: translateY(-12px) scale(1.04); } }
 @keyframes festive-float { 50% { transform: translateY(-9px) rotate(-3deg); } }
 @keyframes festive-circular { to { transform: rotate(360deg) translateX(10px) rotate(-360deg); } }
-@media (prefers-reduced-motion: reduce) { .festive-mascot-emoji, .festive-particle, .festive-ripple { animation: none !important; } }
+@keyframes festive-ambient-fall { from { transform: translate3d(0, -12vh, 0) rotate(0deg); } to { transform: translate3d(6vw, 112vh, 0) rotate(150deg); } }
+@keyframes festive-ambient-rise { from { transform: translate3d(0, 15vh, 0) rotate(0deg); } to { transform: translate3d(-4vw, -105vh, 0) rotate(-120deg); } }
+@keyframes festive-ambient-drift { 50% { transform: translate3d(20px, -13px, 0) rotate(8deg); } }
+@keyframes festive-ambient-glow { 50% { transform: scale(1.22); opacity: 1; filter: drop-shadow(0 0 10px var(--festive-light-accent, #f4b942)); } }
+@keyframes festive-ambient-diagonal { from { transform: translate3d(-7vw, 4vh, 0) rotate(-12deg); } to { transform: translate3d(106vw, 70vh, 0) rotate(22deg); } }
+@keyframes festive-ambient-bounce { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 45% { transform: translate3d(0, -20px, 0) scale(1.08); } 65% { transform: translate3d(0, -5px, 0) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .festive-mascot-emoji, .festive-particle, .festive-ripple, .festive-ambient-decoration { animation: none !important; } }

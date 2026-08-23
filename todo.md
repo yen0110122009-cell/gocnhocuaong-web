@@ -370,3 +370,8 @@
 - [x] Rà soát và khôi phục toàn bộ renderer/hiệu ứng nền cũ bị mất sau các thay đổi gần đây.
 - [x] Chỉnh Giao diện yêu thích trong Lumi: khi chưa có yêu thích, chỉ hiển thị trạng thái trống nhẹ, không ép chọn hoặc hiển thị theme thay thế.
 - [x] Bổ sung regression, TypeScript/Vitest/build, kiểm tra responsive và checkpoint phát hành.
+
+## Đối chiếu đặc tả nâng cấp theme và tương tác
+- [x] Đối chiếu toàn bộ yêu cầu trong `pasted_content.txt` với registry, renderer, token màu, audio và tương tác đang có.
+- [x] Bổ sung hoặc chuẩn hóa các cấu hình theme/tương tác tương thích, không dùng URL âm thanh mẫu hoặc chưa được người dùng cung cấp.
+- [x] Bổ sung regression, TypeScript/Vitest/build, kiểm tra responsive và checkpoint phát hành.
