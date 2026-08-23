@@ -552,7 +552,7 @@ export function normalizeLumiWaterSettings(value: unknown): LumiWaterSettings {
   };
 }
 export const DEFAULT_POMODORO_ALERT_SETTINGS: PomodoroAlertSettings = {
-  masterVolume: 1.2,
+  masterVolume: 1.6,
   events: {
     startFocus: { enabled: true, soundId: "whistle_up" },
     endFocus: { enabled: true, soundId: "victory_fanfare" },

@@ -27,7 +27,7 @@ function tone(context: globalThis.AudioContext, frequency: number, start: number
 
 export function playLumiWaterAlert(context: globalThis.AudioContext, soundId: LumiWaterAlertSoundId, volume: number) {
   const start = context.currentTime + 0.02;
-  const base = Math.max(0, Math.min(1, volume)) * 0.2;
+  const base = Math.max(0, Math.min(1, volume)) * 0.32;
   if (base <= 0) return;
   const notes = (frequencies: number[], interval: number, duration: number, type: OscillatorType = "sine") => frequencies.forEach((frequency, index) => tone(context, frequency, start + index * interval, duration, base, type));
   if (soundId === "water_drop") notes([880, 1174.66], 0.18, 0.38);

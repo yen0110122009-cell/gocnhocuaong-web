@@ -36,7 +36,7 @@ export function playPomodoroAlert(context: AudioContext, soundId: PomodoroAlertS
   const start = context.currentTime + 0.02;
   const volume = clampVolume(masterVolume);
   if (volume <= 0) return;
-  const base = volume * 0.34;
+  const base = volume * 0.5;
   const notes = (frequencies: number[], interval: number, duration: number, type: OscillatorType = "sine", multiplier = 1) => frequencies.forEach((frequency, index) => tone(context, frequency, start + index * interval, duration, base * multiplier, type));
   if (soundId === "digital_bell") notes([523.25, 659.25, 783.99], 0.2, 0.65);
   else if (soundId === "loud_alarm") notes([880, 880, 880], 0.28, 0.2, "triangle", 1.25);

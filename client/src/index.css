@@ -2463,6 +2463,28 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
   border-radius: 20px;
 }
 
+.lumi-pomodoro-status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  border: 1px solid rgba(46, 125, 50, .22);
+  border-radius: 999px;
+  background: rgba(239, 249, 240, .9);
+  padding: 5px 10px;
+  color: #245c2b;
+  font-size: .72rem;
+  font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.dark .lumi-pomodoro-status-chip {
+  border-color: rgba(155, 213, 157, .28);
+  background: rgba(20, 63, 35, .86);
+  color: #dcfce0;
+}
+
 .lumi-popup-timer-card {
   position: absolute;
   top: 12px;

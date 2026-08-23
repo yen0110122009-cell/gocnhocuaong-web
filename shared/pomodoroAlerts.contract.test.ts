@@ -14,6 +14,7 @@ import { LUMI_DIALOGUE_LINES_STORAGE_KEY, LUMI_SPEECH_STORAGE_KEY, LUMI_WATER_ME
 
 const pomodoroSource = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
 const lumiAlertSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiAlerts.ts"), "utf8");
+const pomodoroAlertSource = readFileSync(resolve(process.cwd(), "client/src/lib/pomodoroAlerts.ts"), "utf8");
 const preferencesSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPreferences.ts"), "utf8");
 const speechSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiSpeech.ts"), "utf8");
 const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPresets.ts"), "utf8");
@@ -27,6 +28,7 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     const normalized = normalizePomodoroAlertSettings({ masterVolume: 5, events: { startFocus: { enabled: false, soundId: "retro_beep" } } });
     expect(normalized.masterVolume).toBe(2);
     expect(normalized.events.startFocus).toEqual({ enabled: false, soundId: "retro_beep" });
+    expect(DEFAULT_POMODORO_ALERT_SETTINGS.masterVolume).toBe(1.6);
     expect(normalizeLumiWaterSettings({ intervalMinutes: 2, scheduleMode: "clock", dailyTime: "07:30" })).toMatchObject({ intervalMinutes: 5, scheduleMode: "clock", dailyTime: "07:30", dailyTimes: ["07:30"] });
     expect(normalizeLumiWaterSettings({ scheduleMode: "clock", dailyTimes: ["14:00", "09:00", "09:00", "bad"] }).dailyTimes).toEqual(["09:00", "14:00"]);
     expect(normalizeLumiWaterSettings({ scheduleMode: "clock", dailyTime: "25:99" }).dailyTime).toBe("09:00");
@@ -43,6 +45,7 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     ]);
     expect(lumiAlertSource).toContain("context.createOscillator()");
     expect(lumiAlertSource).toContain("context.createGain()");
+    expect(pomodoroAlertSource).toContain("const base = volume * 0.5;");
     expect(lumiAlertSource).not.toContain("new Audio(");
   });
 
@@ -51,6 +54,9 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     expect(pomodoroSource).toContain("playLumiWaterAlert");
     expect(pomodoroSource).toContain("playPomodoroAlert");
     expect(pomodoroSource).toContain("triggerPomodoroAlert");
+    expect(pomodoroSource).toContain("sessionProgressLabel");
+    expect(pomodoroSource).toContain("Bắt đầu nghỉ");
+    expect(pomodoroSource).toContain("Bắt đầu phiên");
     expect(pomodoroSource).toContain("window.speechSynthesis");
     expect(speechSource).toContain('utterance.lang = "vi-VN"');
     expect(speechSource).toContain('voice.lang.toLocaleLowerCase() === "vi-vn"');

@@ -53,6 +53,10 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("lumi-popup-modal");
     expect(source).toContain("lumi-timer-badge");
     expect(source).toContain("lumi-popup-timer-card");
+    expect(source).toContain("lumi-pomodoro-status-chip");
+    expect(source).toContain("Lumi đang học cùng bạn");
+    expect(source).toContain("Lumi đang nghỉ cùng bạn");
+    expect(source).toContain("Đã xong phiên học · chờ nghỉ");
     expect(source).toContain("Thời gian Pomodoro ${display}");
     expect(source).toContain('role="timer"');
     expect(source).toContain("pomodoro_lumi_timer_badge_visible");
@@ -67,6 +71,7 @@ describe("Pomodoro feedback contract", () => {
     expect(css).toContain("z-index: 9000 !important");
     expect(css).toContain(".lumi-popup-modal");
     expect(css).toContain("z-index: 9500 !important");
+    expect(css).toContain(".lumi-pomodoro-status-chip");
     expect(css).toContain(".lumi-popup-timer-card");
     expect(css).toContain(".lumi-timer-badge");
     expect(css).toContain("position: fixed !important");
@@ -107,6 +112,8 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("dailyTime");
     expect(source).toContain("dailyTimes");
     expect(source).toContain("addDailyWaterTime");
+    expect(source).toContain("updateDailyWaterTime(index, event.target.value)");
+    expect(source).toContain("key={`water-time-${index}`}");
     expect(source).toContain("removeDailyWaterTime");
     expect(source).toContain("Bạn có thể đặt nhiều mốc");
     expect(source).toContain("Nghe thử âm báo nhắc nước");
