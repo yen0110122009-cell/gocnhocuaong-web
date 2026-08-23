@@ -2463,6 +2463,36 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
   border-radius: 20px;
 }
 
+.lumi-popup-timer-card {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 1;
+  display: inline-flex;
+  min-width: 92px;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(46, 125, 50, .22);
+  border-radius: 999px;
+  background: rgba(239, 249, 240, .96);
+  padding: 5px 9px;
+  color: #245c2b;
+  box-shadow: 0 3px 10px rgba(31, 79, 37, .12);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .78rem;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.dark .lumi-popup-timer-card {
+  border-color: rgba(155, 213, 157, .28);
+  background: rgba(20, 63, 35, .92);
+  color: #dcfce0;
+}
+
 .lumi-popup-drag-handle {
   cursor: grab;
   touch-action: none;
