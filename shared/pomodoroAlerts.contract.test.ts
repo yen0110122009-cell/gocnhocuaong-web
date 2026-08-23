@@ -57,7 +57,7 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     expect(pomodoroSource).toContain("sessionProgressLabel");
     expect(pomodoroSource).toContain("Bắt đầu nghỉ");
     expect(pomodoroSource).toContain("Bắt đầu phiên");
-    expect(pomodoroSource).toContain("window.speechSynthesis");
+    expect(pomodoroSource).toContain("stopLumiSpeech");
     expect(speechSource).toContain('utterance.lang = "vi-VN"');
     expect(speechSource).toContain('voice.lang.toLocaleLowerCase() === "vi-vn"');
     expect(pomodoroSource).not.toContain("new Audio(");
