@@ -66,6 +66,16 @@ describe("Experience Studio requirements", () => {
     expect(studioSource).toContain("defaultAmbientScene: ambientScene");
   });
 
+  it("keeps visual weather effects active and leaves Lumi favorites empty until the learner saves one", () => {
+    expect(cssSource).toContain(':root[data-ambient-scene="rain"] #root > div.min-h-screen::before { background: radial-gradient');
+    expect(cssSource).toContain("animation: global-rain 1.2s linear infinite");
+    expect(cssSource).toContain("animation: leaf-drift 9s linear infinite");
+    expect(cssSource).not.toContain("background-image: linear-gradient(rgba(30,42,55,.32), rgba(46,67,80,.25)), none");
+    expect(studioSource).toContain("favoriteAmbientScenes.length === 0");
+    expect(studioSource).toContain("Khu này sẽ tự hiện khi Ong lưu một giao diện.");
+    expect(studioSource).not.toContain("favoriteAmbientScenes.length === 0 ||");
+  });
+
   it("lists and persists the four seasonal or event scenes with a safe built-in ambience fallback", () => {
     expect(studioSource).toContain('id: "summer"');
     expect(studioSource).toContain('id: "spring"');

@@ -162,7 +162,9 @@ describe("Audio Center UX contracts", () => {
     expect(experienceStudioSource).toContain('storageKey="experience-lumi-favorite-scenes"');
     expect(experienceStudioSource).toContain('title="Giao diện yêu thích"');
     expect(experienceStudioSource).toContain("onClick={() => setScene(scene.id)}");
-    expect(experienceStudioSource).toContain("aria-label={`${isFavorite ? \"Bỏ\" : \"Thêm\"} yêu thích ${scene.label}`}");
+    expect(experienceStudioSource).toContain("favoriteAmbientScenes.includes(scene.id)");
+    expect(experienceStudioSource).toContain("aria-label={`Bỏ yêu thích ${scene.label}`}");
+    expect(experienceStudioSource).toContain("Khu này sẽ tự hiện khi Ong lưu một giao diện.");
   });
 
   it("uses only supplied theme audio and exposes preview/toggle/volume controls", () => {

@@ -365,3 +365,8 @@
 - [x] Tái hiện và chẩn đoán lỗi không thể bắt đầu hoặc lưu ghi âm Lumi, gồm quyền micro và codec trình duyệt.
 - [x] Rút gọn danh sách lời thoại Lumi, chỉ giữ một lời đang chọn và thư viện thu gọn có thể mở khi cần.
 - [x] Bổ sung kiểm thử lỗi audio, xác minh trên trình duyệt và lưu checkpoint phát hành.
+
+## Khôi phục hiệu ứng nền và trạng thái yêu thích Lumi
+- [x] Rà soát và khôi phục toàn bộ renderer/hiệu ứng nền cũ bị mất sau các thay đổi gần đây.
+- [x] Chỉnh Giao diện yêu thích trong Lumi: khi chưa có yêu thích, chỉ hiển thị trạng thái trống nhẹ, không ép chọn hoặc hiển thị theme thay thế.
+- [x] Bổ sung regression, TypeScript/Vitest/build, kiểm tra responsive và checkpoint phát hành.
