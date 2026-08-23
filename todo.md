@@ -359,3 +359,9 @@
 - [x] Thêm lựa chọn trong Pomodoro: nhận an ủi, nhận động viên hoặc không nhận; lưu lựa chọn riêng theo hồ sơ.
 - [x] Hiển thị khung gợi ý không chặn thao tác theo nhịp trong phiên Pomodoro; cho phép trả lời cảm xúc và phát lời/bản thu khi có.
 - [x] Bổ sung regression, TypeScript/Vitest/build, kiểm tra responsive và checkpoint phát hành.
+
+## Sửa lỗi phát/ghi âm Lumi sau phát hành
+- [x] Tái hiện và chẩn đoán lỗi không phát được lời Lumi trong Không gian cảm xúc và Pomodoro.
+- [x] Tái hiện và chẩn đoán lỗi không thể bắt đầu hoặc lưu ghi âm Lumi, gồm quyền micro và codec trình duyệt.
+- [x] Rút gọn danh sách lời thoại Lumi, chỉ giữ một lời đang chọn và thư viện thu gọn có thể mở khi cần.
+- [x] Bổ sung kiểm thử lỗi audio, xác minh trên trình duyệt và lưu checkpoint phát hành.

@@ -64,14 +64,14 @@ describe("Companion emotion media normalization", () => {
       ],
       lumiCongratulationMessages: {
         calm: [
-          { id: "calm-1", text: " Ong đã rất bền bỉ. ", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" },
+          { id: "calm-1", text: " Ong đã rất bền bỉ. ", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z", audioUrl: "data:audio/webm;base64,dGVzdA==", audioMimeType: "audio/webm", audioDurationSeconds: 12.4 },
           { id: "calm-1", text: "Bản trùng", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" },
         ],
         invalid: [{ id: "ignored", text: "Không hợp lệ", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" }],
       },
     });
     expect(profile.weeklyPomodoroGoalCompletions).toEqual([{ weekKey: "2026-W34", completedAt: "2026-08-19T12:00:00.000Z", goalMinutes: 300, achievedMinutes: 320 }]);
-    expect(profile.lumiCongratulationMessages?.calm).toEqual([{ id: "calm-1", text: "Ong đã rất bền bỉ.", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z" }]);
+    expect(profile.lumiCongratulationMessages?.calm).toEqual([{ id: "calm-1", text: "Ong đã rất bền bỉ.", createdAt: "2026-08-19T12:00:00.000Z", updatedAt: "2026-08-20T12:00:00.000Z", audioUrl: "data:audio/webm;base64,dGVzdA==", audioMimeType: "audio/webm", audioDurationSeconds: 12.4 }]);
     expect(profile.lumiCongratulationMessages?.happy).toBeUndefined();
   });
 

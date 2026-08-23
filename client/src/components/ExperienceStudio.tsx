@@ -356,6 +356,10 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   function stopVoicePlayback() { lumiAudioRef.current?.pause(); lumiAudioRef.current = null; setChannelPlaying("voice", false); }
 
   function playAudioPreview(url: string, channel: PlaybackChannel, label: string, volume?: number, playbackRate?: number) {
+    const resolvedUrl = resolveMediaUrl(url);
+    const targetVolume = Math.max(0, Math.min(1, (volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment)) / 100));
+    if (!resolvedUrl) { setMessage(`Chưa có tệp âm thanh hợp lệ cho ${label}.`); return; }
+    if (targetVolume <= 0) { setMessage("Âm lượng Lumi đang bằng 0%. Hãy tăng thanh âm lượng Lumi rồi nhấn nghe lại."); return; }
     const activeAudio = channel === "voice" ? lumiAudioRef.current : ambientTrackRef.current;
     if (activeAudio && !activeAudio.paused && playbackStatus[channel].url === url) {
       if (channel === "voice") stopVoicePlayback(); else stopAmbient();
@@ -363,32 +367,32 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     }
     if (channel === "voice") stopVoicePlayback();
     if (channel === "environment") stopAmbient();
-    const audio = new Audio(resolveMediaUrl(url));
+    const audio = new Audio(resolvedUrl);
     audio.preload = "auto";
     audio.setAttribute("playsinline", "true");
     audio.setAttribute("webkit-playsinline", "true");
-    audio.volume = 0;
+    audio.muted = false;
+    audio.volume = targetVolume;
     audio.playbackRate = playbackRate ?? 1;
     audio.onended = () => {
       const isCurrent = channel === "voice" ? lumiAudioRef.current === audio : ambientTrackRef.current === audio;
       if (isCurrent) setChannelPlaying(channel, false);
     };
+    audio.onerror = () => {
+      const isCurrent = channel === "voice" ? lumiAudioRef.current === audio : ambientTrackRef.current === audio;
+      if (!isCurrent) return;
+      if (channel === "voice") lumiAudioRef.current = null; else ambientTrackRef.current = null;
+      setChannelPlaying(channel, false);
+      setMessage(`Không thể đọc tệp của ${label}. Hãy ghi hoặc tải lại một bản thu ở định dạng WebM, MP3, WAV hoặc M4A.`);
+    };
     if (channel === "voice") lumiAudioRef.current = audio; else ambientTrackRef.current = audio;
     void audio.play().then(() => {
-      setChannelPlaying(channel, true, label, url, volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment), false);
-      const target = Math.max(0, Math.min(1, (volume ?? (channel === "voice" ? lumiVolume : audioChannelVolumes.environment)) / 100));
-      const startedAt = performance.now();
-      const fadeIn = () => {
-        const progress = Math.min(1, (performance.now() - startedAt) / 220);
-        audio.volume = target * progress;
-        if (progress < 1 && !audio.paused) window.requestAnimationFrame(fadeIn);
-      };
-      window.requestAnimationFrame(fadeIn);
-    }).catch(() => {
+      setChannelPlaying(channel, true, label, url, Math.round(targetVolume * 100), false);
+    }).catch((error) => {
       if (channel === "voice" && lumiAudioRef.current === audio) lumiAudioRef.current = null;
       if (channel === "environment" && ambientTrackRef.current === audio) ambientTrackRef.current = null;
       setChannelPlaying(channel, false);
-      setMessage(`Không thể phát ${label}.`);
+      setMessage(error instanceof DOMException && error.name === "NotAllowedError" ? `Trình duyệt đang chặn phát ${label}. Hãy nhấn Nghe lời Lumi một lần nữa.` : `Không thể phát ${label}. Hãy kiểm tra lại bản thu.`);
     });
   }
 
@@ -577,10 +581,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
 
   function playLumiVoice() {
     if (!attentionPreferences.soundEnabled) { setMessage("Âm thanh đang tắt trong cài đặt tập trung."); return; }
+    if (lumiVolume <= 0) { setMessage("Âm lượng Lumi đang bằng 0%. Hãy tăng thanh âm lượng Lumi rồi nhấn nghe lại."); return; }
     const voiceUrl = customCongratulation?.audioUrl || preferredCompanionAudio("lumi")?.url || preferredPersonalVoice?.url || companionMedia?.lumiVoiceUrl || matchingVoiceLine?.audioUrl;
-    if (voiceUrl) {
-      stopVoicePlayback(); const audio = new Audio(resolveMediaUrl(voiceUrl)); audio.volume = 0; audio.onended = () => { if (lumiAudioRef.current === audio) { lumiAudioRef.current = null; setChannelPlaying("voice", false); } }; lumiAudioRef.current = audio; void audio.play().then(() => { setChannelPlaying("voice", true, "Lumi · lời động viên"); const startedAt = performance.now(); const fadeIn = () => { const progress = Math.min(1, (performance.now() - startedAt) / 220); audio.volume = lumiVolume / 100 * progress; if (progress < 1 && lumiAudioRef.current === audio) window.requestAnimationFrame(fadeIn); }; window.requestAnimationFrame(fadeIn); }).catch(() => setMessage("Không thể phát bản thu này. Lumi vẫn để lại lời nhắn ở bên cạnh.")); return;
-    }
+    if (voiceUrl) { playAudioPreview(voiceUrl, "voice", "Lumi · lời nhắn", lumiVolume); return; }
     setMessage("Chưa có bản thu Lumi cho lời nhắn này. Ong có thể thêm bản thu trong thư viện rồi chủ động nhấn nghe.");
   }
   function openLumiRecording() {

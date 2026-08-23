@@ -22,7 +22,8 @@ describe("Emotion, ambient scene and audio persistence contract", () => {
     expect(studio()).toContain("function updateAmbientVolume");
     expect(studio()).toContain("ambientSceneVolumes: next");
     expect(studio()).toContain("function updateLumiVolume");
-    expect(studio()).toContain("audio.volume = lumiVolume / 100");
+    expect(studio()).toContain("const targetVolume");
+    expect(studio()).toContain("audio.volume = targetVolume");
     expect(studio()).not.toContain("speechSynthesis");
     expect(studio()).not.toContain("Dùng giọng đọc theo ngày của thiết bị");
   });

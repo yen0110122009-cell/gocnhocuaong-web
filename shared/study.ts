@@ -1725,7 +1725,10 @@ export function normalizeProfile(value: unknown): ProfileState {
         if (!id || !text || ids.has(id)) return [];
         ids.add(id);
         const createdAt = typeof safeMessage.createdAt === "string" && safeMessage.createdAt ? safeMessage.createdAt : new Date(0).toISOString();
-        return [{ id, text, createdAt, updatedAt: typeof safeMessage.updatedAt === "string" && safeMessage.updatedAt ? safeMessage.updatedAt : createdAt }];
+        const audioUrl = typeof safeMessage.audioUrl === "string" && /^(data:audio\/|blob:|https?:\/\/|\/manus-storage\/)/i.test(safeMessage.audioUrl.trim()) ? safeMessage.audioUrl.trim() : undefined;
+        const audioMimeType = typeof safeMessage.audioMimeType === "string" && safeMessage.audioMimeType.trim().startsWith("audio/") ? safeMessage.audioMimeType.trim().slice(0, 120) : undefined;
+        const audioDurationSeconds = Number.isFinite(Number(safeMessage.audioDurationSeconds)) ? Math.max(0, Math.min(3_600, Number(safeMessage.audioDurationSeconds))) : undefined;
+        return [{ id, text, createdAt, updatedAt: typeof safeMessage.updatedAt === "string" && safeMessage.updatedAt ? safeMessage.updatedAt : createdAt, ...(audioUrl ? { audioUrl } : {}), ...(audioMimeType ? { audioMimeType } : {}), ...(audioDurationSeconds !== undefined ? { audioDurationSeconds } : {}) }];
       }).slice(0, 30);
       return messages.length ? [[emotion, messages]] : [];
     })) as Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>> : {},

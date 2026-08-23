@@ -5,6 +5,7 @@ import { emotionThemes, emotionFromCommand } from "../lib/emotionThemes";
 
 const studioSource = await import.meta.glob("./ExperienceStudio.tsx", { query: "?raw", import: "default", eager: true })["./ExperienceStudio.tsx"] as string;
 const mediaControlsSource = await import.meta.glob("./EmotionCompanionMediaControls.tsx", { query: "?raw", import: "default", eager: true })["./EmotionCompanionMediaControls.tsx"] as string;
+const congratulationControlsSource = await import.meta.glob("./LumiCongratulationControls.tsx", { query: "?raw", import: "default", eager: true })["./LumiCongratulationControls.tsx"] as string;
   const personalStudySpaceSource = await import.meta.glob("./PersonalStudySpaceControls.tsx", { query: "?raw", import: "default", eager: true })["./PersonalStudySpaceControls.tsx"] as string;
   const audioCenterEnhancementsSource = await import.meta.glob("./AudioCenterEnhancements.tsx", { query: "?raw", import: "default", eager: true })["./AudioCenterEnhancements.tsx"] as string;
 const homeSource = await import.meta.glob("../pages/Home.tsx", { query: "?raw", import: "default", eager: true })["../pages/Home.tsx"] as string;
@@ -154,6 +155,22 @@ describe("Experience Studio requirements", () => {
     expect(personalStudySpaceSource).toContain("Âm thanh & Chủ đề của tôi");
     expect(personalStudySpaceSource).toContain("Tải tệp MP3/WAV/OGG/M4A");
     expect(personalStudySpaceSource).toContain("preset");
+  });
+
+  it("plays Lumi audio at the configured volume and keeps the congratulations recorder compact with actionable errors", () => {
+    expect(studioSource).toContain("audio.volume = targetVolume");
+    expect(studioSource).toContain("audio.onerror");
+    expect(studioSource).toContain("Âm lượng Lumi đang bằng 0%");
+    expect(congratulationControlsSource).toContain("visibleMessages");
+    expect(congratulationControlsSource).toContain("messages.slice(0, 1)");
+    expect(congratulationControlsSource).toContain("Mở ${messages.length - 1} lời còn lại");
+    expect(congratulationControlsSource).toContain("MediaRecorder.isTypeSupported");
+    expect(congratulationControlsSource).toContain("Micro đang bị chặn");
+    expect(congratulationControlsSource).toContain("recorder.start(500)");
+    expect(congratulationControlsSource).toContain("uploadCompanionMedia.useMutation");
+    expect(congratulationControlsSource).toContain('mediaType: "lumi-voice"');
+    expect(congratulationControlsSource).toContain("Cần đăng nhập bằng mã được cấp để lưu bản thu Lumi");
+    expect(congratulationControlsSource).toContain("không nhúng tệp lớn vào hồ sơ");
   });
 
   it("backs up the personal study space without embedding media and rejects unsafe external audio URLs", () => {
