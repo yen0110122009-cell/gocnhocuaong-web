@@ -15,9 +15,8 @@ describe("Kế hoạch tự quản lý", () => {
 
     expect(profile.studyPlanItems).toHaveLength(2);
     expect(profile.studyPlanItems.find((item) => item.id === "daily-1")).toMatchObject({ cadence: "day", completed: true, rewardGrantedAt: "2026-08-23T08:00:01.000Z" });
-    expect(profile.studyPlanItems.find((item) => item.id === "weekly-1")).toMatchObject({ cadence: "week", reward: "ticket", rewardAmount: 1 });
-    expect(profile.planFragments).toBe(2);
-    expect(profile.planTickets).toBe(1);
+    expect(profile.studyPlanItems.find((item) => item.id === "weekly-1")).toMatchObject({ cadence: "week", reward: "fragment", rewardAmount: 1 });
+    expect(profile.planFragments).toBe(3);
   });
 
   it("có đúng một event mẫu, không chứa phần thưởng XP", () => {

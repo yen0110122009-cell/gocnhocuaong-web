@@ -32,8 +32,8 @@ describe("festive VFX contract", () => {
     expect(layer).toContain("stableHash");
   });
 
-  it("keeps one non-blocking VFX stage below navigation and never pauses unrelated learning audio", () => {
-    expect(css).toContain("#vfx-stage { position: fixed; inset: 0; z-index: 50; pointer-events: none;");
+  it("keeps one non-blocking high-priority VFX stage and never pauses unrelated learning audio", () => {
+    expect(css).toContain("#vfx-stage { position: fixed; inset: 0; z-index: 9999 !important; pointer-events: none;");
     expect(css).toContain(".festive-visual-effects { position: absolute; inset: 0; z-index: 1; pointer-events: none;");
     expect(css).toContain(".festive-ground { position: absolute; inset-inline: 0; pointer-events: none;");
     expect(css).toContain(".min-h-screen > aside");
@@ -45,11 +45,12 @@ describe("festive VFX contract", () => {
   it("separates festive tone and VFX state while leaving the personal companion independent", () => {
     expect(layer).toContain("toneEnabled = true");
     expect(layer).toContain("vfxEnabled = true");
-    expect(layer).toContain("if (!config || !resolvedVfxEnabled) return null");
+    expect(layer).toContain("if (!config || !resolvedVfxEnabled) return children ? <div id=\"vfx-stage\"");
     expect(layer).toContain("if (!config || !resolvedToneEnabled)");
     expect(home).toContain('root.dataset.festiveTone');
     expect(home).toContain('root.dataset.festiveVfx');
     expect(home).toContain("festiveOptions.enableAmbientAudio");
+    expect(layer).toContain("personalMascot={children}");
   });
 
   it("registers exactly ten user-provided festive audio sources and plays only after a user gesture", () => {

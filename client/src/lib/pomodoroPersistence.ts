@@ -17,6 +17,7 @@ export type PersistedPomodoroSession = {
   notes: string;
   checkedPlanItemIds: string[];
   totalSessions: number;
+  goalCompletedSessions?: number;
   sessionStartedAt: string | null;
   backgroundSound?: string;
   backgroundVolume?: number;
@@ -57,7 +58,8 @@ export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null =
       activity: typeof value.activity === "string" ? value.activity : "theory",
       notes: typeof value.notes === "string" ? value.notes.slice(0, 2_000) : "",
       checkedPlanItemIds: Array.isArray(value.checkedPlanItemIds) ? Array.from(new Set(value.checkedPlanItemIds.map(String).map((id) => id.trim()).filter(Boolean))).slice(0, 30) : [],
-      totalSessions: finiteNumber(value.totalSessions, 4, 1, 20),
+      totalSessions: finiteNumber(value.totalSessions, 4, 1, 12),
+      goalCompletedSessions: finiteNumber(value.goalCompletedSessions, 0, 0, 12),
       sessionStartedAt: typeof value.sessionStartedAt === "string" ? value.sessionStartedAt : null,
       backgroundSound: typeof value.backgroundSound === "string" ? value.backgroundSound : "Mưa nhẹ",
       backgroundVolume: finiteNumber(value.backgroundVolume, 68, 0, 100),

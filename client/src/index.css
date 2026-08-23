@@ -1994,7 +1994,9 @@ body::after,
 .festive-ambient-diagonal { animation: festive-ambient-diagonal 7.4s linear infinite; }
 .festive-ambient-bounce { animation: festive-ambient-bounce 2.8s cubic-bezier(.34, 1.56, .64, 1) infinite; }
 .festive-ambient-rest { opacity: .88; }
-#vfx-stage { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+#vfx-stage { position: fixed; inset: 0; z-index: 9999 !important; pointer-events: none; overflow: hidden; }
+#vfx-stage .festive-mascot { z-index: 10000 !important; display: grid !important; opacity: 1 !important; }
+#vfx-stage .festive-mascot-reset, #vfx-stage .festive-ground-item { z-index: 10000 !important; }
 
 /* Palette chính thức: biến được Home đặt từ shared/colorPalettes.ts cho đủ 18 tone. */
 :root[data-cosmetic-theme] #root > div.min-h-screen {

@@ -23,12 +23,12 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
 
   it("để linh vật đi dạo trong viewport nhưng không chặn menu hoặc thao tác học", () => {
     expect(source).toContain("if (!pet || hidden) return null;");
-    expect(source).toContain('hidden={view === "appearance" || Boolean(selectedFestiveTheme)}');
-    expect(source).toContain('<FestiveThemeLayer scene={profile.defaultAmbientScene}');
+    expect(source).toContain('<FestiveThemeLayer scene={profile.defaultAmbientScene} soundEnabled={profile.soundEnabled}><FloatingEmojiPet profile={profile} onProfile={persistProfile} /></FestiveThemeLayer>');
     expect(source).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
     expect(source).toContain("if (!pet || !roamingEnabled || dragging || reducedMotion) return;");
     expect(source).not.toContain('pointer-events-none fixed inset-0 z-[45]');
-    expect(source).toContain('"fixed z-[45]');
+    expect(source).toContain('"fixed z-[10000]');
+    expect(source).toContain("width: 130, height: 130, fontSize: 130, display: \"block\", opacity: 1");
     expect(source).toContain('aria-label="Đặt lại vị trí linh vật"');
     expect(source).toContain('const next = { x: 50, y: 72 };');
     expect(source).toContain("function playMascotFeedback");

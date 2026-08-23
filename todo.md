@@ -430,3 +430,11 @@
 - [x] Thêm ba công tắc lưu bền cho từng theme lễ hội: tone màu, âm nền và linh vật/icon VFX; khi tắt phải ngừng đúng lớp tương ứng.
 - [x] Đồng bộ dữ liệu 14 theme: dải màu sáng/tối tương phản cao, mô tả âm thanh và hành vi fallback an toàn, không thêm nguồn audio không kiểm chứng.
 - [x] Bổ sung regression, chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.
+
+## Ổn định VFX, linh vật và Pomodoro theo pasted_content_21
+- [x] Rà soát z-index ba layer hiện có để làm rõ icon/linh vật mà không che sidebar, header hoặc điều khiển học tập.
+- [x] Bảo đảm linh vật từ kho, gồm lựa chọn custom, hiển thị 130px ngay trong VFX stage, đi dạo theo nhịp và luôn có kéo thả Pointer Capture.
+- [x] Bổ sung cài đặt Pomodoro cho Focus, nghỉ ngắn, nghỉ dài, mục tiêu 1–12 phiên và lựa chọn chuyển tự động/thủ công; lưu an toàn qua tải lại.
+- [x] Đảm bảo âm báo kết thúc chỉ phát một lần cho mỗi lần chuyển trạng thái và việc mở cài đặt không can thiệp âm nền trang web đang phát.
+- [x] Đổi mọi bề mặt và dữ liệu hiển thị còn dùng thuật ngữ “Vé” sang “Mảnh ghép”, không tác động tới dữ liệu học tập.
+- [x] Bổ sung regression, kiểm tra TypeScript/Vitest/build, kiểm tra desktop/mobile và checkpoint phát hành.

@@ -64,7 +64,7 @@ describe("expanded theme catalog contract", () => {
     expect(renderer).toContain("groundItems");
     expect(renderer).toContain("groundContainer.items");
     expect(renderer).toContain('id="vfx-stage"');
-    expect(css).toContain("#vfx-stage { position: fixed; inset: 0; z-index: 50; pointer-events: none;");
+    expect(css).toContain("#vfx-stage { position: fixed; inset: 0; z-index: 9999 !important; pointer-events: none;");
     expect(css).toContain(".festive-ground-item");
     expect(Object.values(FESTIVE_THEME_DECORATIONS).flat().some((decoration) => decoration.motion === "bounce")).toBe(true);
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
@@ -88,7 +88,7 @@ describe("expanded theme catalog contract", () => {
     expect(source).toContain("const fullCatalogSceneCards = AMBIENT_SCENE_IDS.filter((id) => Boolean(AUDIO_BACKED_SCENE_AUDIO[id]))");
     expect(source).toContain("Nguồn âm thanh:");
     expect(source).toContain('touchAction: "none"');
-    expect(source).toContain("z-[45]");
+    expect(source).toContain("<FestiveThemeLayer");
     expect(source).not.toContain("const player = audioRef.current ?? new Audio()");
   });
 

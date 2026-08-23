@@ -110,7 +110,7 @@ function visualClass(effect?: FestiveEffectConfig) {
   return effect ? `festive-effect-${effect.type}` : "";
 }
 
-export function FestiveThemeLayer({ scene, soundEnabled = true, toneEnabled = true, vfxEnabled = true }: { scene?: string; soundEnabled?: boolean; toneEnabled?: boolean; vfxEnabled?: boolean }) {
+export function FestiveThemeLayer({ scene, soundEnabled = true, toneEnabled = true, vfxEnabled = true, children }: { scene?: string; soundEnabled?: boolean; toneEnabled?: boolean; vfxEnabled?: boolean; children?: React.ReactNode }) {
   const theme = festiveThemeFor(scene);
   const [shellOptions, setShellOptions] = useState(() => ({ toneEnabled: document.documentElement.dataset.festiveTone !== "false", vfxEnabled: document.documentElement.dataset.festiveVfx !== "false" }));
   const [effect, setEffect] = useState<{ id: number; config: FestiveEffectConfig } | null>(null);
@@ -176,11 +176,11 @@ export function FestiveThemeLayer({ scene, soundEnabled = true, toneEnabled = tr
       ["--festive-bg", "--festive-primary", "--festive-accent", "--festive-ink", "--festive-panel"].forEach((name) => root.style.removeProperty(name));
     };
   }, [config?.id, resolvedToneEnabled]);
-  if (!config || !resolvedVfxEnabled) return null;
-  return <FestiveThemeContent theme={config} mascotSize={mascotSize} initialMascotPosition={initialMascotPosition} triggerEffect={triggerEffect} effect={effect} particles={particles} ripples={ripples} />;
+  if (!config || !resolvedVfxEnabled) return children ? <div id="vfx-stage" className="vfx-stage-personal" aria-label="Linh vật cá nhân tương tác">{children}</div> : null;
+  return <FestiveThemeContent theme={config} mascotSize={mascotSize} initialMascotPosition={initialMascotPosition} triggerEffect={triggerEffect} effect={effect} particles={particles} ripples={ripples} personalMascot={children} />;
 }
 
-function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, triggerEffect, effect, particles, ripples }: { theme: FestiveThemeConfig; mascotSize: number; initialMascotPosition: Point; triggerEffect: (effect: FestiveEffectConfig | undefined, point: Point, emoji: string, ripple?: boolean) => void; effect: { id: number; config: FestiveEffectConfig } | null; particles: Particle[]; ripples: Ripple[] }) {
+function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, triggerEffect, effect, particles, ripples, personalMascot }: { theme: FestiveThemeConfig; mascotSize: number; initialMascotPosition: Point; triggerEffect: (effect: FestiveEffectConfig | undefined, point: Point, emoji: string, ripple?: boolean) => void; effect: { id: number; config: FestiveEffectConfig } | null; particles: Particle[]; ripples: Ripple[]; personalMascot?: React.ReactNode }) {
   const mascot = useDraggable(initialMascotPosition, mascotSize, theme.mascot.draggable, (point) => triggerEffect(theme.mascot.clickEffect, point, theme.mascot.emoji), "float-feather");
   const groundItems = useMemo(() => {
     const totalDensity = theme.groundContainer.items.reduce((sum, item) => sum + item.density, 0) || 1;
@@ -214,6 +214,7 @@ function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, trigger
       {groundItems.map((item) => <GroundItem key={item.id} item={item} left={item.left} bottomGap={item.bottomGap} physics={item.physics} onTrigger={(point) => triggerEffect(item.clickEffect, point, item.emoji, theme.groundContainer.rippleEffect === true)} />)}
     </div>
     <div className="festive-visual-effects" aria-hidden="true">{particles.map((particle) => <span key={particle.id} className="festive-particle" style={{ left: particle.x, top: particle.y, "--particle-x": `${particle.offsetX}px`, "--particle-y": `${particle.offsetY}px` } as React.CSSProperties}>{particle.emoji}</span>)}{ripples.map((ripple) => <span key={ripple.id} className="festive-ripple" style={{ left: ripple.x, top: ripple.y, width: ripple.size, height: ripple.size }} />)}</div>
+    {personalMascot}
   </div>;
 }
 

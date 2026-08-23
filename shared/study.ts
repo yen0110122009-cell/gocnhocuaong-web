@@ -734,7 +734,7 @@ export const DEFAULT_STUDY_CORNER_ENVIRONMENT: StudyCornerEnvironment = {
   reduceMotion: false,
 };
 
-export type StudyPlanReward = "fragment" | "ticket";
+export type StudyPlanReward = "fragment";
 
 export type StudyPlanItem = {
   id: string;
@@ -823,7 +823,6 @@ export type ProfileState = {
   /** Mảnh ghép nhận trực tiếp từ các mục Kế hoạch đã hoàn tất. */
   planFragments?: number;
   /** Vé quay nhận trực tiếp từ các mục Kế hoạch đã hoàn tất. */
-  planTickets?: number;
   theme: "light" | "dark";
   lastActivityAt: string | null;
   currentStreak: number;
@@ -1007,7 +1006,6 @@ export const emptyProfile = (): ProfileState => ({
   pomodoroLumiSupportMode: "encouragement",
   studyPlanItems: [],
   planFragments: 0,
-  planTickets: 0,
   showMascot: true,
   showLumi: true,
   defaultAmbientScene: undefined,
@@ -1611,14 +1609,13 @@ export function normalizeProfile(value: unknown): ProfileState {
         completed: item.completed === true,
         completedAt: typeof item.completedAt === "string" && item.completedAt ? item.completedAt : undefined,
         rewardGrantedAt: typeof item.rewardGrantedAt === "string" && item.rewardGrantedAt ? item.rewardGrantedAt : undefined,
-        reward: item.reward === "ticket" ? "ticket" : "fragment",
+        reward: "fragment",
         rewardAmount: Math.max(1, Math.min(9, Math.floor(Number(item.rewardAmount) || 1))),
         notes: typeof item.notes === "string" && item.notes.trim() ? item.notes.trim().slice(0, 500) : undefined,
       } satisfies StudyPlanItem];
       });
     })() : [],
-    planFragments: Math.max(0, Math.floor(Number(source.planFragments) || 0)),
-    planTickets: Math.max(0, Math.floor(Number(source.planTickets) || 0)),
+    planFragments: Math.max(0, Math.floor(Number(source.planFragments) || 0)) + Math.max(0, Math.floor(Number((source as { planTickets?: unknown }).planTickets) || 0)),
     fragments: source.fragments && typeof source.fragments === "object" ? source.fragments : {},
     fragmentLedger: source.fragmentLedger && typeof source.fragmentLedger === "object" ? Object.fromEntries((Object.entries(source.fragmentLedger) as Array<[FragmentTier, unknown]>).filter(([tier]) => ["I", "II", "III", "IV", "V", "VI"].includes(tier)).map(([tier, value]) => [tier, Math.max(0, Math.floor(Number(value) || 0))])) as Partial<Record<FragmentTier, number>> : {},
     level: 1,
