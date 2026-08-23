@@ -18,6 +18,8 @@ export type FlashcardSet = {
   id: string;
   title: string;
   subject: string;
+  purpose?: string;
+  grade?: string;
   topic: string;
   educationLevel?: EducationLevel;
   course?: string;
@@ -80,6 +82,8 @@ export type Quiz = {
   id: string;
   title: string;
   subject: string;
+  purpose?: string;
+  grade?: string;
   topic: string;
   educationLevel?: EducationLevel;
   course?: string;
@@ -472,6 +476,13 @@ export type AppConfig = {
 export type AiImportRecord = {
   id: string;
   title: string;
+  subject?: string;
+  purpose?: string;
+  grade?: string;
+  topic?: string;
+  course?: string;
+  educationLevel?: EducationLevel;
+  difficulty?: "Cơ bản" | "Trung bình" | "Nâng cao";
   createdAt: string;
   target: "quiz" | "flashcards" | "both" | "practice";
   questionCount: number;
@@ -1593,7 +1604,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     if (!quiz.id || !quiz.title || !Array.isArray(quiz.questions)) return [];
     const mode: QuizMode = quiz.mode === "review" ? "review" : "test";
     const timerMode: QuizTimerMode = quiz.timerMode === "unlimited" || mode === "review" ? "unlimited" : "timed";
-    return [{ ...quiz, id: String(quiz.id), title: String(quiz.title), subject: String(quiz.subject ?? ""), topic: String(quiz.topic ?? ""), course: typeof quiz.course === "string" && quiz.course.trim() ? quiz.course.trim().slice(0, 100) : undefined, educationLevel: EDUCATION_LEVELS.includes(quiz.educationLevel as EducationLevel) ? quiz.educationLevel as EducationLevel : undefined, difficulty: quiz.difficulty ?? "Trung bình", durationMinutes: Math.max(0, Number(quiz.durationMinutes) || 0), createdAt: String(quiz.createdAt ?? new Date(0).toISOString()), questions: quiz.questions as QuizQuestion[], mode, timerMode } as Quiz];
+    return [{ ...quiz, id: String(quiz.id), title: String(quiz.title), subject: String(quiz.subject ?? ""), purpose: typeof quiz.purpose === "string" && quiz.purpose.trim() ? quiz.purpose.trim().slice(0, 240) : undefined, grade: typeof quiz.grade === "string" && quiz.grade.trim() ? quiz.grade.trim().slice(0, 80) : undefined, topic: String(quiz.topic ?? ""), course: typeof quiz.course === "string" && quiz.course.trim() ? quiz.course.trim().slice(0, 100) : undefined, educationLevel: EDUCATION_LEVELS.includes(quiz.educationLevel as EducationLevel) ? quiz.educationLevel as EducationLevel : undefined, difficulty: quiz.difficulty ?? "Trung bình", durationMinutes: Math.max(0, Number(quiz.durationMinutes) || 0), createdAt: String(quiz.createdAt ?? new Date(0).toISOString()), questions: quiz.questions as QuizQuestion[], mode, timerMode } as Quiz];
   }) : [];
   const merged: ProfileState = {
     ...base,
@@ -1603,7 +1614,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       if (!value || typeof value !== "object") return [];
       const set = value as Partial<FlashcardSet>;
       if (!set.id || !set.title || !Array.isArray(set.cards)) return [];
-      return [{ ...set, id: String(set.id), title: String(set.title), subject: String(set.subject ?? ""), topic: String(set.topic ?? ""), course: typeof set.course === "string" && set.course.trim() ? set.course.trim().slice(0, 100) : undefined, educationLevel: EDUCATION_LEVELS.includes(set.educationLevel as EducationLevel) ? set.educationLevel as EducationLevel : undefined, difficulty: set.difficulty ?? "Trung bình", createdAt: String(set.createdAt ?? new Date(0).toISOString()), studyCount: Math.max(0, Number(set.studyCount) || 0), cards: set.cards as Flashcard[] } as FlashcardSet];
+      return [{ ...set, id: String(set.id), title: String(set.title), subject: String(set.subject ?? ""), purpose: typeof set.purpose === "string" && set.purpose.trim() ? set.purpose.trim().slice(0, 240) : undefined, grade: typeof set.grade === "string" && set.grade.trim() ? set.grade.trim().slice(0, 80) : undefined, topic: String(set.topic ?? ""), course: typeof set.course === "string" && set.course.trim() ? set.course.trim().slice(0, 100) : undefined, educationLevel: EDUCATION_LEVELS.includes(set.educationLevel as EducationLevel) ? set.educationLevel as EducationLevel : undefined, difficulty: set.difficulty ?? "Trung bình", createdAt: String(set.createdAt ?? new Date(0).toISOString()), studyCount: Math.max(0, Number(set.studyCount) || 0), cards: set.cards as Flashcard[] } as FlashcardSet];
     }) : [],
     quizzes: normalizedQuizzes,
     flashcardSetTrash: Array.isArray(source.flashcardSetTrash) ? source.flashcardSetTrash : [],
@@ -1902,7 +1913,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     achievementMoments: [],
     characterProgress: source.characterProgress && typeof source.characterProgress === "object" ? Object.fromEntries(Object.entries(source.characterProgress).flatMap(([characterId, value]) => { const item = value && typeof value === "object" ? (value as Partial<CharacterProgress>) : {}; if (!characterId) return []; const collected = Array.isArray(item.collectedPieceIds) ? item.collectedPieceIds.map(String) : []; const used = Array.isArray(item.usedPieceIds) ? item.usedPieceIds.map(String) : []; const status: CharacterUnlockStatus = item.status === "unlocked" || item.status === "ready" || item.status === "assembling" ? item.status : collected.length ? "assembling" : "locked"; return [[characterId, { characterId, collectedPieceIds: Array.from(new Set(collected)), usedPieceIds: Array.from(new Set(used)), status, assembledAt: item.assembledAt ? String(item.assembledAt) : null, unlockedAt: item.unlockedAt ? String(item.unlockedAt) : null } as CharacterProgress]]; })) : {},
     pomodoroHistory: Array.isArray(source.pomodoroHistory) ? source.pomodoroHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<PomodoroSession>) : null; if (!item?.id) return []; const checkedPlanItemIds = Array.isArray(item.checkedPlanItemIds) ? Array.from(new Set(item.checkedPlanItemIds.map(String).map((id) => id.trim()).filter(Boolean))).slice(0, 30) : undefined; const checkedPlanTitles = Array.isArray(item.checkedPlanTitles) ? Array.from(new Set(item.checkedPlanTitles.map(String).map((title) => title.trim().slice(0, 180)).filter(Boolean))).slice(0, 30) : undefined; return [{ id: String(item.id), startedAt: String(item.startedAt ?? new Date(0).toISOString()), endedAt: String(item.endedAt ?? new Date(0).toISOString()), durationMinutes: Math.max(1, Number(item.durationMinutes) || 1), subject: String(item.subject ?? ""), topic: String(item.topic ?? ""), activity: typeof item.activity === "string" && item.activity.trim() ? item.activity.trim().slice(0, 120) : undefined, notes: typeof item.notes === "string" && item.notes.trim() ? item.notes.trim().slice(0, 2_000) : undefined, checkedPlanItemIds, checkedPlanTitles, sessionNumber: Math.max(1, Number(item.sessionNumber) || 1), totalSessions: Math.max(1, Number(item.totalSessions) || 1), mode: item.mode === "shortBreak" || item.mode === "longBreak" ? item.mode : "focus", status: item.status === "abandoned" || item.status === "skipped" ? item.status : "completed", audioPresetId: item.audioPresetId ? String(item.audioPresetId) : undefined, audioPresetName: item.audioPresetName ? String(item.audioPresetName) : undefined, audioAmbientMix: item.audioAmbientMix && typeof item.audioAmbientMix === "object" ? { morning: Math.max(0, Math.min(100, Number(item.audioAmbientMix.morning) || 0)), storm: Math.max(0, Math.min(100, Number(item.audioAmbientMix.storm) || 0)) } : undefined }]; }) : [],
-    aiImportHistory: Array.isArray(source.aiImportHistory) ? source.aiImportHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AiImportRecord>) : null; if (!item?.id || !item.title) return []; return [{ id: String(item.id), title: String(item.title), createdAt: String(item.createdAt ?? new Date(0).toISOString()), target: item.target === "quiz" || item.target === "both" || item.target === "practice" ? item.target : "flashcards", questionCount: Math.max(0, Number(item.questionCount) || 0), flashcardCount: Math.max(0, Number(item.flashcardCount) || 0), prompt: String(item.prompt ?? ""), rawData: String(item.rawData ?? ""), quizId: item.quizId ? String(item.quizId) : undefined, flashcardSetId: item.flashcardSetId ? String(item.flashcardSetId) : undefined }]; }) : [],
+    aiImportHistory: Array.isArray(source.aiImportHistory) ? source.aiImportHistory.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<AiImportRecord>) : null; if (!item?.id || !item.title) return []; return [{ id: String(item.id), title: String(item.title), subject: typeof item.subject === "string" ? item.subject.trim().slice(0, 160) : undefined, purpose: typeof item.purpose === "string" ? item.purpose.trim().slice(0, 240) : undefined, grade: typeof item.grade === "string" ? item.grade.trim().slice(0, 80) : undefined, topic: typeof item.topic === "string" ? item.topic.trim().slice(0, 180) : undefined, course: typeof item.course === "string" ? item.course.trim().slice(0, 100) : undefined, educationLevel: EDUCATION_LEVELS.includes(item.educationLevel as EducationLevel) ? item.educationLevel as EducationLevel : undefined, difficulty: item.difficulty === "Cơ bản" || item.difficulty === "Nâng cao" ? item.difficulty : "Trung bình", createdAt: String(item.createdAt ?? new Date(0).toISOString()), target: item.target === "quiz" || item.target === "both" || item.target === "practice" ? item.target : "flashcards", questionCount: Math.max(0, Number(item.questionCount) || 0), flashcardCount: Math.max(0, Number(item.flashcardCount) || 0), prompt: String(item.prompt ?? ""), rawData: String(item.rawData ?? ""), quizId: item.quizId ? String(item.quizId) : undefined, flashcardSetId: item.flashcardSetId ? String(item.flashcardSetId) : undefined }]; }) : [],
     wrongAnswerReviews: Array.isArray(source.wrongAnswerReviews) ? source.wrongAnswerReviews.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<WrongAnswerReview>) : null; if (!item?.id || !item.attemptId || !item.questionId) return []; return [{ id: String(item.id), attemptId: String(item.attemptId), questionId: String(item.questionId), question: String(item.question ?? ""), learnerAnswer: String(item.learnerAnswer ?? ""), correctAnswer: String(item.correctAnswer ?? ""), whyWrong: String(item.whyWrong ?? ""), knowledgeGap: String(item.knowledgeGap ?? ""), correctThinking: Array.isArray(item.correctThinking) ? item.correctThinking.map(String) : [], commonMistake: String(item.commonMistake ?? ""), retryQuestion: String(item.retryQuestion ?? ""), retryAnswer: String(item.retryAnswer ?? ""), source: String(item.source ?? "Chưa cung cấp"), needsVerification: item.needsVerification === true, createdAt: String(item.createdAt ?? new Date(0).toISOString()) }]; }) : [],
   };
   merged.procrastinationEvents = Array.isArray(source.procrastinationEvents) ? source.procrastinationEvents : [];

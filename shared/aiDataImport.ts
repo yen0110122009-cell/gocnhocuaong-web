@@ -1,4 +1,4 @@
-import type { EducationLevel, Flashcard, FlashcardSet, Quiz, QuizQuestion } from "./study";
+import { EDUCATION_LEVELS, type EducationLevel, type Flashcard, type FlashcardSet, type Quiz, type QuizQuestion } from "./study";
 
 export type ImportTarget = "quiz" | "flashcards" | "both" | "practice";
 export type ImportQuestionType = "multiple" | "boolean" | "short" | "mixed";
@@ -10,9 +10,12 @@ export type AiImportOptions = {
   customQuantity?: number;
   title?: string;
   subject?: string;
+  purpose?: string;
+  grade?: string;
   topic?: string;
   course?: string;
   educationLevel?: EducationLevel;
+  difficulty?: "Cơ bản" | "Trung bình" | "Nâng cao";
   extraRequest?: string;
   quizMode?: "test" | "review";
   timerMode?: "timed" | "unlimited";
@@ -43,14 +46,37 @@ export type NormalizedImportQuestion = {
   deepExplanation?: DeepImportExplanation;
 };
 
+export type ImportMetadata = {
+  title?: string;
+  subject?: string;
+  purpose?: string;
+  grade?: string;
+  topic?: string;
+  course?: string;
+  educationLevel?: EducationLevel;
+  difficulty?: "Cơ bản" | "Trung bình" | "Nâng cao";
+};
+
 export type ImportValidation = {
   valid: boolean;
   errors: string[];
   warnings: string[];
+  metadata: ImportMetadata;
   questions: NormalizedImportQuestion[];
 };
 
 const clean = (value: unknown) => String(value ?? "").trim();
+const normalizeDifficulty = (value: unknown): ImportMetadata["difficulty"] => {
+  const normalized = clean(value).toLocaleLowerCase("vi-VN");
+  if (normalized.includes("cơ bản") || normalized.includes("co ban") || normalized === "basic") return "Cơ bản";
+  if (normalized.includes("nâng cao") || normalized.includes("nang cao") || normalized === "advanced") return "Nâng cao";
+  if (normalized.includes("trung bình") || normalized.includes("trung binh") || normalized === "medium") return "Trung bình";
+  return undefined;
+};
+const normalizeEducationLevel = (value: unknown): EducationLevel | undefined => {
+  const normalized = clean(value);
+  return (EDUCATION_LEVELS as readonly string[]).includes(normalized) ? normalized as EducationLevel : undefined;
+};
 const normalizeType = (value: unknown): NormalizedImportQuestion["type"] | null => {
   const type = clean(value).toLowerCase().replace(/[-\s]/g, "_");
   if (["multiple", "multiple_choice", "mcq", "trắc_nghiệm"].includes(type)) return "multiple";
@@ -70,10 +96,10 @@ export function buildExternalAiPrompt(options: AiImportOptions): string {
     "Nếu tài liệu không đủ căn cứ để xác định đáp án hoặc lời giải, đặt needsVerification=true và ghi rõ cần xác minh; tuyệt đối không tự bịa.",
     "Không tự tạo thêm thông tin ngoài tài liệu nếu không được yêu cầu. Sau khi phân tích, hãy xuất dữ liệu theo JSON hợp lệ mà website có thể kiểm tra.",
     `Mục tiêu: ${target}. Loại câu: ${type}. Số lượng: ${quantity}.`,
-    `Môn: ${clean(options.subject) || "theo tài liệu"}. Chủ đề: ${clean(options.topic) || "theo tài liệu"}. Khóa học/học phần: ${clean(options.course) || "Chưa xác định"}. Cấp học: ${clean(options.educationLevel) || "Chưa xác định"}.`,
+    `Tên bộ nội dung: ${clean(options.title) || "theo tài liệu"}. Môn học: ${clean(options.subject) || "theo tài liệu"}. Mục đích học: ${clean(options.purpose) || "ôn tập và củng cố kiến thức"}. Lớp học: ${clean(options.grade) || "theo tài liệu"}. Chủ đề: ${clean(options.topic) || "theo tài liệu"}. Khóa học/học phần: ${clean(options.course) || "Chưa xác định"}. Cấp học: ${clean(options.educationLevel) || "Chưa xác định"}. Mức độ: ${clean(options.difficulty) || "Trung bình"}.`,
     clean(options.title) ? `Tên nguồn/tài liệu: ${clean(options.title)}.` : "",
     clean(options.extraRequest) ? `Yêu cầu bổ sung: ${clean(options.extraRequest)}.` : "",
-    "Schema bắt buộc: {\"metadata\":{\"subject\":\"...\",\"course\":\"...\",\"educationLevel\":\"Mẫu giáo|Tiểu học|THCS|THPT|Đại học/Sinh viên|Khóa học tự do\"},\"questions\":[{\"type\":\"multiple|boolean|short\",\"question\":\"...\",\"options\":[\"...\"],\"answer\":\"...\",\"explanation\":\"...\",\"source\":\"...\",\"deepExplanation\":{\"knowledge\":\"...\",\"formula\":\"...\",\"givenData\":\"...\",\"solutionSteps\":[\"Bước 1...\"],\"whyThisMethod\":\"...\",\"commonMistakes\":[\"...\"],\"alternativeSolution\":\"...\",\"deepQuestions\":[{\"question\":\"...\",\"answer\":\"...\",\"explanation\":\"...\"}],\"variationExplanation\":\"...\",\"needsVerification\":false}}]}. Các metadata phải khớp dữ liệu người dùng đã cung cấp, không được đoán. Với multiple phải có options và answer khớp một lựa chọn; boolean dùng answer Đúng hoặc Sai; short dùng answer ngắn gọn.",
+    "Schema bắt buộc: {\"metadata\":{\"title\":\"...\",\"subject\":\"...\",\"purpose\":\"...\",\"grade\":\"...\",\"topic\":\"...\",\"course\":\"...\",\"educationLevel\":\"Mẫu giáo|Tiểu học|THCS|THPT|Đại học/Sinh viên|Khóa học tự do\",\"difficulty\":\"Cơ bản|Trung bình|Nâng cao\"},\"questions\":[{\"type\":\"multiple|boolean|short\",\"question\":\"...\\n...\",\"options\":[\"...\"],\"answer\":\"...\",\"explanation\":\"...\\n...\",\"source\":\"...\",\"deepExplanation\":{\"knowledge\":\"...\",\"formula\":\"...\",\"givenData\":\"...\",\"solutionSteps\":[\"Bước 1...\"],\"whyThisMethod\":\"...\",\"commonMistakes\":[\"...\"],\"alternativeSolution\":\"...\",\"deepQuestions\":[{\"question\":\"...\",\"answer\":\"...\",\"explanation\":\"...\"}],\"variationExplanation\":\"...\",\"needsVerification\":false}}]}. Các metadata phải khớp dữ liệu người dùng đã cung cấp, không được đoán. Với multiple phải có options và answer khớp một lựa chọn; boolean dùng answer Đúng hoặc Sai; short dùng answer ngắn gọn. Giữ nguyên ký tự xuống dòng trong mọi trường văn bản.",
     "Chỉ trả về JSON, không bọc bằng Markdown và không thêm lời bình ngoài JSON.",
   ].filter(Boolean).join("\n\n");
 }
@@ -146,7 +172,7 @@ function parseJsonCandidate(raw: string): unknown {
 function parseQuestionBlocks(raw: string): unknown[] {
   return Array.from(raw.matchAll(/\[QUESTION\]([\s\S]*?)\[\/QUESTION\]/gi)).map((match: RegExpMatchArray) => {
     const block = match[1];
-    const get = (key: string) => block.match(new RegExp(`^${key}\\s*:\\s*(.*)$`, "im"))?.[1]?.trim();
+    const get = (key: string) => block.match(new RegExp(`^${key}\\s*:\\s*([\\s\\S]*?)(?=^\\s*(?:type|question|prompt|options|answer|explanation|source)\\s*:|(?![\\s\\S]))`, "im"))?.[1]?.trim();
     const optionsText = block.match(/^options\s*:\s*([\s\S]*?)(?=^answer\s*:|^explanation\s*:|^source\s*:|$)/im)?.[1] ?? "";
     const options = optionsText.split("\n").map((line: string) => line.replace(/^\s*(?:[A-H][.)]|[-*])\s*/, "").trim()).filter(Boolean);
     return { type: get("type"), question: get("question") ?? get("prompt"), options, answer: get("answer"), explanation: get("explanation"), source: get("source") };
@@ -162,10 +188,30 @@ export function parseExternalAiData(raw: string): unknown[] {
   return parseQuestionBlocks(raw);
 }
 
+export function parseExternalAiMetadata(raw: string): ImportMetadata {
+  const parsed = parseJsonCandidate(raw);
+  const source = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+  const metadata = source.metadata && typeof source.metadata === "object" && !Array.isArray(source.metadata) ? source.metadata as Record<string, unknown> : source;
+  const get = (...keys: string[]) => keys.map((key) => metadata[key]).find((value) => typeof value === "string" && value.trim()) as string | undefined;
+  const block = raw.match(/\[METADATA\]([\s\S]*?)\[\/METADATA\]/i)?.[1] ?? "";
+  const blockGet = (key: string) => block.match(new RegExp(`^${key}\\s*:\\s*([^\\n]+)`, "im"))?.[1]?.trim();
+  return {
+    title: clean(get("title", "name", "setName" ) ?? blockGet("title") ?? blockGet("name")) || undefined,
+    subject: clean(get("subject", "môn học", "monHoc") ?? blockGet("subject") ?? blockGet("môn học")) || undefined,
+    purpose: clean(get("purpose", "studyPurpose", "mục đích học", "mucDichHoc") ?? blockGet("purpose") ?? blockGet("mục đích học")) || undefined,
+    grade: clean(get("grade", "class", "lớp học", "lopHoc") ?? blockGet("grade") ?? blockGet("lớp học")) || undefined,
+    topic: clean(get("topic", "chủ đề", "chuDe") ?? blockGet("topic") ?? blockGet("chủ đề")) || undefined,
+    course: clean(get("course", "học phần", "hocPhan") ?? blockGet("course")) || undefined,
+    educationLevel: normalizeEducationLevel(get("educationLevel", "cấp học", "capHoc") ?? blockGet("educationLevel")),
+    difficulty: normalizeDifficulty(get("difficulty", "mức độ", "mucDo") ?? blockGet("difficulty")),
+  };
+}
+
 export function validateExternalAiData(raw: string, maxFlashcards = 27): ImportValidation {
   const source = parseExternalAiData(raw);
   const errors: string[] = [];
   const warnings: string[] = [];
+  const metadata = parseExternalAiMetadata(raw);
   const questions: NormalizedImportQuestion[] = [];
   if (!source.length) errors.push("Không tìm thấy câu hỏi hợp lệ. Hãy dán JSON hoặc các khối [QUESTION]...[/QUESTION].");
   const seen = new Set<string>();
@@ -208,16 +254,16 @@ export function validateExternalAiData(raw: string, maxFlashcards = 27): ImportV
     if (type) questions.push({ id: `import-${index + 1}`, type, prompt, options: type === "multiple" ? options : undefined, answer, explanation, source: sourceName, deepExplanation: hasDeepData ? deepExplanation : undefined });
   });
   if (questions.length > maxFlashcards) warnings.push(`Có ${questions.length} câu; khi tạo Flashcard mỗi lần import chỉ dùng tối đa ${maxFlashcards} thẻ.`);
-  return { valid: errors.length === 0, errors, warnings, questions };
+  return { valid: errors.length === 0, errors, warnings, metadata, questions };
 }
 
-export function convertImportToFlashcards(validation: ImportValidation, metadata: { title: string; subject: string; topic: string; course?: string; educationLevel?: EducationLevel; difficulty?: FlashcardSet["difficulty"] }, now = new Date().toISOString()): FlashcardSet {
-  const cards: Flashcard[] = validation.questions.slice(0, 27).map((question) => ({ id: `${metadata.title}-${question.id}`, front: question.prompt, back: [question.answer, question.explanation].filter(Boolean).join("\n\n"), status: "new", starred: false }));
-  return { id: `set-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, course: metadata.course, educationLevel: metadata.educationLevel, difficulty: metadata.difficulty ?? "Trung bình", createdAt: now, studyCount: 0, cards };
+export function convertImportToFlashcards(validation: ImportValidation, metadata: { title: string; subject: string; purpose?: string; grade?: string; topic: string; course?: string; educationLevel?: EducationLevel; difficulty?: FlashcardSet["difficulty"] }, now = new Date().toISOString()): FlashcardSet {
+  const cards: Flashcard[] = validation.questions.slice(0, 27).map((question) => ({ id: `${metadata.title}-${question.id}`, front: question.prompt, back: [question.answer ? `Đáp án: ${question.answer}` : "", question.explanation].filter(Boolean).join("\n\n"), status: "new", starred: false }));
+  return { id: `set-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, purpose: metadata.purpose, grade: metadata.grade, topic: metadata.topic, course: metadata.course, educationLevel: metadata.educationLevel, difficulty: metadata.difficulty ?? "Trung bình", createdAt: now, studyCount: 0, cards };
 }
 
-export function convertImportToQuiz(validation: ImportValidation, metadata: { title: string; subject: string; topic: string; course?: string; educationLevel?: EducationLevel; difficulty?: Quiz["difficulty"]; durationMinutes?: number; mode?: Quiz["mode"]; timerMode?: Quiz["timerMode"] }, now = new Date().toISOString()): Quiz {
+export function convertImportToQuiz(validation: ImportValidation, metadata: { title: string; subject: string; purpose?: string; grade?: string; topic: string; course?: string; educationLevel?: EducationLevel; difficulty?: Quiz["difficulty"]; durationMinutes?: number; mode?: Quiz["mode"]; timerMode?: Quiz["timerMode"] }, now = new Date().toISOString()): Quiz {
   const questions: QuizQuestion[] = validation.questions.map((question) => ({ id: question.id, type: question.type, prompt: question.prompt, options: question.options, answer: question.answer, explanation: question.explanation, deepExplanation: question.deepExplanation }));
   const mode = metadata.mode ?? "test";
-  return { id: `quiz-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, topic: metadata.topic, course: metadata.course, educationLevel: metadata.educationLevel, difficulty: metadata.difficulty ?? "Trung bình", durationMinutes: metadata.durationMinutes ?? 30, createdAt: now, questions, mode, timerMode: metadata.timerMode ?? (mode === "review" ? "unlimited" : "timed") };
+  return { id: `quiz-${Date.parse(now) || Date.now()}`, title: metadata.title, subject: metadata.subject, purpose: metadata.purpose, grade: metadata.grade, topic: metadata.topic, course: metadata.course, educationLevel: metadata.educationLevel, difficulty: metadata.difficulty ?? "Trung bình", durationMinutes: metadata.durationMinutes ?? 30, createdAt: now, questions, mode, timerMode: metadata.timerMode ?? (mode === "review" ? "unlimited" : "timed") };
 }

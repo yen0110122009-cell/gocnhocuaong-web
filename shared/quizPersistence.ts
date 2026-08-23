@@ -13,6 +13,8 @@ export function createQuizFromFlashcardSet(set: FlashcardSet, now = new Date().t
     id: `quiz-${set.id}-${Date.parse(now)}`,
     title: `${mode === "test" ? "Đề kiểm tra" : "Ôn tập"}: ${set.title}`,
     subject: set.subject,
+    purpose: set.purpose,
+    grade: set.grade,
     topic: set.topic,
     difficulty: set.difficulty,
     durationMinutes: options.durationMinutes ?? Math.max(5, Math.ceil(questions.length * 1.5)),
