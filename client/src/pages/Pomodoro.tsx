@@ -17,7 +17,7 @@ import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMess
 import { emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues, type LumiCustomDialogue } from "../lib/lumiCustomDialogues";
 import { LUMI_CHECKIN_OPTIONS, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForEmotion, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
-import { speakLumiVietnamese } from "../lib/lumiSpeech";
+import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
 import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 
 type Mode = "focus" | "shortBreak" | "longBreak";
@@ -245,6 +245,12 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [showLumiDialog]);
+  useEffect(() => {
+    if (!isVisible) return;
+    const onSpeechUnavailable = () => toast.warning("Chưa tìm thấy voice tiếng Việt vi-VN trong trình duyệt. Lumi đã chặn fallback để không đọc sai ngôn ngữ.", { duration: 7000 });
+    window.addEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
+    return () => window.removeEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
+  }, [isVisible]);
 
   function speakLumi(text: string) {
     speakLumiVietnamese(text, profile.soundEnabled && lumiSpeechEnabled);

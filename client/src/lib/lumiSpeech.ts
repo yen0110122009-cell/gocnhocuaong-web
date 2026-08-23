@@ -1,8 +1,15 @@
 let pendingVoiceCleanup: (() => void) | null = null;
 
+export const LUMI_SPEECH_UNAVAILABLE_EVENT = "lumi:speech-unavailable";
+export type LumiSpeechResult = "spoken" | "pending" | "unavailable" | "disabled";
+
 function vietnameseVoice(voices: SpeechSynthesisVoice[]) {
   return voices.find((voice) => voice.lang.toLocaleLowerCase() === "vi-vn")
     ?? voices.find((voice) => voice.lang.toLocaleLowerCase().startsWith("vi"));
+}
+
+function notifySpeechUnavailable() {
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(LUMI_SPEECH_UNAVAILABLE_EVENT));
 }
 
 export function createLumiVietnameseUtterance(text: string): SpeechSynthesisUtterance {
@@ -16,36 +23,58 @@ export function createLumiVietnameseUtterance(text: string): SpeechSynthesisUtte
   return utterance;
 }
 
-export function speakLumiVietnamese(text: string, enabled: boolean): boolean {
-  if (!enabled || typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+export function speakLumiVietnamese(text: string, enabled: boolean): LumiSpeechResult {
+  if (!enabled || typeof window === "undefined" || !("speechSynthesis" in window)) return "disabled";
   const synthesis = window.speechSynthesis;
   pendingVoiceCleanup?.();
   pendingVoiceCleanup = null;
   synthesis.cancel();
-  const speak = () => synthesis.speak(createLumiVietnameseUtterance(text));
-  if (synthesis.getVoices().length) {
-    speak();
-    return true;
-  }
+
   let finished = false;
+  let timeout: number | undefined;
   const cleanup = () => {
     synthesis.removeEventListener("voiceschanged", onVoicesChanged);
-    window.clearTimeout(timeout);
+    if (timeout !== undefined) window.clearTimeout(timeout);
     if (pendingVoiceCleanup === cleanup) pendingVoiceCleanup = null;
   };
+  const speakWithVoice = (voice: SpeechSynthesisVoice): LumiSpeechResult => {
+    const utterance = createLumiVietnameseUtterance(text);
+    utterance.voice = voice;
+    utterance.onerror = (event) => {
+      if (event.error === "voice-unavailable" || event.error === "language-unavailable") notifySpeechUnavailable();
+    };
+    synthesis.speak(utterance);
+    finished = true;
+    cleanup();
+    return "spoken";
+  };
+  const attempt = (): LumiSpeechResult | null => {
+    const voice = vietnameseVoice(synthesis.getVoices());
+    return voice ? speakWithVoice(voice) : null;
+  };
+  const immediate = attempt();
+  if (immediate) return immediate;
+
   const onVoicesChanged = () => {
     if (finished) return;
-    finished = true;
-    cleanup();
-    speak();
+    const result = attempt();
+    if (result) finished = true;
   };
-  const timeout = window.setTimeout(() => {
+  timeout = window.setTimeout(() => {
     if (finished) return;
     finished = true;
     cleanup();
-    speak();
-  }, 500);
-  pendingVoiceCleanup = cleanup;
-  synthesis.addEventListener("voiceschanged", onVoicesChanged, { once: true });
-  return true;
+    notifySpeechUnavailable();
+  }, 1_800);
+  pendingVoiceCleanup = () => {
+    finished = true;
+    cleanup();
+  };
+  synthesis.addEventListener("voiceschanged", onVoicesChanged);
+  return "pending";
+}
+
+export function hasLumiVietnameseVoice(): boolean {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+  return Boolean(vietnameseVoice(window.speechSynthesis.getVoices()));
 }

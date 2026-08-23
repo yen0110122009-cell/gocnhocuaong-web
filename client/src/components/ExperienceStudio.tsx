@@ -7,7 +7,7 @@ import { dialogueGroupForEmotion, dialoguesForGroup, LUMI_DIALOGUE_GROUPS, readL
 import { readLumiSpeechPreference, saveLumiSpeechPreference } from "../lib/lumiPreferences";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { LUMI_CHECKIN_OPTIONS, LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
-import { speakLumiVietnamese } from "../lib/lumiSpeech";
+import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
 import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
 
@@ -55,6 +55,11 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   useEffect(() => {
     setSpeechEnabled(readLumiSpeechPreference(profile?.lumiSpeechEnabled !== false));
   }, [profile?.lumiSpeechEnabled]);
+  useEffect(() => {
+    const onSpeechUnavailable = () => toast.warning("Trình duyệt chưa có giọng đọc tiếng Việt vi-VN. Lumi không phát giọng mặc định để tránh đọc sai ngôn ngữ; hãy cài/bật voice tiếng Việt trong hệ điều hành hoặc Chrome.", { duration: 7000 });
+    window.addEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
+    return () => window.removeEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
+  }, []);
 
   useEffect(() => {
     const refresh = (event?: Event) => {

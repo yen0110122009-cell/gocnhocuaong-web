@@ -35,6 +35,10 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(lumi).toContain("AI đọc thoại");
     expect(lumi).toContain("speakLumiVietnamese");
     expect(speech).toContain('utterance.lang = "vi-VN"');
+    expect(speech).toContain("LUMI_SPEECH_UNAVAILABLE_EVENT");
+    expect(speech).toContain('return "pending"');
+    expect(speech).toContain('notifySpeechUnavailable()');
+    expect(lumi).toContain("LUMI_SPEECH_UNAVAILABLE_EVENT");
     expect(lumi).toContain("Nghe thử giọng đọc AI");
   });
 
