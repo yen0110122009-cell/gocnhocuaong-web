@@ -58,6 +58,13 @@ describe("festive VFX contract", () => {
 
   it("registers all fourteen festive audio sources locally and plays only after a user gesture", () => {
     expect(Object.keys(USER_PROVIDED_FESTIVE_AUDIO)).toHaveLength(14);
+    expect(new Set(Object.values(USER_PROVIDED_FESTIVE_AUDIO)).size).toBe(14);
+    expect(Object.values(USER_PROVIDED_FESTIVE_AUDIO).every((url) => url.includes("/audio/festive-") && url.endsWith(".mp3"))).toBe(true);
+    for (const url of Object.values(USER_PROVIDED_FESTIVE_AUDIO)) {
+      const file = url.split("/audio/")[1];
+      expect(file).toBeTruthy();
+      expect(readFileSync(resolve(process.cwd(), "client/public/audio", file!)).byteLength).toBeGreaterThan(1024);
+    }
     expect(home).toContain("FESTIVE_AUDIO_FALLBACKS");
     expect(home).toContain("handleThemeAudioError");
     expect(home).toContain("fallbackUrl");
