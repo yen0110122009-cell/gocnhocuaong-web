@@ -70,14 +70,22 @@ describe("expanded theme catalog contract", () => {
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
   });
 
-  it("maps only directly supplied audio URLs and keeps the rest metadata-only", () => {
-    expect(ambient()).toContain("rain_heavy_loud.ogg");
-    expect(ambient()).toContain("heavy_wind_storm.ogg");
-    expect(ambient()).toContain("morning_birds_acoustic.ogg");
+  it("uses same-origin audio assets and removes unstable external hosts", () => {
+    expect(ambient()).toContain("LOCAL_AMBIENT_AUDIO.rain");
+    expect(ambient()).toContain("LOCAL_AMBIENT_AUDIO.morning");
+    expect(ambient()).toContain("LOCAL_AMBIENT_AUDIO.bell");
     expect(ambient()).toContain('target: "coffee"');
     expect(ambient()).toContain('target: "fairy-tale"');
-    expect(ambient()).not.toContain("pixel.ogg");
-    expect(ambient()).not.toContain("pirate.mp3");
+    expect(ambient()).not.toContain("gocnhocuaong-dtezjgqf.manus.space");
+    expect(ambient()).not.toContain("actions.google.com");
+    expect(home()).toContain("audioSourceLabel");
+  });
+
+  it("ships every required local audio file", () => {
+    for (const file of ["rain-and-thunder.ogg", "turning-a-page.ogg", "bird-singing.ogg", "synthetic-bell.ogg"]) {
+      const bytes = readFileSync(resolve(root, "client/public/audio", file));
+      expect(bytes.byteLength).toBeGreaterThan(1024);
+    }
   });
 
   it("keeps theme/audio controls single-source and removes visual-only cards", () => {

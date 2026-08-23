@@ -56,8 +56,8 @@ describe("festive VFX contract", () => {
     expect(layer).toContain("personalMascot={children}");
   });
 
-  it("registers exactly ten user-provided festive audio sources and plays only after a user gesture", () => {
-    expect(Object.keys(USER_PROVIDED_FESTIVE_AUDIO)).toHaveLength(10);
+  it("registers all fourteen festive audio sources locally and plays only after a user gesture", () => {
+    expect(Object.keys(USER_PROVIDED_FESTIVE_AUDIO)).toHaveLength(14);
     expect(home).toContain("FESTIVE_AUDIO_FALLBACKS");
     expect(home).toContain("handleThemeAudioError");
     expect(home).toContain("fallbackUrl");

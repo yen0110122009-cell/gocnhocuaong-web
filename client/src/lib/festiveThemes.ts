@@ -1,4 +1,7 @@
+import { LOCAL_AMBIENT_AUDIO } from "@/lib/audioAssets";
+
 export type FestiveAnimation = "sine-wave" | "bounce" | "float" | "circular";
+
 export type FestiveClickEffect = "scale-bounce" | "shake" | "particle-burst" | "ripple-wave" | "pulse-glow";
 
 export interface FestiveEffectConfig {
@@ -26,26 +29,30 @@ export interface FestiveThemeConfig {
   groundContainer: { height: string; bottom: string; zIndex: number; rippleEffect?: boolean; items: Array<{ emoji: string; size: string; density: number; draggable: boolean; clickEffect?: FestiveEffectConfig }> };
 }
 
-const arcade = "https://actions.google.com/sounds/v1/science_fiction/8bit_arcade.ogg";
-const birds = "https://actions.google.com/sounds/v1/ambiences/outdoor_birds_cicadas.ogg";
-const wind = "https://actions.google.com/sounds/v1/ambiences/wind_in_trees.ogg";
+const arcade = LOCAL_AMBIENT_AUDIO.bell;
+const birds = LOCAL_AMBIENT_AUDIO.morning;
+const wind = LOCAL_AMBIENT_AUDIO.rain;
 
-/** Mười nguồn CDN được người dùng cung cấp trong pasted_content_16. Không tạo file local giả. */
+/** Registry âm thanh local tự host, thay các host ngoài không ổn định. */
 export const USER_PROVIDED_FESTIVE_AUDIO: Record<string, string> = {
-  "tet-nguyen-dan": "https://actions.google.com/sounds/v1/ambiences/fireworks.ogg",
-  "gio-to-hung-vuong": "https://actions.google.com/sounds/v1/impacts/drum_roll.ogg",
-  "ngay-thanh-nien-26-3": "https://actions.google.com/sounds/v1/cartoon/upbeat_bell_melody.ogg",
-  "giai-phong-30-4": "https://actions.google.com/sounds/v1/foley/trumpet_fanfare.ogg",
-  "thuong-binh-liet-si-27-7": "https://actions.google.com/sounds/v1/foley/wind_chimes.ogg",
-  "cach-mang-19-8": "https://actions.google.com/sounds/v1/impacts/marching_snare.ogg",
-  "quoc-khanh-2-9": "https://actions.google.com/sounds/v1/human_voices/cheering_crowd.ogg",
-  "tet-trung-thu": "https://actions.google.com/sounds/v1/cartoon/wood_block_tune.ogg",
-  "nha-giao-viet-nam-20-11": "https://actions.google.com/sounds/v1/music/piano_chord.ogg",
-  "quoc-te-phu-nu-8-3": "https://actions.google.com/sounds/v1/cartoon/harp_glissando.ogg",
+  "tet-nguyen-dan": LOCAL_AMBIENT_AUDIO.bell,
+  "gio-to-hung-vuong": LOCAL_AMBIENT_AUDIO.bell,
+  "ngay-thanh-nien-26-3": LOCAL_AMBIENT_AUDIO.morning,
+  "giai-phong-30-4": LOCAL_AMBIENT_AUDIO.bell,
+  "thuong-binh-liet-si-27-7": LOCAL_AMBIENT_AUDIO.rain,
+  "cach-mang-19-8": LOCAL_AMBIENT_AUDIO.bell,
+  "quoc-khanh-2-9": LOCAL_AMBIENT_AUDIO.bell,
+  "tet-trung-thu": LOCAL_AMBIENT_AUDIO.bell,
+  "nha-giao-viet-nam-20-11": LOCAL_AMBIENT_AUDIO.bookPages,
+  "quoc-te-phu-nu-8-3": LOCAL_AMBIENT_AUDIO.bell,
+  "tet-doan-ngo-5-5": LOCAL_AMBIENT_AUDIO.morning,
+  "vu-lan-bao-hieu": LOCAL_AMBIENT_AUDIO.bell,
+  "phu-nu-viet-nam-20-10": LOCAL_AMBIENT_AUDIO.bookPages,
+  "quan-doi-nhan-dan-22-12": LOCAL_AMBIENT_AUDIO.rain,
 };
 const item = (emoji: string, size: string, density: number, clickEffect?: FestiveEffectConfig) => ({ emoji, size, density, draggable: true, clickEffect });
 
-/** Mô tả do Ong cung cấp trong pasted_content_20; URL vẫn dùng registry audio đã được kiểm soát. */
+/** Mô tả tone do Ong cung cấp; URL audio được giữ trong registry local bên trên. */
 export const FESTIVE_THEME_AUDIO_DESCRIPTIONS: Record<string, string> = {
   "tet-nguyen-dan": "Âm rộn ràng nhẹ nhàng của tiếng đàn tranh, hòa cùng tiếng pháo hoa xa và tiếng chuông gió đầu xuân.",
   "gio-to-hung-vuong": "Tiếng trống đồng âm vang trầm hùng kết hợp tiếng sáo trúc thanh tịnh không gian núi rừng.",
