@@ -1,4 +1,5 @@
 import type { LumiDialogueGroup } from "./lumiCustomDialogues";
+import type { EmotionId } from "./emotionThemes";
 
 type PomodoroMode = "focus" | "shortBreak" | "longBreak";
 
@@ -20,6 +21,23 @@ export const LUMI_FOCUS_MESSAGE = "Cùng tập trung học thật tốt nhé! Lu
 export const LUMI_REST_MESSAGE = "Đến giờ nghỉ tay rồi! Cùng chớp mắt thư giãn xíu nhé... ☕✨";
 export const LUMI_WATER_MESSAGE = "Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧";
 export const LUMI_WATER_PRAISE = "Ngoan lắm! Tiếp tục thôi nào ✨";
+
+export type LumiCheckinOption = { id: EmotionId; label: string; emoji: string; group: LumiDialogueGroup };
+
+export const LUMI_CHECKIN_OPTIONS: LumiCheckinOption[] = [
+  { id: "tired", label: "Mệt mỏi", emoji: "🥱", group: "comfort" },
+  { id: "sad", label: "Đau lòng", emoji: "💔", group: "comfort" },
+  { id: "stressed", label: "Lo lắng", emoji: "🌧️", group: "comfort" },
+  { id: "overwhelmed", label: "Quá tải", emoji: "🫧", group: "comfort" },
+  { id: "lazy", label: "Thiếu động lực", emoji: "🫠", group: "encouragement" },
+  { id: "focused", label: "Tập trung", emoji: "🎯", group: "encouragement" },
+  { id: "confident", label: "Sẵn sàng học", emoji: "💪", group: "encouragement" },
+  { id: "lonely", label: "Cần cái ôm", emoji: "🫂", group: "hug" },
+  { id: "calm", label: "Bình tĩnh", emoji: "🌿", group: "companionship" },
+  { id: "happy", label: "Vui vẻ", emoji: "🌞", group: "companionship" },
+  { id: "hopeful", label: "Hy vọng", emoji: "🌱", group: "companionship" },
+  { id: "excited", label: "Hào hứng", emoji: "⚡", group: "encouragement" },
+];
 
 export const LUMI_CHECKIN_RESPONSES = {
   tired: { group: "comfort" as const, label: "An ủi & Vỗ về", kaomoji: LUMI_POSITIVE_KAOMOJI.comfort[0], text: "Đừng lo nhé, mọi chuyện rồi sẽ ổn thôi. Lumi ở đây bên bạn nè 💖" },

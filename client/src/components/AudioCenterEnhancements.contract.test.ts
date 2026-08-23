@@ -7,9 +7,10 @@ const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf
 describe("ranh giới âm thanh sau tái cấu trúc", () => {
   it("giữ lời Lumi là văn bản TTS và chỉ đọc sau thao tác người dùng", () => {
     const lumi = source("client/src/components/ExperienceStudio.tsx");
+    const speech = source("client/src/lib/lumiSpeech.ts");
     expect(lumi).toContain("Nghe thử giọng đọc AI");
-    expect(lumi).toContain("speechSynthesis");
-    expect(lumi).toContain('utterance.lang = "vi-VN"');
+    expect(lumi).toContain("speakLumiVietnamese");
+    expect(speech).toContain('utterance.lang = "vi-VN"');
     expect(lumi).not.toContain("new Audio(currentVoice.audioUrl)");
   });
 

@@ -14,6 +14,8 @@ import { LUMI_DIALOGUE_LINES_STORAGE_KEY, LUMI_SPEECH_STORAGE_KEY, LUMI_WATER_ME
 const pomodoroSource = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
 const lumiAlertSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiAlerts.ts"), "utf8");
 const preferencesSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPreferences.ts"), "utf8");
+const speechSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiSpeech.ts"), "utf8");
+const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPresets.ts"), "utf8");
 
  describe("Pomodoro and Lumi audio rules", () => {
   it("keeps legacy Pomodoro alert data normalizable without exposing it as active playback", () => {
@@ -44,20 +46,19 @@ const preferencesSource = readFileSync(resolve(process.cwd(), "client/src/lib/lu
     expect(pomodoroSource).toContain("Pomodoro không phát nhạc nền");
     expect(pomodoroSource).toContain("playLumiWaterAlert");
     expect(pomodoroSource).toContain("window.speechSynthesis");
-    expect(pomodoroSource).toContain('utterance.lang = "vi-VN"');
+    expect(speechSource).toContain('utterance.lang = "vi-VN"');
+    expect(speechSource).toContain('voice.lang.toLocaleLowerCase() === "vi-vn"');
     expect(pomodoroSource).not.toContain("triggerAlert(");
     expect(pomodoroSource).not.toContain("playPomodoroAlert");
     expect(pomodoroSource).not.toContain("POMODORO_ALERT_EVENT_IDS.map");
   });
 
-  it("supports a draggable persisted widget, four warm check-in choices and live water feedback", () => {
+  it("supports a draggable persisted widget, expanded check-in choices and live water feedback", () => {
     expect(pomodoroSource).toContain("miniPlayerPosition");
     expect(pomodoroSource).toContain("onPointerDown={startWidgetDrag}");
     expect(pomodoroSource).toContain("Mở hộp thoại hỏi thăm của Lumi");
-    expect(pomodoroSource).toContain("Mệt mỏi");
-    expect(pomodoroSource).toContain("Thiếu động lực");
-    expect(pomodoroSource).toContain("Cần cái ôm");
-    expect(pomodoroSource).toContain("Sẵn sàng học");
+    expect(pomodoroSource).toContain("LUMI_CHECKIN_OPTIONS.map");
+    for (const label of ["Mệt mỏi", "Thiếu động lực", "Cần cái ôm", "Sẵn sàng học", "Tập trung", "Đau lòng", "Bình tĩnh"]) expect(presetsSource).toContain(label);
     expect(pomodoroSource).toContain("Đã uống 💧");
     expect(pomodoroSource).toContain("Lumi thả tim");
     expect(pomodoroSource).not.toContain("Mảnh ghép đang có");

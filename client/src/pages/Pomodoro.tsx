@@ -10,9 +10,10 @@ import {
 import { readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
 import { LUMI_WATER_ALERT_SOUNDS, isLumiWaterAlertSoundId, playLumiWaterAlert } from "../lib/lumiAlerts";
 import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMessage, saveLumiSpeechPreference, saveLumiWaterMessage } from "../lib/lumiPreferences";
-import { emotionThemes } from "../lib/emotionThemes";
+import { emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues, type LumiCustomDialogue } from "../lib/lumiCustomDialogues";
-import { LUMI_CHECKIN_RESPONSES, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
+import { LUMI_CHECKIN_OPTIONS, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForEmotion, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
+import { speakLumiVietnamese } from "../lib/lumiSpeech";
 import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 
 type Mode = "focus" | "shortBreak" | "longBreak";
@@ -174,15 +175,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   }, [showLumiDialog]);
 
   function speakLumi(text: string) {
-    if (!profile.soundEnabled || !lumiSpeechEnabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "vi-VN";
-    utterance.rate = 0.96;
-    utterance.pitch = 1.08;
-    const vietnameseVoice = window.speechSynthesis.getVoices().find((voice) => voice.lang.toLocaleLowerCase().startsWith("vi"));
-    if (vietnameseVoice) utterance.voice = vietnameseVoice;
-    window.speechSynthesis.speak(utterance);
+    speakLumiVietnamese(text, profile.soundEnabled && lumiSpeechEnabled);
   }
 
   function triggerLumiWaterAlert() {
@@ -223,11 +216,13 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     speakLumi(intro);
   }
   function dismissLumiDialog() { setShowLumiDialog(false); setLumiDialogResponse(null); setLumiDialogIntro(LUMI_WELCOME.text); }
-  function chooseLumiFeeling(choice: "tired" | "motivation" | "hug" | "ready") {
-    const details = LUMI_CHECKIN_RESPONSES[choice];
-    const multiEntry = findLumiKaomojiDialogue(lumiMultiDialogues, details.kaomoji);
-    const text = (multiEntry ? pickRandomLumiDialogue(multiEntry)?.text : null) ?? dialoguesForGroup(lumiCustomDialogues, details.group)[Math.floor(Math.random() * dialoguesForGroup(lumiCustomDialogues, details.group).length)]?.text ?? details.text;
-    setLumiDialogResponse({ group: details.label, kaomoji: details.kaomoji, text });
+  function chooseLumiFeeling(choice: EmotionId) {
+    const details = LUMI_CHECKIN_OPTIONS.find((item) => item.id === choice) ?? LUMI_CHECKIN_OPTIONS[0];
+    const kaomoji = lumiKaomojiForEmotion(choice);
+    const multiEntry = findLumiKaomojiDialogue(lumiMultiDialogues, kaomoji);
+    const groupDialogues = dialoguesForGroup(lumiCustomDialogues, details.group);
+    const text = (multiEntry ? pickRandomLumiDialogue(multiEntry)?.text : null) ?? groupDialogues[Math.floor(Math.random() * groupDialogues.length)]?.text ?? "Lumi ở đây lắng nghe bạn nè 🍀";
+    setLumiDialogResponse({ group: details.label, kaomoji, text });
     setLumiWidgetDialogue(text);
     speakLumi(text);
     setShowLumiDialog(false);
@@ -318,7 +313,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   function choosePreset(value: typeof presets[number]) { if (running && !window.confirm("Đổi nhịp học sẽ dừng phiên hiện tại. Tiếp tục?")) return; setRunning(false); setFocus(value.focus); setShortBreak(value.short); setLongBreak(value.long); setMode("focus"); setSeconds(value.focus * 60); setSessionStartedAt(null); }
   function togglePlan(id: string) { setCheckedPlanItemIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]); }
 
-  const lumiPopups = <>{showLumiDialog ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={dismissLumiDialog}><section className="lumi-popup-modal w-full max-w-md border border-emerald-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-emerald-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-checkin-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">{lumiDialogResponse?.kaomoji ?? LUMI_WELCOME.kaomoji}</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lumi hỏi thăm</p><h2 id="lumi-checkin-title" className="mt-1 font-display text-2xl font-black">{lumiDialogResponse ? lumiDialogResponse.group : "Hôm nay Ong cảm thấy thế nào?"}</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{lumiDialogResponse?.text ?? lumiDialogIntro}</p></div>{!lumiDialogResponse ? <div className="lumi-quick-feelings-grid mt-5"><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("tired")}>Mệt mỏi</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("motivation")}>Thiếu động lực</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("hug")}>Cần cái ôm</button><button type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling("ready")}>Sẵn sàng học</button></div> : <div className="mt-5 flex gap-2"><button type="button" className="secondary-button flex-1 justify-center" onClick={() => setLumiDialogResponse(null)}>Hỏi lại</button><button type="button" className="primary-button flex-1 justify-center" onClick={dismissLumiDialog}>Cảm ơn Lumi</button></div>}</section></div> : null}{waterReminderVisible ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={() => setWaterReminderVisible(false)}><section className="lumi-popup-modal w-full max-w-sm border border-sky-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-sky-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-water-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">(´ー`)旦~~</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Lumi nhắc uống nước</p><h2 id="lumi-water-title" className="mt-1 font-display text-2xl font-black">Đến giờ uống nước rồi!</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{waterMessage || LUMI_WATER_MESSAGE}</p></div><button type="button" className="primary-button mt-5 w-full justify-center" onClick={acknowledgeWater}>Đã uống 💧</button></section></div> : null}</>;
+  const lumiPopups = <>{showLumiDialog ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={dismissLumiDialog}><section className="lumi-popup-modal w-full max-w-md border border-emerald-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-emerald-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-checkin-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">{lumiDialogResponse?.kaomoji ?? LUMI_WELCOME.kaomoji}</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Lumi hỏi thăm</p><h2 id="lumi-checkin-title" className="mt-1 font-display text-2xl font-black">{lumiDialogResponse ? lumiDialogResponse.group : "Hôm nay Ong cảm thấy thế nào?"}</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{lumiDialogResponse?.text ?? lumiDialogIntro}</p></div>{!lumiDialogResponse ? <div className="lumi-quick-feelings-grid mt-5">{LUMI_CHECKIN_OPTIONS.map((choice) => <button key={choice.id} type="button" className="secondary-button justify-center text-sm" onClick={() => chooseLumiFeeling(choice.id)}>{choice.emoji} {choice.label}</button>)}</div> : <div className="mt-5 flex gap-2"><button type="button" className="secondary-button flex-1 justify-center" onClick={() => setLumiDialogResponse(null)}>Hỏi lại</button><button type="button" className="primary-button flex-1 justify-center" onClick={dismissLumiDialog}>Cảm ơn Lumi</button></div>}</section></div> : null}{waterReminderVisible ? <div className="modal-backdrop grid place-items-center p-4" role="presentation" onClick={() => setWaterReminderVisible(false)}><section className="lumi-popup-modal w-full max-w-sm border border-sky-200 bg-white p-6 text-slate-900 shadow-2xl dark:border-sky-300/25 dark:bg-slate-900 dark:text-slate-100" role="dialog" aria-modal="true" aria-labelledby="lumi-water-title" onClick={(event) => event.stopPropagation()}><div className="text-center"><div className="text-5xl" aria-hidden="true">(´ー`)旦~~</div><p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-sky-700 dark:text-sky-300">Lumi nhắc uống nước</p><h2 id="lumi-water-title" className="mt-1 font-display text-2xl font-black">Đến giờ uống nước rồi!</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{waterMessage || LUMI_WATER_MESSAGE}</p></div><button type="button" className="primary-button mt-5 w-full justify-center" onClick={acknowledgeWater}>Đã uống 💧</button></section></div> : null}</>;
   const supportButtons = <div className="flex flex-wrap gap-2"><button type="button" className="secondary-button text-xs" onClick={() => askLumi("comfort")}>Cần an ủi</button><button type="button" className="secondary-button text-xs" onClick={() => askLumi("encouragement")}>Cần động viên</button><button type="button" className="secondary-button text-xs" onClick={() => { openLumiDialog(); }}>Hỏi thăm cảm xúc</button></div>;
   const lumiTimerBadge = showLumiDialog ? <div className="lumi-timer-badge" role="timer" aria-live="off" aria-label={`Lumi đang đếm ngược ${display}`}><span aria-hidden="true">⏱️</span><span>{display}</span></div> : null;
   if (!isVisible) {

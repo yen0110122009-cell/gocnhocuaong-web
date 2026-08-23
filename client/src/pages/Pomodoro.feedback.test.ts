@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 describe("Pomodoro feedback contract", () => {
   const source = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
   const presets = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPresets.ts"), "utf8");
+  const speech = readFileSync(resolve(process.cwd(), "client/src/lib/lumiSpeech.ts"), "utf8");
 
   it("giữ quy định no-BGM với âm báo nước và TTS Lumi", () => {
     expect(source).toContain("Cài đặt Lumi và Pomodoro");
@@ -54,11 +55,18 @@ describe("Pomodoro feedback contract", () => {
     expect(css).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
   });
 
-  it("có đủ bốn nút cảm xúc trong lưới hai cột", () => {
-    expect(source).toContain("Mệt mỏi");
-    expect(source).toContain("Thiếu động lực");
-    expect(source).toContain("Cần cái ôm");
-    expect(source).toContain("Sẵn sàng học");
+  it("có nhiều lựa chọn cảm xúc check-in và giữ các lựa chọn cũ", () => {
+    for (const label of ["Mệt mỏi", "Thiếu động lực", "Cần cái ôm", "Sẵn sàng học", "Tập trung", "Đau lòng", "Lo lắng", "Bình tĩnh", "Vui vẻ"]) expect(presets).toContain(label);
+    expect(source).toContain("LUMI_CHECKIN_OPTIONS.map");
+    expect(presets).toContain("LUMI_CHECKIN_OPTIONS");
+  });
+
+  it("ưu tiên voice vi-VN và vẫn nói khi browser chưa tải voices ngay lập tức", () => {
+    expect(source).toContain("speakLumiVietnamese");
+    expect(speech).toContain('utterance.lang = "vi-VN"');
+    expect(speech).toContain('voice.lang.toLocaleLowerCase() === "vi-vn"');
+    expect(speech).toContain("voiceschanged");
+    expect(speech).toContain("synthesis.cancel()");
   });
 
   it("đồng bộ routine Kaomoji Lumi với focus, nghỉ và nhắc nước", () => {

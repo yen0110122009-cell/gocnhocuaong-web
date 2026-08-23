@@ -16,13 +16,12 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
 
   it("thay khu vực trạng thái cũ bằng Kaomoji interactive", () => {
     const lumi = source("client/src/components/ExperienceStudio.tsx");
+    const presets = source("client/src/lib/lumiPresets.ts");
     expect(lumi).toContain("Module Kaomoji Lumi bạn đồng hành");
     expect(lumi).toContain("Chọn cảm xúc nhanh");
     expect(lumi).toContain("Hỏi thăm cảm xúc");
-    expect(lumi).toContain("Mệt mỏi");
-    expect(lumi).toContain("Thiếu động lực");
-    expect(lumi).toContain("Cần cái ôm");
-    expect(lumi).toContain("Sẵn sàng học");
+    expect(lumi).toContain("LUMI_CHECKIN_OPTIONS");
+    for (const label of ["Mệt mỏi", "Thiếu động lực", "Cần cái ôm", "Sẵn sàng học", "Tập trung", "Đau lòng", "Lo lắng", "Bình tĩnh", "Vui vẻ"]) expect(presets).toContain(label);
     expect(lumi).toContain("Lumi đang ở đây với Ong");
     expect(lumi).toContain("LUMI_WELCOME");
     expect(lumi).toContain("lumiKaomojiForEmotion");
@@ -32,9 +31,10 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
 
   it("có TTS tiếng Việt và công tắc AI đọc thoại", () => {
     const lumi = source("client/src/components/ExperienceStudio.tsx");
+    const speech = source("client/src/lib/lumiSpeech.ts");
     expect(lumi).toContain("AI đọc thoại");
-    expect(lumi).toContain("speechSynthesis");
-    expect(lumi).toContain('utterance.lang = "vi-VN"');
+    expect(lumi).toContain("speakLumiVietnamese");
+    expect(speech).toContain('utterance.lang = "vi-VN"');
     expect(lumi).toContain("Nghe thử giọng đọc AI");
   });
 

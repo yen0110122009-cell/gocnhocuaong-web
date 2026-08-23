@@ -6,7 +6,8 @@ import { emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { dialogueGroupForEmotion, dialoguesForGroup, LUMI_DIALOGUE_GROUPS, readLumiCustomDialogues, saveLumiCustomDialogues, type LumiCustomDialogue, type LumiDialogueGroup, LUMI_CUSTOM_DIALOGUES_EVENT } from "../lib/lumiCustomDialogues";
 import { readLumiSpeechPreference, saveLumiSpeechPreference } from "../lib/lumiPreferences";
 import { PersistentCollapsible } from "./PersistentCollapsible";
-import { LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
+import { LUMI_CHECKIN_OPTIONS, LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
+import { speakLumiVietnamese } from "../lib/lumiSpeech";
 import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiMultiDialogues, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
 
@@ -21,24 +22,10 @@ export type ExperienceStudioProps = {
   voiceLines?: AppConfig["mascotVoiceLines"];
 };
 
-type QuickFeeling = { id: EmotionId; label: string; emoji: string; group: LumiDialogueGroup };
-const quickFeelings: QuickFeeling[] = [
-  { id: "tired", label: "Mệt mỏi", emoji: "🥱", group: "comfort" },
-  { id: "lazy", label: "Thiếu động lực", emoji: "🫠", group: "encouragement" },
-  { id: "lonely", label: "Cần cái ôm", emoji: "🫂", group: "hug" },
-  { id: "focused", label: "Sẵn sàng học", emoji: "🎯", group: "companionship" },
-];
+const quickFeelings = LUMI_CHECKIN_OPTIONS;
 
 function speakLumi(text: string, enabled: boolean) {
-  if (!enabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "vi-VN";
-  utterance.rate = 0.96;
-  utterance.pitch = 1.08;
-  const voice = window.speechSynthesis.getVoices().find((candidate) => candidate.lang.toLocaleLowerCase().startsWith("vi"));
-  if (voice) utterance.voice = voice;
-  window.speechSynthesis.speak(utterance);
+  speakLumiVietnamese(text, enabled);
 }
 
 export function ExperienceStudio({ selected, onSelect, profile, onProfile, onStartTwoMinutes }: ExperienceStudioProps) {
@@ -119,7 +106,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     speakLumi(text, speechEnabled);
   }
 
-  function chooseFeeling(choice: QuickFeeling) {
+  function chooseFeeling(choice: typeof quickFeelings[number]) {
     onSelect(choice.id);
     if (profile && onProfile) onProfile({ ...profile, emotionTheme: choice.id }, `Lumi đã cập nhật cảm xúc: ${choice.label}.`);
     const response = dialoguesForGroup(dialogues, choice.group)[0]?.text ?? current.encouragement;
