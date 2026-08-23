@@ -35,7 +35,7 @@ describe("festive VFX contract", () => {
 
   it("locks the original five student themes to the requested counts and fixed sizes", () => {
     const expected = { sweet_strawberry: ["🍰", 12], black_ribbon: ["⚡", 6], library_chill: ["☕", 8], after_school: ["🍋", 10], classic_academy: ["🎼", 15] } as const;
-    expect(STUDENT_THEME_CONFIGS).toHaveLength(30);
+    expect(STUDENT_THEME_CONFIGS).toHaveLength(32);
     for (const [id, [emoji, count]] of Object.entries(expected)) {
       const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
       expect(theme).toBeTruthy();
@@ -50,8 +50,8 @@ describe("festive VFX contract", () => {
   });
 
   it("locks the five follow-up student themes to the requested counts and fixed sizes", () => {
-    const expected = { cyber_highschool: ["🌟", 14], spring_fresh: ["🌸", 16], summer_ocean: ["🫧", 12], autumn_leaves: ["🍁", 15], winter_snow: ["❄️", 18] } as const;
-    const mascots = { cyber_highschool: "👾", spring_fresh: "🐦", summer_ocean: "🦀", autumn_leaves: "🐿️", winter_snow: "☃️" } as const;
+    const expected = { cyber_highschool: ["🌟", 14], spring_fresh: ["🌸", 16], summer_ocean: ["🫧", 20], autumn_leaves: ["🍁", 18], winter_snow: ["❄️", 18] } as const;
+    const mascots = { cyber_highschool: "👾", spring_fresh: "🐦", summer_ocean: "🐬", autumn_leaves: "🦊", winter_snow: "☃️" } as const;
     const ground = { cyber_highschool: "💿", spring_fresh: "🌱", summer_ocean: "🐚", autumn_leaves: "🌰", winter_snow: "🧊" } as const;
     for (const [id, [emoji, count]] of Object.entries(expected)) {
       const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
@@ -62,6 +62,46 @@ describe("festive VFX contract", () => {
       expect(theme?.groundContainer.items[0]?.emoji).toBe(ground[id as keyof typeof ground]);
       expect(theme?.groundContainer.items[0]?.size).toBe("100px");
       expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
+    }
+  });
+
+  it("locks the two seasonal variants from the latest specification to exact counts, fixed sizes and mascot animation names", () => {
+    const expected = { spring_freshness: ["🌸", 18], winter_snowman: ["❄️", 22] } as const;
+    const mascots = { spring_freshness: "🐰", winter_snowman: "☃️" } as const;
+    const ground = { spring_freshness: "🌷", winter_snowman: "🌲" } as const;
+    const animations = { spring_freshness: "spring-bunny-hop", winter_snowman: "winter-snowman-sway" } as const;
+    for (const [id, [emoji, count]] of Object.entries(expected)) {
+      const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
+      expect(theme).toBeTruthy();
+      expect(theme?.mascot.emoji).toBe(mascots[id as keyof typeof mascots]);
+      expect(theme?.mascot.animation).toBe(animations[id as keyof typeof animations]);
+      expect(theme?.mascot.initialPosition.top).toBe(id === "spring_freshness" ? "200px" : "200px");
+      expect(theme?.mascot.size).toBe("130px");
+      expect(theme?.groundContainer.itemCount).toBe(25);
+      expect(theme?.groundContainer.items[0]?.emoji).toBe(ground[id as keyof typeof ground]);
+      expect(theme?.groundContainer.items[0]?.size).toBe("100px");
+      expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
+    }
+  });
+
+  it("locks the seasonal palettes, mascot positions and timing to the specification", () => {
+    const expected = {
+      spring_freshness: { lightBg: "linear-gradient(135deg, #FFF0F5, #FFD1DC)", darkBg: "linear-gradient(135deg, #4A0E2E, #280016)", lightPrimary: "#8B0046", darkPrimary: "#FFF0F5", top: "200px", left: "120px", interval: 6500 },
+      summer_ocean: { lightBg: "linear-gradient(135deg, #E0F7FA, #80DEEA)", darkBg: "linear-gradient(135deg, #002D38, #00151C)", lightPrimary: "#005F73", darkPrimary: "#E0F7FA", top: "210px", left: "140px", interval: 6000 },
+      autumn_leaves: { lightBg: "linear-gradient(135deg, #FFF3E0, #FFE0B2)", darkBg: "linear-gradient(135deg, #3E1600, #210A00)", lightPrimary: "#B23B00", darkPrimary: "#FFF3E0", top: "190px", left: "110px", interval: 7500 },
+      winter_snowman: { lightBg: "linear-gradient(135deg, #F0F4F8, #D9E2EC)", darkBg: "linear-gradient(135deg, #0B1D33, #050E1A)", lightPrimary: "#102A43", darkPrimary: "#F0F4F8", top: "200px", left: "130px", interval: 8000 },
+    } as const;
+    for (const [id, details] of Object.entries(expected)) {
+      const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
+      expect(theme?.colors.light.bg).toBe(details.lightBg);
+      expect(theme?.colors.dark.bg).toBe(details.darkBg);
+      expect(theme?.colors.light.primary).toBe(details.lightPrimary);
+      expect(theme?.colors.dark.primary).toBe(details.darkPrimary);
+      expect(theme?.mascot.initialPosition).toEqual({ top: details.top, left: details.left });
+      expect(theme?.mascot.wanderIntervalMs).toBe(details.interval);
+      expect(theme?.mascot.size).toBe("130px");
+      expect(theme?.groundContainer.itemCount).toBe(25);
+      expect(theme?.groundContainer.items[0]?.size).toBe("100px");
     }
   });
 
@@ -144,6 +184,18 @@ describe("festive VFX contract", () => {
     expect(festiveThemeFor("prehistoric_era")?.id).toBe("prehistoric_era");
     expect(festiveThemeFor("cyberpunk_racetrack")?.id).toBe("cyberpunk_racetrack");
     expect(festiveThemeFor("food_festival")?.id).toBe("food_festival");
+  });
+
+  it("registers seasonal local audio, YouTube references and mascot animation selectors", () => {
+    const expected = { spring_freshness: "eCyoahdsPGY", summer_ocean: "eCyoahdsPGY", autumn_leaves: "8V90Cu5UUIM", winter_snowman: "YexNu5MAKWw" } as const;
+    const animations = ["spring-bunny-hop", "summer-dolphin-swim", "autumn-fox-walk", "winter-snowman-sway"];
+    for (const [id, referenceId] of Object.entries(expected)) {
+      const asset = PROVIDED_THEME_AMBIENT_ASSETS[id as keyof typeof PROVIDED_THEME_AMBIENT_ASSETS];
+      expect(asset.referenceUrl).toContain(`watch?v=${referenceId}`);
+      expect(asset.url).toMatch(/\/audio\/[^/]+\.mp3$/);
+      expect(home).toContain(`${id}: { label: PROVIDED_THEME_AMBIENT_ASSETS.${id}.name`);
+    }
+    for (const animation of animations) expect(css).toContain(`.festive-auto-${animation}`);
   });
 
   it("keeps one non-blocking high-priority VFX stage and never pauses unrelated learning audio", () => {

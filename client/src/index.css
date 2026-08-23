@@ -2387,3 +2387,14 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
   background-image: none !important;
   color: var(--festive-ink) !important;
 }
+
+/* Animation mascot cho bộ theme mùa trong đặc tả pasted_content_8. */
+.festive-auto-spring-bunny-hop { animation: festive-mascot-spring-bunny-hop 6.5s ease-in-out infinite; }
+.festive-auto-summer-dolphin-swim { animation: festive-mascot-summer-dolphin-swim 6s ease-in-out infinite; }
+.festive-auto-autumn-fox-walk { animation: festive-mascot-autumn-fox-walk 7.5s ease-in-out infinite; }
+.festive-auto-winter-snowman-sway { animation: festive-mascot-winter-snowman-sway 8s ease-in-out infinite; }
+@keyframes festive-mascot-spring-bunny-hop { 0%, 100% { transform: translateX(0) translateY(0) rotate(-3deg); } 25% { transform: translateX(24px) translateY(-12px) rotate(4deg); } 50% { transform: translateX(48px) translateY(0) rotate(-2deg); } 75% { transform: translateX(24px) translateY(-9px) rotate(5deg); } }
+@keyframes festive-mascot-summer-dolphin-swim { 0%, 100% { transform: translateX(0) translateY(0) rotate(-4deg); } 50% { transform: translateX(48px) translateY(-15px) rotate(4deg); } }
+@keyframes festive-mascot-autumn-fox-walk { 0%, 100% { transform: translateX(0) rotate(-3deg); } 25% { transform: translateX(20px) rotate(3deg); } 50% { transform: translateX(42px) rotate(-2deg); } 75% { transform: translateX(20px) rotate(4deg); } }
+@keyframes festive-mascot-winter-snowman-sway { 0%, 100% { transform: translateX(0) rotate(-3deg); } 50% { transform: translateX(20px) rotate(3deg); } }
+@media (prefers-reduced-motion: reduce) { .festive-auto-spring-bunny-hop, .festive-auto-summer-dolphin-swim, .festive-auto-autumn-fox-walk, .festive-auto-winter-snowman-sway { animation: none !important; } }
