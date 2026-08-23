@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FESTIVE_THEME_CONFIGS, FESTIVE_THEME_DECORATIONS, STUDENT_THEME_CONFIGS, USER_PROVIDED_FESTIVE_AUDIO } from "../client/src/lib/festiveThemes";
+import { FESTIVE_THEME_CONFIGS, FESTIVE_THEME_DECORATIONS, STUDENT_THEME_CONFIGS, USER_PROVIDED_FESTIVE_AUDIO, festiveThemeFor } from "../client/src/lib/festiveThemes";
 
 const layer = readFileSync(resolve(process.cwd(), "client/src/components/FestiveThemeLayer.tsx"), "utf8");
 const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
@@ -34,7 +34,7 @@ describe("festive VFX contract", () => {
 
   it("locks the original five student themes to the requested counts and fixed sizes", () => {
     const expected = { sweet_strawberry: ["🍰", 12], black_ribbon: ["⚡", 6], library_chill: ["☕", 8], after_school: ["🍋", 10], classic_academy: ["🎼", 15] } as const;
-    expect(STUDENT_THEME_CONFIGS).toHaveLength(10);
+    expect(STUDENT_THEME_CONFIGS).toHaveLength(15);
     for (const [id, [emoji, count]] of Object.entries(expected)) {
       const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
       expect(theme).toBeTruthy();
@@ -62,6 +62,24 @@ describe("festive VFX contract", () => {
       expect(theme?.groundContainer.items[0]?.size).toBe("100px");
       expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
     }
+  });
+
+  it("locks the five Halloween/Tết/weather themes to the requested counts and fixed sizes", () => {
+    const expected = { halloween_night: ["🦇", 14], lunar_new_year: ["🌸", 16], storm_lightning: ["⛈️", 10], romantic_rain: ["💧", 20], tropical_sun: ["☀️", 12] } as const;
+    const mascots = { halloween_night: "🎃", lunar_new_year: "🦁", storm_lightning: "🦅", romantic_rain: "🐸", tropical_sun: "🦜" } as const;
+    const ground = { halloween_night: "👻", lunar_new_year: "🧧", storm_lightning: "⚡", romantic_rain: "☔", tropical_sun: "🌻" } as const;
+    for (const [id, [emoji, count]] of Object.entries(expected)) {
+      const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
+      expect(theme).toBeTruthy();
+      expect(theme?.mascot.emoji).toBe(mascots[id as keyof typeof mascots]);
+      expect(theme?.mascot.size).toBe("130px");
+      expect(theme?.groundContainer.itemCount).toBe(25);
+      expect(theme?.groundContainer.items[0]?.emoji).toBe(ground[id as keyof typeof ground]);
+      expect(theme?.groundContainer.items[0]?.size).toBe("100px");
+      expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
+    }
+    expect(festiveThemeFor("halloween-spooky")?.id).toBe("halloween_night");
+    expect(festiveThemeFor("lunar-new-year")?.id).toBe("lunar_new_year");
   });
 
   it("keeps one non-blocking high-priority VFX stage and never pauses unrelated learning audio", () => {

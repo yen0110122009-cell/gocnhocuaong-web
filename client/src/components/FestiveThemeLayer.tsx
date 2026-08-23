@@ -21,6 +21,10 @@ function readableInk(color: string) {
 }
 const viewportValue = (value: string, viewport: number) => {
   const normalized = value.trim();
+  if (normalized.startsWith("calc(")) {
+    const match = normalized.match(/^calc\(100(?:vw|vh)\s*-\s*([\d.]+)px\)$/);
+    if (match) return viewport - (Number.parseFloat(match[1]) || 0);
+  }
   if (normalized.endsWith("px")) return Number.parseFloat(normalized) || 0;
   if (normalized.endsWith("vw") || normalized.endsWith("vh")) return viewport * ((Number.parseFloat(normalized) || 0) / 100);
   return viewport * ((Number.parseFloat(normalized) || 0) / 100);
@@ -245,10 +249,10 @@ function FestiveThemeContent({ theme, mascotSize, initialMascotPosition, trigger
     return { ...decoration, id: `${decorationIndex}-${index}`, left: `${8 + (seed % 84)}%`, top: `${(seed * 17) % 96}%`, animationDelay: `${-((index * (decoration.staggerMs ?? 420)) % durationMs)}ms`, animationDuration: `${durationMs}ms` };
   })), [theme.id]);
   useEffect(() => {
-    if (!theme.mascot.draggable || mascot.dragging) return;
+    if (!theme.mascot.draggable || theme.mascot.wanderEnabled === false || mascot.dragging) return;
     const interval = window.setInterval(() => mascot.wander(theme.mascot.wanderPattern ?? "random"), theme.mascot.wanderIntervalMs ?? 4500);
     return () => window.clearInterval(interval);
-  }, [theme.id, theme.mascot.draggable, theme.mascot.wanderIntervalMs, mascot.dragging]);
+  }, [theme.id, theme.mascot.draggable, theme.mascot.wanderEnabled, theme.mascot.wanderIntervalMs, mascot.dragging]);
   const mascotDragBindings = bindMascotDrag(mascot);
   return <div id="vfx-stage" aria-label="Hiệu ứng lễ hội tương tác">
     <button type="button" className="festive-mascot mascot" aria-label={`Linh vật ${theme.displayName}; kéo thả hoặc dùng phím mũi tên để di chuyển`} title="Kéo thả linh vật · mũi tên để di chuyển" style={{ width: 130, height: 130, fontSize: 130, left: mascot.position.x, top: mascot.position.y, zIndex: 60, touchAction: "none" }} {...mascotDragBindings}>
