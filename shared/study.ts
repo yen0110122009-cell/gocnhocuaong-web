@@ -519,6 +519,19 @@ export const POMODORO_ALERT_SOUND_IDS = ["digital_bell", "loud_alarm", "marimba"
 export type PomodoroAlertSoundId = typeof POMODORO_ALERT_SOUND_IDS[number];
 export type PomodoroAlertEventSettings = { enabled: boolean; soundId: PomodoroAlertSoundId };
 export type PomodoroAlertSettings = { masterVolume: number; events: Record<PomodoroAlertEventId, PomodoroAlertEventSettings> };
+export const LUMI_WATER_ALERT_SOUND_IDS = ["water_drop", "soft_chime", "wind_chime", "wood_block", "cute_beep"] as const;
+export type LumiWaterAlertSoundId = typeof LUMI_WATER_ALERT_SOUND_IDS[number];
+export type LumiWaterSettings = { enabled: boolean; intervalMinutes: number; soundId: LumiWaterAlertSoundId };
+export const DEFAULT_LUMI_WATER_SETTINGS: LumiWaterSettings = { enabled: true, intervalMinutes: 45, soundId: "water_drop" };
+export function normalizeLumiWaterSettings(value: unknown): LumiWaterSettings {
+  const source = value && typeof value === "object" ? value as Partial<LumiWaterSettings> : {};
+  const rawInterval = Number(source.intervalMinutes);
+  return {
+    enabled: source.enabled !== false,
+    intervalMinutes: Number.isFinite(rawInterval) ? Math.max(5, Math.min(180, Math.round(rawInterval))) : DEFAULT_LUMI_WATER_SETTINGS.intervalMinutes,
+    soundId: LUMI_WATER_ALERT_SOUND_IDS.includes(source.soundId as LumiWaterAlertSoundId) ? source.soundId as LumiWaterAlertSoundId : DEFAULT_LUMI_WATER_SETTINGS.soundId,
+  };
+}
 export const DEFAULT_POMODORO_ALERT_SETTINGS: PomodoroAlertSettings = {
   masterVolume: 1.2,
   events: {
@@ -818,6 +831,10 @@ export type ProfileState = {
   lumiCongratulationMessages?: Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>>;
   /** Cách Lumi đồng hành trong phiên Pomodoro; có thể tắt hoàn toàn lời nhắc. */
   pomodoroLumiSupportMode?: "comfort" | "encouragement" | "off";
+  /** Cho phép giọng đọc lời thoại Lumi bằng Web Speech API. */
+  lumiSpeechEnabled?: boolean;
+  /** Nhắc uống nước độc lập với âm nền, chỉ phát âm báo được chọn. */
+  lumiWaterSettings?: LumiWaterSettings;
   /** Kế hoạch ngày-tuần thay thế luồng Thành tích/Cấp độ trên giao diện học tập. */
   studyPlanItems?: StudyPlanItem[];
   /** Mảnh ghép nhận trực tiếp từ các mục Kế hoạch đã hoàn tất. */
@@ -1004,6 +1021,8 @@ export const emptyProfile = (): ProfileState => ({
   companionEmotionMedia: {},
   lumiVoiceRecordingTrash: {},
   pomodoroLumiSupportMode: "encouragement",
+  lumiSpeechEnabled: true,
+  lumiWaterSettings: DEFAULT_LUMI_WATER_SETTINGS,
   studyPlanItems: [],
   planFragments: 0,
   showMascot: true,
@@ -1628,6 +1647,8 @@ export function normalizeProfile(value: unknown): ProfileState {
     animationsEnabled: source.animationsEnabled !== false,
     popupsEnabled: source.popupsEnabled !== false,
     pomodoroLumiSupportMode: ["comfort", "encouragement", "off"].includes(String(source.pomodoroLumiSupportMode)) ? source.pomodoroLumiSupportMode as ProfileState["pomodoroLumiSupportMode"] : "encouragement",
+    lumiSpeechEnabled: source.lumiSpeechEnabled !== false,
+    lumiWaterSettings: normalizeLumiWaterSettings(source.lumiWaterSettings),
     activeCosmeticTheme: normalizeCosmeticPaletteId(source.activeCosmeticTheme),
     festiveThemeOptions: {
       enableThemeTone: source.festiveThemeOptions?.enableThemeTone !== false,

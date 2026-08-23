@@ -88,11 +88,12 @@ describe("StudyCorner contracts", () => {
     const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
     expect(study).toContain("PersonalPomodoroAmbientPreset");
     expect(study).toContain("personalPomodoroAmbientPresets");
-    expect(pomodoro).toContain("Âm báo và chuyển phiên");
+    expect(pomodoro).toContain("Cài đặt Lumi và Pomodoro");
+    expect(pomodoro).toContain("Nhắc uống nước");
     expect(pomodoro).not.toContain("Preset tỷ lệ của tôi");
     expect(pomodoro).not.toContain('storageKey="pomodoro-audio-center"');
-    expect(pomodoro).toContain("POMODORO_ALERT_EVENT_IDS.map");
-    expect(pomodoro).toContain("Nghe thử");
+    expect(pomodoro).not.toContain("POMODORO_ALERT_EVENT_IDS.map");
+    expect(pomodoro).not.toContain("Nghe thử");
   });
 
   it("giữ dữ liệu mixer tương thích nhưng không đặt Audio Center trong màn Lumi rút gọn", () => {

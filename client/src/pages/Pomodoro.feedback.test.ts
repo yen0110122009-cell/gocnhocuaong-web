@@ -5,12 +5,13 @@ import { resolve } from "node:path";
 describe("Pomodoro feedback contract", () => {
   const source = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
 
-  it("giữ điều khiển âm báo Web Audio theo bốn sự kiện trong Pomodoro", () => {
-    expect(source).toContain("Âm báo và chuyển phiên");
-    expect(source).toContain("POMODORO_ALERT_EVENT_IDS.map");
-    expect(source).toContain("Âm lượng chung");
-    expect(source).toContain('max="200"');
-    expect(source).toContain("Nghe thử");
+  it("giữ quy định no-BGM với âm báo nước và TTS Lumi", () => {
+    expect(source).toContain("Cài đặt Lumi và Pomodoro");
+    expect(source).toContain("Nhắc uống nước");
+    expect(source).toContain("LUMI_WATER_ALERT_SOUNDS");
+    expect(source).toContain("window.speechSynthesis");
+    expect(source).not.toContain("POMODORO_ALERT_EVENT_IDS.map");
+    expect(source).not.toContain("playPomodoroAlert");
   });
 
   it("lưu ngữ cảnh học gồm môn, nội dung và ghi chú", () => {

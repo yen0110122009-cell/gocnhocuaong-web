@@ -22,7 +22,7 @@ describe("Lumi recording visualizer contracts", () => {
   it("exposes an accessible visualizer and recording status on the mobile-friendly control", () => {
     expect(componentSource).toContain('role="img" aria-label="Sóng âm đang ghi âm"');
     expect(componentSource).toContain('role="status" aria-live="polite"');
-    expect(componentSource).toContain("Đang thu âm từ micro của thiết bị");
+    expect(componentSource).toContain("Đang thu âm từ micro. Đã ghi");
   });
 });
 

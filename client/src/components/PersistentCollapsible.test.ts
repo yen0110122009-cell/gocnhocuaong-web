@@ -30,9 +30,10 @@ describe("phạm vi thu gọn hiện tại", () => {
     expect(home).toContain('setSectionsCollapsed(true)');
   });
 
-  it("giữ Pomodoro chỉ có âm báo thay vì âm nền hoặc preset cũ", () => {
+  it("giữ Pomodoro chỉ có nhắc nước/TTS thay vì âm nền hoặc preset cũ", () => {
     const pomodoro = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
-    expect(pomodoro).toContain("Âm báo và chuyển phiên");
+    expect(pomodoro).toContain("Cài đặt Lumi và Pomodoro");
+    expect(pomodoro).toContain("Nhắc uống nước");
     expect(pomodoro).not.toContain("startBackground");
     expect(pomodoro).not.toContain('storageKey="pomodoro-audio-center"');
   });
