@@ -51,7 +51,8 @@ describe("Góc học tập end-to-end contracts", () => {
 
   it("chỉ dùng âm báo phiên và không khởi chạy âm nền Pomodoro", () => {
     expect(pomodoro).toContain("AudioContext");
-    expect(pomodoro).toContain("beep(alertVolume, \"complete\")");
+    expect(pomodoro).toContain("triggerAlert(\"endFocus\")");
+    expect(pomodoro).toContain("playPomodoroAlert");
     expect(pomodoro).not.toContain("startBackground");
     expect(pomodoro).not.toContain("backgroundVolume");
   });

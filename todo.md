@@ -407,3 +407,10 @@
 - [x] Hoàn thiện mở khóa audio sau cử chỉ đầu tiên bằng một phần tử audio ổn định, chỉ dùng URL đã được người dùng cung cấp hoặc audio đã audit.
 - [x] Kiểm tra khả dụng của 10 URL âm thanh được cung cấp; không tạo asset local giả, và ghi nhận fallback an toàn khi một URL không tải được.
 - [x] Bổ sung regression cho physics, kích thước, lớp VFX/audio unlock; chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.
+
+## Âm báo Pomodoro Web Audio và gỡ Cấp độ còn sót
+- [x] Kiểm kê và gỡ các bề mặt đang hiển thị còn dùng Cấp độ/XP, không ảnh hưởng Kế hoạch, Pomodoro, Lumi và dữ liệu học.
+- [x] Tạo bộ tổng hợp âm báo Web Audio API gồm tối thiểu 10 âm báo, dùng một audio context theo cử chỉ và không có âm nền.
+- [x] Lưu cấu hình độc lập cho Bắt đầu phiên học, Kết thúc phiên học, Bắt đầu nghỉ, Kết thúc nghỉ: bật/tắt, âm báo và âm lượng chung 0–200%.
+- [x] Bổ sung bảng cài đặt có chọn âm, công tắc và Nghe thử cho từng sự kiện; tăng mặc định âm báo để rõ, to và dài hơn.
+- [x] Bổ sung regression, chạy TypeScript, Vitest, build, kiểm tra desktop/mobile và checkpoint phát hành.

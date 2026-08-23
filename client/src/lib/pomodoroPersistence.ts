@@ -1,3 +1,5 @@
+import { normalizePomodoroAlertSettings, type PomodoroAlertSettings } from "../../../shared/study";
+
 export type PersistedPomodoroMode = "focus" | "shortBreak" | "longBreak";
 
 export type PersistedPomodoroSession = {
@@ -20,6 +22,7 @@ export type PersistedPomodoroSession = {
   backgroundVolume?: number;
   layerVolumes?: Record<string, number>;
   alertVolume: number;
+  pomodoroAlerts?: PomodoroAlertSettings;
   pomodoroAmbientMix?: { morning: number; storm: number };
   compactMode: boolean;
   miniPlayerPinned: boolean;
@@ -60,6 +63,7 @@ export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null =
       backgroundVolume: finiteNumber(value.backgroundVolume, 68, 0, 100),
       layerVolumes: value.layerVolumes && typeof value.layerVolumes === "object" ? value.layerVolumes as Record<string, number> : {},
       alertVolume: finiteNumber(value.alertVolume, 85, 0, 100),
+      pomodoroAlerts: normalizePomodoroAlertSettings(value.pomodoroAlerts),
       pomodoroAmbientMix: {
         morning: finiteNumber(value.pomodoroAmbientMix?.morning, 25, 0, 100),
         storm: finiteNumber(value.pomodoroAmbientMix?.storm, 75, 0, 100),

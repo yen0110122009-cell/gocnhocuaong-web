@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { AppConfig, PomodoroSession, ProfileState } from "../../../shared/study";
+import {
+  DEFAULT_POMODORO_ALERT_SETTINGS,
+  POMODORO_ALERT_EVENT_IDS,
+  normalizePomodoroAlertSettings,
+  type AppConfig,
+  type PomodoroAlertEventId,
+  type PomodoroAlertSettings,
+  type PomodoroSession,
+  type ProfileState,
+} from "../../../shared/study";
 import { readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
+import { POMODORO_ALERT_SOUNDS, isPomodoroAlertSoundId, playPomodoroAlert } from "../lib/pomodoroAlerts";
 
 type Mode = "focus" | "shortBreak" | "longBreak";
 type Activity = "flashcards" | "quizzes" | "theory" | "deep" | "reading" | "exercise";
@@ -15,20 +25,8 @@ const activities: Array<{ id: Activity; label: string; icon: string }> = [
 const presets = [{ label: "10 / 5", focus: 10, short: 5, long: 15 }, { label: "25 / 5", focus: 25, short: 5, long: 15 }, { label: "45 / 10", focus: 45, short: 10, long: 20 }];
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 const labelForMode: Record<Mode, string> = { focus: "Tập trung", shortBreak: "Nghỉ ngắn", longBreak: "Nghỉ dài" };
-
-function beep(volume: number, pattern: "start" | "complete" | "break") {
-  if (typeof AudioContext === "undefined" || volume <= 0) return;
-  try {
-    const context = new AudioContext();
-    const frequencies = pattern === "complete" ? [660, 880, 1046] : pattern === "break" ? [440, 554] : [523, 659];
-    frequencies.forEach((frequency, index) => {
-      const oscillator = context.createOscillator(); const gain = context.createGain(); const start = context.currentTime + index * 0.18;
-      oscillator.frequency.value = frequency; oscillator.type = "sine"; gain.gain.setValueAtTime(0.001, start); gain.gain.exponentialRampToValueAtTime(Math.max(0.001, volume / 100 * 0.22), start + 0.02); gain.gain.exponentialRampToValueAtTime(0.001, start + 0.15);
-      oscillator.connect(gain).connect(context.destination); oscillator.start(start); oscillator.stop(start + 0.17);
-    });
-    window.setTimeout(() => void context.close(), 1_200);
-  } catch { /* Browser may require a prior user gesture; the timer remains available. */ }
-}
+const alertEventLabels: Record<PomodoroAlertEventId, string> = { startFocus: "Bắt đầu phiên học", endFocus: "Kết thúc phiên học", startBreak: "Bắt đầu giờ nghỉ", endBreak: "Kết thúc giờ nghỉ" };
+type AudioContextConstructor = new () => AudioContext;
 
 export default function Pomodoro({ profile, config, onProfile, onView, isVisible = true }: Props) {
   const restored = useMemo(() => readPersistedPomodoro(), []);
@@ -47,7 +45,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const [checkedPlanItemIds, setCheckedPlanItemIds] = useState<string[]>(restored?.checkedPlanItemIds ?? []);
   const [totalSessions, setTotalSessions] = useState(restored?.totalSessions ?? 4);
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(restored?.sessionStartedAt ?? null);
-  const [alertVolume, setAlertVolume] = useState(restored?.alertVolume ?? profile.audioMixer?.pomodoroBell ?? 85);
+  const [pomodoroAlerts, setPomodoroAlerts] = useState<PomodoroAlertSettings>(() => normalizePomodoroAlertSettings(restored?.pomodoroAlerts ?? profile.audioMixer?.pomodoroAlerts ?? DEFAULT_POMODORO_ALERT_SETTINGS));
   const [compactMode, setCompactMode] = useState(restored?.compactMode ?? false);
   const [miniPlayerPinned, setMiniPlayerPinned] = useState(restored?.miniPlayerPinned ?? false);
   const [showSettings, setShowSettings] = useState(false);
@@ -56,6 +54,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const [supportMessage, setSupportMessage] = useState<{ kind: LumiSupportKind; text: string; audioUrl?: string } | null>(null);
   const completedFocusRef = useRef(0);
   const completionHandled = useRef(false);
+  const alertContextRef = useRef<AudioContext | null>(null);
   const incompletePlans = (profile.studyPlanItems ?? []).filter((item) => !item.completed);
   const selectedPlans = incompletePlans.filter((item) => checkedPlanItemIds.includes(item.id));
   const completedFocusCount = profile.pomodoroHistory.filter((item) => item.mode === "focus" && item.status === "completed").length;
@@ -64,8 +63,8 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
   const lumiMode = profile.pomodoroLumiSupportMode ?? "encouragement";
 
   useEffect(() => {
-    writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, sessionStartedAt, alertVolume, compactMode, miniPlayerPinned });
-  }, [focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, sessionStartedAt, alertVolume, compactMode, miniPlayerPinned]);
+    writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, sessionStartedAt, alertVolume: Math.round(pomodoroAlerts.masterVolume * 100), pomodoroAlerts, compactMode, miniPlayerPinned });
+  }, [focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, checkedPlanItemIds, totalSessions, sessionStartedAt, pomodoroAlerts, compactMode, miniPlayerPinned]);
   useEffect(() => {
     if (!running) return;
     const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value - 1)), 1_000);
@@ -81,6 +80,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     const reminder = window.setTimeout(() => setSupportMessage(createSupport(lumiMode === "comfort" ? "comfort" : "encouragement")), 5 * 60_000);
     return () => window.clearTimeout(reminder);
   }, [running, mode, lumiMode, profile.popupsEnabled]);
+  useEffect(() => () => { void alertContextRef.current?.close().catch(() => undefined); }, []);
 
   function createSupport(kind: LumiSupportKind) {
     const stateId = kind === "comfort" ? "mistake" : "encouragement";
@@ -102,15 +102,36 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     const saved = readPersistedPomodoro();
     if (!saved) { toast.info("Chưa có phiên Pomodoro để khôi phục."); return; }
     const recovered = recoverRunningSeconds(saved);
-    setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak); setSeconds(recovered); setMode(saved.mode); setRunning(saved.running && recovered > 0); setAutoAdvance(saved.autoAdvance); setPendingTransition(saved.pendingTransition ?? null); setSubject(saved.subject); setTopic(saved.topic); setActivity((saved.activity as Activity) ?? "theory"); setNotes(saved.notes ?? ""); setCheckedPlanItemIds(saved.checkedPlanItemIds ?? []); setTotalSessions(saved.totalSessions); setSessionStartedAt(saved.sessionStartedAt); setAlertVolume(saved.alertVolume); setCompactMode(saved.compactMode); setMiniPlayerPinned(saved.miniPlayerPinned); completionHandled.current = false;
+    setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak); setSeconds(recovered); setMode(saved.mode); setRunning(saved.running && recovered > 0); setAutoAdvance(saved.autoAdvance); setPendingTransition(saved.pendingTransition ?? null); setSubject(saved.subject); setTopic(saved.topic); setActivity((saved.activity as Activity) ?? "theory"); setNotes(saved.notes ?? ""); setCheckedPlanItemIds(saved.checkedPlanItemIds ?? []); setTotalSessions(saved.totalSessions); setSessionStartedAt(saved.sessionStartedAt); setPomodoroAlerts(normalizePomodoroAlertSettings(saved.pomodoroAlerts ?? { masterVolume: saved.alertVolume / 100 })); setCompactMode(saved.compactMode); setMiniPlayerPinned(saved.miniPlayerPinned); completionHandled.current = false;
     toast.success(saved.running && recovered > 0 ? "Đã khôi phục phiên Pomodoro đang chạy." : "Đã khôi phục phiên Pomodoro đã lưu.");
   }
+  async function getAlertContext() {
+    if (typeof window === "undefined") return null;
+    const browserWindow = window as typeof window & { webkitAudioContext?: AudioContextConstructor };
+    const AudioContextClass = window.AudioContext ?? browserWindow.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!alertContextRef.current || alertContextRef.current.state === "closed") alertContextRef.current = new AudioContextClass();
+    if (alertContextRef.current.state === "suspended") await alertContextRef.current.resume();
+    return alertContextRef.current;
+  }
+  function triggerAlert(eventId: PomodoroAlertEventId, preview = false) {
+    const event = pomodoroAlerts.events[eventId];
+    if (!preview && !event.enabled) return;
+    void getAlertContext().then((context) => {
+      if (!context) { if (preview) toast.error("Trình duyệt này chưa hỗ trợ Web Audio API."); return; }
+      playPomodoroAlert(context, event.soundId, pomodoroAlerts.masterVolume);
+    }).catch(() => { if (preview) toast.error("Không thể mở âm báo. Hãy thử lại sau một thao tác chạm hoặc bấm."); });
+  }
+  function updatePomodoroAlerts(next: PomodoroAlertSettings, message?: string) {
+    setPomodoroAlerts(next);
+    onProfile({ ...profile, audioMixer: profile.audioMixer ? { ...profile.audioMixer, pomodoroAlerts: next } : profile.audioMixer }, message);
+  }
   function begin() {
-    if (pendingTransition === "break") { setPendingTransition(null); setSeconds((mode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; beep(alertVolume, "break"); return; }
-    if (pendingTransition === "focus") { setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; beep(alertVolume, "start"); return; }
+    if (pendingTransition === "break") { setPendingTransition(null); setSeconds((mode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; triggerAlert("startBreak"); return; }
+    if (pendingTransition === "focus") { setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; triggerAlert("startFocus"); return; }
     if (running) { setRunning(false); return; }
     if (mode === "focus" && !sessionStartedAt) setSessionStartedAt(new Date().toISOString());
-    setRunning(true); completionHandled.current = false; beep(alertVolume, "start");
+    setRunning(true); completionHandled.current = false; triggerAlert(mode === "focus" ? "startFocus" : "startBreak");
   }
   function reset() { if (running && !window.confirm("Đặt lại phiên đang chạy? Thời gian chưa hoàn thành sẽ không được ghi nhận.")) return; setRunning(false); setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); completionHandled.current = false; }
   function completeFocus() {
@@ -118,13 +139,13 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
     const session: PomodoroSession = { id: crypto.randomUUID(), startedAt: sessionStartedAt ?? new Date(Date.now() - focus * 60_000).toISOString(), endedAt, durationMinutes: focus, subject: subject.trim() || "Tự học", topic: topic.trim() || activityLabel, activity: activityLabel, notes: notes.trim() || undefined, checkedPlanItemIds, checkedPlanTitles: selectedPlans.map((item) => item.title), sessionNumber: completedFocusCount % 4 + 1, totalSessions, mode: "focus", status: "completed" };
     const activityRow = { id: `pomodoro-${session.id}`, occurredAt: endedAt, kind: "pomodoro" as const, quantity: 1, durationSeconds: focus * 60, xpEarned: 0 };
     onProfile({ ...profile, pomodoroHistory: [session, ...profile.pomodoroHistory].slice(0, 500), studyActivity: [activityRow, ...profile.studyActivity].slice(0, 2_000) }, "Đã lưu phiên Pomodoro vào Lịch sử học.");
-    completedFocusRef.current += 1; const nextMode: Mode = (completedFocusCount + 1) % 4 === 0 ? "longBreak" : "shortBreak"; setSessionStartedAt(null); beep(alertVolume, "complete");
-    if (autoAdvance) { setMode(nextMode); setSeconds((nextMode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; beep(alertVolume, "break"); toast.success("Đã hoàn thành phiên. Pomodoro chuyển sang thời gian nghỉ."); }
+    completedFocusRef.current += 1; const nextMode: Mode = (completedFocusCount + 1) % 4 === 0 ? "longBreak" : "shortBreak"; setSessionStartedAt(null); triggerAlert("endFocus");
+    if (autoAdvance) { setMode(nextMode); setSeconds((nextMode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; window.setTimeout(() => triggerAlert("startBreak"), 900); toast.success("Đã hoàn thành phiên. Pomodoro chuyển sang thời gian nghỉ."); }
     else { setMode(nextMode); setSeconds(0); setRunning(false); setPendingTransition("break"); completionHandled.current = false; toast.success("Đã hoàn thành phiên. Khi sẵn sàng, bạn có thể bắt đầu nghỉ."); }
   }
   function completeBreak() {
-    beep(alertVolume, "break");
-    if (autoAdvance) { setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; }
+    triggerAlert("endBreak");
+    if (autoAdvance) { setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; window.setTimeout(() => triggerAlert("startFocus"), 900); }
     else { setMode("focus"); setRunning(false); setPendingTransition("focus"); completionHandled.current = false; }
   }
   function choosePreset(value: typeof presets[number]) { if (running && !window.confirm("Đổi nhịp học sẽ dừng phiên hiện tại. Tiếp tục?")) return; setRunning(false); setFocus(value.focus); setShortBreak(value.short); setLongBreak(value.long); setMode("focus"); setSeconds(value.focus * 60); setSessionStartedAt(null); }
@@ -141,7 +162,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, isVisible
       <section className="panel p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700">Trước khi bắt đầu</p><h2 className="mt-1 font-display text-2xl font-black">Bạn đang học gì?</h2></div><button type="button" className="text-sm font-bold text-red-700 underline" onClick={() => setShowSettings((value) => !value)}>{showSettings ? "Ẩn nhịp học" : "Chỉnh nhịp học"}</button></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">{activities.map((item) => <button key={item.id} type="button" className={`rounded-xl border p-3 text-left text-xs font-bold ${activity === item.id ? "border-red-500 bg-red-50 text-red-900 dark:bg-red-500/10 dark:text-red-100" : "border-slate-200 dark:border-white/10"}`} onClick={() => setActivity(item.id)}>{item.icon} {item.label}</button>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Môn học<input className="field mt-2" value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Ví dụ: Lịch sử Việt Nam" /></label><label className="text-sm font-bold">Nội dung<input className="field mt-2" value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="Ví dụ: Nhà Trần" /></label></div><label className="mt-3 block text-sm font-bold">Ghi chú phiên học<textarea className="field mt-2 min-h-20" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Điều đã học, điểm cần xem lại hoặc cảm nhận ngắn." /></label>{showSettings ? <div className="mt-4 rounded-2xl border border-dashed border-red-200 p-4 dark:border-red-300/20"><div className="grid gap-2 sm:grid-cols-3">{presets.map((preset) => <button key={preset.label} type="button" className="rounded-xl border border-slate-200 p-3 text-left text-sm font-bold dark:border-white/10" onClick={() => choosePreset(preset)}>{preset.label}</button>)}</div><div className="mt-3 grid grid-cols-3 gap-2"><label className="text-xs font-bold">Tập trung<input className="field mt-1" type="number" min="1" max="120" value={focus} onChange={(event) => { const value = clamp(Number(event.target.value) || 1, 1, 120); setFocus(value); if (!running && mode === "focus") setSeconds(value * 60); }} /></label><label className="text-xs font-bold">Nghỉ ngắn<input className="field mt-1" type="number" min="1" max="30" value={shortBreak} onChange={(event) => setShortBreak(clamp(Number(event.target.value) || 1, 1, 30))} /></label><label className="text-xs font-bold">Nghỉ dài<input className="field mt-1" type="number" min="1" max="45" value={longBreak} onChange={(event) => setLongBreak(clamp(Number(event.target.value) || 1, 1, 45))} /></label></div></div> : null}</section></section>
       <section className="panel p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-amber-700">Kế hoạch liên quan</p><h2 className="mt-1 font-display text-2xl font-black">Công việc đang thực hiện trong phiên</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Chọn các mục để lưu cùng lịch sử Pomodoro. Việc đánh dấu hoàn thành và phần thưởng vẫn do bạn thực hiện trong Kế hoạch.</p></div><button type="button" className="secondary-button text-xs" onClick={() => onView("plans")}>Mở Kế hoạch</button></div>{incompletePlans.length ? <div className="mt-4 grid gap-2 md:grid-cols-2">{incompletePlans.map((item) => <label key={item.id} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-3 dark:border-white/10"><input className="mt-1" type="checkbox" checked={checkedPlanItemIds.includes(item.id)} onChange={() => togglePlan(item.id)} /><span><b className="block text-sm">{item.title}</b><small className="mt-1 block text-xs text-slate-500">{item.subject ?? "Chưa phân môn"} · {item.cadence === "day" ? "Kế hoạch ngày" : "Kế hoạch tuần"}</small></span></label>)}</div> : <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-white/5">Chưa có kế hoạch mở. Bạn vẫn có thể ghi môn học và nội dung ngay trong phiên này.</p>}</section>
       <section className="panel p-5 sm:p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700">Hỗ trợ chống trì hoãn</p><h2 className="mt-1 font-display text-2xl font-black">Bắt đầu theo cách nhẹ nhàng</h2><p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">Không phán xét và không chia nhỏ thành nhiệm vụ ngẫu nhiên. Nếu bạn thấy khó bắt đầu, Lumi chỉ dùng thông tin này để đưa lời nhắc phù hợp hơn.</p></div><button type="button" className="secondary-button" onClick={() => setShowReasons((value) => !value)}>{showReasons ? "Thu gọn" : "Điều gì đang làm khó?"}</button></div>{showReasons ? <div className="mt-4 grid gap-2 sm:grid-cols-3">{["Mệt", "Khó bắt đầu", "Nội dung quá nhiều", "Mất tập trung", "Lo lắng", "Không rõ nên làm gì"].map((reason) => <button type="button" key={reason} className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-left text-sm font-bold text-emerald-950 dark:border-emerald-300/20 dark:bg-emerald-400/10 dark:text-emerald-100" onClick={() => recordAvoidance(reason)}>{reason}</button>)}</div> : null}</section>
-      <section className="panel p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-red-700">Âm báo và chuyển phiên</p><h2 className="mt-1 font-display text-xl font-black">Chỉ âm báo lúc bắt đầu, kết thúc và chuyển nghỉ</h2></div><button type="button" className="secondary-button text-xs" onClick={() => beep(alertVolume, "complete")}>Nghe thử âm báo</button></div><div className="mt-4 grid gap-4 sm:grid-cols-2"><label className="text-sm font-bold">Âm lượng âm báo · {alertVolume}%<input className="mt-2 w-full" type="range" min="0" max="100" value={alertVolume} onChange={(event) => setAlertVolume(Number(event.target.value))} /></label><fieldset><legend className="text-sm font-bold">Cách chuyển phiên</legend><label className="mt-2 flex gap-2 text-sm"><input type="radio" name="auto" checked={autoAdvance} onChange={() => setAutoAdvance(true)} />Tự động chuyển</label><label className="mt-2 flex gap-2 text-sm"><input type="radio" name="auto" checked={!autoAdvance} onChange={() => setAutoAdvance(false)} />Tôi tự nhấn để chuyển</label></fieldset></div></section>
+      <section className="panel p-5" aria-label="Cài đặt âm báo Pomodoro"><div><p className="text-xs font-black uppercase tracking-[.16em] text-red-700">Âm báo và chuyển phiên</p><h2 className="mt-1 font-display text-xl font-black">Âm báo rõ, không dùng âm nền</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-300">Mỗi mốc có thể bật hoặc tắt riêng. Âm lượng chung tối đa 200% để nghe rõ hơn.</p></div><div className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_.8fr]"><div><label className="text-sm font-bold">Âm lượng chung · {Math.round(pomodoroAlerts.masterVolume * 100)}%<input className="mt-2 w-full accent-red-600" aria-label="Âm lượng chung âm báo Pomodoro" type="range" min="0" max="200" value={Math.round(pomodoroAlerts.masterVolume * 100)} onChange={(event) => updatePomodoroAlerts({ ...pomodoroAlerts, masterVolume: Number(event.target.value) / 100 })} /></label><div className="mt-4 space-y-3">{POMODORO_ALERT_EVENT_IDS.map((eventId) => { const item = pomodoroAlerts.events[eventId]; return <div key={eventId} className="grid gap-3 rounded-2xl border border-slate-200 p-3 dark:border-white/10 sm:grid-cols-[minmax(9rem,1fr)_auto_minmax(12rem,1fr)_auto] sm:items-center"><p className="text-sm font-black">{alertEventLabels[eventId]}</p><label className="flex items-center gap-2 text-xs font-bold"><input type="checkbox" checked={item.enabled} onChange={(event) => updatePomodoroAlerts({ ...pomodoroAlerts, events: { ...pomodoroAlerts.events, [eventId]: { ...item, enabled: event.target.checked } } }, `Đã ${event.target.checked ? "bật" : "tắt"} âm báo ${alertEventLabels[eventId].toLowerCase()}.`)} />{item.enabled ? "Bật" : "Tắt"}</label><select aria-label={`Chọn âm báo ${alertEventLabels[eventId]}`} className="field mt-0 text-sm" value={item.soundId} onChange={(event) => { const soundId = event.target.value; if (!isPomodoroAlertSoundId(soundId)) return; updatePomodoroAlerts({ ...pomodoroAlerts, events: { ...pomodoroAlerts.events, [eventId]: { ...item, soundId } } }, "Đã lưu âm báo Pomodoro."); }}>{POMODORO_ALERT_SOUNDS.map((sound) => <option key={sound.id} value={sound.id}>{sound.label}</option>)}</select><button type="button" className="secondary-button whitespace-nowrap text-xs" onClick={() => triggerAlert(eventId, true)}>Nghe thử</button></div>; })}</div></div><fieldset><legend className="text-sm font-bold">Cách chuyển phiên</legend><label className="mt-2 flex gap-2 text-sm"><input type="radio" name="auto" checked={autoAdvance} onChange={() => setAutoAdvance(true)} />Tự động chuyển</label><label className="mt-2 flex gap-2 text-sm"><input type="radio" name="auto" checked={!autoAdvance} onChange={() => setAutoAdvance(false)} />Tôi tự nhấn để chuyển</label></fieldset></div></section>
     </>}
     {showSupport && supportMessage ? <section className="fixed bottom-5 left-1/2 z-[90] w-[min(92vw,38rem)] -translate-x-1/2 rounded-3xl border border-emerald-300 bg-white p-5 shadow-2xl dark:bg-slate-950" role="status"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.14em] text-emerald-700">Lumi · {supportMessage.kind === "comfort" ? "an ủi" : "động viên"}</p><p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-100">{supportMessage.text}</p></div><button type="button" className="secondary-button text-xs" onClick={() => setShowSupport(false)}>Đóng</button></div>{supportMessage.audioUrl ? <button type="button" className="primary-button mt-3 text-xs" onClick={playSupport}>Nghe lời Lumi</button> : null}</section> : null}
   </div>;

@@ -511,6 +511,39 @@ export type LumiVoiceRecordingTrashEntry = { recording: LumiVoiceRecording; dele
 export const LUMI_VOICE_TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 export type LumiCongratulationMessage = { id: string; text: string; createdAt: string; updatedAt: string; audioUrl?: string; audioMimeType?: string; audioDurationSeconds?: number };
 export type WeeklyPomodoroGoalCompletion = { weekKey: string; completedAt: string; goalMinutes: number; achievedMinutes: number };
+export const POMODORO_ALERT_EVENT_IDS = ["startFocus", "endFocus", "startBreak", "endBreak"] as const;
+export type PomodoroAlertEventId = typeof POMODORO_ALERT_EVENT_IDS[number];
+export const POMODORO_ALERT_SOUND_IDS = ["digital_bell", "loud_alarm", "marimba", "school_bell", "crystal_gong", "soft_chime", "retro_beep", "victory_fanfare", "wood_tap", "whistle_up"] as const;
+export type PomodoroAlertSoundId = typeof POMODORO_ALERT_SOUND_IDS[number];
+export type PomodoroAlertEventSettings = { enabled: boolean; soundId: PomodoroAlertSoundId };
+export type PomodoroAlertSettings = { masterVolume: number; events: Record<PomodoroAlertEventId, PomodoroAlertEventSettings> };
+export const DEFAULT_POMODORO_ALERT_SETTINGS: PomodoroAlertSettings = {
+  masterVolume: 1.2,
+  events: {
+    startFocus: { enabled: true, soundId: "whistle_up" },
+    endFocus: { enabled: true, soundId: "victory_fanfare" },
+    startBreak: { enabled: true, soundId: "soft_chime" },
+    endBreak: { enabled: true, soundId: "loud_alarm" },
+  },
+};
+export function normalizePomodoroAlertSettings(value: unknown): PomodoroAlertSettings {
+  const source = value && typeof value === "object" ? value as Partial<PomodoroAlertSettings> : {};
+  const rawMasterVolume = Number(source.masterVolume);
+  const masterVolume = Number.isFinite(rawMasterVolume) ? Math.max(0, Math.min(2, rawMasterVolume)) : DEFAULT_POMODORO_ALERT_SETTINGS.masterVolume;
+  const rawEvents = source.events && typeof source.events === "object" ? source.events as Partial<Record<PomodoroAlertEventId, Partial<PomodoroAlertEventSettings>>> : {};
+  return {
+    masterVolume,
+    events: POMODORO_ALERT_EVENT_IDS.reduce((events, eventId) => {
+      const current = rawEvents[eventId];
+      const fallback = DEFAULT_POMODORO_ALERT_SETTINGS.events[eventId];
+      events[eventId] = {
+        enabled: current?.enabled !== false,
+        soundId: POMODORO_ALERT_SOUND_IDS.includes(current?.soundId as PomodoroAlertSoundId) ? current!.soundId as PomodoroAlertSoundId : fallback.soundId,
+      };
+      return events;
+    }, {} as Record<PomodoroAlertEventId, PomodoroAlertEventSettings>),
+  };
+}
 export type CompanionEmotionMedia = {
   mascotImageUrl?: string;
   lumiImageUrl?: string;
@@ -526,6 +559,8 @@ export type AudioMixerSettings = {
   pomodoroAmbientMix?: { morning: number; storm: number };
   pomodoroBackground: number;
   pomodoroBell: number;
+  /** Âm báo Web Audio riêng cho bốn mốc Pomodoro; không phải âm nền. */
+  pomodoroAlerts: PomodoroAlertSettings;
   /** Âm thanh môi trường tổng thể (mưa, chim, lá, tuyết). */
   environment: number;
   /** Nhạc nền do người dùng chọn, tách khỏi ambience. */
@@ -975,7 +1010,7 @@ export const emptyProfile = (): ProfileState => ({
   favoriteAmbientScenes: [],
   sceneEffectPreferences: { leaves: 28, snow: 62, puddles: 64, snowmanX: 90, snowmanY: 5 },
   sceneAutomation: { enabled: false, applyFixedHolidays: true, timeRules: [{ id: "morning", label: "Buổi sáng", scene: "morning", startHour: 5, endHour: 11 }, { id: "summer-day", label: "Ban ngày", scene: "summer", startHour: 11, endHour: 17 }, { id: "spring-evening", label: "Buổi tối", scene: "spring", startHour: 17, endHour: 22 }, { id: "night", label: "Đêm", scene: "night", startHour: 22, endHour: 5 }] },
-  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38, volcano: 34, deepocean: 32, magicforest: 31, spacestation: 29, flowerfield: 35, fairytale: 32, circus: 38, prehistoric: 31, cyberrace: 36, foodfestival: 34, diamondmine: 34, f1race: 38, candykingdom: 34, travel: 36, tropical: 38, rainy_season: 42, stormy_season: 38, morning_chill: 40, pixel: 34, pirate: 36, sports: 36, disco: 34, laboratory: 30, egypt: 30, steampunk: 32, art: 34, ninja: 30, coffee: 36, ai: 30, teddy: 32, sweet_strawberry: 35, black_ribbon: 30, library_chill: 34, after_school: 40, classic_academy: 30, cyber_highschool: 35, "spring-blossom": 35, "summer-beach": 40, "autumn-leave": 35, "winter-snow": 30, "halloween-spooky": 35, "lunar-new-year": 35, "thunder-storm": 45, "rainy-day": 35, "sunny-day": 30, "foggy-morning": 25, "summer-ocean": 35, "autumn-maple": 35, "tet-vietnam": 35, "halloween-night": 35, "ghost-month": 35, "xmas-holiday": 35, "teachers-day": 35, "vietnam-heroes": 35, "rainy-ripple": 35, "windy-dust": 35, "fire-element": 35, "girly-pastel": 35, "hung-kings-festival": 35, "youth-volunteers": 35, "dien-bien-phu-victory": 35, "liberation-day": 35, "vpa-day": 35, "mid-autumn": 35, "water-element": 35, "air-wind-element": 35, "earth-element": 35, "masculine-cyber": 35, "oriental-wuxia": 35, "mekong-delta": 35, "hanoi-old-quarter": 35, "mini-hologram-cosmos": 35, "aurora-borealis": 35, "arcade-retro": 35, "magic-chess": 35, "lofi-rain-chill": 35, "fairy-tale": 30, "tet-nguyen-dan": 35, "gio-to-hung-vuong": 35, "ngay-thanh-nien-26-3": 35, "giai-phong-30-4": 35, "thuong-binh-liet-si-27-7": 30, "cach-mang-19-8": 35, "quoc-khanh-2-9": 35, "tet-trung-thu": 35, "nha-giao-viet-nam-20-11": 35, "quoc-te-phu-nu-8-3": 35, "tet-doan-ngo-5-5": 35, "vu-lan-bao-hieu": 30, "phu-nu-viet-nam-20-10": 35, "quan-doi-nhan-dan-22-12": 35 }, pomodoroLayers: {}, pomodoroAmbientMix: { morning: 55, storm: 45 }, pomodoroBackground: 40, pomodoroBell: 70, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
+  audioMixer: { ambientSceneVolumes: { morning: 45, rain: 42, snow: 32, leaves: 36, storm: 38, summer: 36, spring: 34, tet: 38, halloween: 30, desert: 28, night: 30, naturepark: 35, sunrise: 36, mountainsunset: 32, meteorice: 28, galaxy: 28, cityday: 34, citysunset: 32, citydusk: 30, citynight: 29, bridgefog: 26, urbanfog: 26, sparklers: 34, fireworks: 38, forest: 34, sunset: 31, space: 28, crescentmoon: 27, ocean: 36, neon: 30, sakura: 34, autumn: 32, festival: 38, volcano: 34, deepocean: 32, magicforest: 31, spacestation: 29, flowerfield: 35, fairytale: 32, circus: 38, prehistoric: 31, cyberrace: 36, foodfestival: 34, diamondmine: 34, f1race: 38, candykingdom: 34, travel: 36, tropical: 38, rainy_season: 42, stormy_season: 38, morning_chill: 40, pixel: 34, pirate: 36, sports: 36, disco: 34, laboratory: 30, egypt: 30, steampunk: 32, art: 34, ninja: 30, coffee: 36, ai: 30, teddy: 32, sweet_strawberry: 35, black_ribbon: 30, library_chill: 34, after_school: 40, classic_academy: 30, cyber_highschool: 35, "spring-blossom": 35, "summer-beach": 40, "autumn-leave": 35, "winter-snow": 30, "halloween-spooky": 35, "lunar-new-year": 35, "thunder-storm": 45, "rainy-day": 35, "sunny-day": 30, "foggy-morning": 25, "summer-ocean": 35, "autumn-maple": 35, "tet-vietnam": 35, "halloween-night": 35, "ghost-month": 35, "xmas-holiday": 35, "teachers-day": 35, "vietnam-heroes": 35, "rainy-ripple": 35, "windy-dust": 35, "fire-element": 35, "girly-pastel": 35, "hung-kings-festival": 35, "youth-volunteers": 35, "dien-bien-phu-victory": 35, "liberation-day": 35, "vpa-day": 35, "mid-autumn": 35, "water-element": 35, "air-wind-element": 35, "earth-element": 35, "masculine-cyber": 35, "oriental-wuxia": 35, "mekong-delta": 35, "hanoi-old-quarter": 35, "mini-hologram-cosmos": 35, "aurora-borealis": 35, "arcade-retro": 35, "magic-chess": 35, "lofi-rain-chill": 35, "fairy-tale": 30, "tet-nguyen-dan": 35, "gio-to-hung-vuong": 35, "ngay-thanh-nien-26-3": 35, "giai-phong-30-4": 35, "thuong-binh-liet-si-27-7": 30, "cach-mang-19-8": 35, "quoc-khanh-2-9": 35, "tet-trung-thu": 35, "nha-giao-viet-nam-20-11": 35, "quoc-te-phu-nu-8-3": 35, "tet-doan-ngo-5-5": 35, "vu-lan-bao-hieu": 30, "phu-nu-viet-nam-20-10": 35, "quan-doi-nhan-dan-22-12": 35 }, pomodoroLayers: {}, pomodoroAmbientMix: { morning: 55, storm: 45 }, pomodoroBackground: 40, pomodoroBell: 70, pomodoroAlerts: DEFAULT_POMODORO_ALERT_SETTINGS, environment: 35, music: 30, uiEffects: 28, lumi: 75, ong: 75, memberVoice: 75 },
   audioPreviewSpeedPresets: {},
   personalAudioAssets: [],
   personalAudioTrash: [],
@@ -1677,6 +1712,7 @@ export function normalizeProfile(value: unknown): ProfileState {
       },
       pomodoroBackground: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroBackground ?? base.audioMixer!.pomodoroBackground) || 0)),
       pomodoroBell: Math.max(0, Math.min(100, Number(source.audioMixer?.pomodoroBell ?? base.audioMixer!.pomodoroBell) || 0)),
+      pomodoroAlerts: normalizePomodoroAlertSettings(source.audioMixer?.pomodoroAlerts),
       environment: Math.max(0, Math.min(100, Number(source.audioMixer?.environment ?? base.audioMixer!.environment) || 0)),
       music: Math.max(0, Math.min(100, Number(source.audioMixer?.music ?? base.audioMixer!.music) || 0)),
       uiEffects: Math.max(0, Math.min(100, Number(source.audioMixer?.uiEffects ?? base.audioMixer!.uiEffects) || 0)),
