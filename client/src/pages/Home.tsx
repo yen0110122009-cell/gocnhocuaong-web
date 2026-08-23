@@ -446,6 +446,9 @@ function FloatingEmojiPet({ profile, onProfile, hidden = false }: { profile: Pro
   const [reducedMotion, setReducedMotion] = useState(false);
   const [draft, setDraft] = useState(() => ({ x: pet?.x ?? 50, y: pet?.y ?? 72 }));
   const roamingSaveTimerRef = useRef<number | null>(null);
+  const moveFrameRef = useRef<number | null>(null);
+  const pendingPointRef = useRef<{ x: number; y: number } | null>(null);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
   const lastPersistedRoamPositionRef = useRef({ x: pet?.x ?? 50, y: pet?.y ?? 72 });
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -476,18 +479,95 @@ function FloatingEmojiPet({ profile, onProfile, hidden = false }: { profile: Pro
     }, 700);
     return () => { if (roamingSaveTimerRef.current) window.clearTimeout(roamingSaveTimerRef.current); };
   }, [draft.x, draft.y, dragging, onProfile, pet, profile]);
+  useEffect(() => () => {
+    clearQueuedPoint();
+    if (roamingSaveTimerRef.current) window.clearTimeout(roamingSaveTimerRef.current);
+  }, []);
   // Linh vật phải luôn hiện diện trên toàn viewport, kể cả trong trang thử giao diện.
   if (!pet || hidden) return null;
   const roamingEnabled = pet.roam === true || pet.roamingEnabled === true;
-  const point = (event: React.PointerEvent<HTMLButtonElement>) => ({ x: Math.max(5, Math.min(95, event.clientX / window.innerWidth * 100)), y: Math.max(8, Math.min(90, event.clientY / window.innerHeight * 100)) });
+  const point = (event: React.PointerEvent<HTMLButtonElement>, offset = { x: 0, y: 0 }) => {
+    const viewport = window.visualViewport;
+    const width = Math.max(1, viewport?.width ?? window.innerWidth);
+    const height = Math.max(1, viewport?.height ?? window.innerHeight);
+    const halfPetWidth = Math.min(65, width / 2 - 8);
+    const halfPetHeight = Math.min(65, height / 2 - 8);
+    const x = (event.clientX - offset.x) / width * 100;
+    const y = (event.clientY - offset.y) / height * 100;
+    return {
+      x: Math.max(halfPetWidth / width * 100, Math.min(100 - halfPetWidth / width * 100, x)),
+      y: Math.max(halfPetHeight / height * 100, Math.min(100 - halfPetHeight / height * 100, y)),
+    };
+  };
+  const queuePoint = (next: { x: number; y: number }) => {
+    pendingPointRef.current = next;
+    if (moveFrameRef.current !== null) return;
+    moveFrameRef.current = window.requestAnimationFrame(() => {
+      if (pendingPointRef.current) setDraft(pendingPointRef.current);
+      pendingPointRef.current = null;
+      moveFrameRef.current = null;
+    });
+  };
+  const clearQueuedPoint = () => {
+    if (moveFrameRef.current !== null) window.cancelAnimationFrame(moveFrameRef.current);
+    moveFrameRef.current = null;
+    pendingPointRef.current = null;
+  };
   const commit = (next: { x: number; y: number }) => onProfile({ ...profile, appearanceEmojiPet: { ...pet, ...next } }, "Đã lưu vị trí linh vật.");
-  const stopDragging = (event?: React.PointerEvent<HTMLButtonElement>) => { if (event && event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); draggingRef.current = false; setDragging(false); };
-  return <><button type="button" aria-label={`Kéo linh vật ${petLabel(pet.emoji)} trên màn hình`} onPointerDown={(event) => { if (event.button !== 0) return; event.preventDefault(); draggingRef.current = true; event.currentTarget.setPointerCapture(event.pointerId); setDragging(true); playMascotFeedback(profile.soundEnabled, 392); }} onPointerMove={(event) => { if (!draggingRef.current) return; event.preventDefault(); setDraft(point(event)); }} onPointerUp={(event) => { if (!draggingRef.current) return; event.preventDefault(); const next = point(event); setDraft(next); stopDragging(event); commit(next); playMascotFeedback(profile.soundEnabled, 659.25); }} onPointerCancel={(event) => stopDragging(event)} onLostPointerCapture={() => { draggingRef.current = false; setDragging(false); }} onKeyDown={(event) => { const delta = event.key === "ArrowLeft" ? { x: -3, y: 0 } : event.key === "ArrowRight" ? { x: 3, y: 0 } : event.key === "ArrowUp" ? { x: 0, y: -3 } : event.key === "ArrowDown" ? { x: 0, y: 3 } : null; if (!delta) return; event.preventDefault(); const next = { x: Math.max(5, Math.min(95, draft.x + delta.x)), y: Math.max(8, Math.min(90, draft.y + delta.y)) }; setDraft(next); commit(next); playMascotFeedback(profile.soundEnabled, 659.25); }} style={{ left: `${draft.x}%`, top: `${draft.y}%`, touchAction: "none", width: 130, height: 130, fontSize: 130, display: "block", opacity: 1 }} className={cn("fixed z-[10000] grid h-[130px] w-[130px] place-items-center -translate-x-1/2 -translate-y-1/2 cursor-grab select-none rounded-full p-1 text-[130px] leading-none transition-[left,top,transform,filter] duration-200 ease-out motion-reduce:transition-none focus:outline-none focus:ring-2 focus:ring-emerald-400", pet.emoji === "snowman" ? "snow-buddy-button" : "drop-shadow-[0_7px_5px_rgba(25,55,35,.30)]", dragging && "mascot-feedback-drop scale-110 cursor-grabbing duration-0", !dragging && "cursor-grab")}>{pet.emoji === "snowman" ? <SnowBuddy roaming={roamingEnabled && !dragging} /> : pet.emoji}</button><button type="button" aria-label="Đặt lại vị trí linh vật" title="Đặt lại vị trí linh vật" onClick={() => { const next = { x: 50, y: 72 }; setDraft(next); lastPersistedRoamPositionRef.current = next; onProfile({ ...profile, appearanceEmojiPet: { ...pet, ...next } }, "Đã đặt lại vị trí linh vật."); playMascotFeedback(profile.soundEnabled, 523.25); }} className="fixed bottom-4 right-4 z-[10001] grid h-9 w-9 place-items-center rounded-full border border-emerald-200 bg-white/95 text-emerald-800 shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:border-emerald-300/30 dark:bg-slate-900/95 dark:text-emerald-200 dark:hover:bg-emerald-950"><RotateCcw className="h-4 w-4" aria-hidden="true" /></button></>;
+  const stopDragging = (event?: React.PointerEvent<HTMLButtonElement>) => { clearQueuedPoint(); if (event && event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); draggingRef.current = false; dragOffsetRef.current = { x: 0, y: 0 }; setDragging(false); };
+  return <>
+    <button
+      type="button"
+      aria-label={`Kéo linh vật ${petLabel(pet.emoji)} trên màn hình`}
+      aria-grabbed={dragging}
+      draggable={false}
+      onContextMenu={(event) => event.preventDefault()}
+      onPointerDown={(event) => {
+        if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+        event.preventDefault();
+        const rect = event.currentTarget.getBoundingClientRect();
+        dragOffsetRef.current = { x: event.clientX - (rect.left + rect.width / 2), y: event.clientY - (rect.top + rect.height / 2) };
+        draggingRef.current = true;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDragging(true);
+        playMascotFeedback(profile.soundEnabled, 392);
+      }}
+      onPointerMove={(event) => {
+        if (!draggingRef.current || !event.isPrimary) return;
+        event.preventDefault();
+        queuePoint(point(event, dragOffsetRef.current));
+      }}
+      onPointerUp={(event) => {
+        if (!draggingRef.current || !event.isPrimary) return;
+        event.preventDefault();
+        const next = point(event, dragOffsetRef.current);
+        clearQueuedPoint();
+        setDraft(next);
+        stopDragging(event);
+        commit(next);
+        playMascotFeedback(profile.soundEnabled, 659.25);
+      }}
+      onPointerCancel={(event) => stopDragging(event)}
+      onLostPointerCapture={() => stopDragging()}
+      onKeyDown={(event) => {
+        const delta = event.key === "ArrowLeft" ? { x: -3, y: 0 } : event.key === "ArrowRight" ? { x: 3, y: 0 } : event.key === "ArrowUp" ? { x: 0, y: -3 } : event.key === "ArrowDown" ? { x: 0, y: 3 } : null;
+        if (!delta) return;
+        event.preventDefault();
+        const next = { x: Math.max(5, Math.min(95, draft.x + delta.x)), y: Math.max(8, Math.min(90, draft.y + delta.y)) };
+        setDraft(next);
+        commit(next);
+        playMascotFeedback(profile.soundEnabled, 659.25);
+      }}
+      style={{ left: `${draft.x}%`, top: `${draft.y}%`, touchAction: "none", width: 130, height: 130, fontSize: 130, display: "block", opacity: 1, willChange: "left, top, transform" }}
+      className={cn("fixed z-[10000] grid h-[130px] w-[130px] place-items-center -translate-x-1/2 -translate-y-1/2 cursor-grab select-none rounded-full p-1 text-[130px] leading-none transition-[left,top,transform,filter] duration-200 ease-out motion-reduce:transition-none", pet.emoji === "snowman" ? "snow-buddy-button" : "drop-shadow-[0_7px_5px_rgba(25,55,35,.30)]", dragging && "mascot-feedback-drop scale-110 cursor-grabbing duration-0", !dragging && "cursor-grab")}
+    >{pet.emoji === "snowman" ? <SnowBuddy roaming={roamingEnabled && !dragging} /> : pet.emoji}</button>
+    <button type="button" aria-label="Đặt lại vị trí linh vật" title="Đặt lại vị trí linh vật" onClick={() => { const next = { x: 50, y: 72 }; clearQueuedPoint(); setDraft(next); lastPersistedRoamPositionRef.current = next; onProfile({ ...profile, appearanceEmojiPet: { ...pet, ...next } }, "Đã đặt lại vị trí linh vật."); playMascotFeedback(profile.soundEnabled, 523.25); }} className="fixed bottom-4 right-4 z-[10001] grid h-9 w-9 place-items-center rounded-full border border-emerald-200 bg-white/95 text-emerald-800 shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:border-emerald-300/30 dark:bg-slate-900/95 dark:text-emerald-200 dark:hover:bg-emerald-950"><RotateCcw className="h-4 w-4" aria-hidden="true" /></button>
+  </>;
 }
 function EmojiPetCanvas({ profile, onProfile }: { profile: ProfileState; onProfile: (profile: ProfileState, message?: string) => void }) {
   const pet = profile.appearanceEmojiPet;
   const roamingEnabled = pet?.roam === true || pet?.roamingEnabled === true;
-  return <section className="panel p-5 sm:p-6" aria-labelledby="emoji-pet-title"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Linh vật cá nhân</p><h2 id="emoji-pet-title" className="mt-1 font-display text-2xl font-bold">Kho linh vật emoji</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-300">Chọn một linh vật. Linh vật sẽ tự đi dạo ở các mục học, có thể kéo trên toàn màn hình và tự lưu vị trí.</p></div>{pet && <div className="flex flex-wrap gap-2"><button type="button" className="secondary-button" onClick={() => onProfile({ ...profile, appearanceEmojiPet: { ...pet, roam: !roamingEnabled, roamingEnabled: !roamingEnabled } }, roamingEnabled ? "Đã tạm dừng linh vật đi dạo." : "Linh vật đã bắt đầu đi dạo tự do.")}>{roamingEnabled ? "Tạm dừng đi dạo" : "Bật đi dạo"}</button><button type="button" className="secondary-button text-rose-700" onClick={() => onProfile({ ...profile, appearanceEmojiPet: undefined }, "Đã cất linh vật khỏi giao diện.")}>Cất linh vật</button></div>}</div><div className="mt-4 flex max-h-32 gap-2 overflow-x-auto pb-2" role="list" aria-label="Danh sách linh vật emoji">{appearanceEmojiPets.map((emoji) => <button key={emoji} type="button" role="listitem" aria-pressed={pet?.emoji === emoji} onClick={() => onProfile({ ...profile, appearanceEmojiPet: { emoji, x: 50, y: 72, roam: true, roamingEnabled: true } }, `Đã chọn linh vật ${emoji}; linh vật đã bắt đầu đi dạo.`)} className={cn("grid h-14 w-14 shrink-0 place-items-center rounded-2xl border text-3xl transition hover:-translate-y-0.5", pet?.emoji === emoji ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200 dark:bg-emerald-950/40" : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/60")}>{emoji}</button>)}</div><div className="mascot-preview-stage relative mt-4 h-32 overflow-hidden rounded-3xl border border-emerald-200 dark:border-emerald-400/30"><span className="absolute inset-x-6 top-5 h-px bg-white/30" aria-hidden="true" /><span className="absolute inset-x-0 bottom-0 h-8 bg-black/10 dark:bg-black/20" aria-hidden="true" />{pet ? <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-5xl drop-shadow-[0_7px_5px_rgba(25,55,35,.30)]" aria-label={`Đang dùng ${pet.emoji}`}>{pet.emoji}</span> : <p className="absolute inset-0 grid place-items-center px-6 text-center text-sm font-bold text-emerald-950/65">Chọn linh vật bên trên để bắt đầu.</p>}</div><p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-300">Dùng chuột hoặc chạm để kéo. Khi linh vật đang được chọn, dùng phím mũi tên để điều chỉnh chính xác. Chế độ đi dạo vẫn cho phép kéo lại vị trí. Linh vật luôn ở dưới menu và không chặn nút học tập.</p></section>;
+  return <section className="panel p-5 sm:p-6" aria-labelledby="emoji-pet-title"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Linh vật cá nhân</p><h2 id="emoji-pet-title" className="mt-1 font-display text-2xl font-bold">Kho linh vật emoji</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-300">Chọn một linh vật. Linh vật sẽ tự đi dạo ở các mục học, có thể kéo trên toàn màn hình và tự lưu vị trí.</p></div>{pet && <div className="flex flex-wrap gap-2"><button type="button" className="secondary-button" onClick={() => onProfile({ ...profile, appearanceEmojiPet: { ...pet, roam: !roamingEnabled, roamingEnabled: !roamingEnabled } }, roamingEnabled ? "Đã tạm dừng linh vật đi dạo." : "Linh vật đã bắt đầu đi dạo tự do.")}>{roamingEnabled ? "Tạm dừng đi dạo" : "Bật đi dạo"}</button><button type="button" className="secondary-button text-rose-700" onClick={() => onProfile({ ...profile, appearanceEmojiPet: undefined }, "Đã cất linh vật khỏi giao diện.")}>Cất linh vật</button></div>}</div><div className="mt-4 flex max-h-32 gap-2 overflow-x-auto pb-2" role="list" aria-label="Danh sách linh vật emoji">{appearanceEmojiPets.map((emoji) => <button key={emoji} type="button" role="listitem" aria-pressed={pet?.emoji === emoji} onClick={() => onProfile({ ...profile, appearanceEmojiPet: { emoji, x: 50, y: 72, roam: true, roamingEnabled: true } }, `Đã chọn linh vật ${emoji}; linh vật đã bắt đầu đi dạo.`)} className={cn("grid h-14 w-14 shrink-0 place-items-center rounded-2xl border text-3xl transition hover:-translate-y-0.5", pet?.emoji === emoji ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200 dark:bg-emerald-950/40" : "border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/60")}>{emoji}</button>)}</div><div className="mascot-preview-stage relative mt-4 h-32 overflow-hidden rounded-3xl border border-emerald-200 dark:border-emerald-400/30"><span className="absolute inset-x-6 top-5 h-px bg-white/30" aria-hidden="true" /><span className="absolute inset-x-0 bottom-0 h-8 bg-black/10 dark:bg-black/20" aria-hidden="true" />{pet ? <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-5xl drop-shadow-[0_7px_5px_rgba(25,55,35,.30)]" aria-label={`Đang dùng ${pet.emoji}`}>{pet.emoji}</span> : <p className="absolute inset-0 grid place-items-center px-6 text-center text-sm font-bold text-emerald-950/65">Chọn linh vật bên trên để bắt đầu.</p>}</div><p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-300">Trên điện thoại, nhấn giữ linh vật rồi kéo và thả ở vị trí mong muốn; trên máy tính có thể kéo trực tiếp bằng chuột. Khi linh vật đang được chọn, dùng phím mũi tên để điều chỉnh chính xác. Chế độ đi dạo vẫn cho phép kéo lại vị trí. Linh vật luôn ở dưới menu và không chặn nút học tập.</p></section>;
 }
 
 const creativeSceneCards = [
