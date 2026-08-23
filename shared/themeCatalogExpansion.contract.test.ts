@@ -62,7 +62,7 @@ describe("expanded theme catalog contract", () => {
     }
     expect(renderer).toContain("festive-ambient-decorations");
     expect(renderer).toContain("FESTIVE_THEME_DECORATIONS");
-    expect(css).toContain(".festive-ambient-decorations { position: fixed; inset: 0; z-index: 45; overflow: hidden; pointer-events: none; }");
+    expect(css).toContain(".festive-ambient-decorations { position: fixed; inset: 0; z-index: 50; overflow: hidden; pointer-events: none; }");
     expect(css).toContain("festive-ambient-fall");
     expect(css).toContain("festive-ambient-bounce");
     expect(Object.values(FESTIVE_THEME_DECORATIONS).flat().some((decoration) => decoration.motion === "bounce")).toBe(true);

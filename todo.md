@@ -390,3 +390,9 @@
 - [x] Kiểm kê mọi dữ liệu khởi tạo, catalog thử và dữ liệu mẫu Thành tích/Danh hiệu trong hợp đồng, normalizer và cấu hình quản trị.
 - [x] Xóa dữ liệu thử Thành tích/Danh hiệu, không chạm vào Kế hoạch, Pomodoro, Flashcard, Đề kiểm tra và dữ liệu người học.
 - [x] Bổ sung regression xác nhận không còn dữ liệu thử Thành tích/Danh hiệu; chạy TypeScript, Vitest, build và checkpoint phát hành.
+
+## VFX lễ hội, kéo thả và âm thanh theme
+- [x] Kiểm kê renderer lớp VFX, linh vật, drag-and-drop, token màu theme và luồng phát âm thanh hiện tại.
+- [x] Chuẩn hóa lớp VFX toàn màn hình: icon lễ hội đáy 80–140px, kéo thả pointer capture, physics khi thả và sidebar/header luôn ở lớp trên.
+- [x] Cập nhật linh vật tự do di chuyển, token màu toàn cục và cơ chế mở khóa âm thanh sau cử chỉ đầu tiên mà không thêm URL audio mới.
+- [x] Bổ sung regression, kiểm thử TypeScript/Vitest/build và xác minh desktop/mobile trước checkpoint phát hành.

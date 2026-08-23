@@ -142,6 +142,47 @@ body:has(#root > main)::before,
 body:has(#root > main)::after { content: none !important; display: none !important; background: none !important; animation: none !important; opacity: 0 !important; pointer-events: none !important; }
 body:has(#root > main) { background: #fffdf8 !important; }
 
+/* Theme lễ hội đổi palette ở cấp root; mọi lớp nền vẫn giữ tương phản và menu luôn nằm trên VFX. */
+html[data-festive-theme] body,
+html[data-festive-theme] #root > div.min-h-screen,
+html[data-festive-theme] body:has(#root > main) {
+  background: var(--festive-bg) !important;
+  color: var(--festive-ink) !important;
+}
+html[data-festive-theme] #root > div.min-h-screen > aside,
+html[data-festive-theme] #root > div.min-h-screen header {
+  background: var(--festive-panel) !important;
+  border-color: color-mix(in srgb, var(--festive-primary) 25%, transparent) !important;
+  color: var(--festive-ink) !important;
+  position: relative;
+  z-index: 100 !important;
+}
+html[data-festive-theme] .panel,
+html[data-festive-theme] .study-card,
+html[data-festive-theme] input,
+html[data-festive-theme] select,
+html[data-festive-theme] textarea {
+  background: var(--festive-panel) !important;
+  color: var(--festive-ink) !important;
+  border-color: color-mix(in srgb, var(--festive-primary) 28%, transparent) !important;
+}
+html[data-festive-theme] .primary-button {
+  background: var(--festive-primary) !important;
+  color: #fff !important;
+}
+html.dark[data-festive-theme] {
+  --festive-bg: var(--festive-dark-bg);
+  --festive-primary: var(--festive-dark-primary);
+  --festive-accent: var(--festive-dark-accent);
+  --festive-ink: var(--festive-dark-text);
+  --festive-panel: color-mix(in srgb, var(--festive-dark-bg) 88%, #111827);
+}
+html[data-festive-theme] .festive-theme-layer { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+html[data-festive-theme] .festive-theme__mascot,
+html[data-festive-theme] .festive-theme__ground-item { pointer-events: auto; touch-action: none; cursor: grab; }
+html[data-festive-theme] .festive-theme__mascot[data-dragging="true"],
+html[data-festive-theme] .festive-theme__ground-item[data-dragging="true"] { cursor: grabbing; transform: scale(1.15); }
+
 @media (forced-colors: active) {
   button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid CanvasText; outline-offset: 3px; }
 }
@@ -1951,7 +1992,7 @@ body::after,
 .festive-mascot-reset { width: 28px; height: 28px; border-radius: 999px; background: color-mix(in srgb, var(--festive-light-accent, #f4b942) 90%, white); color: #25120b; box-shadow: 0 5px 14px rgb(0 0 0 / .18); cursor: pointer; }
 .festive-ground { position: fixed; inset-inline: 0; pointer-events: none; }
 .festive-ground-item { pointer-events: auto; padding: 0; line-height: 1; filter: drop-shadow(0 6px 6px rgb(0 0 0 / .17)); }
-.festive-ambient-decorations { position: fixed; inset: 0; z-index: 45; overflow: hidden; pointer-events: none; }
+.festive-ambient-decorations { position: fixed; inset: 0; z-index: 50; overflow: hidden; pointer-events: none; }
 .festive-ambient-decoration { position: fixed; display: block; line-height: 1; opacity: .78; filter: drop-shadow(0 3px 5px rgb(0 0 0 / .12)); will-change: transform, opacity; }
 .festive-ambient-fall { animation: festive-ambient-fall 8.8s linear infinite; }
 .festive-ambient-rise { animation: festive-ambient-rise 9.6s linear infinite; }
@@ -1960,7 +2001,13 @@ body::after,
 .festive-ambient-diagonal { animation: festive-ambient-diagonal 7.4s linear infinite; }
 .festive-ambient-bounce { animation: festive-ambient-bounce 2.8s cubic-bezier(.34, 1.56, .64, 1) infinite; }
 .festive-ambient-rest { opacity: .88; }
-.festive-visual-effects { position: fixed; inset: 0; z-index: 110; pointer-events: none; overflow: hidden; }
+.festive-ambient-decorations { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+.festive-visual-effects { position: fixed; inset: 0; z-index: 65; pointer-events: none; overflow: hidden; }
+.festive-ground { pointer-events: none; }
+.festive-ground-item, .festive-mascot, .festive-mascot-reset { pointer-events: auto; }
+.festive-ground-item { display: grid; place-items: center; line-height: 1; filter: drop-shadow(0 7px 9px rgb(0 0 0 / .2)); }
+.festive-mascot { position: fixed; }
+.festive-mascot-emoji.is-dragging { animation-play-state: paused; }
 .festive-particle { position: fixed; display: block; font-size: 1.1rem; animation: festive-particle-out 600ms cubic-bezier(.23,1,.32,1) forwards; }
 .festive-ripple { position: fixed; border: 2px solid var(--festive-light-accent, #f4b942); border-radius: 999px; transform: translate(-50%, -50%) scale(.15); opacity: .9; animation: festive-ripple-out 650ms ease-out forwards; }
 .festive-effect-scale-bounce { animation: festive-scale-bounce var(--festive-duration, 400ms) cubic-bezier(.23,1,.32,1); }
