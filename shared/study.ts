@@ -6,12 +6,22 @@ import { normalizeCosmeticPaletteId, type CosmeticPaletteId } from "./colorPalet
 export const EDUCATION_LEVELS = ["Mẫu giáo", "Tiểu học", "THCS", "THPT", "Đại học/Sinh viên", "Khóa học tự do"] as const;
 export type EducationLevel = typeof EDUCATION_LEVELS[number];
 
+export type FlashcardReviewState = {
+  dueAt: string;
+  intervalDays: number;
+  easeFactor: number;
+  repetitions: number;
+  lapses: number;
+  lastReviewedAt?: string;
+};
+
 export type Flashcard = {
   id: string;
   front: string;
   back: string;
   status: "new" | "learning" | "known";
   starred: boolean;
+  spacedRepetition?: FlashcardReviewState;
 };
 
 export type FlashcardSet = {

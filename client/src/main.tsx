@@ -9,6 +9,12 @@ import { isGitHubPages } from "@/lib/runtime";
 import { startLogin } from "./const";
 import "./index.css";
 
+if (isGitHubPages && import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL }).catch(() => undefined);
+  });
+}
+
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {

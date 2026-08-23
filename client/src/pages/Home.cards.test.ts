@@ -5,13 +5,16 @@ import { resolve } from "node:path";
 describe("Cards React study modes", () => {
   const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
 
-  it("exposes all four modes and their accessible labels", () => {
-    expect(source).toContain('useState<"flip" | "choice" | "write" | "rapid">');
+  it("exposes all study modes and their accessible labels", () => {
+    expect(source).toContain('useState<"flip" | "choice" | "write" | "rapid" | "spaced">');
     expect(source).toContain('aria-label="Chế độ học Flashcard"');
     expect(source).toContain("Lật thẻ");
     expect(source).toContain("Trắc nghiệm");
     expect(source).toContain("Tự viết");
     expect(source).toContain("Tốc độ");
+    expect(source).toContain("Ôn đến hạn");
+    expect(source).toContain("Lặp lại ngắt quãng");
+    expect(source).toContain("reviewFlashcard");
   });
 
   it("implements choice checking, rapid timing, and session report", () => {

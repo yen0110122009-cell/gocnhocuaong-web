@@ -1,0 +1,15 @@
+{
+  "name": "Góc Học Tập Của Ong",
+  "short_name": "Góc Học Tập",
+  "description": "Không gian học tập cá nhân với Flashcard, Đề kiểm tra, Lumi và Pomodoro.",
+  "lang": "vi-VN",
+  "dir": "ltr",
+  "display": "standalone",
+  "background_color": "#fffdf8",
+  "theme_color": "#c62828",
+  "start_url": "/gocnhocuaong-web/",
+  "scope": "/gocnhocuaong-web/",
+  "icons": [
+    { "src": "/gocnhocuaong-web/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
