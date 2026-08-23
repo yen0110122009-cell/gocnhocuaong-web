@@ -34,7 +34,7 @@ describe("festive VFX contract", () => {
 
   it("locks the original five student themes to the requested counts and fixed sizes", () => {
     const expected = { sweet_strawberry: ["🍰", 12], black_ribbon: ["⚡", 6], library_chill: ["☕", 8], after_school: ["🍋", 10], classic_academy: ["🎼", 15] } as const;
-    expect(STUDENT_THEME_CONFIGS).toHaveLength(15);
+    expect(STUDENT_THEME_CONFIGS).toHaveLength(20);
     for (const [id, [emoji, count]] of Object.entries(expected)) {
       const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
       expect(theme).toBeTruthy();
@@ -80,6 +80,48 @@ describe("festive VFX contract", () => {
     }
     expect(festiveThemeFor("halloween-spooky")?.id).toBe("halloween_night");
     expect(festiveThemeFor("lunar-new-year")?.id).toBe("lunar_new_year");
+  });
+
+  it("locks the five atmosphere themes to the requested counts and fixed sizes", () => {
+    const expected = { mystic_fog: ["🌫️", 14], cosmic_space: ["🚀", 15], warm_night_coffee: ["🌟", 12], fresh_morning: ["☀️", 10], rainy_day: ["🌧️", 18] } as const;
+    const mascots = { mystic_fog: "🐺", cosmic_space: "🛸", warm_night_coffee: "🐝", fresh_morning: "🐓", rainy_day: "🐱" } as const;
+    const ground = { mystic_fog: "🌲", cosmic_space: "🪐", warm_night_coffee: "☕", fresh_morning: "🌾", rainy_day: "💧" } as const;
+    for (const [id, [emoji, count]] of Object.entries(expected)) {
+      const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
+      expect(theme).toBeTruthy();
+      expect(theme?.mascot.emoji).toBe(mascots[id as keyof typeof mascots]);
+      expect(theme?.mascot.size).toBe("130px");
+      expect(theme?.groundContainer.itemCount).toBe(25);
+      expect(theme?.groundContainer.items[0]?.emoji).toBe(ground[id as keyof typeof ground]);
+      expect(theme?.groundContainer.items[0]?.size).toBe("100px");
+      expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
+    }
+    expect(festiveThemeFor("foggy-morning")?.id).toBe("mystic_fog");
+    expect(festiveThemeFor("space")?.id).toBe("cosmic_space");
+    expect(festiveThemeFor("coffee")?.id).toBe("warm_night_coffee");
+    expect(festiveThemeFor("morning_chill")?.id).toBe("fresh_morning");
+    expect(festiveThemeFor("rainy-day")?.id).toBe("rainy_day");
+  });
+
+  it("locks the five atmosphere themes to the requested counts and fixed sizes", () => {
+    const expected = { mystic_fog: ["🌫️", 14], cosmic_space: ["🚀", 15], warm_night_coffee: ["🌟", 12], fresh_morning: ["☀️", 10], rainy_day: ["🌧️", 18] } as const;
+    const mascots = { mystic_fog: "🐺", cosmic_space: "🛸", warm_night_coffee: "🐝", fresh_morning: "🐓", rainy_day: "🐱" } as const;
+    const ground = { mystic_fog: "🌲", cosmic_space: "🪐", warm_night_coffee: "☕", fresh_morning: "🌾", rainy_day: "💧" } as const;
+    for (const [id, [emoji, count]] of Object.entries(expected)) {
+      const theme = STUDENT_THEME_CONFIGS.find((candidate) => candidate.id === id);
+      expect(theme).toBeTruthy();
+      expect(theme?.mascot.emoji).toBe(mascots[id as keyof typeof mascots]);
+      expect(theme?.mascot.size).toBe("130px");
+      expect(theme?.groundContainer.itemCount).toBe(25);
+      expect(theme?.groundContainer.items[0]?.emoji).toBe(ground[id as keyof typeof ground]);
+      expect(theme?.groundContainer.items[0]?.size).toBe("100px");
+      expect(FESTIVE_THEME_DECORATIONS[id]?.[0]).toMatchObject({ emoji, count, size: "40px" });
+    }
+    expect(festiveThemeFor("foggy-morning")?.id).toBe("mystic_fog");
+    expect(festiveThemeFor("space")?.id).toBe("cosmic_space");
+    expect(festiveThemeFor("coffee")?.id).toBe("warm_night_coffee");
+    expect(festiveThemeFor("morning_chill")?.id).toBe("fresh_morning");
+    expect(festiveThemeFor("rainy-day")?.id).toBe("rainy_day");
   });
 
   it("keeps one non-blocking high-priority VFX stage and never pauses unrelated learning audio", () => {

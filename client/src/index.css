@@ -2082,6 +2082,11 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 .festive-auto-storm-wing { animation: festive-mascot-storm-wing 1.2s ease-in-out infinite; }
 .festive-auto-frog-hop { animation: festive-mascot-frog-hop 2.8s cubic-bezier(.34,1.56,.64,1) infinite; }
 .festive-auto-parrot-arc { animation: festive-mascot-parrot-arc 4.5s ease-in-out infinite; }
+.festive-auto-mist-fade { animation: festive-mascot-mist-fade 3s ease-in-out infinite; }
+.festive-auto-ufo-glow { animation: festive-mascot-ufo-glow 2s ease-in-out infinite; }
+.festive-auto-bee-glow { animation: festive-mascot-bee-glow 2.4s ease-in-out infinite; }
+.festive-auto-rooster-bounce { animation: festive-mascot-rooster-bounce 1.2s ease-in-out infinite; }
+.festive-auto-cat-rain-walk { animation: festive-mascot-cat-rain-walk 1.4s ease-in-out infinite; }
 
 @keyframes festive-scale-bounce { 0%, 100% { transform: scale(1); } 45% { transform: scale(var(--festive-intensity, 1.12)); } }
 @keyframes festive-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
@@ -2106,6 +2111,11 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
 @keyframes festive-mascot-storm-wing { 0%, 100% { transform: rotate(-15deg) scaleY(.96); } 50% { transform: rotate(15deg) scaleY(1.04); } }
 @keyframes festive-mascot-frog-hop { 0%, 100% { transform: translateY(0) scale(1); } 45% { transform: translateY(-18px) scale(1.1); } 70% { transform: translateY(0) scale(1); } }
 @keyframes festive-mascot-parrot-arc { 0%, 100% { transform: rotate(-10deg) translateY(6px); } 50% { transform: rotate(10deg) translateY(-10px); } }
+@keyframes festive-mascot-mist-fade { 0%, 100% { opacity: .3; transform: translateX(-5px); } 50% { opacity: 1; transform: translateX(5px); } }
+@keyframes festive-mascot-ufo-glow { 0%, 100% { filter: drop-shadow(0 0 4px #c084fc); } 50% { filter: drop-shadow(0 0 18px #e879f9); } }
+@keyframes festive-mascot-bee-glow { 0%, 100% { filter: drop-shadow(0 0 3px #facc15); } 50% { filter: drop-shadow(0 0 15px #fbbf24); } }
+@keyframes festive-mascot-rooster-bounce { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-10px); } 70% { transform: translateY(0); } }
+@keyframes festive-mascot-cat-rain-walk { 0%, 100% { transform: rotate(-8deg) translateX(-2px); } 50% { transform: rotate(8deg) translateX(2px); } }
 @keyframes festive-ambient-fall { from { transform: translate3d(0, -12vh, 0) rotate(0deg); } to { transform: translate3d(6vw, 112vh, 0) rotate(150deg); } }
 .festive-ambient-decoration { font-size: 40px; }
 .festive-ambient-decoration.festive-ambient-fall { animation-name: festive-ambient-fall; }
