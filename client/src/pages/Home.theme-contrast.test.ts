@@ -92,4 +92,12 @@ describe("tone giao diện và typography tương phản cao", () => {
     expect(home).toContain("appearanceEmojiPet");
     expect(study).toContain("AppearanceEmojiPet");
   });
+
+  it("dùng accent riêng cho preview festive và chữ active của từng palette", () => {
+    expect(home).toContain('const mode = profile.theme === "dark" ? theme.colors.dark : theme.colors.light');
+    expect(home).toContain("linear-gradient(135deg, ${mode.bg}, ${mode.accent})");
+    expect(home).toContain("const activeInk = readableTextForBackground(mode.accent)");
+    expect(css).toContain("var(--palette-accent-ink, #fff)");
+    expect(css).toContain("button[aria-current=\"page\"]");
+  });
 });

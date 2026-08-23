@@ -2010,7 +2010,18 @@ section[aria-labelledby="account-companion-title"] #account-companion-title + p:
   border-color: var(--palette-border) !important;
 }
 :root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(.panel, .study-card) :is(p, small, label, .text-slate-500, .text-slate-600) { color: var(--palette-text-secondary) !important; }
-:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(.primary-button, [aria-pressed="true"]) { background-color: var(--palette-accent) !important; color: #fff !important; }
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(.primary-button, [aria-pressed="true"], button[aria-current="page"], .nav-item.active, .tab.selected, .filter-pill.active) {
+  background-color: var(--palette-accent) !important;
+  border-color: var(--palette-accent) !important;
+  color: var(--palette-accent-ink, #fff) !important;
+}
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(.primary-button, [aria-pressed="true"], button[aria-current="page"], .nav-item.active, .tab.selected, .filter-pill.active) * {
+  color: var(--palette-accent-ink, #fff) !important;
+}
+:root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(.primary-button, [aria-pressed="true"], button[aria-current="page"], .nav-item.active, .tab.selected, .filter-pill.active):hover {
+  background-color: color-mix(in srgb, var(--palette-accent) 88%, black) !important;
+  color: var(--palette-accent-ink, #fff) !important;
+}
 :root[data-cosmetic-theme]:not([data-festive-theme]) #root > div.min-h-screen :is(button, input, select, textarea):focus-visible { outline-color: var(--palette-accent) !important; }
 
 /* Chỉ là nền của shell: không có pointer events, không thêm lớp phủ thao tác. */
