@@ -26,10 +26,14 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     expect(POMODORO_ALERT_EVENT_IDS).toEqual(["startFocus", "endFocus", "startBreak", "endBreak"]);
     expect(Object.keys(DEFAULT_POMODORO_ALERT_SETTINGS.events)).toEqual(POMODORO_ALERT_EVENT_IDS);
     const normalized = normalizePomodoroAlertSettings({ masterVolume: 5, events: { startFocus: { enabled: false, soundId: "retro_beep" } } });
-    expect(normalized.masterVolume).toBe(2);
+    expect(normalized.masterVolume).toBe(5);
     expect(normalized.events.startFocus).toEqual({ enabled: false, soundId: "retro_beep" });
-    expect(DEFAULT_POMODORO_ALERT_SETTINGS.masterVolume).toBe(1.6);
-    expect(normalizeLumiWaterSettings({ intervalMinutes: 2, scheduleMode: "clock", dailyTime: "07:30" })).toMatchObject({ intervalMinutes: 5, scheduleMode: "clock", dailyTime: "07:30", dailyTimes: ["07:30"] });
+    expect(normalizePomodoroAlertSettings({ masterVolume: 99, repeatCount: 99, durationMultiplier: 99 })).toMatchObject({ masterVolume: 10, repeatCount: 10, durationMultiplier: 3 });
+    expect(normalizeLumiWaterSettings({ alertVolume: 99, repeatCount: 99, durationMultiplier: 99 })).toMatchObject({ alertVolume: 10, repeatCount: 10, durationMultiplier: 3 });
+    expect(DEFAULT_POMODORO_ALERT_SETTINGS.masterVolume).toBe(4);
+    expect(DEFAULT_POMODORO_ALERT_SETTINGS.repeatCount).toBe(3);
+    expect(DEFAULT_POMODORO_ALERT_SETTINGS.durationMultiplier).toBe(1.5);
+    expect(normalizeLumiWaterSettings({ intervalMinutes: 2, scheduleMode: "clock", dailyTime: "07:30" })).toMatchObject({ intervalMinutes: 5, scheduleMode: "clock", dailyTime: "07:30", dailyTimes: ["07:30"], alertVolume: 4, repeatCount: 3, durationMultiplier: 1.5 });
     expect(normalizeLumiWaterSettings({ scheduleMode: "clock", dailyTimes: ["14:00", "09:00", "09:00", "bad"] }).dailyTimes).toEqual(["09:00", "14:00"]);
     expect(normalizeLumiWaterSettings({ scheduleMode: "clock", dailyTime: "25:99" }).dailyTime).toBe("09:00");
   });
@@ -45,7 +49,11 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     ]);
     expect(lumiAlertSource).toContain("context.createOscillator()");
     expect(lumiAlertSource).toContain("context.createGain()");
-    expect(pomodoroAlertSource).toContain("const base = volume * 0.5;");
+    expect(pomodoroAlertSource).toContain("const base = Math.min(0.9, volume * 0.12);");
+    expect(pomodoroAlertSource).toContain("repeatCount");
+    expect(pomodoroAlertSource).toContain("durationMultiplier");
+    expect(lumiAlertSource).toContain("repeatCount");
+    expect(lumiAlertSource).toContain("durationMultiplier");
     expect(lumiAlertSource).not.toContain("new Audio(");
   });
 

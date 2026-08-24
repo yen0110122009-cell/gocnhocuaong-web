@@ -18,34 +18,41 @@ export const POMODORO_ALERT_SOUNDS: Array<{ id: PomodoroAlertSoundId; label: str
 
 export const isPomodoroAlertSoundId = (value: string): value is PomodoroAlertSoundId => POMODORO_ALERT_SOUND_IDS.includes(value as PomodoroAlertSoundId);
 
-function clampVolume(value: number) { return Math.max(0, Math.min(2, value)); }
+function clampVolume(value: number) { return Math.max(0, Math.min(10, value)); }
+function clampDuration(value: number) { return Math.max(0.5, Math.min(3, value)); }
 function tone(context: AudioContext, frequency: number, start: number, duration: number, volume: number, type: OscillatorType = "sine") {
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   oscillator.type = type;
   oscillator.frequency.setValueAtTime(frequency, start);
   gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), start + 0.025);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, Math.min(0.95, volume)), start + 0.025);
   gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
   oscillator.connect(gain).connect(context.destination);
   oscillator.start(start);
   oscillator.stop(start + duration + 0.03);
 }
 
-export function playPomodoroAlert(context: AudioContext, soundId: PomodoroAlertSoundId, masterVolume: number) {
-  const start = context.currentTime + 0.02;
+export function playPomodoroAlert(context: AudioContext, soundId: PomodoroAlertSoundId, masterVolume: number, repeatCount = 1, durationMultiplier = 1) {
   const volume = clampVolume(masterVolume);
   if (volume <= 0) return;
-  const base = volume * 0.5;
-  const notes = (frequencies: number[], interval: number, duration: number, type: OscillatorType = "sine", multiplier = 1) => frequencies.forEach((frequency, index) => tone(context, frequency, start + index * interval, duration, base * multiplier, type));
-  if (soundId === "digital_bell") notes([523.25, 659.25, 783.99], 0.2, 0.65);
-  else if (soundId === "loud_alarm") notes([880, 880, 880], 0.28, 0.2, "triangle", 1.25);
-  else if (soundId === "marimba") notes([440, 554.37, 659.25, 880], 0.15, 0.38, "sine", 0.85);
-  else if (soundId === "school_bell") notes([700, 700], 0.48, 0.9, "sawtooth", 0.62);
-  else if (soundId === "crystal_gong") notes([523.25, 1046.5], 0.1, 1.35, "sine", 0.88);
-  else if (soundId === "soft_chime") notes([659.25, 880], 0.22, 0.95, "sine", 0.65);
-  else if (soundId === "retro_beep") notes([300, 600, 1200], 0.12, 0.16, "square", 0.5);
-  else if (soundId === "victory_fanfare") notes([523.25, 659.25, 783.99, 1046.5], 0.18, 0.9, "sine", 0.92);
-  else if (soundId === "wood_tap") notes([800, 600], 0.18, 0.16, "triangle", 0.9);
-  else notes([400, 700, 1200], 0.13, 0.28, "sine", 1.02);
+  const durationScale = clampDuration(durationMultiplier);
+  const repeats = Math.max(1, Math.min(10, Math.round(repeatCount)));
+  const start = context.currentTime + 0.02;
+  const base = Math.min(0.9, volume * 0.12);
+  const playSequence = (sequenceStart: number) => {
+    const notes = (frequencies: number[], interval: number, duration: number, type: OscillatorType = "sine", multiplier = 1) => frequencies.forEach((frequency, index) => tone(context, frequency, sequenceStart + index * interval * durationScale, duration * durationScale, base * multiplier, type));
+    if (soundId === "digital_bell") notes([523.25, 659.25, 783.99], 0.2, 0.65);
+    else if (soundId === "loud_alarm") notes([880, 880, 880], 0.28, 0.2, "triangle", 1.25);
+    else if (soundId === "marimba") notes([440, 554.37, 659.25, 880], 0.15, 0.38, "sine", 0.85);
+    else if (soundId === "school_bell") notes([700, 700], 0.48, 0.9, "sawtooth", 0.62);
+    else if (soundId === "crystal_gong") notes([523.25, 1046.5], 0.1, 1.35, "sine", 0.88);
+    else if (soundId === "soft_chime") notes([659.25, 880], 0.22, 0.95, "sine", 0.65);
+    else if (soundId === "retro_beep") notes([300, 600, 1200], 0.12, 0.16, "square", 0.5);
+    else if (soundId === "victory_fanfare") notes([523.25, 659.25, 783.99, 1046.5], 0.18, 0.9, "sine", 0.92);
+    else if (soundId === "wood_tap") notes([800, 600], 0.18, 0.16, "triangle", 0.9);
+    else notes([400, 700, 1200], 0.13, 0.28, "sine", 1.02);
+  };
+  const sequenceGap = 1.8 * durationScale;
+  for (let index = 0; index < repeats; index += 1) playSequence(start + index * sequenceGap);
 }

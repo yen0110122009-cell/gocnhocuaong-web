@@ -539,12 +539,12 @@ export type PomodoroAlertEventId = typeof POMODORO_ALERT_EVENT_IDS[number];
 export const POMODORO_ALERT_SOUND_IDS = ["digital_bell", "loud_alarm", "marimba", "school_bell", "crystal_gong", "soft_chime", "retro_beep", "victory_fanfare", "wood_tap", "whistle_up"] as const;
 export type PomodoroAlertSoundId = typeof POMODORO_ALERT_SOUND_IDS[number];
 export type PomodoroAlertEventSettings = { enabled: boolean; soundId: PomodoroAlertSoundId };
-export type PomodoroAlertSettings = { masterVolume: number; events: Record<PomodoroAlertEventId, PomodoroAlertEventSettings> };
+export type PomodoroAlertSettings = { masterVolume: number; repeatCount: number; durationMultiplier: number; events: Record<PomodoroAlertEventId, PomodoroAlertEventSettings> };
 export const LUMI_WATER_ALERT_SOUND_IDS = ["water_drop", "soft_chime", "wind_chime", "wood_block", "cute_beep"] as const;
 export type LumiWaterAlertSoundId = typeof LUMI_WATER_ALERT_SOUND_IDS[number];
 export type LumiWaterScheduleMode = "interval" | "clock";
-export type LumiWaterSettings = { enabled: boolean; intervalMinutes: number; soundId: LumiWaterAlertSoundId; scheduleMode?: LumiWaterScheduleMode; dailyTime?: string; dailyTimes?: string[] };
-export const DEFAULT_LUMI_WATER_SETTINGS: LumiWaterSettings = { enabled: true, intervalMinutes: 45, soundId: "water_drop", scheduleMode: "interval", dailyTime: "09:00", dailyTimes: ["09:00"] };
+export type LumiWaterSettings = { enabled: boolean; intervalMinutes: number; soundId: LumiWaterAlertSoundId; alertVolume: number; repeatCount: number; durationMultiplier: number; scheduleMode?: LumiWaterScheduleMode; dailyTime?: string; dailyTimes?: string[] };
+export const DEFAULT_LUMI_WATER_SETTINGS: LumiWaterSettings = { enabled: true, intervalMinutes: 45, soundId: "water_drop", alertVolume: 4, repeatCount: 3, durationMultiplier: 1.5, scheduleMode: "interval", dailyTime: "09:00", dailyTimes: ["09:00"] };
 export function normalizeLumiWaterSettings(value: unknown): LumiWaterSettings {
   const source = value && typeof value === "object" ? value as Partial<LumiWaterSettings> : {};
   const rawInterval = Number(source.intervalMinutes);
@@ -556,13 +556,18 @@ export function normalizeLumiWaterSettings(value: unknown): LumiWaterSettings {
     enabled: source.enabled !== false,
     intervalMinutes: Number.isFinite(rawInterval) ? Math.max(5, Math.min(180, Math.round(rawInterval))) : DEFAULT_LUMI_WATER_SETTINGS.intervalMinutes,
     soundId: LUMI_WATER_ALERT_SOUND_IDS.includes(source.soundId as LumiWaterAlertSoundId) ? source.soundId as LumiWaterAlertSoundId : DEFAULT_LUMI_WATER_SETTINGS.soundId,
+    alertVolume: Number.isFinite(Number(source.alertVolume)) ? Math.max(0, Math.min(10, Number(source.alertVolume))) : DEFAULT_LUMI_WATER_SETTINGS.alertVolume,
+    repeatCount: Number.isFinite(Number(source.repeatCount)) ? Math.max(1, Math.min(10, Math.round(Number(source.repeatCount)))) : DEFAULT_LUMI_WATER_SETTINGS.repeatCount,
+    durationMultiplier: Number.isFinite(Number(source.durationMultiplier)) ? Math.max(0.5, Math.min(3, Number(source.durationMultiplier))) : DEFAULT_LUMI_WATER_SETTINGS.durationMultiplier,
     scheduleMode: source.scheduleMode === "clock" ? "clock" : "interval",
     dailyTime: normalizedDailyTimes[0],
     dailyTimes: normalizedDailyTimes,
   };
 }
 export const DEFAULT_POMODORO_ALERT_SETTINGS: PomodoroAlertSettings = {
-  masterVolume: 1.6,
+  masterVolume: 4,
+  repeatCount: 3,
+  durationMultiplier: 1.5,
   events: {
     startFocus: { enabled: true, soundId: "whistle_up" },
     endFocus: { enabled: true, soundId: "victory_fanfare" },
@@ -573,10 +578,16 @@ export const DEFAULT_POMODORO_ALERT_SETTINGS: PomodoroAlertSettings = {
 export function normalizePomodoroAlertSettings(value: unknown): PomodoroAlertSettings {
   const source = value && typeof value === "object" ? value as Partial<PomodoroAlertSettings> : {};
   const rawMasterVolume = Number(source.masterVolume);
-  const masterVolume = Number.isFinite(rawMasterVolume) ? Math.max(0, Math.min(2, rawMasterVolume)) : DEFAULT_POMODORO_ALERT_SETTINGS.masterVolume;
+  const masterVolume = Number.isFinite(rawMasterVolume) ? Math.max(0, Math.min(10, rawMasterVolume)) : DEFAULT_POMODORO_ALERT_SETTINGS.masterVolume;
+  const rawRepeatCount = Number(source.repeatCount);
+  const repeatCount = Number.isFinite(rawRepeatCount) ? Math.max(1, Math.min(10, Math.round(rawRepeatCount))) : DEFAULT_POMODORO_ALERT_SETTINGS.repeatCount;
+  const rawDurationMultiplier = Number(source.durationMultiplier);
+  const durationMultiplier = Number.isFinite(rawDurationMultiplier) ? Math.max(0.5, Math.min(3, rawDurationMultiplier)) : DEFAULT_POMODORO_ALERT_SETTINGS.durationMultiplier;
   const rawEvents = source.events && typeof source.events === "object" ? source.events as Partial<Record<PomodoroAlertEventId, Partial<PomodoroAlertEventSettings>>> : {};
   return {
     masterVolume,
+    repeatCount,
+    durationMultiplier,
     events: POMODORO_ALERT_EVENT_IDS.reduce((events, eventId) => {
       const current = rawEvents[eventId];
       const fallback = DEFAULT_POMODORO_ALERT_SETTINGS.events[eventId];
