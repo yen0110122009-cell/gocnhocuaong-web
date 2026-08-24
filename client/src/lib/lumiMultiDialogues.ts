@@ -207,13 +207,25 @@ export function restoreLumiMultiDialogues() {
 }
 
 const lastDialogueByKaomoji = new Map<string, string>();
+let lastDialogueText: string | null = null;
 
 export function pickRandomLumiDialogue(entry: LumiKaomojiDialogueEntry): LumiKaomojiDialogue | null {
   if (!entry.dialogues.length) return null;
   const previousId = lastDialogueByKaomoji.get(entry.kaomoji);
-  const candidates = entry.dialogues.length > 1 ? entry.dialogues.filter((dialogue) => dialogue.id !== previousId) : entry.dialogues;
-  const picked = candidates[Math.floor(Math.random() * candidates.length)] ?? entry.dialogues[0];
+  const candidates = entry.dialogues.filter((dialogue) => dialogue.id !== previousId && dialogue.text !== lastDialogueText);
+  const fallbackByEntry = entry.dialogues.length > 1 ? entry.dialogues.filter((dialogue) => dialogue.id !== previousId) : entry.dialogues;
+  const picked = (candidates.length ? candidates : fallbackByEntry)[Math.floor(Math.random() * (candidates.length ? candidates : fallbackByEntry).length)] ?? entry.dialogues[0];
   lastDialogueByKaomoji.set(entry.kaomoji, picked.id);
+  lastDialogueText = picked.text;
+  return picked;
+}
+
+export function pickRandomLumiText(lines: string[], random = Math.random) {
+  const cleanLines = lines.map((line) => line.trim()).filter(Boolean);
+  if (!cleanLines.length) return "";
+  const candidates = cleanLines.length > 1 ? cleanLines.filter((line) => line !== lastDialogueText) : cleanLines;
+  const picked = candidates[Math.floor(random() * candidates.length)] ?? cleanLines[0];
+  lastDialogueText = picked;
   return picked;
 }
 

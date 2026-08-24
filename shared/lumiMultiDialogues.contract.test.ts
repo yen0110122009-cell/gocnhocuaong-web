@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_STORAGE_KEY, pickRandomLumiDialogue, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../client/src/lib/lumiMultiDialogues";
+import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_STORAGE_KEY, pickRandomLumiDialogue, pickRandomLumiText, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../client/src/lib/lumiMultiDialogues";
 
 describe("Lumi multi-dialogues", () => {
   it("có schema theo từng Kaomoji và lưu bốn câu an ủi mẫu", () => {
@@ -21,6 +21,16 @@ describe("Lumi multi-dialogues", () => {
     expect(saved).toHaveLength(1);
     expect(saved[0]?.dialogues.map((dialogue) => dialogue.text)).toEqual(["Câu A", "Câu B"]);
     expect(saved[0]?.emotionIds).toEqual(["focused"]);
+  });
+
+  it("không phát lại cùng nguyên văn khi chuyển sang Kaomoji khác", () => {
+    const random = vi.spyOn(Math, "random").mockReturnValue(0);
+    try {
+      expect(pickRandomLumiText(["Câu dùng chung", "Câu thay thế"])).toBe("Câu dùng chung");
+      expect(pickRandomLumiText(["Câu dùng chung", "Câu mới"])).toBe("Câu mới");
+    } finally {
+      random.mockRestore();
+    }
   });
 
   it("không phát cùng một câu hai lần liên tiếp cho cùng Kaomoji", () => {

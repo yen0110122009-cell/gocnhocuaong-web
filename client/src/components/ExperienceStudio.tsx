@@ -8,9 +8,10 @@ import { readLumiSpeechPreference, readLumiSpeechSettings, saveLumiSpeechPrefere
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { LUMI_CHECKIN_OPTIONS, LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
 import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
-import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
+import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, pickRandomLumiText, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
 import { LUMI_LAST_SEEN_STORAGE_KEY, LUMI_RETURN_WELCOME, shouldShowLumiReturnWelcome } from "../lib/lumiReturnWelcome";
+import { DEFAULT_LUMI_STATE_SCRIPTS, LUMI_STATE_SCRIPTS_EVENT, pickLumiStateScript, readLumiStateScripts, saveLumiStateScripts, type LumiScriptState, type LumiStateScripts } from "../lib/lumiStateScripts";
 
 export type ExperienceStudioProps = {
   selected: EmotionId;
@@ -24,6 +25,10 @@ export type ExperienceStudioProps = {
 };
 
 const quickFeelings = LUMI_CHECKIN_OPTIONS;
+const lumiScriptMeta: Array<{ id: LumiScriptState; label: string; emoji: string; description: string }> = [
+  { id: "welcome", label: "Đón bạn vào học", emoji: "🌱", description: "Lumi chào đón nhẹ nhàng khi Ong bắt đầu hoặc quay lại học." },
+  { id: "celebration", label: "Chúc mừng hoàn thành", emoji: "🎉", description: "Lời động viên khi Ong hoàn thành một mục tiêu hoặc phiên học." },
+];
 
 function speakLumi(text: string, enabled: boolean) {
   speakLumiVietnamese(text, enabled);
@@ -41,6 +46,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const [newText, setNewText] = useState("");
   const [newGroup, setNewGroup] = useState<LumiDialogueGroup>("companionship");
   const [dialogueFilter, setDialogueFilter] = useState<LumiDialogueGroup | "all">("all");
+  const [multiEmotionFilter, setMultiEmotionFilter] = useState<EmotionId | "all">("all");
   const [multiDialogues, setMultiDialogues] = useState<LumiKaomojiDialogueEntry[]>(() => readLumiMultiDialogues());
   const [newMultiDialogue, setNewMultiDialogue] = useState<Record<string, string>>({});
   const [kaomojiDrafts, setKaomojiDrafts] = useState<Record<string, { description: string; dialogue: string; emotionIds: EmotionId[] }>>(() => Object.fromEntries(readLumiMultiDialogues().map((entry) => [entry.kaomoji, { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "", emotionIds: entry.emotionIds ?? [] }])));
@@ -49,6 +55,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const [keywordDraft, setKeywordDraft] = useState("");
   const [keywordKaomojiDraft, setKeywordKaomojiDraft] = useState("(つ_ <｡)");
   const [keywordDialogueDraft, setKeywordDialogueDraft] = useState("");
+  const [stateScripts, setStateScripts] = useState<LumiStateScripts>(() => readLumiStateScripts());
+  const [stateScriptDrafts, setStateScriptDrafts] = useState<LumiStateScripts>(() => readLumiStateScripts());
   const lumiKaomoji = lumiKaomojiForEmotion(selected);
 
   const activeGroup = dialogueGroupForEmotion(selected);
@@ -57,6 +65,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   useEffect(() => {
     setSpeechEnabled(readLumiSpeechPreference(profile?.lumiSpeechEnabled !== false));
   }, [profile?.lumiSpeechEnabled]);
+  useEffect(() => {
+    setActiveMessage((currentMessage) => currentMessage === LUMI_WELCOME.text ? stateScripts.welcome[0] ?? LUMI_WELCOME.text : currentMessage);
+  }, [stateScripts]);
   useEffect(() => {
     try {
       const lastSeen = window.localStorage.getItem(LUMI_LAST_SEEN_STORAGE_KEY);
@@ -99,7 +110,16 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     window.addEventListener("storage", onStorage);
       window.addEventListener(LUMI_MULTI_DIALOGUES_EVENT, refreshMultiDialogues);
       window.addEventListener("storage", onMultiStorage);
-      window.addEventListener(LUMI_KEYWORDS_EVENT, refreshKeywords);
+      const refreshStateScripts = (event?: Event) => {
+      const detail = (event as CustomEvent<LumiStateScripts> | undefined)?.detail;
+      const next = detail ? detail : readLumiStateScripts();
+      setStateScripts(next);
+      setStateScriptDrafts(next);
+    };
+    const onStateScriptsStorage = (event: StorageEvent) => { if (event.key === "lumi_state_scripts") refreshStateScripts(); };
+    window.addEventListener(LUMI_KEYWORDS_EVENT, refreshKeywords);
+    window.addEventListener(LUMI_STATE_SCRIPTS_EVENT, refreshStateScripts);
+      window.addEventListener("storage", onStateScriptsStorage);
       window.addEventListener("storage", onKeywordStorage);
     return () => {
       window.removeEventListener(LUMI_CUSTOM_DIALOGUES_EVENT, refresh);
@@ -107,6 +127,8 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       window.removeEventListener(LUMI_MULTI_DIALOGUES_EVENT, refreshMultiDialogues);
       window.removeEventListener("storage", onMultiStorage);
       window.removeEventListener(LUMI_KEYWORDS_EVENT, refreshKeywords);
+      window.removeEventListener(LUMI_STATE_SCRIPTS_EVENT, refreshStateScripts);
+      window.removeEventListener("storage", onStateScriptsStorage);
       window.removeEventListener("storage", onKeywordStorage);
     };
   }, []);
@@ -134,12 +156,43 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     speakLumi(text, speechEnabled);
   }
 
+  function updateStateScriptDraft(state: LumiScriptState, index: number, value: string) {
+    setStateScriptDrafts((currentDrafts) => ({ ...currentDrafts, [state]: currentDrafts[state].map((line, lineIndex) => lineIndex === index ? value : line) }));
+  }
+
+  function addStateScript(state: LumiScriptState) {
+    setStateScriptDrafts((currentDrafts) => ({ ...currentDrafts, [state]: [...currentDrafts[state], ""] }));
+  }
+
+  function removeStateScript(state: LumiScriptState, index: number) {
+    setStateScriptDrafts((currentDrafts) => ({ ...currentDrafts, [state]: currentDrafts[state].filter((_, lineIndex) => lineIndex !== index) }));
+  }
+
+  function saveStateScript(state: LumiScriptState) {
+    const next = saveLumiStateScripts({ ...stateScripts, [state]: stateScriptDrafts[state] });
+    setStateScripts(next);
+    setStateScriptDrafts(next);
+    toast.success(`Đã lưu kịch bản ${state === "welcome" ? "đón bạn vào học" : "chúc mừng"} của Lumi.`);
+  }
+
+  function restoreStateScript(state: LumiScriptState) {
+    const next = saveLumiStateScripts({ ...stateScripts, [state]: DEFAULT_LUMI_STATE_SCRIPTS[state] });
+    setStateScripts(next);
+    setStateScriptDrafts(next);
+    toast.success(`Đã khôi phục kịch bản ${state === "welcome" ? "đón bạn vào học" : "chúc mừng"}.`);
+  }
+
+  function previewStateScript(state: LumiScriptState) {
+    const line = pickLumiStateScript(stateScripts, state);
+    showDialogue(line);
+  }
+
   function chooseFeeling(choice: typeof quickFeelings[number]) {
     onSelect(choice.id);
     if (profile && onProfile) onProfile({ ...profile, emotionTheme: choice.id }, `Lumi đã cập nhật cảm xúc: ${choice.label}.`);
     const mappedEntries = multiDialogues.filter((entry) => entry.emotionIds?.includes(choice.id));
     const mappedEntry = mappedEntries[Math.floor(Math.random() * mappedEntries.length)];
-    const response = (mappedEntry ? pickRandomLumiDialogue(mappedEntry)?.text : null) ?? dialoguesForGroup(dialogues, choice.group)[0]?.text ?? current.encouragement;
+    const response = (mappedEntry ? pickRandomLumiDialogue(mappedEntry)?.text : null) ?? (pickRandomLumiText(dialoguesForGroup(dialogues, choice.group).map((dialogue) => dialogue.text)) || current.encouragement);
     setActiveMessage(response);
     speakLumi(response, speechEnabled);
     setShowEmotionDialog(false);
@@ -263,6 +316,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   }
 
   const visibleDialogues = dialogueFilter === "all" ? dialogues : dialogues.filter((dialogue) => dialogue.group === dialogueFilter);
+  const visibleMultiDialogues = multiEmotionFilter === "all" ? multiDialogues : multiDialogues.filter((entry) => entry.emotionIds?.includes(multiEmotionFilter));
 
   return <div className="space-y-5" aria-label="Module Kaomoji Lumi bạn đồng hành">
     <section className="panel overflow-hidden p-6" style={{ background: `linear-gradient(135deg, ${current.colors.soft}, var(--card, #fff))` }}>
@@ -295,6 +349,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       <div className="mt-4 grid gap-3 md:grid-cols-2">{visibleDialogues.map((dialogue) => { const group = LUMI_DIALOGUE_GROUPS.find((item) => item.id === dialogue.group); const editing = editingId === dialogue.id; return <article key={dialogue.id} className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.035]"><div className="flex items-start justify-between gap-3"><span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-100">{group?.emoji} {group?.label}</span>{dialogue.isDefault ? <span className="text-[10px] font-bold text-slate-400">Mặc định</span> : null}</div>{editing ? <textarea className="field mt-3 min-h-20 text-sm" value={editingText} onChange={(event) => setEditingText(event.target.value)} aria-label={`Chỉnh sửa câu thoại ${dialogue.id}`} autoFocus /> : <p className="mt-3 min-h-12 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-100">{dialogue.text}</p>}<div className="mt-3 flex flex-wrap gap-2">{editing ? <><button type="button" className="primary-button px-3 py-2 text-xs" onClick={() => saveEdit(dialogue)}><Save className="h-3.5 w-3.5" />Lưu sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => setEditingId(null)}>Hủy</button></> : <><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => showDialogue(dialogue.text)}><Volume2 className="h-3.5 w-3.5" />Nghe thử giọng đọc AI</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => startEdit(dialogue)}><Save className="h-3.5 w-3.5" />Chỉnh sửa</button><button type="button" className="secondary-button px-3 py-2 text-xs text-rose-700" onClick={() => removeDialogue(dialogue.id)}><Trash2 className="h-3.5 w-3.5" />Xóa</button></>}</div></article>; })}</div>
     </section>
 
+    <PersistentCollapsible storageKey="lumi-state-scripts" eyebrow="Kịch bản Lumi" title="Đón bạn vào học & chúc mừng"><div className="grid gap-4 lg:grid-cols-2">{lumiScriptMeta.map((meta) => <article key={meta.id} className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50/60 p-4 dark:border-fuchsia-300/15 dark:bg-fuchsia-950/20"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.14em] text-fuchsia-700 dark:text-fuchsia-300">{meta.emoji} {meta.label}</p><p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">{meta.description}</p></div><span className="rounded-full bg-white/80 px-2 py-1 text-[10px] font-black text-fuchsia-800 dark:bg-slate-950/30 dark:text-fuchsia-100">{stateScriptDrafts[meta.id].length} câu</span></div><div className="mt-4 grid gap-2">{stateScriptDrafts[meta.id].map((line, index) => <div key={`${meta.id}-${index}`} className="flex items-start gap-2"><textarea className="field min-h-20 flex-1 text-sm leading-6" value={line} onChange={(event) => updateStateScriptDraft(meta.id, index, event.target.value)} aria-label={`${meta.label}, câu ${index + 1}`} placeholder="Viết lời thoại của Lumi…" /><button type="button" className="secondary-button px-2 py-2 text-xs text-rose-700" onClick={() => removeStateScript(meta.id, index)} aria-label={`Xóa câu ${index + 1} của ${meta.label}`}>Xóa</button></div>)}</div><div className="mt-3 flex flex-wrap gap-2"><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => addStateScript(meta.id)}><Plus className="h-3.5 w-3.5" />Thêm câu</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => previewStateScript(meta.id)}><Volume2 className="h-3.5 w-3.5" />Nghe thử</button><button type="button" className="primary-button px-3 py-2 text-xs" onClick={() => saveStateScript(meta.id)}><Save className="h-3.5 w-3.5" />Lưu kịch bản</button><button type="button" className="secondary-button px-3 py-2 text-xs" onClick={() => restoreStateScript(meta.id)}>Khôi phục</button></div></article>)}</div><p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-300">Mỗi trạng thái có thể chứa nhiều câu. Lumi sẽ chọn luân phiên ngẫu nhiên và tránh phát lại nguyên văn câu vừa dùng trong cùng trạng thái.</p></PersistentCollapsible>
     <PersistentCollapsible storageKey="lumi-keywords" eyebrow="Tự động hóa Lumi" title="Từ khóa phát hiện cảm xúc">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div><p className="text-xs font-black uppercase tracking-[.16em] text-amber-700 dark:text-amber-300">Keyword detection</p><h2 className="mt-1 font-display text-2xl font-black">Tự động kích hoạt Kaomoji & lời thoại</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Nhập một trạng thái như “mệt”, “đuối” hoặc từ khóa bạn tự thêm để Lumi chọn đúng biểu cảm và câu nói.</p></div>
@@ -321,8 +376,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
           <button type="button" className="secondary-button text-xs" onClick={restoreMultiDialogueDefaults}>Khôi phục bộ câu gốc</button>
         </div>
       </div>
+      <div className="mt-4 rounded-2xl border border-sky-200/70 bg-sky-50/70 p-3 dark:border-sky-300/15 dark:bg-sky-950/20"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-black uppercase tracking-[.12em] text-sky-900 dark:text-sky-100">Lọc ngược theo cảm xúc</p><span className="text-xs font-bold text-sky-800 dark:text-sky-200">{visibleMultiDialogues.length}/{multiDialogues.length} biểu tượng phù hợp</span></div><div className="mt-2 flex flex-wrap gap-2" role="tablist" aria-label="Lọc Kaomoji theo cảm xúc"><button type="button" role="tab" aria-selected={multiEmotionFilter === "all"} onClick={() => setMultiEmotionFilter("all")} className={`rounded-full border px-3 py-1.5 text-xs font-black ${multiEmotionFilter === "all" ? "border-sky-700 bg-sky-700 text-white" : "border-sky-200 bg-white text-sky-900 dark:border-sky-300/20 dark:bg-slate-950/30 dark:text-sky-100"}`}>✨ Tất cả</button>{quickFeelings.map((choice) => { const count = multiDialogues.filter((item) => item.emotionIds?.includes(choice.id)).length; return <button key={choice.id} type="button" role="tab" aria-selected={multiEmotionFilter === choice.id} onClick={() => setMultiEmotionFilter(choice.id)} className={`rounded-full border px-3 py-1.5 text-xs font-black ${multiEmotionFilter === choice.id ? "border-sky-700 bg-sky-700 text-white" : "border-sky-200 bg-white text-sky-900 dark:border-sky-300/20 dark:bg-slate-950/30 dark:text-sky-100"}`}>{choice.emoji} {choice.label} · {count}</button>; })}</div></div>
       <div className="mt-5 grid gap-4 xl:grid-cols-2">
-        {multiDialogues.map((entry) => <article key={entry.kaomoji} className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm dark:border-emerald-300/15 dark:bg-white/[.035]">
+        {visibleMultiDialogues.map((entry) => <article key={entry.kaomoji} className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm dark:border-emerald-300/15 dark:bg-white/[.035]">
           <div className="flex items-start gap-3">
             <div className="grid min-h-12 min-w-24 place-items-center rounded-2xl bg-emerald-700 px-2 py-2 text-center font-mono text-sm font-black text-white" title={entry.kaomoji}>{entry.kaomoji}</div>
             <div className="min-w-0 flex-1"><p className="text-xs font-black uppercase tracking-[.12em] text-emerald-700 dark:text-emerald-300">{entry.group}</p><h3 className="mt-1 font-bold">{entry.description}</h3><p className="mt-1 text-xs text-slate-500">{entry.dialogues.length} câu thoại · phát luân phiên ngẫu nhiên</p></div>

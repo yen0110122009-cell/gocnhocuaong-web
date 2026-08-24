@@ -44,6 +44,7 @@ export function saveLumiSpeechSettings(value: Partial<LumiSpeechSettings>) {
 }
 
 export const LUMI_WATER_SETTINGS_STORAGE_KEY = "lumi_water_settings";
+export const LUMI_WATER_NEXT_REMINDER_STORAGE_KEY = "lumi_water_next_reminder_at";
 export const LUMI_WATER_MESSAGE_STORAGE_KEY = "lumi_water_message";
 export const LUMI_DIALOGUE_LINES_STORAGE_KEY = "lumi_dialogue_lines";
 export const DEFAULT_LUMI_WATER_MESSAGE = "Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧";
@@ -78,6 +79,24 @@ export function saveLumiWaterSettings(value: LumiWaterSettings, targetStorage: P
   const settings = normalizeLumiWaterSettings(value);
   try { targetStorage?.setItem(LUMI_WATER_SETTINGS_STORAGE_KEY, JSON.stringify(settings)); } catch { /* storage may be unavailable */ }
   return settings;
+}
+
+export function readLumiWaterNextReminderAt(targetStorage: Pick<Storage, "getItem"> | null = storage()) {
+  try {
+    const value = Number(targetStorage?.getItem(LUMI_WATER_NEXT_REMINDER_STORAGE_KEY));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLumiWaterNextReminderAt(value: number, targetStorage: Pick<Storage, "setItem"> | null = storage()) {
+  if (!Number.isFinite(value) || value <= 0) return;
+  try { targetStorage?.setItem(LUMI_WATER_NEXT_REMINDER_STORAGE_KEY, String(Math.round(value))); } catch { /* storage may be unavailable */ }
+}
+
+export function clearLumiWaterNextReminderAt(targetStorage: Pick<Storage, "removeItem"> | null = storage()) {
+  try { targetStorage?.removeItem(LUMI_WATER_NEXT_REMINDER_STORAGE_KEY); } catch { /* storage may be unavailable */ }
 }
 
 export function readLumiWaterMessage() {

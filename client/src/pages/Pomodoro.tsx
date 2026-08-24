@@ -13,14 +13,15 @@ import {
 import { POMODORO_SESSION_KEY, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
 import { LUMI_WATER_ALERT_SOUNDS, isLumiWaterAlertSoundId, playLumiWaterAlert } from "../lib/lumiAlerts";
 import { POMODORO_ALERT_SOUNDS, isPomodoroAlertSoundId, playPomodoroAlert } from "../lib/pomodoroAlerts";
-import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMessage, readLumiWaterSettings, saveLumiSpeechPreference, saveLumiWaterMessage, saveLumiWaterSettings } from "../lib/lumiPreferences";
+import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMessage, readLumiWaterNextReminderAt, readLumiWaterSettings, saveLumiSpeechPreference, saveLumiWaterMessage, saveLumiWaterNextReminderAt, saveLumiWaterSettings } from "../lib/lumiPreferences";
 import { emotionThemes, type EmotionId } from "../lib/emotionThemes";
 import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues, type LumiCustomDialogue } from "../lib/lumiCustomDialogues";
 import { LUMI_CHECKIN_OPTIONS, LUMI_FOCUS_MESSAGE, LUMI_REST_MESSAGE, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForEmotion, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
 import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
-import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
+import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, pickRandomLumiText, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { currentPomodoroSessionNumber, nextPomodoroBreakMode, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak } from "../lib/pomodoroFlow";
 import { subjectNames } from "../../../shared/studyTimeAnalytics";
+import { pickLumiStateScript, readLumiStateScripts } from "../lib/lumiStateScripts";
 
 type Mode = "focus" | "shortBreak" | "longBreak";
 type Activity = "flashcards" | "quizzes" | "theory" | "deep" | "reading" | "exercise";
@@ -107,6 +108,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   const widgetDragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
   const popupDragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
   const lastWaterClockKeyRef = useRef<string | null>(null);
+  const nextWaterReminderAtRef = useRef<number | null>(null);
   const completedSessions = profile.pomodoroHistory.filter((item) => item.mode === "focus" && item.status === "completed");
   const availableSubjects = subjectNames(profile);
   const recentCompletedSessions = completedSessions.slice(0, 4);
@@ -121,7 +123,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   const lumiWelcomeEntry = useMemo(() => findLumiKaomojiDialogue(lumiMultiDialogues, LUMI_WELCOME.kaomoji), [lumiMultiDialogues]);
   const lumiKaomojiDescription = lumiKaomojiEntry?.description ?? "Lumi đồng hành";
   const lumiEmotion = emotionThemes.find((theme) => theme.id === (profile.emotionTheme ?? "calm")) ?? emotionThemes[0];
-  const lumiRoutineDialogue = mode === "focus" && running ? dialoguesForGroup(lumiCustomDialogues, lumiRoutineGroup(mode, running))[0]?.text : undefined;
+  const lumiRoutineDialogue = useMemo(() => mode === "focus" && running ? pickRandomLumiText(dialoguesForGroup(lumiCustomDialogues, lumiRoutineGroup(mode, running)).map((dialogue) => dialogue.text)) || undefined : undefined, [lumiCustomDialogues, mode, running]);
   const lumiActiveDialogue = waterCelebrated ? LUMI_WATER_PRAISE : waterReminderVisible ? waterMessage || LUMI_WATER_MESSAGE : lumiWidgetDialogue ?? lumiRoutineDialogue ?? lumiRoutineMessage(mode, running);
   const lumiStatusLabel = pendingTransition === "break" ? "Đã xong phiên học · chờ nghỉ" : pendingTransition === "focus" ? "Đã xong giờ nghỉ · chờ học tiếp" : mode === "focus" && running ? "Lumi đang học cùng bạn" : mode === "focus" ? "Lumi sẵn sàng học" : running ? "Lumi đang nghỉ cùng bạn" : "Lumi sẵn sàng nghỉ";
   const lumiStatusMessage = pendingTransition === "break" ? "Bạn có thể bấm Bắt đầu nghỉ khi đã sẵn sàng." : pendingTransition === "focus" ? "Giờ nghỉ đã xong. Bấm Bắt đầu phiên để học tiếp." : mode === "focus" && running ? LUMI_FOCUS_MESSAGE : mode === "focus" ? "Khi bạn bắt đầu, Lumi sẽ cùng giữ nhịp tập trung." : running ? LUMI_REST_MESSAGE : "Bạn có thể bắt đầu giờ nghỉ bất cứ lúc nào.";
@@ -217,9 +219,10 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   }
 
   useEffect(() => {
-    if (!lumiWaterSettings.enabled) { setWaterSecondsRemaining(0); lastWaterClockKeyRef.current = null; return; }
+    if (!lumiWaterSettings.enabled) { setWaterSecondsRemaining(0); lastWaterClockKeyRef.current = null; nextWaterReminderAtRef.current = null; return; }
     if (lumiWaterSettings.scheduleMode === "clock") {
       setWaterSecondsRemaining(0);
+      nextWaterReminderAtRef.current = null;
       const checkClock = () => {
         const now = new Date();
         const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -235,13 +238,25 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
       return () => window.clearInterval(timer);
     }
     lastWaterClockKeyRef.current = null;
-    setWaterSecondsRemaining(lumiWaterSettings.intervalMinutes * 60);
-    const timer = window.setInterval(() => setWaterSecondsRemaining((value) => {
-      if (value > 1) return value - 1;
-      showWaterReminder();
-      return lumiWaterSettings.intervalMinutes * 60;
-    }), 1_000);
-    return () => window.clearInterval(timer);
+    const intervalMs = lumiWaterSettings.intervalMinutes * 60_000;
+    nextWaterReminderAtRef.current = readLumiWaterNextReminderAt() ?? (Date.now() + intervalMs);
+    saveLumiWaterNextReminderAt(nextWaterReminderAtRef.current);
+    const checkInterval = () => {
+      const now = Date.now();
+      let nextAt = nextWaterReminderAtRef.current ?? (now + intervalMs);
+      if (now >= nextAt) {
+        showWaterReminder();
+        nextAt = now + intervalMs;
+        nextWaterReminderAtRef.current = nextAt;
+        saveLumiWaterNextReminderAt(nextAt);
+      }
+      setWaterSecondsRemaining(Math.max(0, Math.ceil((nextAt - now) / 1_000)));
+    };
+    checkInterval();
+    const timer = window.setInterval(checkInterval, 1_000);
+    const onVisibilityChange = () => { if (document.visibilityState === "visible") checkInterval(); };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisibilityChange); };
   }, [lumiWaterSettings.enabled, lumiWaterSettings.intervalMinutes, lumiWaterSettings.scheduleMode, lumiWaterSettings.dailyTime, lumiWaterSettings.dailyTimes, profile.popupsEnabled, profile.soundEnabled, lumiSpeechEnabled, waterMessage]);
   useEffect(() => () => { void alertContextRef.current?.close().catch(() => undefined); window.clearTimeout(waterFeedbackTimeoutRef.current); window.speechSynthesis?.cancel(); }, []);
   useEffect(() => () => window.clearTimeout(celebrationTimeoutRef.current), []);
@@ -302,6 +317,13 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
 
   function updateLumiWaterSettings(next: LumiWaterSettings) {
     const normalized = saveLumiWaterSettings(normalizeLumiWaterSettings(next));
+    const scheduleChanged = normalized.intervalMinutes !== lumiWaterSettings.intervalMinutes || normalized.scheduleMode !== lumiWaterSettings.scheduleMode;
+    if (scheduleChanged && normalized.enabled && normalized.scheduleMode !== "clock") {
+      const nextAt = Date.now() + normalized.intervalMinutes * 60_000;
+      nextWaterReminderAtRef.current = nextAt;
+      saveLumiWaterNextReminderAt(nextAt);
+    }
+    if (!normalized.enabled || normalized.scheduleMode === "clock") nextWaterReminderAtRef.current = null;
     setLumiWaterSettings(normalized);
     setWaterSecondsRemaining(normalized.enabled && normalized.scheduleMode !== "clock" ? normalized.intervalMinutes * 60 : 0);
     onProfile({ ...profile, lumiWaterSettings: normalized }, "Đã lưu cài đặt nhắc uống nước của Lumi.");
@@ -343,6 +365,9 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
     setWaterCelebrated(true);
     setWaterFeedback("💧 Lumi thả tim: Ngoan lắm! Tiếp tục thôi nào ✨");
     speakLumi(praise);
+    const nextAt = Date.now() + lumiWaterSettings.intervalMinutes * 60_000;
+    nextWaterReminderAtRef.current = nextAt;
+    saveLumiWaterNextReminderAt(nextAt);
     setWaterSecondsRemaining(lumiWaterSettings.intervalMinutes * 60);
     window.clearTimeout(waterFeedbackTimeoutRef.current);
     waterFeedbackTimeoutRef.current = window.setTimeout(() => { setWaterFeedback(null); setWaterCelebrated(false); }, 4_000);
@@ -350,7 +375,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
 
   function openLumiDialog() {
     const welcomeEntry = lumiWelcomeEntry;
-    const intro = (welcomeEntry ? pickRandomLumiDialogue(welcomeEntry)?.text : null) ?? LUMI_WELCOME.text;
+    const intro = pickLumiStateScript(readLumiStateScripts(), "welcome") ?? (welcomeEntry ? pickRandomLumiDialogue(welcomeEntry)?.text : null) ?? LUMI_WELCOME.text;
     setLumiDialogIntro(intro);
     setLumiDialogResponse(null);
     setShowLumiDialog(true);
@@ -362,7 +387,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
     const kaomoji = lumiKaomojiForEmotion(choice);
     const multiEntry = findLumiKaomojiDialogue(lumiMultiDialogues, kaomoji);
     const groupDialogues = dialoguesForGroup(lumiCustomDialogues, details.group);
-    const text = (multiEntry ? pickRandomLumiDialogue(multiEntry)?.text : null) ?? groupDialogues[Math.floor(Math.random() * groupDialogues.length)]?.text ?? "Lumi ở đây lắng nghe bạn nè 🍀";
+    const text = (multiEntry ? pickRandomLumiDialogue(multiEntry)?.text : null) ?? (pickRandomLumiText(groupDialogues.map((dialogue) => dialogue.text)) || "Lumi ở đây lắng nghe bạn nè 🍀");
     setLumiDialogResponse({ group: details.label, kaomoji, description: multiEntry?.description ?? details.label, text });
     setLumiWidgetDialogue(text);
     speakLumi(text);
@@ -414,7 +439,9 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   }
   function celebrateGoal() {
     window.clearTimeout(celebrationTimeoutRef.current);
+    const celebrationLine = pickLumiStateScript(readLumiStateScripts(), "celebration");
     setGoalCelebrationVisible(true);
+    speakLumi(celebrationLine);
     celebrationTimeoutRef.current = window.setTimeout(() => setGoalCelebrationVisible(false), GOAL_CELEBRATION_DURATION_MS);
   }
 
@@ -424,7 +451,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
     const line = (config.mascotVoiceLines ?? []).find((item) => item.state === stateId && item.enabled && !item.deletedAt);
     const custom = (config.customContent ?? []).find((item) => item.enabled && !item.deletedAt && item.modules.includes("pomodoro"));
     const dialogueGroup = kind === "comfort" ? "comfort" : "encouragement";
-    const customLine = dialoguesForGroup(lumiCustomDialogues, dialogueGroup)[Math.floor(Math.random() * dialoguesForGroup(lumiCustomDialogues, dialogueGroup).length)]?.text;
+    const customLine = pickRandomLumiText(dialoguesForGroup(lumiCustomDialogues, dialogueGroup).map((dialogue) => dialogue.text));
     return { kind, text: customLine || line?.text || custom?.text || state?.description || (kind === "comfort" ? "Không sao nếu hôm nay chậm. Mình cùng quay lại bằng một bước vừa sức nhé." : "Mỗi phút bạn đang ở lại với việc học đều đáng được ghi nhận.") };
   }
   function askLumi(kind: LumiSupportKind) { const next = createSupport(kind); setSupportMessage(next); setShowSupport(true); speakLumi(next.text); }

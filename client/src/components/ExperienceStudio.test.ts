@@ -29,6 +29,20 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(lumi).not.toContain("Một lời nhắc nhẹ");
   });
 
+  it("có kịch bản mặc định và persistence cho đón học/chúc mừng", () => {
+    const lumi = source("client/src/components/ExperienceStudio.tsx");
+    const scripts = source("client/src/lib/lumiStateScripts.ts");
+    expect(scripts).toContain('LUMI_STATE_SCRIPTS_STORAGE_KEY = "lumi_state_scripts"');
+    expect(scripts).toContain("DEFAULT_LUMI_STATE_SCRIPTS");
+    expect(scripts).toContain("welcome:");
+    expect(scripts).toContain("celebration:");
+    expect(lumi).toContain("Kịch bản Lumi");
+    expect(lumi).toContain("Đón bạn vào học");
+    expect(lumi).toContain("Chúc mừng hoàn thành");
+    expect(lumi).toContain("stateScriptDrafts");
+    expect(lumi).toContain("previewStateScript");
+  });
+
   it("có TTS tiếng Việt và công tắc AI đọc thoại", () => {
     const lumi = source("client/src/components/ExperienceStudio.tsx");
     const speech = source("client/src/lib/lumiSpeech.ts");
@@ -74,6 +88,14 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(lumi).toContain("lumi_custom_keywords");
     expect(lumi).toContain("Thêm từ khóa mới");
     expect(lumi).toContain("Kích hoạt Lumi");
+    expect(lumi).toContain("Lọc ngược theo cảm xúc");
+    expect(lumi).toContain("Lọc Kaomoji theo cảm xúc");
+    expect(lumi).toContain("visibleMultiDialogues");
+    expect(lumi).toContain("emotionIds?.includes");
+    expect(lumi).toContain("Đón bạn vào học & chúc mừng");
+    expect(lumi).toContain("Lưu kịch bản");
+    expect(lumi).toContain("Thêm câu");
+    expect(lumi).toContain("Khôi phục");
   });
 
   it("cho phép tùy chỉnh mô tả và câu thoại từng Kaomoji", () => {
