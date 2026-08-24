@@ -31,6 +31,9 @@ describe("Kế hoạch tự quản lý", () => {
     expect(source).toContain("Đã học hôm nay");
     expect(source).toContain("Nhận thời gian chơi điện thoại");
     expect(source).toContain("claimDailyPhoneReward");
+    expect(source).toContain("Nhắc bảo vệ streak");
+    expect(source).toContain("Cho phép notification");
+    expect(source).toContain("StudyDataBackupPanel");
   });
 
   it("có đúng một event mẫu, không chứa phần thưởng XP", () => {

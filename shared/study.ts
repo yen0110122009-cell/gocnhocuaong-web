@@ -807,6 +807,12 @@ export type DailyPhoneRewardClaim = {
   completedPlanItemIds: string[];
 };
 
+export type DailyPlanReminderSettings = {
+  enabled: boolean;
+  hour: number;
+  minute: number;
+};
+
 export type ProfileState = {
   xp: number;
   level: number;
@@ -881,6 +887,8 @@ export type ProfileState = {
   studyPlanItems?: StudyPlanItem[];
   /** Cấu hình mức thưởng thời gian chơi điện thoại do người dùng tự đặt. */
   dailyPhoneRewardSettings?: DailyPhoneRewardSettings;
+  /** Nhắc cuối ngày khi còn Kế hoạch ngày chưa hoàn thành để bảo vệ streak. */
+  dailyPlanReminderSettings?: DailyPlanReminderSettings;
   /** Biên nhận thưởng thời gian chơi điện thoại, mỗi ngày chỉ claim một lần. */
   dailyPhoneRewardClaims?: DailyPhoneRewardClaim[];
   /** Mảnh ghép nhận trực tiếp từ các mục Kế hoạch đã hoàn tất. */
@@ -1072,6 +1080,7 @@ export const emptyProfile = (): ProfileState => ({
   studyPlanItems: [],
       planFragments: 0,
     dailyPhoneRewardSettings: { baseMinutes: 10, bonusMinutesPerStudyBlock: 5 },
+    dailyPlanReminderSettings: { enabled: true, hour: 20, minute: 0 },
     dailyPhoneRewardClaims: [],
 
   showMascot: true,
@@ -1660,6 +1669,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     attempts: Array.isArray(source.attempts) ? source.attempts.flatMap((value) => { const attempt = value && typeof value === "object" ? (value as Partial<QuizAttempt>) : null; if (!attempt?.id || !attempt.quizId) return []; return [{ id: String(attempt.id), quizId: String(attempt.quizId), completedAt: String(attempt.completedAt ?? new Date(0).toISOString()), correct: Math.max(0, Number(attempt.correct) || 0), total: Math.max(0, Number(attempt.total) || 0), accuracy: Math.max(0, Math.min(100, Number(attempt.accuracy) || 0)), durationSeconds: Math.max(0, Number(attempt.durationSeconds) || 0), answers: Array.isArray(attempt.answers) ? attempt.answers : [] }]; }) : [],
     studyActivity: Array.isArray(source.studyActivity) ? source.studyActivity.flatMap((value) => { const item = value && typeof value === "object" ? (value as Partial<StudyActivity>) : null; if (!item?.id || (item.kind !== "flashcard" && item.kind !== "quiz" && item.kind !== "wheel" && item.kind !== "pomodoro")) return []; return [{ id: String(item.id), occurredAt: String(item.occurredAt ?? new Date(0).toISOString()), kind: item.kind, quantity: Math.max(0, Number(item.quantity) || 0), durationSeconds: Math.max(0, Number(item.durationSeconds) || 0), xpEarned: Math.max(0, Number(item.xpEarned) || 0), correct: item.correct === undefined ? undefined : Math.max(0, Number(item.correct) || 0), total: item.total === undefined ? undefined : Math.max(0, Number(item.total) || 0) }]; }) : [],
     dailyPhoneRewardSettings: source.dailyPhoneRewardSettings && typeof source.dailyPhoneRewardSettings === "object" ? { baseMinutes: Math.max(0, Math.min(120, Math.floor(Number((source.dailyPhoneRewardSettings as Partial<DailyPhoneRewardSettings>).baseMinutes) || 0))), bonusMinutesPerStudyBlock: Math.max(0, Math.min(30, Math.floor(Number((source.dailyPhoneRewardSettings as Partial<DailyPhoneRewardSettings>).bonusMinutesPerStudyBlock) || 0))) } : { baseMinutes: 10, bonusMinutesPerStudyBlock: 5 },
+    dailyPlanReminderSettings: source.dailyPlanReminderSettings && typeof source.dailyPlanReminderSettings === "object" ? { enabled: (source.dailyPlanReminderSettings as Partial<DailyPlanReminderSettings>).enabled !== false, hour: (() => { const value = Number((source.dailyPlanReminderSettings as Partial<DailyPlanReminderSettings>).hour); return Number.isFinite(value) ? Math.max(0, Math.min(23, Math.floor(value))) : 20; })(), minute: Number((source.dailyPlanReminderSettings as Partial<DailyPlanReminderSettings>).minute) === 30 ? 30 : 0 } : { enabled: true, hour: 20, minute: 0 },
     dailyPhoneRewardClaims: Array.isArray(source.dailyPhoneRewardClaims) ? source.dailyPhoneRewardClaims.flatMap((value) => {
       const claim = value && typeof value === "object" ? (value as Partial<DailyPhoneRewardClaim>) : null;
       if (!claim?.date || !/^\d{4}-\d{2}-\d{2}$/.test(String(claim.date))) return [];
