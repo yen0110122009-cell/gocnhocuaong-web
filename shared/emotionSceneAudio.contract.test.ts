@@ -11,13 +11,14 @@ const mediaControls = () => source("client/src/components/EmotionCompanionMediaC
 
 describe("Lumi và Pomodoro sau tái cấu trúc", () => {
   it("đưa Kế hoạch, Pomodoro, Lumi và AI hợp nhất vào luồng Home", () => {
-    expect(home()).toContain("StudyPlanDashboard");
+    expect(home()).toContain("StudyGoalsDashboard");
     expect(home()).toContain("Bạn đồng hành Lumi");
     expect(home()).toContain("AIDataImport");
   });
 
   it("giữ Pomodoro có ngữ cảnh học và hỗ trợ Lumi trực tiếp", () => {
-    expect(pomodoro()).toContain("checkedPlanItemIds");
+    expect(pomodoro()).not.toContain("checkedPlanItemIds");
+    expect(pomodoro()).toContain("subjectNames");
     expect(pomodoro()).toContain("notes");
     expect(pomodoro()).toContain("Cần an ủi");
     expect(pomodoro()).toContain("Cần động viên");

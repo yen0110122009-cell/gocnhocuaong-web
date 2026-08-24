@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_LUMI_DIALOGUES, LUMI_DIALOGUE_GROUPS, dialoguesForGroup, saveLumiCustomDialogues, type LumiCustomDialogue } from "../client/src/lib/lumiCustomDialogues";
 
 describe("Lumi Kaomoji custom dialogues", () => {
-  it("có bộ thoại mặc định cho đủ 5 nhóm", () => {
-    expect(LUMI_DIALOGUE_GROUPS.map((group) => group.id)).toEqual(["comfort", "encouragement", "hug", "companionship", "water"]);
+  it("có bộ thoại mặc định cho đủ các nhóm hỗ trợ", () => {
+    expect(LUMI_DIALOGUE_GROUPS.map((group) => group.id)).toEqual(["comfort", "encouragement", "hug", "companionship", "water", "focus", "rest", "celebration"]);
     for (const group of LUMI_DIALOGUE_GROUPS) expect(dialoguesForGroup(DEFAULT_LUMI_DIALOGUES, group.id).length).toBeGreaterThanOrEqual(1);
   });
 

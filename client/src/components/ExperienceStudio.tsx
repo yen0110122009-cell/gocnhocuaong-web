@@ -10,6 +10,7 @@ import { LUMI_CHECKIN_OPTIONS, LUMI_WELCOME, lumiKaomojiForEmotion } from "../li
 import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
 import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
+import { LUMI_LAST_SEEN_STORAGE_KEY, LUMI_RETURN_WELCOME, shouldShowLumiReturnWelcome } from "../lib/lumiReturnWelcome";
 
 export type ExperienceStudioProps = {
   selected: EmotionId;
@@ -56,6 +57,13 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   useEffect(() => {
     setSpeechEnabled(readLumiSpeechPreference(profile?.lumiSpeechEnabled !== false));
   }, [profile?.lumiSpeechEnabled]);
+  useEffect(() => {
+    try {
+      const lastSeen = window.localStorage.getItem(LUMI_LAST_SEEN_STORAGE_KEY);
+      if (shouldShowLumiReturnWelcome(lastSeen)) setActiveMessage(LUMI_RETURN_WELCOME);
+      window.localStorage.setItem(LUMI_LAST_SEEN_STORAGE_KEY, new Date().toISOString());
+    } catch { /* Không làm gián đoạn module nếu localStorage bị chặn. */ }
+  }, []);
   useEffect(() => {
     const onSpeechUnavailable = () => undefined;
     window.addEventListener(LUMI_SPEECH_UNAVAILABLE_EVENT, onSpeechUnavailable);
@@ -104,7 +112,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   }, []);
 
   useEffect(() => {
-    if (activeMessage === LUMI_WELCOME.text) return;
+    if (activeMessage === LUMI_WELCOME.text || activeMessage === LUMI_RETURN_WELCOME) return;
     if (!activeDialogues.some((dialogue) => dialogue.text === activeMessage)) setActiveMessage(activeDialogues[0]?.text ?? current.encouragement);
   }, [activeDialogues, activeMessage, current.encouragement]);
 

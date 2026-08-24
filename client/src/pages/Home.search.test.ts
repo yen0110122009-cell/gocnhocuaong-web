@@ -4,10 +4,11 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(new URL("./Home.tsx", import.meta.url), "utf8");
 
 describe("global learning search", () => {
-  it("indexes flashcards, quizzes and Kế hoạch", () => {
+  it("indexes flashcards and quizzes without daily plans", () => {
     expect(source).toContain("profile.flashcardSets.map");
     expect(source).toContain("profile.quizzes.map");
-    expect(source).toContain("profile.studyPlanItems ?? []).map");
+    expect(source).not.toContain("profile.studyPlanItems ?? []).map");
+    expect(source).toContain("Tìm Flashcard, đề hoặc môn học");
     expect(source).not.toContain('to: "achievements" as View');
     expect(source).not.toContain('to: "museum" as View');
   });

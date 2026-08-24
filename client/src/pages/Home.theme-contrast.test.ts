@@ -25,9 +25,9 @@ describe("tone giao diện và typography tương phản cao", () => {
     expect(study).toContain("normalizeCosmeticPaletteId");
   });
 
-  it("gắn tone được chọn vào shell và tổng quan Kế hoạch", () => {
+  it("gắn tone được chọn vào shell và tổng quan mục tiêu thời gian", () => {
     expect(home).toContain("activeCosmeticTheme");
-    expect(home).toContain("Kế hoạch hôm nay");
+    expect(home).toContain("Mục tiêu thời gian");
     expect(home).toContain("root.dataset.cosmeticTheme");
     expect(css).not.toContain("level-status-card");
     expect(css).toContain("--cosmetic-text-strong");

@@ -1,46 +1,32 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { emptyAppConfig, normalizeProfile } from "./study";
 
-describe("Kế hoạch tự quản lý", () => {
-  it("chuẩn hóa kế hoạch theo ngày/tuần và giữ dấu đã nhận thưởng", () => {
+describe("dữ liệu kế hoạch legacy được bảo toàn", () => {
+  it("giữ lịch sử Kế hoạch cũ và không làm mất thời gian Pomodoro khi chuẩn hóa hồ sơ", () => {
     const profile = normalizeProfile({
-      studyPlanItems: [
-        { id: "daily-1", title: "Ôn công thức", cadence: "day", completed: true, completedAt: "2026-08-23T08:00:00.000Z", reward: "fragment", rewardAmount: 2, rewardGrantedAt: "2026-08-23T08:00:01.000Z" },
-        { id: "weekly-1", title: "Làm đề", cadence: "week", reward: "ticket", rewardAmount: 1 },
-        { id: "daily-1", title: "Bản trùng", cadence: "day", reward: "fragment", rewardAmount: 1 },
-      ],
+      studyPlanItems: [{ id: "daily-1", title: "Ôn công thức", cadence: "day", completed: true, completedAt: "2026-08-23T08:00:00.000Z", reward: "fragment", rewardAmount: 2 }],
       planFragments: 2,
-      planTickets: 1,
+      pomodoroHistory: [{ id: "pomo-1", subject: "Toán", topic: "Hàm số", durationMinutes: 25, startedAt: "2026-08-23T08:00:00.000Z", endedAt: "2026-08-23T08:25:00.000Z", sessionNumber: 1, totalSessions: 1, mode: "focus", status: "completed" }],
+      studyActivity: [{ id: "activity-1", occurredAt: "2026-08-23T08:25:00.000Z", kind: "pomodoro", quantity: 1, durationSeconds: 1_500, xpEarned: 0 }],
     });
-
-    expect(profile.studyPlanItems).toHaveLength(2);
-    expect(profile.studyPlanItems.find((item) => item.id === "daily-1")).toMatchObject({ cadence: "day", completed: true, rewardGrantedAt: "2026-08-23T08:00:01.000Z" });
-    expect(profile.studyPlanItems.find((item) => item.id === "weekly-1")).toMatchObject({ cadence: "week", reward: "fragment", rewardAmount: 1 });
-    expect(profile.planFragments).toBe(3);
+    expect(profile.studyPlanItems).toHaveLength(1);
+    expect(profile.studyPlanItems?.[0]).toMatchObject({ title: "Ôn công thức", completed: true });
+    expect(profile.planFragments).toBe(2);
+    expect(profile.pomodoroHistory).toHaveLength(1);
+    expect(profile.studyActivity[0].durationSeconds).toBe(1_500);
   });
 
-  it("không cộng hoặc hiển thị Mảnh ghép trong Kế hoạch", () => {
-    const source = readFileSync(resolve(process.cwd(), "client/src/components/StudyPlanDashboard.tsx"), "utf8");
-    expect(source).not.toContain("planFragments");
-    expect(source).not.toContain("Mảnh ghép");
-    expect(source).not.toContain("shouldGrant");
-    expect(source).toContain("Đã đánh dấu hoàn thành mục tiêu.");
-    expect(source).toContain("Tổng kết cuối ngày");
-    expect(source).toContain("Đã học hôm nay");
-    expect(source).toContain("Nhận thời gian chơi điện thoại");
-    expect(source).toContain("claimDailyPhoneReward");
-    expect(source).toContain("Nhắc bảo vệ streak");
-    expect(source).toContain("Cho phép notification");
-    expect(source).toContain("StudyDataBackupPanel");
+  it("không tự tạo Kế hoạch mới khi hồ sơ cũ không có dữ liệu", () => {
+    const profile = normalizeProfile({});
+    expect(profile.studyPlanItems).toEqual([]);
+    expect(profile.dailyPhoneRewardClaims).toEqual([]);
+    expect(profile.dailyPlanReminderSettings).toMatchObject({ enabled: true, hour: 20, minute: 0 });
   });
 
-  it("có đúng một event mẫu, không chứa phần thưởng XP", () => {
+  it("giữ đúng một event mẫu legacy không có phần thưởng XP", () => {
     const events = emptyAppConfig().collectionConfig?.events ?? [];
     expect(events).toHaveLength(1);
     expect(events[0]).toMatchObject({ id: "sample-weekly-plan-event", approvalStatus: "approved", status: "active" });
     expect(events[0].rewards.some((reward) => reward.type === "xp")).toBe(false);
-    expect(events[0].fragmentRewards).toEqual([{ tier: "I", amount: 2, label: "2 mảnh ghép Cấp I" }]);
   });
 });

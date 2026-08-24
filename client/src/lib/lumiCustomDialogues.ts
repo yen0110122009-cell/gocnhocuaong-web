@@ -1,4 +1,4 @@
-export type LumiDialogueGroup = "comfort" | "encouragement" | "hug" | "companionship" | "water";
+export type LumiDialogueGroup = "comfort" | "encouragement" | "hug" | "companionship" | "water" | "focus" | "rest" | "celebration";
 
 export type LumiCustomDialogue = {
   id: string;
@@ -16,6 +16,9 @@ export const LUMI_DIALOGUE_GROUPS: Array<{ id: LumiDialogueGroup; label: string;
   { id: "hug", label: "Ôm ấp", emoji: "🫂", description: "Một cái ôm ấm áp, không phán xét." },
   { id: "companionship", label: "Đồng hành", emoji: "🤝", description: "Lumi ngồi cạnh Ong trong lúc học." },
   { id: "water", label: "Nhắc uống nước", emoji: "💧", description: "Nhắc chăm sóc cơ thể giữa các phiên." },
+  { id: "focus", label: "Tập trung", emoji: "🎯", description: "Giúp Ong quay lại một việc nhỏ trước mắt." },
+  { id: "rest", label: "Nghỉ ngơi", emoji: "☕", description: "Nhắc nghỉ đúng lúc để học bền hơn." },
+  { id: "celebration", label: "Chúc mừng", emoji: "🎉", description: "Ghi nhận nỗ lực và những bước tiến của Ong." },
 ];
 
 export const DEFAULT_LUMI_DIALOGUES: LumiCustomDialogue[] = [
@@ -29,6 +32,12 @@ export const DEFAULT_LUMI_DIALOGUES: LumiCustomDialogue[] = [
   { id: "default-companionship-2", group: "companionship", text: "Lumi sẵn sàng ngồi cạnh bạn. Một phiên, một mục tiêu, mình cùng làm nhé.", isDefault: true },
   { id: "default-water-1", group: "water", text: "Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧", isDefault: true },
   { id: "default-water-2", group: "water", text: "Ngoan lắm! Tiếp tục thôi nào ✨", isDefault: true },
+  { id: "default-focus-1", group: "focus", text: "Mình chọn đúng một việc trong năm phút tới nhé. Lumi ngồi cạnh Ong đây 🎯", isDefault: true },
+  { id: "default-focus-2", group: "focus", text: "Tắt bớt xao nhãng nào. Một bước rõ ràng là đủ để bắt đầu.", isDefault: true },
+  { id: "default-rest-1", group: "rest", text: "Ong đã cố gắng rồi. Mình nghỉ mắt và thả lỏng vai một chút nhé ☕", isDefault: true },
+  { id: "default-rest-2", group: "rest", text: "Nghỉ ngắn không làm mất nhịp học; nó giúp Ong quay lại nhẹ nhàng hơn.", isDefault: true },
+  { id: "default-celebration-1", group: "celebration", text: "Chúc mừng Ong! Từng bước nhỏ hôm nay đều rất đáng tự hào 🎉", isDefault: true },
+  { id: "default-celebration-2", group: "celebration", text: "Ong đã làm được rồi! Hãy lưu lại niềm vui này trước khi chọn bước tiếp theo ✨", isDefault: true },
 ];
 
 const GROUP_IDS = new Set<LumiDialogueGroup>(LUMI_DIALOGUE_GROUPS.map((group) => group.id));
@@ -81,8 +90,11 @@ export function saveLumiCustomDialogues(dialogues: LumiCustomDialogue[]) {
 }
 
 export function dialogueGroupForEmotion(emotion: string): LumiDialogueGroup {
-  if (["tired", "sad", "stressed", "overwhelmed", "sleepy"].includes(emotion)) return "comfort";
-  if (["lazy", "focused", "hopeful", "proud", "confident", "excited", "comeback"].includes(emotion)) return "encouragement";
+  if (["tired", "sad", "stressed", "overwhelmed"].includes(emotion)) return "comfort";
+  if (emotion === "sleepy") return "rest";
+  if (emotion === "focused") return "focus";
+  if (["proud", "excited"].includes(emotion)) return "celebration";
+  if (["lazy", "hopeful", "confident", "comeback"].includes(emotion)) return "encouragement";
   if (emotion === "lonely") return "companionship";
   return "companionship";
 }

@@ -1,0 +1,38 @@
+import { describe, expect, it } from "vitest";
+import { emptyProfile } from "./study";
+import { formatStudyMinutes, goalPercent, normalizeStudySubjects, studySecondsForDay, studySecondsForWeek, subjectHistory, subjectSecondsForDay } from "./studyTimeAnalytics";
+
+const profile = () => ({ ...emptyProfile(), studyActivity: [
+  { id: "p-1", occurredAt: "2026-08-24T08:00:00", kind: "pomodoro" as const, quantity: 1, durationSeconds: 1_800, xpEarned: 0 },
+  { id: "wheel", occurredAt: "2026-08-24T09:00:00", kind: "wheel" as const, quantity: 1, durationSeconds: 9_999, xpEarned: 0 },
+  { id: "p-2", occurredAt: "2026-08-25T08:00:00", kind: "pomodoro" as const, quantity: 1, durationSeconds: 3_600, xpEarned: 0 },
+], pomodoroHistory: [
+  { id: "s-1", startedAt: "2026-08-24T08:00:00", endedAt: "2026-08-24T08:30:00", durationMinutes: 30, subject: "Toán", topic: "Hàm số", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "completed" as const },
+  { id: "s-2", startedAt: "2026-08-25T08:00:00", endedAt: "2026-08-25T08:45:00", durationMinutes: 45, subject: "Toán", topic: "Đạo hàm", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "completed" as const },
+  { id: "break", startedAt: "2026-08-24T08:30:00", endedAt: "2026-08-24T08:35:00", durationMinutes: 5, subject: "Toán", topic: "Nghỉ", sessionNumber: 1, totalSessions: 1, mode: "shortBreak" as const, status: "completed" as const },
+  { id: "abandoned", startedAt: "2026-08-24T10:00:00", endedAt: "2026-08-24T10:02:00", durationMinutes: 2, subject: "Lý", topic: "Cơ học", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "abandoned" as const },
+] });
+
+describe("study time analytics", () => {
+  it("tổng hợp ngày/tuần từ StudyActivity và bỏ hoạt động wheel", () => {
+    const value = profile();
+    expect(studySecondsForDay(value, new Date("2026-08-24T12:00:00"))).toBe(1_800);
+    expect(studySecondsForWeek(value, new Date("2026-08-26T12:00:00"))).toBe(5_400);
+  });
+  it("tổng hợp môn chỉ từ phiên focus hoàn thành và phân cấp theo ngày", () => {
+    const value = profile();
+    const history = subjectHistory(value, "Toán", new Date("2026-08-24T12:00:00"));
+    expect(history.totalSeconds).toBe(75 * 60);
+    expect(history.yearSeconds).toBe(75 * 60);
+    expect(history.monthSeconds).toBe(75 * 60);
+    expect(subjectSecondsForDay(value, "Toán", new Date("2026-08-24T12:00:00"))).toBe(30 * 60);
+    expect(history.days.map((day) => day.key)).toEqual(["2026-08-25", "2026-08-24"]);
+    expect(history.months[0].days[0]).toMatchObject({ key: "2026-08-25", seconds: 2_700 });
+  });
+  it("chuẩn hóa môn mặc định, mục tiêu và định dạng phút", () => {
+    expect(normalizeStudySubjects([" Toán ", "Sinh học", "", 42])).toEqual(["Toán", "Lý", "Hóa", "Văn", "Anh", "Sinh học"]);
+    expect(formatStudyMinutes(3_660)).toBe("1 giờ 1 phút");
+    expect(goalPercent(45, 60)).toBe(75);
+    expect(goalPercent(20, 0)).toBe(0);
+  });
+});

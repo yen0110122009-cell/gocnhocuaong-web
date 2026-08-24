@@ -15,7 +15,8 @@ export type PersistedPomodoroSession = {
   topic: string;
   activity: string;
   notes: string;
-  checkedPlanItemIds: string[];
+  /** Tương thích phiên cũ; giao diện hiện tại không còn dùng liên kết Kế hoạch. */
+  checkedPlanItemIds?: string[];
   totalSessions: number;
   goalCompletedSessions?: number;
   sessionStartedAt: string | null;

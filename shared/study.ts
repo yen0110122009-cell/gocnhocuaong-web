@@ -784,6 +784,8 @@ export type StudyPlanItem = {
   subject?: string;
   course?: string;
   scheduledFor: string;
+  timeOfDay?: "morning" | "afternoon" | "evening";
+  estimatedMinutes?: number;
   cadence: "day" | "week";
   completed: boolean;
   completedAt?: string;
@@ -811,6 +813,12 @@ export type DailyPlanReminderSettings = {
   enabled: boolean;
   hour: number;
   minute: number;
+};
+
+export type StudyTimeGoals = {
+  dailyMinutes: number;
+  weeklyMinutes: number;
+  subjectDailyMinutes: Record<string, number>;
 };
 
 export type ProfileState = {
@@ -876,6 +884,10 @@ export type ProfileState = {
   focusMode?: boolean;
   weeklyPomodoroGoalMinutes?: number;
   weeklyPomodoroGoalCompletions?: WeeklyPomodoroGoalCompletion[];
+  /** Mục tiêu thời gian học mới, độc lập với Kế hoạch ngày đã ngừng hiển thị. */
+  studyTimeGoals?: StudyTimeGoals;
+  /** Danh sách môn học dùng để phân loại lịch sử Pomodoro. */
+  studySubjects?: string[];
   lumiCongratulationMessages?: Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>>;
   /** Cách Lumi đồng hành trong phiên Pomodoro; có thể tắt hoàn toàn lời nhắc. */
   pomodoroLumiSupportMode?: "comfort" | "encouragement" | "off";
@@ -1108,6 +1120,8 @@ export const emptyProfile = (): ProfileState => ({
   focusMode: false,
   weeklyPomodoroGoalMinutes: 300,
   weeklyPomodoroGoalCompletions: [],
+  studyTimeGoals: { dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: {} },
+  studySubjects: ["Toán", "Lý", "Hóa", "Văn", "Anh"],
   lumiCongratulationMessages: {},
   theme: "light",
   lastActivityAt: null,
@@ -1689,6 +1703,8 @@ export function normalizeProfile(value: unknown): ProfileState {
         subject: typeof item.subject === "string" && item.subject.trim() ? item.subject.trim().slice(0, 80) : undefined,
         course: typeof item.course === "string" && item.course.trim() ? item.course.trim().slice(0, 100) : undefined,
         scheduledFor: typeof item.scheduledFor === "string" && item.scheduledFor ? item.scheduledFor.slice(0, 10) : new Date().toISOString().slice(0, 10),
+        timeOfDay: item.timeOfDay === "afternoon" || item.timeOfDay === "evening" ? item.timeOfDay : "morning",
+        estimatedMinutes: Math.max(0, Math.min(480, Math.floor(Number(item.estimatedMinutes) || 0))) || undefined,
         cadence: item.cadence === "week" ? "week" : "day",
         completed: item.completed === true,
         completedAt: typeof item.completedAt === "string" && item.completedAt ? item.completedAt : undefined,
@@ -1936,6 +1952,8 @@ export function normalizeProfile(value: unknown): ProfileState {
     autoNightMode: source.autoNightMode === true,
     focusMode: source.focusMode === true,
     weeklyPomodoroGoalMinutes: Math.max(30, Math.min(10_080, Math.round(Number(source.weeklyPomodoroGoalMinutes ?? base.weeklyPomodoroGoalMinutes ?? 300) || base.weeklyPomodoroGoalMinutes || 300))),
+    studyTimeGoals: (() => { const raw = source.studyTimeGoals && typeof source.studyTimeGoals === "object" ? source.studyTimeGoals as Partial<StudyTimeGoals> : {}; const subjectDailyMinutes = raw.subjectDailyMinutes && typeof raw.subjectDailyMinutes === "object" ? Object.fromEntries(Object.entries(raw.subjectDailyMinutes).flatMap(([subject, value]) => { const name = subject.trim().slice(0, 80); const minutes = Math.max(0, Math.min(1_440, Math.round(Number(value) || 0))); return name && minutes > 0 ? [[name, minutes]] : []; })) : {}; return { dailyMinutes: Math.max(0, Math.min(1_440, Math.round(Number(raw.dailyMinutes ?? 180) || 0))), weeklyMinutes: Math.max(0, Math.min(10_080, Math.round(Number(raw.weeklyMinutes ?? 900) || 0))), subjectDailyMinutes }; })(),
+    studySubjects: (() => { const values = Array.isArray(source.studySubjects) ? source.studySubjects.flatMap((value) => typeof value === "string" && value.trim() ? [value.trim().slice(0, 80)] : []) : []; return Array.from(new Set(["Toán", "Lý", "Hóa", "Văn", "Anh", ...values])).slice(0, 50); })(),
     weeklyPomodoroGoalCompletions: Array.isArray(source.weeklyPomodoroGoalCompletions) ? source.weeklyPomodoroGoalCompletions.flatMap((value) => {
       const item = value && typeof value === "object" ? value as Partial<WeeklyPomodoroGoalCompletion> : null;
       const safeItem = item ?? {};

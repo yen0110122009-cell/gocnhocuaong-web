@@ -3,8 +3,8 @@ import { DEFAULT_LUMI_DIALOGUES } from "../client/src/lib/lumiCustomDialogues";
 import { LUMI_CHECKIN_RESPONSES, LUMI_FOCUS_MESSAGE, LUMI_POSITIVE_KAOMOJI, LUMI_REST_MESSAGE, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../client/src/lib/lumiPresets";
 
 describe("Lumi normalized positive presets", () => {
-  it("giữ đủ nhóm Kaomoji tích cực và không có nhóm cảm xúc tiêu cực riêng", () => {
-    expect(Object.keys(LUMI_POSITIVE_KAOMOJI).sort()).toEqual(["comfort", "companionship", "encouragement", "hug", "rest", "water"]);
+  it("giữ đủ nhóm Kaomoji hỗ trợ và không có nhóm cảm xúc tiêu cực riêng", () => {
+    expect(Object.keys(LUMI_POSITIVE_KAOMOJI).sort()).toEqual(["celebration", "comfort", "companionship", "encouragement", "focus", "hug", "rest", "water"]);
     expect(LUMI_POSITIVE_KAOMOJI.comfort[0]).toBe("(つ_ <｡)");
     expect(LUMI_POSITIVE_KAOMOJI.hug[0]).toBe("(つ≧▽≦)つ");
     expect(LUMI_POSITIVE_KAOMOJI.companionship[0]).toBe("(*^o^)人(^o^*)");

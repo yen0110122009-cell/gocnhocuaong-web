@@ -8,6 +8,7 @@ const SUPABASE_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "")
 const REST_URL = `${SUPABASE_URL}/rest/v1/app_state`;
 const CLOUD_SESSION_KEY = "gocnhocuaong_cloud_session_v1";
 const STATE_KEY = "__gocnhocuaong";
+const PROFILE_CACHE_KEY_PREFIX = "gocnhocuaong_profile_cache_v1:";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 type CloudAccount = StudyAccount & { normalizedName: string; passwordHash: string | null };
@@ -138,8 +139,25 @@ export async function cloudCreateAccount(input: { name: string; code: string; ro
   payload.accounts.push(account); payload.profiles[account.id] = emptyProfile(); payload.updatedAt = new Date().toISOString(); await savePayload(row, payload);
   return publicCloudAccount(account);
 }
-export async function cloudLoadProfile(accountId: string): Promise<ProfileState> { const payload = parseCloudStatePayload(await loadRow()); return normalizeProfile(payload.profiles[accountId] ?? emptyProfile()); }
-export async function cloudSaveProfile(accountId: string, profile: ProfileState) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.profiles[accountId] = normalizeProfile(profile); payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
+function cacheProfile(accountId: string, profile: ProfileState) { try { window.localStorage.setItem(`${PROFILE_CACHE_KEY_PREFIX}${accountId}`, JSON.stringify(profile)); } catch { /* cache chỉ là lớp dự phòng, không làm hỏng thao tác cloud. */ } }
+export function readCachedCloudProfile(accountId: string): ProfileState | null { try { const raw = window.localStorage.getItem(`${PROFILE_CACHE_KEY_PREFIX}${accountId}`); return raw ? normalizeProfile(JSON.parse(raw)) : null; } catch { return null; } }
+export async function cloudLoadProfile(accountId: string): Promise<ProfileState> {
+  try {
+    const payload = parseCloudStatePayload(await loadRow());
+    const profile = normalizeProfile(payload.profiles[accountId] ?? emptyProfile());
+    cacheProfile(accountId, profile);
+    return profile;
+  } catch (error) {
+    const cached = readCachedCloudProfile(accountId);
+    if (cached) return cached;
+    throw error;
+  }
+}
+export async function cloudSaveProfile(accountId: string, profile: ProfileState) {
+  const normalized = normalizeProfile(profile);
+  cacheProfile(accountId, normalized);
+  const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.profiles[accountId] = normalized; payload.updatedAt = new Date().toISOString(); await savePayload(row, payload);
+}
 export async function cloudLoadConfig(): Promise<AppConfig> { return parseCloudStatePayload(await loadRow()).config; }
 export async function cloudSaveConfig(config: AppConfig) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.config = config; payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
 export async function cloudUpdateAccount(input: { id: string; role?: StudyAccount["role"]; locked?: boolean; reset?: boolean }): Promise<StudyAccount> {

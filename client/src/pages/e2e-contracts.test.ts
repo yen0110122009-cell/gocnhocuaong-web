@@ -31,13 +31,14 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(home).not.toContain("Trung tâm điều khiển của Ong");
   });
 
-  it("giữ Pomodoro lưu phiên, ngữ cảnh học và liên kết Kế hoạch", () => {
+  it("giữ Pomodoro lưu phiên và ngữ cảnh học theo môn", () => {
     expect(pomodoro).toContain("onProfile");
     expect(pomodoro).toContain("pomodoroHistory");
     expect(pomodoro).toContain("durationMinutes");
     expect(pomodoro).toContain("startedAt");
     expect(pomodoro).toContain("endedAt");
-    expect(pomodoro).toContain("checkedPlanItemIds");
+    expect(pomodoro).toContain("subject");
+    expect(pomodoro).toContain("topic");
     expect(pomodoro).toContain("notes");
   });
 

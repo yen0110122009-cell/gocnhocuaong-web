@@ -32,7 +32,8 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("Môn học");
     expect(source).toContain("Nội dung");
     expect(source).toContain("Ghi chú phiên học");
-    expect(source).toContain("checkedPlanItemIds");
+    expect(source).toContain("subject");
+    expect(source).toContain("topic");
   });
 
   it("giữ hỗ trợ chống trì hoãn và Lumi không chặn thao tác", () => {

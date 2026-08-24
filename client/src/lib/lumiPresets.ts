@@ -9,7 +9,9 @@ export const LUMI_POSITIVE_KAOMOJI: Record<LumiDialogueGroup | "rest", string[]>
   companionship: ["(*^o^)人(^o^*)", "(・_・)人(・_・)", "＼(＾∀＾)メ(＾∀＾)ノ", "(๑˃̵ᴗ˂̵)━(̵⠇̵ᴗ⠇̵)"],
   encouragement: ["٩(ˊᗜˋ*)و", "(ง’̀-‘́)ง", "(๑•̀ㅂ•́)و", "٩(｡•́‿•̀｡)۶", "(ﾉ•̀ᴗ•́)ﾉ", "(*•̀ᴗ•́*)و ̑̑"],
   water: ["(´ー`)旦~~", "(˘▽˘)っ♨", "(っ˘ڡ˘ς)"],
+  focus: ["(•̀ᴗ•́)و ̑̑", "(ง •̀_•́)ง", "(๑•̀ㅂ•́)و✧"],
   rest: ["[(－－)]..zzZ", "(∪｡∪)｡｡｡zzZ", "(￣o￣)zzZZ"],
+  celebration: ["ヽ(>∀<☆)ノ", "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧", "٩(◕‿◕｡)۶"],
 };
 
 export const LUMI_WELCOME = {
@@ -30,13 +32,13 @@ export const LUMI_CHECKIN_OPTIONS: LumiCheckinOption[] = [
   { id: "stressed", label: "Lo lắng", emoji: "🌧️", group: "comfort" },
   { id: "overwhelmed", label: "Quá tải", emoji: "🫧", group: "comfort" },
   { id: "lazy", label: "Thiếu động lực", emoji: "🫠", group: "encouragement" },
-  { id: "focused", label: "Tập trung", emoji: "🎯", group: "encouragement" },
+  { id: "focused", label: "Tập trung", emoji: "🎯", group: "focus" },
   { id: "confident", label: "Sẵn sàng học", emoji: "💪", group: "encouragement" },
   { id: "lonely", label: "Cần cái ôm", emoji: "🫂", group: "hug" },
   { id: "calm", label: "Bình tĩnh", emoji: "🌿", group: "companionship" },
   { id: "happy", label: "Vui vẻ", emoji: "🌞", group: "companionship" },
   { id: "hopeful", label: "Hy vọng", emoji: "🌱", group: "companionship" },
-  { id: "excited", label: "Hào hứng", emoji: "⚡", group: "encouragement" },
+  { id: "excited", label: "Hào hứng", emoji: "⚡", group: "celebration" },
 ];
 
 export const LUMI_CHECKIN_RESPONSES = {
@@ -61,8 +63,10 @@ export function lumiRoutineMessage(mode: PomodoroMode, running: boolean) {
 }
 
 export function lumiKaomojiForEmotion(emotion: string) {
-  if (["tired", "sad", "stressed", "overwhelmed", "sleepy"].includes(emotion)) return LUMI_POSITIVE_KAOMOJI.comfort[0];
+  if (["tired", "sad", "stressed", "overwhelmed"].includes(emotion)) return LUMI_POSITIVE_KAOMOJI.comfort[0];
   if (emotion === "lonely") return LUMI_POSITIVE_KAOMOJI.hug[0];
-  if (emotion === "focused") return LUMI_POSITIVE_KAOMOJI.companionship[0];
+  if (emotion === "focused") return LUMI_POSITIVE_KAOMOJI.focus[0];
+  if (emotion === "sleepy") return LUMI_POSITIVE_KAOMOJI.rest[0];
+  if (["proud", "excited"].includes(emotion)) return LUMI_POSITIVE_KAOMOJI.celebration[0];
   return LUMI_POSITIVE_KAOMOJI.encouragement[0];
 }
