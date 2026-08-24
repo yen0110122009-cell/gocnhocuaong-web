@@ -35,6 +35,17 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("Đóng cửa sổ");
   });
 
+  it("nút Khôi phục phiên nạp lại đúng session theo tài khoản và trạng thái chờ", () => {
+    expect(source).toContain("function restore()");
+    expect(source).toContain("readPersistedPomodoro(undefined, pomodoroStorageKey)");
+    expect(source).toContain("const recovered = recoverRunningSeconds(saved)");
+    expect(source).toContain("setSeconds(recovered)");
+    expect(source).toContain("setPendingTransition(pendingTransitionForSavedPomodoro(saved))");
+    expect(source).toContain("setRunning(saved.running && recovered > 0)");
+    expect(source).toContain("setGoalCompletedSessions(saved.goalCompletedSessions ?? 0)");
+    expect(source).toContain("Đã khôi phục phiên Pomodoro");
+  });
+
   it("lưu ngữ cảnh học gồm môn, nội dung và ghi chú", () => {
     expect(source).toContain("Môn học");
     expect(source).toContain("Nội dung");
