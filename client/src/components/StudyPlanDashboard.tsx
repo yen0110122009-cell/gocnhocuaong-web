@@ -1,8 +1,8 @@
 import { CalendarDays, CheckCircle2, Copy, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import type { ProfileState, StudyPlanItem } from "../../../shared/study";
-import { claimDailyPhoneReward, dailyPlanSummary, formatStudyDuration, localDateKey } from "../../../shared/dailyPlanReward";
+import type { DailyPhoneRewardSettings, ProfileState, StudyPlanItem } from "../../../shared/study";
+import { claimDailyPhoneReward, dailyPlanSummary, formatStudyDuration, localDateKey, normalizeDailyPhoneRewardSettings } from "../../../shared/dailyPlanReward";
 import { trpc } from "@/lib/trpc";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 
@@ -25,8 +25,10 @@ export function StudyPlanDashboard({ profile, onProfile, onOpenPomodoro, token, 
   const [aiDraft, setAiDraft] = useState<AIDraftItem[]>([]);
   const items = profile.studyPlanItems ?? [];
   const [summaryOpen, setSummaryOpen] = useState(false);
+  const [rewardSettingsDraft, setRewardSettingsDraft] = useState<DailyPhoneRewardSettings>(() => normalizeDailyPhoneRewardSettings(profile.dailyPhoneRewardSettings));
   const groups = useMemo(() => ({ day: items.filter((item) => item.cadence === "day" && !item.completed), week: items.filter((item) => item.cadence === "week" && !item.completed), completed: items.filter((item) => item.completed) }), [items]);
   const dailySummary = useMemo(() => dailyPlanSummary(profile, today()), [profile]);
+  useEffect(() => { setRewardSettingsDraft(normalizeDailyPhoneRewardSettings(profile.dailyPhoneRewardSettings)); }, [profile.dailyPhoneRewardSettings]);
   const dailyPlanMutation = trpc.study.ai.generateDailyPlan.useMutation({
     onSuccess: (result) => { setAiOverview(result.overview); setAiDraft(result.items); toast.success("AI đã tạo bản nháp. Hãy xem và chỉnh sửa trước khi thêm vào Kế hoạch."); },
     onError: (error) => toast.error(error.message || "Chưa thể tạo bản nháp Kế hoạch."),
@@ -61,6 +63,12 @@ export function StudyPlanDashboard({ profile, onProfile, onOpenPomodoro, token, 
   };
   const remove = (item: StudyPlanItem) => { if (!window.confirm(`Xóa mục tiêu “${item.title}”? Thao tác này không thể hoàn tác trong Kế hoạch.`)) return; update(items.filter((entry) => entry.id !== item.id)); if (editingId === item.id) clearForm(); toast.success("Đã xóa mục tiêu khỏi Kế hoạch."); };
   const addSampleEvent = () => { if (items.some((item) => item.id === "event-sample-one-small-step")) { toast.message("Event mẫu đã có trong Kế hoạch."); return; } update([{ id: "event-sample-one-small-step", title: "Event mẫu: Hoàn thành một bước nhỏ", subject: "Thử thách cộng đồng", scheduledFor: today(), cadence: "week", completed: false, reward: "fragment", rewardAmount: 1, notes: "Chọn một việc học cụ thể trong tuần, hoàn thành rồi tự đánh dấu." }, ...items]); toast.success("Đã thêm event mẫu vào Kế hoạch."); };
+  const saveRewardSettings = () => {
+    const settings = normalizeDailyPhoneRewardSettings(rewardSettingsDraft);
+    setRewardSettingsDraft(settings);
+    onProfile({ ...profile, dailyPhoneRewardSettings: settings });
+    toast.success("Đã lưu cài đặt phần thưởng.");
+  };
   const claimReward = () => {
     const result = claimDailyPhoneReward(profile, dailySummary.date);
     if (!result.claimed) {
@@ -74,6 +82,9 @@ export function StudyPlanDashboard({ profile, onProfile, onOpenPomodoro, token, 
   const PlanGroup = ({ groupCadence, label, groupItems }: { groupCadence: "day" | "week"; label: string; groupItems: StudyPlanItem[] }) => <PersistentCollapsible storageKey={`plans-${groupCadence}`} title={label} eyebrow={`${groupItems.length} mục chưa hoàn thành`} ><div className="space-y-3">{groupItems.length ? groupItems.map((item) => <ItemRow key={item.id} item={item} />) : <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500 dark:border-white/15 dark:text-slate-300">Chưa có mục nào. Hãy bắt đầu bằng một việc nhỏ, rõ ràng.</div>}</div></PersistentCollapsible>;
   return <section className="space-y-5" aria-label="Kế hoạch ngày và tuần">
     <PersistentCollapsible storageKey="plans-overview" title="Kế hoạch ngày – tuần" eyebrow="Trang kế hoạch"><header className="panel overflow-hidden p-5 sm:p-6"><div><p className="text-xs font-black uppercase tracking-[.18em] text-emerald-700 dark:text-emerald-300">Trang kế hoạch</p><h1 className="mt-1 font-display text-3xl font-black text-slate-950 dark:text-white">Kế hoạch ngày – tuần</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Tự đặt mục tiêu, tự đánh dấu hoàn thành và theo dõi tiến trình học tập của mình.</p></div></header></PersistentCollapsible>
+    <PersistentCollapsible storageKey="plans-reward-settings" title="Cài đặt phần thưởng" eyebrow="Tùy chỉnh thời gian chơi">
+      <section className="rounded-3xl border border-sky-200 bg-sky-50/70 p-5 dark:border-sky-300/20 dark:bg-sky-950/20" aria-label="Cài đặt phần thưởng thời gian điện thoại"><h2 className="font-display text-xl font-bold">Tùy chỉnh mức thưởng</h2><p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">Bạn tự đặt số phút cơ bản khi hoàn thành đủ Kế hoạch ngày và số phút cộng thêm cho mỗi 30 phút học được ghi nhận.</p><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-sm font-bold">Mức thưởng cơ bản (phút)<input className="input mt-1" type="number" min="0" max="120" step="1" value={rewardSettingsDraft.baseMinutes} onChange={(event) => setRewardSettingsDraft((current) => normalizeDailyPhoneRewardSettings({ ...current, baseMinutes: Number(event.target.value) }))} aria-label="Mức thưởng thời gian cơ bản" /></label><label className="text-sm font-bold">Cộng thêm mỗi 30 phút học (phút)<input className="input mt-1" type="number" min="0" max="30" step="1" value={rewardSettingsDraft.bonusMinutesPerStudyBlock} onChange={(event) => setRewardSettingsDraft((current) => normalizeDailyPhoneRewardSettings({ ...current, bonusMinutesPerStudyBlock: Number(event.target.value) }))} aria-label="Hệ số thưởng theo thời gian học" /></label></div><p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-300">Giới hạn an toàn: mức cơ bản tối đa 120 phút, cộng thêm tối đa 30 phút mỗi khối; tổng thưởng mỗi ngày tối đa 120 phút.</p><button type="button" className="primary-button mt-4" onClick={saveRewardSettings}>Lưu cài đặt phần thưởng</button></section>
+    </PersistentCollapsible>
     <PersistentCollapsible storageKey="plans-daily-summary" title="Tổng kết cuối ngày" eyebrow={`${dailySummary.completedCount}/${dailySummary.totalItems} mục hôm nay`}>
       <section className={`rounded-3xl border p-5 sm:p-6 ${dailySummary.isComplete ? "border-emerald-300 bg-emerald-50/80 dark:border-emerald-400/30 dark:bg-emerald-400/10" : "border-amber-200 bg-amber-50/70 dark:border-amber-300/20 dark:bg-amber-400/10"}`} aria-label="Tổng kết học tập hôm nay">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.16em] text-emerald-700 dark:text-emerald-300">Tổng kết ngày {planDate(dailySummary.date)}</p><h2 className="mt-1 font-display text-2xl font-black">{dailySummary.isComplete ? "Hoàn thành trọn vẹn!" : dailySummary.totalItems ? "Mình còn một vài bước nhỏ" : "Chưa có Kế hoạch ngày"}</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-200">{dailySummary.isComplete ? "Ong đã hoàn thành toàn bộ kế hoạch hôm nay. Đây là lúc nhận phần thưởng thời gian nghỉ ngơi." : dailySummary.totalItems ? `Bạn đã hoàn thành ${dailySummary.completedCount}/${dailySummary.totalItems} mục. Hoàn thành đủ để mở phần thưởng.` : "Hãy thêm ít nhất một mục có chu kỳ Kế hoạch ngày cho hôm nay."}</p></div><span className="text-5xl" aria-hidden="true">{dailySummary.isComplete ? "🎁" : "📋"}</span></div>

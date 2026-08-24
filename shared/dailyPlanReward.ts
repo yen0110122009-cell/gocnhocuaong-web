@@ -1,4 +1,4 @@
-import type { DailyPhoneRewardClaim, ProfileState, StudyPlanItem } from "./study";
+import type { DailyPhoneRewardSettings, DailyPhoneRewardClaim, ProfileState, StudyPlanItem } from "./study";
 
 export type DailyPlanSummary = {
   date: string;
@@ -11,6 +11,7 @@ export type DailyPlanSummary = {
   isComplete: boolean;
   rewardMinutes: number;
   claimed: boolean;
+  rewardSettings: DailyPhoneRewardSettings;
 };
 
 export function localDateKey(value: Date | string) {
@@ -27,12 +28,24 @@ function isCompletedOnDate(item: StudyPlanItem, date: string) {
   return !item.completedAt || localDateKey(item.completedAt) === date;
 }
 
-function rewardMinutesForStudy(studySeconds: number) {
-  // Thưởng nền 10 phút, cộng 5 phút cho mỗi 30 phút học thật, tối đa 60 phút/ngày.
-  return Math.min(60, 10 + Math.floor(studySeconds / (30 * 60)) * 5);
+export const DEFAULT_DAILY_PHONE_REWARD_SETTINGS: DailyPhoneRewardSettings = { baseMinutes: 10, bonusMinutesPerStudyBlock: 5 };
+
+export function normalizeDailyPhoneRewardSettings(value: Partial<DailyPhoneRewardSettings> | null | undefined): DailyPhoneRewardSettings {
+  const baseMinutes = typeof value?.baseMinutes === "number" && Number.isFinite(value.baseMinutes) ? value.baseMinutes : DEFAULT_DAILY_PHONE_REWARD_SETTINGS.baseMinutes;
+  const bonusMinutesPerStudyBlock = typeof value?.bonusMinutesPerStudyBlock === "number" && Number.isFinite(value.bonusMinutesPerStudyBlock) ? value.bonusMinutesPerStudyBlock : DEFAULT_DAILY_PHONE_REWARD_SETTINGS.bonusMinutesPerStudyBlock;
+  return {
+    baseMinutes: Math.max(0, Math.min(120, Math.floor(baseMinutes))),
+    bonusMinutesPerStudyBlock: Math.max(0, Math.min(30, Math.floor(bonusMinutesPerStudyBlock))),
+  };
 }
 
-export function dailyPlanSummary(profile: Pick<ProfileState, "studyPlanItems" | "studyActivity" | "dailyPhoneRewardClaims">, date = localDateKey(new Date())): DailyPlanSummary {
+function rewardMinutesForStudy(studySeconds: number, settings: DailyPhoneRewardSettings) {
+  // Mỗi khối học được tính là 30 phút; tổng thưởng tối đa 120 phút/ngày.
+  return Math.min(120, settings.baseMinutes + Math.floor(studySeconds / (30 * 60)) * settings.bonusMinutesPerStudyBlock);
+}
+
+export function dailyPlanSummary(profile: Pick<ProfileState, "studyPlanItems" | "studyActivity" | "dailyPhoneRewardClaims" | "dailyPhoneRewardSettings">, date = localDateKey(new Date())): DailyPlanSummary {
+  const rewardSettings = normalizeDailyPhoneRewardSettings(profile.dailyPhoneRewardSettings);
   const items = (profile.studyPlanItems ?? []).filter((item) => item.cadence === "day" && item.scheduledFor === date);
   const completedItems = items.filter((item) => isCompletedOnDate(item, date));
   const studySeconds = (profile.studyActivity ?? [])
@@ -49,8 +62,9 @@ export function dailyPlanSummary(profile: Pick<ProfileState, "studyPlanItems" | 
     totalItems: items.length,
     completedCount: completedItems.length,
     isComplete,
-    rewardMinutes: isComplete ? rewardMinutesForStudy(studySeconds) : 0,
+    rewardMinutes: isComplete ? rewardMinutesForStudy(studySeconds, rewardSettings) : 0,
     claimed,
+    rewardSettings,
   };
 }
 

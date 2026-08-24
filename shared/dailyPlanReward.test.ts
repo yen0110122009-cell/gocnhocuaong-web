@@ -48,7 +48,14 @@ describe("daily plan reward", () => {
     expect(formatStudyDuration(summary.studySeconds)).toBe("40 phút");
   });
 
-  it("ghi claim một lần cho mỗi ngày", () => {
+  it("áp dụng mức cơ bản và hệ số thưởng tùy chỉnh", () => {
+    const profile = { ...profileFor([{ id: "one", completed: true, completedAt: "2026-08-24T08:30:00.000Z" }]), dailyPhoneRewardSettings: { baseMinutes: 25, bonusMinutesPerStudyBlock: 10 } };
+    const summary = dailyPlanSummary(profile, date);
+    expect(summary.rewardSettings).toEqual({ baseMinutes: 25, bonusMinutesPerStudyBlock: 10 });
+    expect(summary.rewardMinutes).toBe(35);
+  });
+
+  it ("ghi claim một lần cho mỗi ngày", () => {
     const profile = profileFor([{ id: "one", completed: true, completedAt: "2026-08-24T08:30:00.000Z" }]);
     const first = claimDailyPhoneReward(profile, date, "2026-08-24T20:00:00.000Z");
     expect(first.claimed).toBe(true);
