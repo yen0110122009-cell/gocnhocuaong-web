@@ -98,6 +98,7 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   const [speechEnabledPreference, setSpeechEnabledPreference] = useState(() => readLumiSpeechPreference(profile.lumiSpeechEnabled !== false));
   const [waterMessageDraft, setWaterMessageDraft] = useState(() => readLumiWaterMessage());
   const completionHandled = useRef(false);
+  const lastPersistedSignatureRef = useRef<string | null>(null);
   const alertContextRef = useRef<AudioContext | null>(null);
   const celebrationTimeoutRef = useRef<number | undefined>(undefined);
   const waterFeedbackTimeoutRef = useRef<number | undefined>(undefined);
@@ -105,9 +106,9 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   const popupDragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
   const lastWaterClockKeyRef = useRef<string | null>(null);
   const nextWaterReminderAtRef = useRef<number | null>(null);
-  const completedSessions = profile.pomodoroHistory.filter((item) => item.mode === "focus" && item.status === "completed");
-  const availableSubjects = subjectNames(profile);
-  const recentCompletedSessions = completedSessions.slice(0, 4);
+  const completedSessions = useMemo(() => profile.pomodoroHistory.filter((item) => item.mode === "focus" && item.status === "completed"), [profile.pomodoroHistory]);
+  const availableSubjects = useMemo(() => subjectNames(profile), [profile]);
+  const recentCompletedSessions = useMemo(() => completedSessions.slice(0, 4), [completedSessions]);
   const activeMinutes = mode === "focus" ? focus : mode === "shortBreak" ? shortBreak : longBreak;
   const display = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
   const lumiMode = profile.pomodoroLumiSupportMode ?? "encouragement";
@@ -127,10 +128,13 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   const sessionProgressLabel = mode === "focus" ? `Phiên ${currentSessionNumber}/${totalSessions}` : `Nghỉ sau phiên ${Math.min(totalSessions, goalCompletedSessions)}/${totalSessions}`;
   const timingSummary = `${focus} phút tập trung · ${shortBreak} phút nghỉ ngắn · ${longBreak} phút nghỉ dài · mục tiêu ${totalSessions} phiên`;
   const primaryActionLabel = running ? "Tạm dừng" : pendingTransition === "break" ? "Bắt đầu nghỉ" : pendingTransition === "focus" ? "Bắt đầu phiên" : mode === "focus" ? "Bắt đầu phiên" : "Bắt đầu nghỉ";
+  const persistenceSignature = useMemo(() => JSON.stringify({ focus, shortBreak, longBreak, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, pomodoroAlerts: pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y, lumiPopupX: lumiPopupPosition.x, lumiPopupY: lumiPopupPosition.y }), [focus, shortBreak, longBreak, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerPosition.x, miniPlayerPosition.y, lumiPopupPosition.x, lumiPopupPosition.y]);
 
   useEffect(() => {
+    if (lastPersistedSignatureRef.current === persistenceSignature && seconds !== 0 && seconds % 5 !== 0) return;
+    lastPersistedSignatureRef.current = persistenceSignature;
     writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, alertVolume: 0, pomodoroAlerts: pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y, lumiPopupX: lumiPopupPosition.x, lumiPopupY: lumiPopupPosition.y }, undefined, pomodoroStorageKey);
-  }, [focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerPosition, lumiPopupPosition, pomodoroStorageKey]);
+  }, [seconds, persistenceSignature, pomodoroStorageKey]);
   useEffect(() => {
     if (!detachedWindow) return;
     const writeLease = () => { try { window.localStorage.setItem(DETACHED_POMODORO_ACTIVE_KEY, String(Date.now())); } catch { /* localStorage may be unavailable */ } };

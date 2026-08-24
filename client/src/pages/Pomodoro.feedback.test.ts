@@ -29,6 +29,9 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("focusCompletionTransition");
     expect(source).toContain("pendingTransition !== null");
     expect(home).toContain("key={`pomodoro-${account.id}`}");
+    expect(home).toContain("const onOnline = () =>");
+    expect(home).toContain("window.removeEventListener(\"online\", onOnline)");
+    expect(home).toContain("window.requestAnimationFrame");
     expect(source).toContain("Đóng cửa sổ");
   });
 

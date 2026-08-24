@@ -99,8 +99,9 @@ async function inspectAudio(file: File) {
       audio.src = objectUrl;
     });
   } finally { URL.revokeObjectURL(objectUrl); }
+  let context: AudioContext | null = null;
   try {
-    const context = new AudioContext();
+    context = new AudioContext();
     const decoded = await context.decodeAudioData(await file.arrayBuffer());
     const channel = decoded.getChannelData(0);
     const bars = 48;
@@ -111,9 +112,12 @@ async function inspectAudio(file: File) {
       for (let cursor = start; cursor < end; cursor += 1) energy += Math.abs(channel[cursor] ?? 0);
       return Math.max(0.12, Math.min(1, energy / Math.max(1, end - start) * 2.4));
     });
-    await context.close();
     return { durationSeconds: durationSeconds ?? decoded.duration, waveform };
-  } catch { return { durationSeconds, waveform: fallback }; }
+  } catch {
+    return { durationSeconds, waveform: fallback };
+  } finally {
+    if (context && context.state !== "closed") await context.close().catch(() => undefined);
+  }
 }
 function Waveform({ values, currentTime = 0, duration, onSeek, onPlay, label }: { values?: number[]; currentTime?: number; duration?: number; onSeek?: (seconds: number) => void; onPlay?: () => void; label?: string }) {
   const bars = values?.length ? values : Array.from({ length: 48 }, (_, index) => 0.18 + ((index * 17) % 60) / 100);

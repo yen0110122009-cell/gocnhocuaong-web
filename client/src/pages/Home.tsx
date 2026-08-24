@@ -143,19 +143,24 @@ function suppressExternalMemoryDiagnostic(scope: ParentNode) {
 
 function protectDashboardFromExternalMemoryDiagnostic() {
   const observers: MutationObserver[] = [];
+  let scanFrame: number | undefined;
   const scan = () => {
     suppressExternalMemoryDiagnostic(document);
     document.querySelectorAll<HTMLElement>("*").forEach((host) => { if (host.shadowRoot) suppressExternalMemoryDiagnostic(host.shadowRoot); });
   };
+  const scheduleScan = () => {
+    if (scanFrame !== undefined) return;
+    scanFrame = window.requestAnimationFrame(() => { scanFrame = undefined; scan(); });
+  };
   scan();
   const observe = (target: Node) => {
-    const observer = new MutationObserver(scan);
-    observer.observe(target, { childList: true, subtree: true, characterData: true });
+    const observer = new MutationObserver(scheduleScan);
+    observer.observe(target, { childList: true, subtree: true });
     observers.push(observer);
   };
   observe(document.body);
   document.querySelectorAll<HTMLElement>("*").forEach((host) => { if (host.shadowRoot) observe(host.shadowRoot); });
-  return () => { observers.forEach((observer) => observer.disconnect()); };
+  return () => { observers.forEach((observer) => observer.disconnect()); if (scanFrame !== undefined) window.cancelAnimationFrame(scanFrame); };
 }
 const nav: { id: View; label: string; icon: typeof LayoutDashboard; admin?: boolean; special111?: boolean }[] = [
   { id: "dashboard", label: "Trang chủ", icon: LayoutDashboard }, { id: "goals", label: "Mục tiêu & thời gian học", icon: Clock3 }, { id: "pomodoro", label: "Pomodoro", icon: Clock3 }, { id: "lumi", label: "Bạn đồng hành Lumi", icon: Sparkles }, { id: "studio", label: "AI Studio & Nhập dữ liệu", icon: BrainCircuit }, { id: "flashcards", label: "Flashcard", icon: BookOpen }, { id: "quizzes", label: "Đề kiểm tra", icon: CircleHelp }, { id: "learning-trash", label: "Thùng rác học liệu", icon: Trash2 }, { id: "history", label: "Lịch sử học", icon: History }, { id: "appearance", label: "Giao diện & tone màu", icon: Palette }, { id: "admin", label: "Admin Panel", icon: ShieldCheck, admin: true },
@@ -261,11 +266,11 @@ export default function Home() {
       } catch { refreshStatus(); }
     };
     refreshStatus();
-    window.addEventListener("online", refreshStatus);
+    const onOnline = () => { refreshStatus(); void flushQueue(); };
+    window.addEventListener("online", onOnline);
     window.addEventListener("offline", refreshStatus);
-    window.addEventListener("online", () => { void flushQueue(); });
     void flushQueue();
-    return () => { window.removeEventListener("online", refreshStatus); window.removeEventListener("offline", refreshStatus); };
+    return () => { window.removeEventListener("online", onOnline); window.removeEventListener("offline", refreshStatus); };
   }, [session?.account.id, session?.account.isGuest]);
   useEffect(() => {
     if (typeof window === "undefined") return;

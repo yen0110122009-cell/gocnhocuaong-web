@@ -42,6 +42,7 @@ export function PersonalStudySpaceControls({ profile, emotion, onEmotion, onProf
   const timeRules = profile.personalStudyPresetTimeRules ?? [];
   const pomodoroRules = profile.personalStudyPresetPomodoroRules ?? [];
   const actionLogs = profile.audioActionLogs ?? [];
+  useEffect(() => () => { audioRef.current?.pause(); audioRef.current = null; }, []);
   const [historyFilter, setHistoryFilter] = useState<"all" | "preset" | "asset">("all");
   const [previewAt, setPreviewAt] = useState(() => new Date().toISOString().slice(0, 16));
   const [previewMode, setPreviewMode] = useState<PersonalStudyPresetPomodoroRule["mode"] | "none">("none");

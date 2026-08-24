@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DEFAULT_EASTER_EGG_MESSAGE, EASTER_EGG_UPDATED_EVENT } from "@/lib/easterEgg";
 import { EASTER_EGG_MESSAGES_UPDATED_EVENT, pickEasterEggMessage, readEasterEggMessages, type EasterEggPopupMessage } from "@/lib/easterEggMessages";
@@ -36,6 +36,9 @@ export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
   const [messages, setMessages] = useState<EasterEggPopupMessage[]>(() => readEasterEggMessages());
   const [message, setMessage] = useState(() => readEasterEggMessages()[0]?.message ?? DEFAULT_EASTER_EGG_MESSAGE);
   const [celebrating, setCelebrating] = useState(false);
+  const celebrationTimerRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(celebrationTimerRef.current), []);
 
   useEffect(() => {
     const syncMessages = (event?: Event) => {
@@ -79,7 +82,8 @@ export function EasterEgg({ soundEnabled = true }: EasterEggProps) {
     setOpen(true);
     setCelebrating(true);
     playCelebrationTone(soundEnabled);
-    window.setTimeout(() => setCelebrating(false), 1_400);
+    window.clearTimeout(celebrationTimerRef.current);
+    celebrationTimerRef.current = window.setTimeout(() => { setCelebrating(false); celebrationTimerRef.current = undefined; }, 1_400);
   };
 
   const modal = open ? <div
