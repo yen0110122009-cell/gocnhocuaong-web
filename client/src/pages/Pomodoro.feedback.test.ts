@@ -72,6 +72,12 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("lumi-popup-modal");
     expect(source).toContain("lumi-timer-badge");
     expect(source).toContain("lumi-popup-timer-card");
+    expect(source).toContain("lumi-popup-avatar");
+    expect(source).toContain("lumiCheckinAvatar");
+    expect(source).toContain("Số lần lặp âm báo Pomodoro");
+    expect(source).toContain("Độ dài âm báo Pomodoro");
+    expect(source).toContain("Số lần lặp âm báo uống nước");
+    expect(source).toContain("Độ dài âm báo uống nước");
     expect(source).toContain("lumi-pomodoro-status-chip");
     expect(source).toContain("Lumi đang học cùng bạn");
     expect(source).toContain("Lumi đang nghỉ cùng bạn");
@@ -99,6 +105,8 @@ describe("Pomodoro feedback contract", () => {
     expect(css).toContain("min-width: 110px");
     expect(css).toContain("border-radius: 20px");
     expect(css).toContain(".lumi-avatar-box");
+    expect(css).toContain(".lumi-popup-avatar");
+    expect(css).toContain("background: #2e7d32");
     expect(css).toContain(".lumi-kaomoji-text--long");
     expect(css).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
   });
