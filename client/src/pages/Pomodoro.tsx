@@ -19,7 +19,7 @@ import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues
 import { LUMI_CHECKIN_OPTIONS, LUMI_FOCUS_MESSAGE, LUMI_REST_MESSAGE, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForEmotion, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
 import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
 import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, pickRandomLumiText, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
-import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, resetPomodoroForGoalChange } from "../lib/pomodoroFlow";
+import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldClaimPomodoroCompletion } from "../lib/pomodoroFlow";
 import { subjectNames } from "../../../shared/studyTimeAnalytics";
 import { pickLumiStateScript, readLumiStateScripts } from "../lib/lumiStateScripts";
 
@@ -98,6 +98,7 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   const [speechEnabledPreference, setSpeechEnabledPreference] = useState(() => readLumiSpeechPreference(profile.lumiSpeechEnabled !== false));
   const [waterMessageDraft, setWaterMessageDraft] = useState(() => readLumiWaterMessage());
   const completionHandled = useRef(false);
+  const completionClaimStorageKey = useMemo(() => `pomodoro_completion_claim:${encodeURIComponent(accountId)}`, [accountId]);
   const lastPersistedSignatureRef = useRef<string | null>(null);
   const alertContextRef = useRef<AudioContext | null>(null);
   const celebrationTimeoutRef = useRef<number | undefined>(undefined);
@@ -170,9 +171,27 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   }, [detachedWindow, pomodoroStorageKey]);
   useEffect(() => {
     if (seconds !== 0 || completionHandled.current || pendingTransition !== null) return;
-    completionHandled.current = true;
-    if (mode === "focus") { triggerPomodoroAlert("endFocus"); completeFocus(); } else { triggerPomodoroAlert("endBreak"); completeBreak(); }
-  }, [seconds, mode, pendingTransition]);
+    let cancelled = false;
+    const complete = () => {
+      if (cancelled || completionHandled.current) return;
+      completionHandled.current = true;
+      if (mode === "focus") { triggerPomodoroAlert("endFocus"); completeFocus(); } else { triggerPomodoroAlert("endBreak"); completeBreak(); }
+    };
+    const claimAndComplete = async () => {
+      const claim = () => {
+        let rawClaim: string | null = null;
+        try { rawClaim = window.localStorage.getItem(completionClaimStorageKey); } catch { /* localStorage có thể bị chặn */ }
+        if (!shouldClaimPomodoroCompletion(rawClaim, mode, sessionStartedAt)) return;
+        try { window.localStorage.setItem(completionClaimStorageKey, JSON.stringify({ mode, sessionStartedAt, claimedAt: Date.now() })); } catch { /* vẫn cho phép chạy nếu storage không dùng được */ }
+        complete();
+      };
+      if (typeof navigator !== "undefined" && navigator.locks) {
+        await navigator.locks.request(completionClaimStorageKey, { ifAvailable: true }, async (lock) => { if (lock) claim(); });
+      } else claim();
+    };
+    void claimAndComplete();
+    return () => { cancelled = true; };
+  }, [seconds, mode, pendingTransition, sessionStartedAt, completionClaimStorageKey]);
   useEffect(() => {
     if (!running || mode !== "focus" || lumiMode === "off" || profile.popupsEnabled === false) return;
     const reminder = window.setTimeout(() => setSupportMessage(createSupport(lumiMode === "comfort" ? "comfort" : "encouragement")), 5 * 60_000);

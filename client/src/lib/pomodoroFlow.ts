@@ -34,6 +34,20 @@ export function focusCompletionTransition(input: { completedFocusSessions: numbe
   return { completedFocusSessions: completed, mode, pendingTransition: input.autoAdvance ? null : "break" as const, seconds: input.autoAdvance ? breakMinutes * 60 : 0, running: input.autoAdvance, goalReached };
 }
 
+export const POMODORO_COMPLETION_CLAIM_TTL_MS = 5_000;
+
+export function shouldClaimPomodoroCompletion(rawClaim: string | null, mode: PomodoroFlowMode, sessionStartedAt: string | null, now = Date.now()) {
+  if (!rawClaim) return true;
+  try {
+    const claim = JSON.parse(rawClaim) as { mode?: PomodoroFlowMode; sessionStartedAt?: string | null; claimedAt?: number };
+    const sameSession = claim.mode === mode && (claim.sessionStartedAt ?? null) === sessionStartedAt;
+    const claimedAt = Number(claim.claimedAt);
+    return !(sameSession && Number.isFinite(claimedAt) && now - claimedAt < POMODORO_COMPLETION_CLAIM_TTL_MS);
+  } catch {
+    return true;
+  }
+}
+
 export function resetPomodoroForGoalChange(focusMinutes: number) {
   return {
     completedFocusSessions: 0,

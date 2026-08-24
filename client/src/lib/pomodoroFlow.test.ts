@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak } from "./pomodoroFlow";
+import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak, shouldClaimPomodoroCompletion } from "./pomodoroFlow";
 
 describe("pomodoroFlow", () => {
   it("shows the first focus session as 1 of the selected goal", () => {
@@ -37,6 +37,20 @@ describe("pomodoroFlow", () => {
     expect(first.completedFocusSessions).toBe(1);
     expect(first.goalReached).toBe(false);
     expect(fourth).toEqual({ completedFocusSessions: 4, mode: "longBreak", pendingTransition: "break", seconds: 0, running: false, goalReached: true });
+  });
+
+  it("không nhảy mục tiêu 4 phiên lên 4/4 sau khi mới hoàn thành 2 phiên", () => {
+    const first = focusCompletionTransition({ completedFocusSessions: 0, totalSessions: 4, autoAdvance: false, shortBreakMinutes: 5, longBreakMinutes: 15 });
+    const second = focusCompletionTransition({ completedFocusSessions: first.completedFocusSessions, totalSessions: 4, autoAdvance: false, shortBreakMinutes: 5, longBreakMinutes: 15 });
+    expect(currentPomodoroSessionNumber("focus", 0, 4)).toBe(1);
+    expect(first.completedFocusSessions).toBe(1);
+    expect(second.completedFocusSessions).toBe(2);
+    expect(currentPomodoroSessionNumber("focus", second.completedFocusSessions, 4)).toBe(3);
+    expect(shouldClaimPomodoroCompletion(null, "focus", "session-1", 10_000)).toBe(true);
+    const claim = JSON.stringify({ mode: "focus", sessionStartedAt: "session-1", claimedAt: 10_000 });
+    expect(shouldClaimPomodoroCompletion(claim, "focus", "session-1", 10_001)).toBe(false);
+    expect(shouldClaimPomodoroCompletion(claim, "focus", "session-2", 10_001)).toBe(true);
+    expect(shouldClaimPomodoroCompletion(claim, "focus", "session-1", 15_001)).toBe(true);
   });
 
   it("khôi phục phiên thủ công ở giây 0 thành trạng thái chờ bắt đầu nghỉ", () => {
