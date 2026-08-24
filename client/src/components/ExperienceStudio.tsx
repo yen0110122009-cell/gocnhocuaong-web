@@ -8,7 +8,7 @@ import { readLumiSpeechPreference, readLumiSpeechSettings, saveLumiSpeechPrefere
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { LUMI_CHECKIN_OPTIONS, LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
 import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
-import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
+import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
 import { LUMI_LAST_SEEN_STORAGE_KEY, LUMI_RETURN_WELCOME, shouldShowLumiReturnWelcome } from "../lib/lumiReturnWelcome";
 
@@ -43,7 +43,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   const [dialogueFilter, setDialogueFilter] = useState<LumiDialogueGroup | "all">("all");
   const [multiDialogues, setMultiDialogues] = useState<LumiKaomojiDialogueEntry[]>(() => readLumiMultiDialogues());
   const [newMultiDialogue, setNewMultiDialogue] = useState<Record<string, string>>({});
-  const [kaomojiDrafts, setKaomojiDrafts] = useState<Record<string, { description: string; dialogue: string }>>(() => Object.fromEntries(readLumiMultiDialogues().map((entry) => [entry.kaomoji, { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "" }])));
+  const [kaomojiDrafts, setKaomojiDrafts] = useState<Record<string, { description: string; dialogue: string; emotionIds: EmotionId[] }>>(() => Object.fromEntries(readLumiMultiDialogues().map((entry) => [entry.kaomoji, { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "", emotionIds: entry.emotionIds ?? [] }])));
   const [keywordRules, setKeywordRules] = useState<LumiKeywordRule[]>(() => readLumiKeywords());
   const [keywordStatus, setKeywordStatus] = useState("");
   const [keywordDraft, setKeywordDraft] = useState("");
@@ -87,7 +87,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
       const customEvent = event as CustomEvent<LumiKaomojiDialogueEntry[]> | undefined;
       const next = customEvent?.detail?.length ? customEvent.detail : readLumiMultiDialogues();
       setMultiDialogues(next);
-      setKaomojiDrafts(Object.fromEntries(next.map((entry) => [entry.kaomoji, { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "" }])));
+      setKaomojiDrafts(Object.fromEntries(next.map((entry) => [entry.kaomoji, { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "", emotionIds: entry.emotionIds ?? [] }])));
     };
     const onMultiStorage = (event: StorageEvent) => { if (event.key === "lumi_multi_dialogues_data" || event.key === "lumi_custom_kaomoji_data") refreshMultiDialogues(); };
     const refreshKeywords = (event?: Event) => {
@@ -137,7 +137,9 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   function chooseFeeling(choice: typeof quickFeelings[number]) {
     onSelect(choice.id);
     if (profile && onProfile) onProfile({ ...profile, emotionTheme: choice.id }, `Lumi đã cập nhật cảm xúc: ${choice.label}.`);
-    const response = dialoguesForGroup(dialogues, choice.group)[0]?.text ?? current.encouragement;
+    const mappedEntries = multiDialogues.filter((entry) => entry.emotionIds?.includes(choice.id));
+    const mappedEntry = mappedEntries[Math.floor(Math.random() * mappedEntries.length)];
+    const response = (mappedEntry ? pickRandomLumiDialogue(mappedEntry)?.text : null) ?? dialoguesForGroup(dialogues, choice.group)[0]?.text ?? current.encouragement;
     setActiveMessage(response);
     speakLumi(response, speechEnabled);
     setShowEmotionDialog(false);
@@ -183,23 +185,26 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
     setNewMultiDialogue((current) => ({ ...current, [entry.kaomoji]: "" }));
   }
 
-  function updateKaomojiDraft(entry: LumiKaomojiDialogueEntry, field: "description" | "dialogue", value: string) {
-    setKaomojiDrafts((current) => ({ ...current, [entry.kaomoji]: { description: current[entry.kaomoji]?.description ?? entry.description, dialogue: current[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? "", [field]: value } }));
+  function updateKaomojiDraft(entry: LumiKaomojiDialogueEntry, field: "description" | "dialogue" | "emotionIds", value: string | EmotionId[]) {
+    setKaomojiDrafts((current) => ({ ...current, [entry.kaomoji]: { description: current[entry.kaomoji]?.description ?? entry.description, dialogue: current[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? "", emotionIds: current[entry.kaomoji]?.emotionIds ?? entry.emotionIds ?? [], [field]: value } }));
   }
 
   function saveKaomojiCustomization(entry: LumiKaomojiDialogueEntry) {
-    const draft = kaomojiDrafts[entry.kaomoji] ?? { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "" };
+    const draft = kaomojiDrafts[entry.kaomoji] ?? { description: entry.description, dialogue: entry.dialogues[0]?.text ?? "", emotionIds: entry.emotionIds ?? [] };
     const description = draft.description.trim();
     const dialogue = draft.dialogue.trim();
     if (!description || !dialogue) { toast.error("Hãy nhập đủ tên mô tả và câu thoại cho Kaomoji."); return; }
-    setMultiDialogues(saveLumiCustomKaomojiItem({ kaomoji: entry.kaomoji, description, dialogue }));
+    const saved = saveLumiCustomKaomojiItem({ kaomoji: entry.kaomoji, description, dialogue });
+    setMultiDialogues(saveLumiMultiDialogues(saved.map((item) => item.kaomoji === entry.kaomoji ? { ...item, emotionIds: draft.emotionIds } : item)));
     toast.success(`Đã lưu tùy chỉnh cho ${entry.kaomoji}.`);
   }
 
   function restoreKaomojiCustomization(entry: LumiKaomojiDialogueEntry) {
     const restored = restoreLumiCustomKaomojiItem(entry.kaomoji);
-    setMultiDialogues(restored);
-    setKaomojiDrafts((current) => ({ ...current, [entry.kaomoji]: { description: DEFAULT_LUMI_MULTI_DIALOGUES.find((item) => item.kaomoji === entry.kaomoji)?.description ?? entry.description, dialogue: DEFAULT_LUMI_MULTI_DIALOGUES.find((item) => item.kaomoji === entry.kaomoji)?.dialogues[0]?.text ?? entry.dialogues[0]?.text ?? "" } }));
+    const defaultEntry = DEFAULT_LUMI_MULTI_DIALOGUES.find((item) => item.kaomoji === entry.kaomoji);
+    const restoredWithDefaultMapping = saveLumiMultiDialogues(restored.map((item) => item.kaomoji === entry.kaomoji ? { ...item, emotionIds: defaultEntry?.emotionIds ?? item.emotionIds ?? [] } : item));
+    setMultiDialogues(restoredWithDefaultMapping);
+    setKaomojiDrafts((current) => ({ ...current, [entry.kaomoji]: { description: DEFAULT_LUMI_MULTI_DIALOGUES.find((item) => item.kaomoji === entry.kaomoji)?.description ?? entry.description, dialogue: DEFAULT_LUMI_MULTI_DIALOGUES.find((item) => item.kaomoji === entry.kaomoji)?.dialogues[0]?.text ?? entry.dialogues[0]?.text ?? "", emotionIds: DEFAULT_LUMI_MULTI_DIALOGUES.find((item) => item.kaomoji === entry.kaomoji)?.emotionIds ?? [] } }));
     toast.success(`Đã khôi phục mặc định cho ${entry.kaomoji}.`);
   }
 
@@ -322,6 +327,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
             <div className="grid min-h-12 min-w-24 place-items-center rounded-2xl bg-emerald-700 px-2 py-2 text-center font-mono text-sm font-black text-white" title={entry.kaomoji}>{entry.kaomoji}</div>
             <div className="min-w-0 flex-1"><p className="text-xs font-black uppercase tracking-[.12em] text-emerald-700 dark:text-emerald-300">{entry.group}</p><h3 className="mt-1 font-bold">{entry.description}</h3><p className="mt-1 text-xs text-slate-500">{entry.dialogues.length} câu thoại · phát luân phiên ngẫu nhiên</p></div>
           </div>
+          <div className="mt-3 rounded-2xl border border-sky-200/70 bg-sky-50/70 p-3 dark:border-sky-300/15 dark:bg-sky-950/20"><p className="text-xs font-black text-sky-900 dark:text-sky-100">Biểu tượng này được dùng cho cảm xúc nào?</p><p className="mt-1 text-[11px] leading-5 text-sky-800 dark:text-sky-200">Chọn một hoặc nhiều cảm xúc. Khi Ong bấm check-in, Lumi sẽ ưu tiên Kaomoji đã được gắn với cảm xúc đó.</p><div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">{quickFeelings.map((choice) => { const selectedEmotions = kaomojiDrafts[entry.kaomoji]?.emotionIds ?? entry.emotionIds ?? []; const checked = selectedEmotions.includes(choice.id); return <label key={choice.id} className={`flex items-center gap-2 rounded-xl border px-2.5 py-2 text-xs font-bold ${checked ? "border-sky-500 bg-sky-100 text-sky-950 dark:bg-sky-900/40 dark:text-sky-50" : "border-sky-100 bg-white/70 dark:border-white/10 dark:bg-white/[.03]"}`}><input type="checkbox" checked={checked} onChange={(event) => updateKaomojiDraft(entry, "emotionIds", event.target.checked ? [...selectedEmotions, choice.id] : selectedEmotions.filter((id) => id !== choice.id))} /> <span aria-hidden="true">{choice.emoji}</span><span>{choice.label}</span></label>; })}</div></div>
           <div className="mt-4 grid gap-3 rounded-2xl border border-emerald-200/70 bg-emerald-50/60 p-3 dark:border-emerald-300/15 dark:bg-emerald-950/20">
             <label className="text-xs font-black text-emerald-900 dark:text-emerald-100">Tên mô tả hành động<input className="field mt-1" value={kaomojiDrafts[entry.kaomoji]?.description ?? entry.description} onChange={(event) => updateKaomojiDraft(entry, "description", event.target.value)} placeholder="Nhập tên mô tả hành động mới…" aria-label={`Tên mô tả cho ${entry.kaomoji}`} /></label>
             <label className="text-xs font-black text-emerald-900 dark:text-emerald-100">Câu thoại phát ra<textarea className="field mt-1 min-h-20" value={kaomojiDrafts[entry.kaomoji]?.dialogue ?? entry.dialogues[0]?.text ?? ""} onChange={(event) => updateKaomojiDraft(entry, "dialogue", event.target.value)} placeholder="Nhập câu thoại/lời nhắn mới…" aria-label={`Câu thoại chính cho ${entry.kaomoji}`} /></label>

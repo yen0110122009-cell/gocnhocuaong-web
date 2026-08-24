@@ -10,7 +10,7 @@ import {
 } from "./study";
 import { POMODORO_ALERT_SOUNDS } from "../client/src/lib/pomodoroAlerts";
 import { LUMI_WATER_ALERT_SOUNDS } from "../client/src/lib/lumiAlerts";
-import { LUMI_DIALOGUE_LINES_STORAGE_KEY, LUMI_SPEECH_STORAGE_KEY, LUMI_WATER_MESSAGE_STORAGE_KEY } from "../client/src/lib/lumiPreferences";
+import { LUMI_DIALOGUE_LINES_STORAGE_KEY, LUMI_SPEECH_STORAGE_KEY, LUMI_WATER_MESSAGE_STORAGE_KEY, LUMI_WATER_SETTINGS_STORAGE_KEY } from "../client/src/lib/lumiPreferences";
 
 const pomodoroSource = readFileSync(resolve(process.cwd(), "client/src/pages/Pomodoro.tsx"), "utf8");
 const lumiAlertSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiAlerts.ts"), "utf8");
@@ -51,6 +51,8 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
 
   it("keeps strict no-BGM behavior while enabling short Pomodoro alerts and Vietnamese TTS", () => {
     expect(pomodoroSource).toContain("Pomodoro không phát nhạc nền");
+    expect(pomodoroSource).toContain("Nhắc mỗi {lumiWaterSettings.intervalMinutes} phút");
+    expect(pomodoroSource).toContain("saveLumiWaterSettings");
     expect(pomodoroSource).toContain("playLumiWaterAlert");
     expect(pomodoroSource).toContain("playPomodoroAlert");
     expect(pomodoroSource).toContain("triggerPomodoroAlert");
@@ -80,10 +82,11 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
   });
 
   it("persists speech, water message and editable dialogue lines in dedicated LocalStorage keys", () => {
-    expect([LUMI_SPEECH_STORAGE_KEY, LUMI_WATER_MESSAGE_STORAGE_KEY, LUMI_DIALOGUE_LINES_STORAGE_KEY]).toEqual([
+    expect([LUMI_SPEECH_STORAGE_KEY, LUMI_WATER_MESSAGE_STORAGE_KEY, LUMI_DIALOGUE_LINES_STORAGE_KEY, LUMI_WATER_SETTINGS_STORAGE_KEY]).toEqual([
       "lumi_speech_enabled",
       "lumi_water_message",
       "lumi_dialogue_lines",
+      "lumi_water_settings",
     ]);
     expect(preferencesSource).toContain("localStorage");
     expect(preferencesSource).toContain("saveLumiDialogueLines");

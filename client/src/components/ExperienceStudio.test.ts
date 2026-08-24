@@ -21,7 +21,7 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(lumi).toContain("Chọn cảm xúc nhanh");
     expect(lumi).toContain("Hỏi thăm cảm xúc");
     expect(lumi).toContain("LUMI_CHECKIN_OPTIONS");
-    for (const label of ["Mệt mỏi", "Thiếu động lực", "Cần cái ôm", "Sẵn sàng học", "Tập trung", "Đau lòng", "Lo lắng", "Bình tĩnh", "Vui vẻ"]) expect(presets).toContain(label);
+    for (const label of ["Mệt mỏi", "Đau lòng", "Lo lắng", "Quá tải", "Thiếu động lực", "Tập trung", "Sẵn sàng học", "Cần cái ôm", "Bình tĩnh", "Vui vẻ", "Hy vọng", "Hào hứng"]) expect(presets).toContain(label);
     expect(lumi).toContain("Lumi đang ở đây với Ong");
     expect(lumi).toContain("LUMI_WELCOME");
     expect(lumi).toContain("lumiKaomojiForEmotion");
@@ -67,6 +67,8 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     expect(lumi).toContain("Thêm câu thoại mới");
     expect(lumi).toContain("Khôi phục bộ câu gốc");
     expect(lumi).toContain("phát luân phiên ngẫu nhiên");
+    expect(lumi).toContain("Biểu tượng này được dùng cho cảm xúc nào?");
+    expect(lumi).toContain("emotionIds");
     expect(lumi).toContain("LUMI_MULTI_DIALOGUES_EVENT");
     expect(lumi).toContain("Từ khóa phát hiện cảm xúc");
     expect(lumi).toContain("lumi_custom_keywords");

@@ -6,6 +6,7 @@ describe("Lumi multi-dialogues", () => {
     expect(LUMI_MULTI_DIALOGUES_STORAGE_KEY).toBe("lumi_multi_dialogues_data");
     const tears = DEFAULT_LUMI_MULTI_DIALOGUES.find((entry) => entry.kaomoji === "(つ_ <｡)");
     expect(tears?.dialogues).toHaveLength(4);
+    expect(tears?.emotionIds).toEqual(["tired", "sad", "stressed", "overwhelmed"]);
     expect(tears?.dialogues.map((dialogue) => dialogue.text)).toEqual([
       "Đừng khóc nha, có Lumi ở đây ôm bạn nè 🍀",
       "Nín đi nha, Lumi thương bạn nhiều lắm đó!",
@@ -15,10 +16,11 @@ describe("Lumi multi-dialogues", () => {
   });
 
   it("chuẩn hóa dữ liệu và phát event contract khi lưu", () => {
-    const entry: LumiKaomojiDialogueEntry = { kaomoji: "(test)", group: "comfort", description: "Test", dialogues: [{ id: "a", text: "  Câu A  " }, { id: "b", text: "Câu B" }] };
+    const entry: LumiKaomojiDialogueEntry = { kaomoji: "(test)", group: "comfort", description: "Test", emotionIds: ["focused"], dialogues: [{ id: "a", text: "  Câu A  " }, { id: "b", text: "Câu B" }] };
     const saved = saveLumiMultiDialogues([entry]);
     expect(saved).toHaveLength(1);
     expect(saved[0]?.dialogues.map((dialogue) => dialogue.text)).toEqual(["Câu A", "Câu B"]);
+    expect(saved[0]?.emotionIds).toEqual(["focused"]);
   });
 
   it("không phát cùng một câu hai lần liên tiếp cho cùng Kaomoji", () => {

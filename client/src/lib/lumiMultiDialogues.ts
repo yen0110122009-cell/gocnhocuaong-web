@@ -1,4 +1,5 @@
 import type { LumiDialogueGroup } from "./lumiCustomDialogues";
+import type { EmotionId } from "./emotionThemes";
 
 export type LumiKaomojiDialogue = {
   id: string;
@@ -10,6 +11,8 @@ export type LumiKaomojiDialogueEntry = {
   group: LumiDialogueGroup | "joy" | "rest";
   description: string;
   dialogues: LumiKaomojiDialogue[];
+  /** Cảm xúc mà biểu tượng này được phép đại diện trong phần check-in. */
+  emotionIds?: EmotionId[];
 };
 
 export type LumiCustomKaomojiData = {
@@ -24,7 +27,23 @@ export const LUMI_CUSTOM_KAOMOJI_STORAGE_KEY = "lumi_custom_kaomoji_data";
 export const LUMI_CUSTOM_KAOMOJI_EVENT = "gocnhocuaong:lumi-custom-kaomoji-updated";
 export const MAX_LUMI_MULTI_DIALOGUES = 100;
 
-export const DEFAULT_LUMI_MULTI_DIALOGUES: LumiKaomojiDialogueEntry[] = [
+const DEFAULT_EMOTIONS_BY_GROUP: Record<string, EmotionId[]> = {
+  comfort: ["tired", "sad", "stressed", "overwhelmed"],
+  encouragement: ["lazy", "confident"],
+  hug: ["lonely"],
+  companionship: ["calm", "happy", "hopeful"],
+  water: [],
+  focus: ["focused"],
+  rest: ["sleepy"],
+  celebration: ["excited", "proud"],
+  joy: ["happy", "hopeful", "excited"],
+};
+
+function defaultEmotionsForGroup(group: string) {
+  return [...(DEFAULT_EMOTIONS_BY_GROUP[group] ?? [])];
+}
+
+const RAW_DEFAULT_LUMI_MULTI_DIALOGUES: LumiKaomojiDialogueEntry[] = [
   { kaomoji: "(つ_ <｡)", group: "comfort", description: "Lau nước mắt dịu dàng", dialogues: [
     { id: "comfort-tears-1", text: "Đừng khóc nha, có Lumi ở đây ôm bạn nè 🍀" },
     { id: "comfort-tears-2", text: "Nín đi nha, Lumi thương bạn nhiều lắm đó!" },
@@ -57,10 +76,12 @@ export const DEFAULT_LUMI_MULTI_DIALOGUES: LumiKaomojiDialogueEntry[] = [
   { kaomoji: "[(－－)]..zzZ", group: "rest", description: "Nhắm mắt nghỉ ngơi xíu", dialogues: [{ id: "rest-sleep-1", text: "Chợp mắt xíu cho khỏe mắt rồi học tiếp nha!" }] },
 ];
 
-const validGroups = new Set<LumiKaomojiDialogueEntry["group"]>(["comfort", "hug", "companionship", "encouragement", "joy", "water", "rest"]);
+export const DEFAULT_LUMI_MULTI_DIALOGUES: LumiKaomojiDialogueEntry[] = RAW_DEFAULT_LUMI_MULTI_DIALOGUES.map((entry) => ({ ...entry, emotionIds: defaultEmotionsForGroup(entry.group) }));
+
+const validGroups = new Set<LumiKaomojiDialogueEntry["group"]>(["comfort", "hug", "companionship", "encouragement", "joy", "water", "focus", "celebration", "rest"]);
 
 function cloneDefaults() {
-  return DEFAULT_LUMI_MULTI_DIALOGUES.map((entry) => ({ ...entry, dialogues: entry.dialogues.map((dialogue) => ({ ...dialogue })) }));
+  return DEFAULT_LUMI_MULTI_DIALOGUES.map((entry) => ({ ...entry, emotionIds: defaultEmotionsForGroup(entry.group), dialogues: entry.dialogues.map((dialogue) => ({ ...dialogue })) }));
 }
 
 function normalizeCustomData(value: unknown, index: number): LumiCustomKaomojiData | null {
@@ -100,11 +121,12 @@ function mergeCustomKaomojiData(entries: LumiKaomojiDialogueEntry[], customData:
 
 function normalizeEntry(value: unknown, index: number): LumiKaomojiDialogueEntry | null {
   if (!value || typeof value !== "object") return null;
-  const candidate = value as { kaomoji?: unknown; group?: unknown; description?: unknown; dialogues?: unknown };
+  const candidate = value as { kaomoji?: unknown; group?: unknown; description?: unknown; dialogues?: unknown; emotionIds?: unknown };
   const kaomoji = typeof candidate.kaomoji === "string" ? candidate.kaomoji.trim().slice(0, 80) : "";
   const group = typeof candidate.group === "string" && validGroups.has(candidate.group as LumiKaomojiDialogueEntry["group"]) ? candidate.group as LumiKaomojiDialogueEntry["group"] : null;
   const description = typeof candidate.description === "string" ? candidate.description.trim() : "Lumi đồng hành";
   if (!kaomoji || !group) return null;
+  const emotionIds = Array.isArray(candidate.emotionIds) ? Array.from(new Set(candidate.emotionIds.filter((emotion): emotion is EmotionId => typeof emotion === "string" && ["calm", "happy", "tired", "sad", "stressed", "lazy", "proud", "focused", "hopeful", "overwhelmed", "sleepy", "excited", "lonely", "confident", "curious", "comeback"].includes(emotion)))) : defaultEmotionsForGroup(group);
   const dialogues = Array.isArray(candidate.dialogues) ? candidate.dialogues.flatMap((item, dialogueIndex) => {
     if (typeof item === "string") {
       const text = item.trim();
@@ -114,7 +136,7 @@ function normalizeEntry(value: unknown, index: number): LumiKaomojiDialogueEntry
     const text = typeof item.text === "string" ? item.text.trim() : "";
     return text ? [{ id: typeof item.id === "string" && item.id.trim() ? item.id.trim().slice(0, 100) : `lumi-multi-${index}-${dialogueIndex}`, text }] : [];
   }) : [];
-  return { kaomoji, group, description, dialogues: dialogues.slice(0, MAX_LUMI_MULTI_DIALOGUES) };
+  return { kaomoji, group, description, emotionIds, dialogues: dialogues.slice(0, MAX_LUMI_MULTI_DIALOGUES) };
 }
 
 export function readLumiMultiDialogues(): LumiKaomojiDialogueEntry[] {

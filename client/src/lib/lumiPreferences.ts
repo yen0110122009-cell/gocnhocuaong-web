@@ -1,4 +1,7 @@
+import { normalizeLumiWaterSettings, type LumiWaterSettings } from "../../../shared/study";
+
 export const LUMI_SPEECH_STORAGE_KEY = "lumi_speech_enabled";
+
 export const LUMI_SPEECH_RATE_STORAGE_KEY = "lumi_speech_rate";
 export const LUMI_SPEECH_VOLUME_STORAGE_KEY = "lumi_speech_volume";
 export const DEFAULT_LUMI_SPEECH_RATE = 0.96;
@@ -40,6 +43,7 @@ export function saveLumiSpeechSettings(value: Partial<LumiSpeechSettings>) {
   return settings;
 }
 
+export const LUMI_WATER_SETTINGS_STORAGE_KEY = "lumi_water_settings";
 export const LUMI_WATER_MESSAGE_STORAGE_KEY = "lumi_water_message";
 export const LUMI_DIALOGUE_LINES_STORAGE_KEY = "lumi_dialogue_lines";
 export const DEFAULT_LUMI_WATER_MESSAGE = "Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧";
@@ -59,6 +63,21 @@ export function readLumiSpeechPreference(fallback = true) {
 
 export function saveLumiSpeechPreference(enabled: boolean) {
   try { storage()?.setItem(LUMI_SPEECH_STORAGE_KEY, String(enabled)); } catch { /* storage may be unavailable */ }
+}
+
+export function readLumiWaterSettings(fallback?: LumiWaterSettings, targetStorage: Pick<Storage, "getItem"> | null = storage()) {
+  try {
+    const raw = targetStorage?.getItem(LUMI_WATER_SETTINGS_STORAGE_KEY);
+    return raw ? normalizeLumiWaterSettings(JSON.parse(raw)) : normalizeLumiWaterSettings(fallback);
+  } catch {
+    return normalizeLumiWaterSettings(fallback);
+  }
+}
+
+export function saveLumiWaterSettings(value: LumiWaterSettings, targetStorage: Pick<Storage, "setItem"> | null = storage()) {
+  const settings = normalizeLumiWaterSettings(value);
+  try { targetStorage?.setItem(LUMI_WATER_SETTINGS_STORAGE_KEY, JSON.stringify(settings)); } catch { /* storage may be unavailable */ }
+  return settings;
 }
 
 export function readLumiWaterMessage() {
