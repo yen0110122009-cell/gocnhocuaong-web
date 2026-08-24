@@ -1,4 +1,4 @@
-import type { ProfileState } from "./study";
+import { normalizeEntertainmentConversionSettings, type EntertainmentConversionSettings, type ProfileState } from "./study";
 
 export const ENTERTAINMENT_STUDY_BLOCK_MINUTES = 30;
 export const ENTERTAINMENT_MINUTES_PER_BLOCK = 10;
@@ -17,17 +17,18 @@ function completedFocusMinutesForDay(profile: Pick<ProfileState, "pomodoroHistor
   }, 0);
 }
 
-export function entertainmentMinutesFromStudy(studyMinutes: number) {
+export function entertainmentMinutesFromStudy(studyMinutes: number, rawSettings?: EntertainmentConversionSettings) {
+  const settings = normalizeEntertainmentConversionSettings(rawSettings);
   const safeMinutes = Math.max(0, Math.floor(Number(studyMinutes) || 0));
-  return Math.min(MAX_DAILY_ENTERTAINMENT_MINUTES, Math.floor(safeMinutes / ENTERTAINMENT_STUDY_BLOCK_MINUTES) * ENTERTAINMENT_MINUTES_PER_BLOCK);
+  return Math.min(settings.dailyCapMinutes, Math.floor(safeMinutes / settings.studyBlockMinutes) * settings.entertainmentMinutesPerBlock);
 }
 
-export function dailyEntertainmentReward(profile: Pick<ProfileState, "pomodoroHistory">, date = new Date()) {
+export function dailyEntertainmentReward(profile: Pick<ProfileState, "pomodoroHistory">, date = new Date(), rawSettings?: EntertainmentConversionSettings) {
   const studyMinutes = completedFocusMinutesForDay(profile, date);
-  return { studyMinutes, entertainmentMinutes: entertainmentMinutesFromStudy(studyMinutes) };
+  return { studyMinutes, entertainmentMinutes: entertainmentMinutesFromStudy(studyMinutes, rawSettings) };
 }
 
-export function weeklyEntertainmentReward(profile: Pick<ProfileState, "pomodoroHistory">, date = new Date()) {
+export function weeklyEntertainmentReward(profile: Pick<ProfileState, "pomodoroHistory">, date = new Date(), rawSettings?: EntertainmentConversionSettings) {
   const end = new Date(date); end.setHours(23, 59, 59, 999);
   const day = end.getDay();
   const start = new Date(end); start.setHours(0, 0, 0, 0); start.setDate(start.getDate() - (day === 0 ? 6 : day - 1));
@@ -36,5 +37,5 @@ export function weeklyEntertainmentReward(profile: Pick<ProfileState, "pomodoroH
     const endedAt = new Date(session.endedAt);
     return !Number.isNaN(endedAt.getTime()) && endedAt >= start && endedAt <= end ? total + session.durationMinutes : total;
   }, 0);
-  return { studyMinutes, entertainmentMinutes: entertainmentMinutesFromStudy(studyMinutes) };
+  return { studyMinutes, entertainmentMinutes: entertainmentMinutesFromStudy(studyMinutes, rawSettings) };
 }

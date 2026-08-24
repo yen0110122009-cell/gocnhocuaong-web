@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { emptyProfile } from "./study";
 import { dailyEntertainmentReward, entertainmentMinutesFromStudy, weeklyEntertainmentReward } from "./pomodoroEntertainment";
+import { normalizeEntertainmentConversionSettings } from "./study";
 
 const makeProfile = () => ({ ...emptyProfile(), pomodoroHistory: [
   { id: "today-1", startedAt: "2026-08-24T08:00:00", endedAt: "2026-08-24T08:30:00", durationMinutes: 30, subject: "Toán", topic: "Hàm số", sessionNumber: 1, totalSessions: 4, mode: "focus" as const, status: "completed" as const },
@@ -19,9 +20,16 @@ describe("pomodoro entertainment conversion", () => {
     expect(entertainmentMinutesFromStudy(360)).toBe(120);
     expect(entertainmentMinutesFromStudy(9999)).toBe(120);
   });
+  it("chuẩn hóa và áp dụng tỷ lệ tùy chỉnh", () => {
+    const settings = normalizeEntertainmentConversionSettings({ studyBlockMinutes: 45, entertainmentMinutesPerBlock: 15, dailyCapMinutes: 60 });
+    expect(settings).toEqual({ studyBlockMinutes: 45, entertainmentMinutesPerBlock: 15, dailyCapMinutes: 60 });
+    expect(entertainmentMinutesFromStudy(90, settings)).toBe(30);
+    expect(entertainmentMinutesFromStudy(300, settings)).toBe(60);
+  });
+
   it("chỉ tính focus completed trong ngày và tuần hiện tại", () => {
     const value = makeProfile();
-    expect(dailyEntertainmentReward(value, new Date("2026-08-24T12:00:00"))).toEqual({ studyMinutes: 105, entertainmentMinutes: 30 });
+    expect(dailyEntertainmentReward(value, new Date("2026-08-24T12:00:00"), { studyBlockMinutes: 45, entertainmentMinutesPerBlock: 15, dailyCapMinutes: 120 })).toEqual({ studyMinutes: 105, entertainmentMinutes: 30 });
     expect(weeklyEntertainmentReward(value, new Date("2026-08-26T12:00:00"))).toEqual({ studyMinutes: 135, entertainmentMinutes: 40 });
   });
 });

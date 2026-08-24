@@ -11,6 +11,10 @@ const profile = () => ({ ...emptyProfile(), studyActivity: [
   { id: "s-2", startedAt: "2026-08-25T08:00:00", endedAt: "2026-08-25T08:45:00", durationMinutes: 45, subject: "Toán", topic: "Đạo hàm", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "completed" as const },
   { id: "break", startedAt: "2026-08-24T08:30:00", endedAt: "2026-08-24T08:35:00", durationMinutes: 5, subject: "Toán", topic: "Nghỉ", sessionNumber: 1, totalSessions: 1, mode: "shortBreak" as const, status: "completed" as const },
   { id: "abandoned", startedAt: "2026-08-24T10:00:00", endedAt: "2026-08-24T10:02:00", durationMinutes: 2, subject: "Lý", topic: "Cơ học", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "abandoned" as const },
+  { id: "s-3", startedAt: "2026-08-26T08:00:00", endedAt: "2026-08-26T08:30:00", durationMinutes: 30, subject: "Lý", topic: "Điện học", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "completed" as const },
+  { id: "s-4", startedAt: "2026-08-27T08:00:00", endedAt: "2026-08-27T08:45:00", durationMinutes: 45, subject: "Hóa", topic: "Este", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "completed" as const },
+  { id: "s-5", startedAt: "2026-08-28T08:00:00", endedAt: "2026-08-28T09:00:00", durationMinutes: 60, subject: "Văn", topic: "Nghị luận", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "completed" as const },
+  { id: "s-6", startedAt: "2026-08-29T08:00:00", endedAt: "2026-08-29T09:30:00", durationMinutes: 90, subject: "Anh", topic: "Reading", sessionNumber: 1, totalSessions: 1, mode: "focus" as const, status: "completed" as const },
 ] });
 
 describe("study time analytics", () => {
@@ -28,6 +32,19 @@ describe("study time analytics", () => {
     expect(subjectSecondsForDay(value, "Toán", new Date("2026-08-24T12:00:00"))).toBe(30 * 60);
     expect(history.days.map((day) => day.key)).toEqual(["2026-08-25", "2026-08-24"]);
     expect(history.months[0].days[0]).toMatchObject({ key: "2026-08-25", seconds: 2_700 });
+  });
+  it("kiểm tra đầy đủ năm môn mặc định theo tổng thời gian thực", () => {
+    const value = profile();
+    const anchor = new Date("2026-08-31T12:00:00");
+    for (const [subject, minutes] of [["Toán", 75], ["Lý", 30], ["Hóa", 45], ["Văn", 60], ["Anh", 90]] as const) {
+      const history = subjectHistory(value, subject, anchor);
+      expect(history.totalSeconds).toBe(minutes * 60);
+      expect(history.yearSeconds).toBe(minutes * 60);
+      expect(history.monthSeconds).toBe(minutes * 60);
+      expect(history.years[0]?.key).toBe("2026");
+      expect(history.months[0]?.key).toBe("2026-08");
+      expect(history.days.length).toBeGreaterThan(0);
+    }
   });
   it("chuẩn hóa môn mặc định, mục tiêu và định dạng phút", () => {
     expect(normalizeStudySubjects([" Toán ", "Sinh học", "", 42])).toEqual(["Toán", "Lý", "Hóa", "Văn", "Anh", "Sinh học"]);
