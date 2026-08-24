@@ -21,6 +21,13 @@ describe("Study goals by subject contract", () => {
     expect(source).toContain("goalPercent");
   });
 
+  it("đặt dashboard mới trong khu riêng và giữ khu tiến độ cũ", () => {
+    expect(source).toContain('storageKey="study-progress-overview-new"');
+    expect(source).toContain("<StudyProgressOverview");
+    expect(source).toContain('storageKey="study-goals-overview"');
+    expect(source).toContain("Tiến độ trong ngày");
+  });
+
   it("cho xem lịch sử tiến độ và phần thưởng theo từng ngày", () => {
     expect(source).toContain("studyDayHistory(profile, new Date(), 60)");
     expect(source).toContain("Lịch sử tiến độ theo ngày");
