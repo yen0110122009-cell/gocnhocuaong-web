@@ -27,6 +27,10 @@ describe("Kế hoạch tự quản lý", () => {
     expect(source).not.toContain("Mảnh ghép");
     expect(source).not.toContain("shouldGrant");
     expect(source).toContain("Đã đánh dấu hoàn thành mục tiêu.");
+    expect(source).toContain("Tổng kết cuối ngày");
+    expect(source).toContain("Đã học hôm nay");
+    expect(source).toContain("Nhận thời gian chơi điện thoại");
+    expect(source).toContain("claimDailyPhoneReward");
   });
 
   it("có đúng một event mẫu, không chứa phần thưởng XP", () => {
