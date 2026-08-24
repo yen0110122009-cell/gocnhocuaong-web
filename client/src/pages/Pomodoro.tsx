@@ -410,6 +410,10 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
     setShowLumiDialog(true);
   }
 
+  function notifyFocusSessionStart() {
+    toast.info("Hãy chọn môn học của ngày hôm nay.", { description: "Hãy chọn môn học của phiên này.", duration: 5_000 });
+  }
+
   function closeDetachedWindow() {
     if (window.opener) window.close();
     else toast.info("Hãy đóng tab/cửa sổ này bằng nút đóng của trình duyệt.");
@@ -500,9 +504,9 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
     if (running) { setRunning(false); return; }
     const nextSeconds = pomodoroStartSeconds({ mode, pendingTransition, seconds, focusMinutes: focus, shortBreakMinutes: shortBreak, longBreakMinutes: longBreak });
     if (pendingTransition === "break") { setPendingTransition(null); setSeconds(nextSeconds); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startBreak"); return; }
-    if (pendingTransition === "focus") { setPendingTransition(null); setMode("focus"); setSeconds(nextSeconds); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startFocus"); return; }
-    if (mode === "focus" && goalCompletedSessions >= totalSessions) { setGoalCompletedSessions(0); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); }
-    else { setSeconds(nextSeconds); if (mode === "focus" && !sessionStartedAt) setSessionStartedAt(new Date().toISOString()); }
+    if (pendingTransition === "focus") { notifyFocusSessionStart(); setPendingTransition(null); setMode("focus"); setSeconds(nextSeconds); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startFocus"); return; }
+    if (mode === "focus" && goalCompletedSessions >= totalSessions) { notifyFocusSessionStart(); setGoalCompletedSessions(0); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); }
+    else { if (mode === "focus" && !sessionStartedAt) notifyFocusSessionStart(); setSeconds(nextSeconds); if (mode === "focus" && !sessionStartedAt) setSessionStartedAt(new Date().toISOString()); }
     setRunning(true); completionHandled.current = false; triggerPomodoroAlert(mode === "focus" ? "startFocus" : "startBreak");
   }
   function reset() { if (running && !window.confirm("Đặt lại phiên đang chạy? Thời gian chưa hoàn thành sẽ không được ghi nhận.")) return; setRunning(false); setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); completionHandled.current = false; }
@@ -523,11 +527,11 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
     if (startsNewGoalCycle) {
       const next = resetPomodoroForGoalChange(focus);
       setGoalCompletedSessions(next.completedFocusSessions); setMode(next.mode); setPendingTransition(next.pendingTransition); setSeconds(next.seconds); setSessionStartedAt(next.sessionStartedAt);
-      if (autoAdvance) { setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startFocus"); }
+      if (autoAdvance) { notifyFocusSessionStart(); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startFocus"); }
       else { setRunning(false); completionHandled.current = false; }
       return;
     }
-    if (autoAdvance) { setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startFocus"); }
+    if (autoAdvance) { notifyFocusSessionStart(); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(new Date().toISOString()); setRunning(true); completionHandled.current = false; triggerPomodoroAlert("startFocus"); }
     else { setMode("focus"); setRunning(false); setPendingTransition("focus"); completionHandled.current = false; }
   }
   function choosePreset(value: typeof presets[number]) { if (running && !window.confirm("Đổi nhịp học sẽ dừng phiên hiện tại. Tiếp tục?")) return; setRunning(false); setFocus(value.focus); setShortBreak(value.short); setLongBreak(value.long); setMode("focus"); setSeconds(value.focus * 60); setSessionStartedAt(null); }

@@ -82,6 +82,9 @@ describe("Pomodoro feedback contract", () => {
     expect(source).not.toContain("const lumiTimerBadge = showLumiDialog ?");
     expect(source).toContain("showLumiDialog ? null : <aside");
     expect(source).toContain("setShowLumiDialog(true)");
+    expect(source).toContain("Hãy chọn môn học của ngày hôm nay.");
+    expect(source).toContain("Hãy chọn môn học của phiên này.");
+    expect(source).toContain("notifyFocusSessionStart");
     expect(source).toContain("onPointerDown={startLumiPopupDrag}");
     expect(source).toContain("lumiPopupPosition");
     expect(css).toContain(".pomodoro-pinned-widget");
