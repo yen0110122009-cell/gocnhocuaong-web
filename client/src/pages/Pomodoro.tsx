@@ -10,7 +10,7 @@ import {
   type LumiWaterSettings,
   type ProfileState,
 } from "../../../shared/study";
-import { POMODORO_SESSION_KEY, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
+import { pomodoroSessionStorageKey, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
 import { LUMI_WATER_ALERT_SOUNDS, isLumiWaterAlertSoundId, playLumiWaterAlert } from "../lib/lumiAlerts";
 import { POMODORO_ALERT_SOUNDS, isPomodoroAlertSoundId, playPomodoroAlert } from "../lib/pomodoroAlerts";
 import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMessage, readLumiWaterNextReminderAt, readLumiWaterSettings, saveLumiSpeechPreference, saveLumiWaterMessage, saveLumiWaterNextReminderAt, saveLumiWaterSettings } from "../lib/lumiPreferences";
@@ -19,7 +19,7 @@ import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues
 import { LUMI_CHECKIN_OPTIONS, LUMI_FOCUS_MESSAGE, LUMI_REST_MESSAGE, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForEmotion, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
 import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
 import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, pickRandomLumiText, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
-import { currentPomodoroSessionNumber, nextPomodoroBreakMode, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak } from "../lib/pomodoroFlow";
+import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, resetPomodoroForGoalChange } from "../lib/pomodoroFlow";
 import { subjectNames } from "../../../shared/studyTimeAnalytics";
 import { pickLumiStateScript, readLumiStateScripts } from "../lib/lumiStateScripts";
 
@@ -27,7 +27,7 @@ type Mode = "focus" | "shortBreak" | "longBreak";
 type Activity = "flashcards" | "quizzes" | "theory" | "deep" | "reading" | "exercise";
 type LumiSupportKind = "comfort" | "encouragement";
 type View = "pomodoro" | "flashcards" | "quizzes" | "history";
-type Props = { profile: ProfileState; config: AppConfig; onProfile: (profile: ProfileState, message?: string) => void; onView: (view: View) => void; onOpenDetached?: () => void; isVisible?: boolean };
+type Props = { profile: ProfileState; config: AppConfig; accountId: string; onProfile: (profile: ProfileState, message?: string) => void; onView: (view: View) => void; onOpenDetached?: () => void; isVisible?: boolean };
 const DETACHED_POMODORO_QUERY = "pomodoro-detached";
 const DETACHED_POMODORO_ACTIVE_KEY = "pomodoro_detached_window_active";
 const DETACHED_POMODORO_LEASE_MS = 20_000;
@@ -40,11 +40,6 @@ const activities: Array<{ id: Activity; label: string; icon: string }> = [
 const presets = [{ label: "10 / 5", focus: 10, short: 5, long: 15 }, { label: "25 / 5", focus: 25, short: 5, long: 15 }, { label: "45 / 10", focus: 45, short: 10, long: 20 }, { label: "50 / 10", focus: 50, short: 10, long: 20 }];
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 const labelForMode: Record<Mode, string> = { focus: "Tập trung", shortBreak: "Nghỉ ngắn", longBreak: "Nghỉ dài" };
-function pendingTransitionForSavedSession(saved: ReturnType<typeof readPersistedPomodoro>) {
-  if (!saved || saved.pendingTransition) return saved?.pendingTransition ?? null;
-  if (saved.seconds !== 0 || (saved.goalCompletedSessions ?? 0) >= saved.totalSessions) return null;
-  return saved.mode === "focus" ? "focus" as const : "break" as const;
-}
 const pomodoroAlertEventLabels: Record<PomodoroAlertEventId, string> = { startFocus: "Bắt đầu phiên tập trung", endFocus: "Kết thúc phiên tập trung", startBreak: "Bắt đầu giờ nghỉ", endBreak: "Kết thúc giờ nghỉ" };
 const celebrationFireworks = [
   { emoji: "🎆", x: "-12rem", y: "-7rem" },
@@ -59,9 +54,10 @@ const celebrationFireworks = [
 const GOAL_CELEBRATION_DURATION_MS = 4_600;
 type AudioContextConstructor = new () => AudioContext;
 
-export default function Pomodoro({ profile, config, onProfile, onView, onOpenDetached, isVisible = true }: Props) {
+export default function Pomodoro({ profile, config, accountId, onProfile, onView, onOpenDetached, isVisible = true }: Props) {
   const detachedWindow = isDetachedPomodoroWindow();
-  const restored = useMemo(() => readPersistedPomodoro(), []);
+  const pomodoroStorageKey = useMemo(() => pomodoroSessionStorageKey(accountId), [accountId]);
+  const restored = useMemo(() => readPersistedPomodoro(undefined, pomodoroStorageKey), [pomodoroStorageKey]);
   const [focus, setFocus] = useState(restored?.focus ?? 25);
   const [shortBreak, setShortBreak] = useState(restored?.shortBreak ?? 5);
   const [longBreak, setLongBreak] = useState(restored?.longBreak ?? 15);
@@ -69,7 +65,7 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   const [mode, setMode] = useState<Mode>(restored?.mode ?? "focus");
   const [running, setRunning] = useState(restored?.running ?? false);
   const [autoAdvance, setAutoAdvance] = useState(restored?.autoAdvance ?? false);
-  const [pendingTransition, setPendingTransition] = useState<"break" | "focus" | null>(() => pendingTransitionForSavedSession(restored));
+  const [pendingTransition, setPendingTransition] = useState<"break" | "focus" | null>(() => pendingTransitionForSavedPomodoro(restored));
   const [subject, setSubject] = useState(restored?.subject ?? "");
   const [topic, setTopic] = useState(restored?.topic ?? "");
   const [activity, setActivity] = useState<Activity>((restored?.activity as Activity) ?? "theory");
@@ -133,8 +129,8 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   const primaryActionLabel = running ? "Tạm dừng" : pendingTransition === "break" ? "Bắt đầu nghỉ" : pendingTransition === "focus" ? "Bắt đầu phiên" : mode === "focus" ? "Bắt đầu phiên" : "Bắt đầu nghỉ";
 
   useEffect(() => {
-    writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, alertVolume: 0, pomodoroAlerts: pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y, lumiPopupX: lumiPopupPosition.x, lumiPopupY: lumiPopupPosition.y });
-  }, [focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerPosition, lumiPopupPosition]);
+    writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, alertVolume: 0, pomodoroAlerts: pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y, lumiPopupX: lumiPopupPosition.x, lumiPopupY: lumiPopupPosition.y }, undefined, pomodoroStorageKey);
+  }, [focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, pomodoroAlertSettings, compactMode, miniPlayerPinned, miniPlayerPosition, lumiPopupPosition, pomodoroStorageKey]);
   useEffect(() => {
     if (!detachedWindow) return;
     const writeLease = () => { try { window.localStorage.setItem(DETACHED_POMODORO_ACTIVE_KEY, String(Date.now())); } catch { /* localStorage may be unavailable */ } };
@@ -159,20 +155,20 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   }, [running, detachedWindow, detachedWindowActive]);
   useEffect(() => {
     const onPomodoroStorage = (event: StorageEvent) => {
-      if (event.key !== POMODORO_SESSION_KEY) return;
-      const saved = readPersistedPomodoro();
+      if (event.key !== pomodoroStorageKey) return;
+      const saved = readPersistedPomodoro(undefined, pomodoroStorageKey);
       if (!saved) return;
       const recovered = recoverRunningSeconds(saved);
-      setSeconds(recovered); setMode(saved.mode); setRunning(saved.running && recovered > 0); setPendingTransition(pendingTransitionForSavedSession(saved)); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(saved.goalCompletedSessions ?? 0); setSessionStartedAt(saved.sessionStartedAt); setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak);
+      setSeconds(recovered); setMode(saved.mode); setRunning(saved.running && recovered > 0); setPendingTransition(pendingTransitionForSavedPomodoro(saved)); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(saved.goalCompletedSessions ?? 0); setSessionStartedAt(saved.sessionStartedAt); setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak);
     };
     window.addEventListener("storage", onPomodoroStorage);
     return () => window.removeEventListener("storage", onPomodoroStorage);
-  }, [detachedWindow]);
+  }, [detachedWindow, pomodoroStorageKey]);
   useEffect(() => {
-    if (seconds !== 0 || completionHandled.current) return;
+    if (seconds !== 0 || completionHandled.current || pendingTransition !== null) return;
     completionHandled.current = true;
     if (mode === "focus") { triggerPomodoroAlert("endFocus"); completeFocus(); } else { triggerPomodoroAlert("endBreak"); completeBreak(); }
-  }, [seconds, mode]);
+  }, [seconds, mode, pendingTransition]);
   useEffect(() => {
     if (!running || mode !== "focus" || lumiMode === "off" || profile.popupsEnabled === false) return;
     const reminder = window.setTimeout(() => setSupportMessage(createSupport(lumiMode === "comfort" ? "comfort" : "encouragement")), 5 * 60_000);
@@ -460,10 +456,10 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
     setShowReasons(false);
   }
   function restore() {
-    const saved = readPersistedPomodoro();
+    const saved = readPersistedPomodoro(undefined, pomodoroStorageKey);
     if (!saved) { toast.info("Chưa có phiên Pomodoro để khôi phục."); return; }
     const recovered = recoverRunningSeconds(saved);
-    setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak); setSeconds(recovered); setMode(saved.mode); setRunning(saved.running && recovered > 0); setAutoAdvance(saved.autoAdvance); setPendingTransition(pendingTransitionForSavedSession(saved)); setSubject(saved.subject); setTopic(saved.topic); setActivity((saved.activity as Activity) ?? "theory"); setNotes(saved.notes ?? ""); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(saved.goalCompletedSessions ?? 0); setSessionStartedAt(saved.sessionStartedAt); setCompactMode(saved.compactMode); setMiniPlayerPinned(saved.miniPlayerPinned); setMiniPlayerPosition({ x: saved.miniPlayerX, y: saved.miniPlayerY }); completionHandled.current = false;
+    setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak); setSeconds(recovered); setMode(saved.mode); setRunning(saved.running && recovered > 0); setAutoAdvance(saved.autoAdvance); setPendingTransition(pendingTransitionForSavedPomodoro(saved)); setSubject(saved.subject); setTopic(saved.topic); setActivity((saved.activity as Activity) ?? "theory"); setNotes(saved.notes ?? ""); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(saved.goalCompletedSessions ?? 0); setSessionStartedAt(saved.sessionStartedAt); setCompactMode(saved.compactMode); setMiniPlayerPinned(saved.miniPlayerPinned); setMiniPlayerPosition({ x: saved.miniPlayerX, y: saved.miniPlayerY }); completionHandled.current = false;
     toast.success(saved.running && recovered > 0 ? "Đã khôi phục phiên Pomodoro đang chạy." : "Đã khôi phục phiên Pomodoro đã lưu.");
   }
   async function getAlertContext() {
@@ -487,16 +483,15 @@ export default function Pomodoro({ profile, config, onProfile, onView, onOpenDet
   function reset() { if (running && !window.confirm("Đặt lại phiên đang chạy? Thời gian chưa hoàn thành sẽ không được ghi nhận.")) return; setRunning(false); setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); completionHandled.current = false; }
   function completeFocus() {
     const endedAt = new Date().toISOString(); const activityLabel = activities.find((item) => item.id === activity)?.label ?? "Học tập";
-    const completedInGoal = Math.min(totalSessions, goalCompletedSessions + 1);
-    const session: PomodoroSession = { id: crypto.randomUUID(), startedAt: sessionStartedAt ?? new Date(Date.now() - focus * 60_000).toISOString(), endedAt, durationMinutes: focus, subject: subject.trim() || "Tự học", topic: topic.trim() || activityLabel, activity: activityLabel, notes: notes.trim() || undefined, sessionNumber: completedInGoal, totalSessions, mode: "focus", status: "completed" };
+    const transition = focusCompletionTransition({ completedFocusSessions: goalCompletedSessions, totalSessions, autoAdvance, shortBreakMinutes: shortBreak, longBreakMinutes: longBreak });
+    const session: PomodoroSession = { id: crypto.randomUUID(), startedAt: sessionStartedAt ?? new Date(Date.now() - focus * 60_000).toISOString(), endedAt, durationMinutes: focus, subject: subject.trim() || "Tự học", topic: topic.trim() || activityLabel, activity: activityLabel, notes: notes.trim() || undefined, sessionNumber: transition.completedFocusSessions, totalSessions, mode: "focus", status: "completed" };
     const activityRow = { id: `pomodoro-${session.id}`, occurredAt: endedAt, kind: "pomodoro" as const, quantity: 1, durationSeconds: focus * 60, xpEarned: 0 };
-    const goalReached = completedInGoal >= totalSessions;
-    const continueWithLongBreak = shouldCelebrateAndEnterBreak(completedInGoal, totalSessions);
-    onProfile({ ...profile, pomodoroHistory: [session, ...profile.pomodoroHistory].slice(0, 500), studyActivity: [activityRow, ...profile.studyActivity].slice(0, 2_000) }, goalReached ? "Đã đạt mục tiêu Pomodoro." : "Đã lưu phiên Pomodoro vào Lịch sử học.");
-    setGoalCompletedSessions(completedInGoal); const nextMode: Mode = nextPomodoroBreakMode(completedInGoal); setSessionStartedAt(null);
-    if (goalReached && !continueWithLongBreak) { setMode("focus"); setSeconds(0); setRunning(false); setPendingTransition(null); celebrateGoal(); toast.success(`Chúc mừng Ong đã hoàn thành ${totalSessions} phiên Pomodoro.`); return; }
-    if (autoAdvance) { setMode(nextMode); setSeconds((nextMode === "longBreak" ? longBreak : shortBreak) * 60); setRunning(true); completionHandled.current = false; if (goalReached) celebrateGoal(); triggerPomodoroAlert("startBreak"); toast.success(goalReached ? `Đã đủ ${totalSessions} phiên. Pomodoro chuyển sang nghỉ dài.` : "Đã hoàn thành phiên. Pomodoro chuyển sang thời gian nghỉ."); }
-    else { setMode(nextMode); setSeconds(0); setRunning(false); setPendingTransition("break"); completionHandled.current = false; if (goalReached) celebrateGoal(); toast.success(goalReached ? `Đã đủ ${totalSessions} phiên. Hãy bắt đầu nghỉ dài khi sẵn sàng.` : "Đã hoàn thành phiên. Khi sẵn sàng, bạn có thể bắt đầu nghỉ."); }
+    onProfile({ ...profile, pomodoroHistory: [session, ...profile.pomodoroHistory].slice(0, 500), studyActivity: [activityRow, ...profile.studyActivity].slice(0, 2_000) }, transition.goalReached ? "Đã đạt mục tiêu Pomodoro." : "Đã lưu phiên Pomodoro vào Lịch sử học.");
+    setGoalCompletedSessions(transition.completedFocusSessions); setSessionStartedAt(null); setMode(transition.mode); setSeconds(transition.seconds); setRunning(transition.running); setPendingTransition(transition.pendingTransition); completionHandled.current = false;
+    if (transition.goalReached) celebrateGoal();
+    if (transition.goalReached && !transition.running && transition.mode === "focus") { toast.success(`Chúc mừng Ong đã hoàn thành ${totalSessions} phiên Pomodoro.`); return; }
+    if (transition.running) { triggerPomodoroAlert("startBreak"); toast.success(transition.goalReached ? `Đã đủ ${totalSessions} phiên. Pomodoro chuyển sang nghỉ dài.` : "Đã hoàn thành phiên. Pomodoro chuyển sang thời gian nghỉ."); }
+    else { toast.success(transition.goalReached ? `Đã đủ ${totalSessions} phiên. Hãy bắt đầu nghỉ dài khi sẵn sàng.` : "Đã hoàn thành phiên. Khi sẵn sàng, bạn có thể bắt đầu nghỉ."); }
   }
   function completeBreak() {
     const startsNewGoalCycle = goalCompletedSessions >= totalSessions;

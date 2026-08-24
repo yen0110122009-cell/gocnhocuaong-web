@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentPomodoroSessionNumber, nextPomodoroBreakMode, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak } from "./pomodoroFlow";
+import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak } from "./pomodoroFlow";
 
 describe("pomodoroFlow", () => {
   it("shows the first focus session as 1 of the selected goal", () => {
@@ -21,6 +21,28 @@ describe("pomodoroFlow", () => {
     const reset = resetPomodoroForGoalChange(25);
     expect(reset).toEqual({ completedFocusSessions: 0, mode: "focus", pendingTransition: null, seconds: 1500, running: false, sessionStartedAt: null });
     expect(currentPomodoroSessionNumber(reset.mode, reset.completedFocusSessions, 2)).toBe(1);
+  });
+
+  it("chuyển phiên đầu tiên sang đúng nghỉ ngắn ở cả hai chế độ", () => {
+    const manual = focusCompletionTransition({ completedFocusSessions: 0, totalSessions: 4, autoAdvance: false, shortBreakMinutes: 5, longBreakMinutes: 15 });
+    expect(manual).toEqual({ completedFocusSessions: 1, mode: "shortBreak", pendingTransition: "break", seconds: 0, running: false, goalReached: false });
+    expect(currentPomodoroSessionNumber(manual.mode, manual.completedFocusSessions, 4)).toBe(1);
+    const automatic = focusCompletionTransition({ completedFocusSessions: 0, totalSessions: 4, autoAdvance: true, shortBreakMinutes: 5, longBreakMinutes: 15 });
+    expect(automatic).toEqual({ completedFocusSessions: 1, mode: "shortBreak", pendingTransition: null, seconds: 300, running: true, goalReached: false });
+  });
+
+  it("vào nghỉ dài sau phiên thứ tư và không đánh dấu đủ phiên sau phiên đầu", () => {
+    const first = focusCompletionTransition({ completedFocusSessions: 0, totalSessions: 4, autoAdvance: true, shortBreakMinutes: 5, longBreakMinutes: 15 });
+    const fourth = focusCompletionTransition({ completedFocusSessions: 3, totalSessions: 4, autoAdvance: false, shortBreakMinutes: 5, longBreakMinutes: 15 });
+    expect(first.completedFocusSessions).toBe(1);
+    expect(first.goalReached).toBe(false);
+    expect(fourth).toEqual({ completedFocusSessions: 4, mode: "longBreak", pendingTransition: "break", seconds: 0, running: false, goalReached: true });
+  });
+
+  it("khôi phục phiên thủ công ở giây 0 thành trạng thái chờ bắt đầu nghỉ", () => {
+    expect(pendingTransitionForSavedPomodoro({ mode: "shortBreak", seconds: 0, goalCompletedSessions: 1, totalSessions: 4 })).toBe("break");
+    expect(pendingTransitionForSavedPomodoro({ mode: "focus", seconds: 0, goalCompletedSessions: 1, totalSessions: 4 })).toBe("focus");
+    expect(pendingTransitionForSavedPomodoro({ mode: "focus", seconds: 0, goalCompletedSessions: 4, totalSessions: 4 })).toBeNull();
   });
 
   it("always restores a valid duration when starting from zero seconds", () => {

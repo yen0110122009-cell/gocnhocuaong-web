@@ -16,6 +16,24 @@ export function shouldCelebrateAndEnterBreak(completedFocusSessions: number, tot
   return completed >= total && nextPomodoroBreakMode(completed) === "longBreak";
 }
 
+export function pendingTransitionForSavedPomodoro(input: { pendingTransition?: "break" | "focus" | null; seconds: number; goalCompletedSessions?: number; totalSessions: number; mode: PomodoroFlowMode } | null) {
+  if (!input) return null;
+  if (input.pendingTransition) return input.pendingTransition;
+  if (input.seconds !== 0 || (input.goalCompletedSessions ?? 0) >= input.totalSessions) return null;
+  return input.mode === "focus" ? "focus" as const : "break" as const;
+}
+
+export function focusCompletionTransition(input: { completedFocusSessions: number; totalSessions: number; autoAdvance: boolean; shortBreakMinutes: number; longBreakMinutes: number }) {
+  const total = Math.max(1, Math.floor(input.totalSessions));
+  const completed = Math.min(total, Math.max(0, Math.floor(input.completedFocusSessions)) + 1);
+  const goalReached = completed >= total;
+  const enterBreak = !goalReached || shouldCelebrateAndEnterBreak(completed, total);
+  if (!enterBreak) return { completedFocusSessions: completed, mode: "focus" as const, pendingTransition: null, seconds: 0, running: false, goalReached };
+  const mode = nextPomodoroBreakMode(completed);
+  const breakMinutes = mode === "longBreak" ? Math.max(1, Math.floor(input.longBreakMinutes)) : Math.max(1, Math.floor(input.shortBreakMinutes));
+  return { completedFocusSessions: completed, mode, pendingTransition: input.autoAdvance ? null : "break" as const, seconds: input.autoAdvance ? breakMinutes * 60 : 0, running: input.autoAdvance, goalReached };
+}
+
 export function resetPomodoroForGoalChange(focusMinutes: number) {
   return {
     completedFocusSessions: 0,

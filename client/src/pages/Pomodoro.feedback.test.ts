@@ -24,7 +24,9 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("Ghim ra màn hình");
     expect(source).toContain("DETACHED_POMODORO_ACTIVE_KEY");
     expect(source).toContain("DETACHED_POMODORO_LEASE_MS");
-    expect(source).toContain("POMODORO_SESSION_KEY");
+    expect(source).toContain("pomodoroSessionStorageKey");
+    expect(source).toContain("accountId");
+    expect(source).toContain("focusCompletionTransition");
     expect(source).toContain("Đóng cửa sổ");
   });
 

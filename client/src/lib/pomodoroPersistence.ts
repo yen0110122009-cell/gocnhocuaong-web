@@ -36,16 +36,17 @@ export type PersistedPomodoroSession = {
 };
 
 export const POMODORO_SESSION_KEY = "study_pomodoro_session_v4";
+export function pomodoroSessionStorageKey(accountId?: string) { return accountId ? `${POMODORO_SESSION_KEY}:${encodeURIComponent(accountId)}` : POMODORO_SESSION_KEY; }
 
 function finiteNumber(value: unknown, fallback: number, min: number, max: number) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
 }
 
-export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null = typeof window === "undefined" ? null : window.localStorage): PersistedPomodoroSession | null {
+export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null = typeof window === "undefined" ? null : window.localStorage, key = POMODORO_SESSION_KEY): PersistedPomodoroSession | null {
   if (!storage) return null;
   try {
-    const raw = storage.getItem(POMODORO_SESSION_KEY);
+    const raw = storage.getItem(key);
     if (!raw) return null;
     const value = JSON.parse(raw) as Partial<PersistedPomodoroSession>;
     if (!value || (value.mode !== "focus" && value.mode !== "shortBreak" && value.mode !== "longBreak")) return null;
@@ -88,17 +89,17 @@ export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null =
   }
 }
 
-export function writePersistedPomodoro(session: Omit<PersistedPomodoroSession, "savedAt">, storage: Pick<Storage, "setItem"> | null = typeof window === "undefined" ? null : window.localStorage) {
+export function writePersistedPomodoro(session: Omit<PersistedPomodoroSession, "savedAt">, storage: Pick<Storage, "setItem"> | null = typeof window === "undefined" ? null : window.localStorage, key = POMODORO_SESSION_KEY) {
   if (!storage) return;
   try {
-    storage.setItem(POMODORO_SESSION_KEY, JSON.stringify({ ...session, savedAt: Date.now() }));
+    storage.setItem(key, JSON.stringify({ ...session, savedAt: Date.now() }));
   } catch {
     // Storage may be disabled or full; the in-memory timer remains usable.
   }
 }
 
-export function clearPersistedPomodoro(storage: Pick<Storage, "removeItem"> | null = typeof window === "undefined" ? null : window.localStorage) {
-  try { storage?.removeItem(POMODORO_SESSION_KEY); } catch { /* ignore unavailable storage */ }
+export function clearPersistedPomodoro(storage: Pick<Storage, "removeItem"> | null = typeof window === "undefined" ? null : window.localStorage, key = POMODORO_SESSION_KEY) {
+  try { storage?.removeItem(key); } catch { /* ignore unavailable storage */ }
 }
 
 export function recoverRunningSeconds(session: PersistedPomodoroSession, now = Date.now()) {

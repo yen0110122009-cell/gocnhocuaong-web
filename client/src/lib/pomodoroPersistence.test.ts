@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { POMODORO_SESSION_KEY, clearPersistedPomodoro, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro, type PersistedPomodoroSession } from "./pomodoroPersistence";
+import { POMODORO_SESSION_KEY, clearPersistedPomodoro, pomodoroSessionStorageKey, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro, type PersistedPomodoroSession } from "./pomodoroPersistence";
 
 const session: Omit<PersistedPomodoroSession, "savedAt"> = {
   focus: 25, shortBreak: 5, longBreak: 15, seconds: 1490, mode: "focus", running: true,
@@ -23,6 +23,15 @@ describe("pomodoroPersistence", () => {
     expect(restored?.miniPlayerPinned).toBe(true);
     expect(restored?.compactMode).toBe(true);
     expect(restored?.backgroundSound).toBe("Mưa nhẹ");
+  });
+
+  it("cách ly phiên lưu giữa các tài khoản", () => {
+    const storage = memoryStorage();
+    const accountAKey = pomodoroSessionStorageKey("account-a");
+    const accountBKey = pomodoroSessionStorageKey("account-b");
+    writePersistedPomodoro({ ...session, goalCompletedSessions: 3 }, storage, accountAKey);
+    expect(readPersistedPomodoro(storage, accountAKey)?.goalCompletedSessions).toBe(3);
+    expect(readPersistedPomodoro(storage, accountBKey)).toBeNull();
   });
 
   it("subtracts elapsed wall-clock time while the page was unmounted", () => {
