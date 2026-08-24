@@ -20,4 +20,13 @@ describe("Study goals by subject contract", () => {
     expect(source).toContain("history.totalSeconds");
     expect(source).toContain("goalPercent");
   });
+
+  it("cho xem lịch sử tiến độ và phần thưởng theo từng ngày", () => {
+    expect(source).toContain("studyDayHistory(profile, new Date(), 60)");
+    expect(source).toContain("Lịch sử tiến độ theo ngày");
+    expect(source).toContain("Lịch sử thưởng theo ngày");
+    expect(source).toContain("entertainmentDayHistory(profile, new Date(), 60");
+    expect(source).toContain("day.subjectCount");
+    expect(source).toContain("day.entertainmentMinutes");
+  });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyProfile, normalizeProfile } from "./study";
-import { formatStudyMinutes, goalPercent, normalizeStudySubjects, normalizeStudyTimeGoals, studySecondsForDay, studySecondsForWeek, subjectHistory, subjectSecondsForDay } from "./studyTimeAnalytics";
+import { formatStudyMinutes, goalPercent, normalizeStudySubjects, normalizeStudyTimeGoals, studyDayHistory, studySecondsForDay, studySecondsForWeek, subjectHistory, subjectSecondsForDay } from "./studyTimeAnalytics";
 
 const profile = () => ({ ...emptyProfile(), studyActivity: [
   { id: "p-1", occurredAt: "2026-08-24T08:00:00", kind: "pomodoro" as const, quantity: 1, durationSeconds: 1_800, xpEarned: 0 },
@@ -18,10 +18,20 @@ const profile = () => ({ ...emptyProfile(), studyActivity: [
 ] });
 
 describe("study time analytics", () => {
-  it("tổng hợp ngày/tuần từ StudyActivity và bỏ hoạt động wheel", () => {
+  it("tổng hợp ngày/tuần từ phiên Pomodoro hoàn thành, bổ sung hoạt động khác và bỏ wheel", () => {
     const value = profile();
     expect(studySecondsForDay(value, new Date("2026-08-24T12:00:00"))).toBe(1_800);
-    expect(studySecondsForWeek(value, new Date("2026-08-26T12:00:00"))).toBe(5_400);
+    expect(studySecondsForWeek(value, new Date("2026-08-26T12:00:00"))).toBe(18_000);
+  });
+  it("lấy đủ Pomodoro hoàn thành khi studyActivity thiếu và không đếm trùng khi đã có activity", () => {
+    const value = profile();
+    value.studyActivity = [{ id: "p-1", occurredAt: "2026-08-24T08:00:00", kind: "pomodoro", quantity: 1, durationSeconds: 1_800, xpEarned: 0 }];
+    expect(studySecondsForDay(value, new Date("2026-08-24T12:00:00"))).toBe(1_800);
+    value.studyActivity = [];
+    expect(studySecondsForDay(value, new Date("2026-08-24T12:00:00"))).toBe(1_800);
+    const days = studyDayHistory(value, new Date("2026-08-25T12:00:00"), 2);
+    expect(days[0]).toMatchObject({ key: "2026-08-25", seconds: 2_700, pomodoroSessions: 1 });
+    expect(days[1]).toMatchObject({ key: "2026-08-24", seconds: 1_800, pomodoroSessions: 1 });
   });
   it("tổng hợp môn chỉ từ phiên focus hoàn thành và phân cấp theo ngày", () => {
     const value = profile();
