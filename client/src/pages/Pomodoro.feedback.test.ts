@@ -27,6 +27,8 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("pomodoroSessionStorageKey");
     expect(source).toContain("accountId");
     expect(source).toContain("focusCompletionTransition");
+    expect(source).toContain("pendingTransition !== null");
+    expect(home).toContain("key={`pomodoro-${account.id}`}");
     expect(source).toContain("Đóng cửa sổ");
   });
 
