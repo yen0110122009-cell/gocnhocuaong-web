@@ -55,4 +55,15 @@ describe("Home không còn ảnh hay marker Lumi/Ong", () => {
     expect(source).toContain('event.key === "Escape"');
     expect(source).toContain('audioThemeTriggerRef.current?.focus()');
   });
+
+  it("có chế độ nhẹ mobile, điều hướng đáy và không khóa zoom", () => {
+    expect(source).toContain("MOBILE_PERFORMANCE_STORAGE_KEY");
+    expect(source).toContain('root.dataset.mobilePerformance = mobilePerformanceMode ? "light" : "full"');
+    expect(source).toContain("function MobileBottomNav");
+    expect(source).toContain('className="mobile-bottom-nav"');
+    expect(css).toContain(':root[data-mobile-performance="light"]');
+    const indexHtml = readFileSync(resolve(process.cwd(), "client/index.html"), "utf8");
+    expect(indexHtml).toContain('viewport-fit=cover');
+    expect(indexHtml).not.toContain("maximum-scale=1");
+  });
 });

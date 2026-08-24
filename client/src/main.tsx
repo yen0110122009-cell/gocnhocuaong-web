@@ -8,6 +8,9 @@ import App from "./App";
 import { isGitHubPages } from "@/lib/runtime";
 import { startLogin } from "./const";
 import "./index.css";
+import { startWebVitals } from "@/lib/webVitals";
+
+startWebVitals();
 
 if (isGitHubPages && import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {

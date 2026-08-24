@@ -180,7 +180,9 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
   useEffect(() => {
     let cancelled = false;
     const timers = new Set<number>();
+    const controllers = new Set<AbortController>();
     const maxAttempts = 3;
+    const maxConcurrentChecks = 3;
     const backoffMs = [500, 1200, 2500];
     let lastRetryByAsset: Record<string, number> = {};
     try {
@@ -189,7 +191,8 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
         lastRetryByAsset = Object.fromEntries(Object.entries(stored).flatMap(([key, value]) => typeof value === "number" && Number.isFinite(value) ? [[key, value]] : []));
       }
     } catch { /* localStorage có thể bị chặn hoặc chứa dữ liệu cũ không hợp lệ. */ }
-    ambientHealthAssets.forEach((asset) => {
+    const queue = [...ambientHealthAssets];
+    const checkAsset = async (asset: (typeof ambientHealthAssets)[number]) => {
       let attempt = 0;
       let finished = false;
       const finish = (status: "ok" | "error", message?: string, checkedAt = new Date().toISOString()) => {
@@ -202,44 +205,53 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
         finish("error", "Storage vừa bị giới hạn tạm thời (429). Hệ thống sẽ kiểm tra lại sau một chút.", new Date(lastRetryAt).toISOString());
         return;
       }
-      const inspectWithAudio = () => {
-        if (cancelled || finished) return;
+      const inspectWithAudio = () => new Promise<void>((resolve) => {
+        if (cancelled || finished) { resolve(); return; }
         const audio = new Audio();
         audio.preload = "metadata";
-        const timeoutId = window.setTimeout(() => {
-          audio.removeAttribute("src");
-          audio.load();
-          finish("error", "Không nhận được metadata sau nhiều lần thử; hãy kiểm tra URL hoặc storage.");
-        }, 7000);
+        let settled = false;
         const close = (status: "ok" | "error", message?: string) => {
+          if (settled) return;
+          settled = true;
           window.clearTimeout(timeoutId);
+          audio.onloadedmetadata = null;
+          audio.oncanplay = null;
+          audio.onerror = null;
           audio.removeAttribute("src");
           audio.load();
           finish(status, message);
+          resolve();
         };
+        const timeoutId = window.setTimeout(() => close("error", "Không nhận được metadata sau nhiều lần thử; hãy kiểm tra URL hoặc storage."), 7000);
         audio.onloadedmetadata = () => close("ok");
         audio.oncanplay = () => close("ok");
         audio.onerror = () => close("error", "URL không tải được hoặc định dạng không được trình duyệt hỗ trợ.");
         audio.src = resolveMediaUrl(asset.url);
         audio.load();
-      };
-      const check = async () => {
+      });
+      const check = async (): Promise<void> => {
         if (cancelled || finished) return;
         attempt += 1;
         setHealthByAssetId((current) => ({ ...current, [asset.id]: { status: "checking", message: `Đang kiểm tra lần ${attempt}/${maxAttempts}…` } }));
+        let requestTimeout: number | undefined;
+        let controller: AbortController | undefined;
         try {
-          const controller = new AbortController();
-          const requestTimeout = window.setTimeout(() => controller.abort(), 5000);
-          const response = await fetch(resolveMediaUrl(asset.url), { method: "HEAD", cache: "no-store", signal: controller.signal });
-          window.clearTimeout(requestTimeout);
+          const activeController = new AbortController();
+          controller = activeController;
+          controllers.add(activeController);
+          requestTimeout = window.setTimeout(() => activeController.abort(), 5000);
+          const response = await fetch(resolveMediaUrl(asset.url), { method: "HEAD", cache: "no-store", signal: activeController.signal });
           if (response.status === 429) {
             if (attempt < maxAttempts) {
               const retryAt = Date.now();
               lastRetryByAsset[asset.id] = retryAt;
               try { window.localStorage.setItem(healthRetryStorageKey, JSON.stringify(lastRetryByAsset)); } catch { /* không làm gián đoạn health-check nếu storage bị chặn. */ }
               if (attempt === 1) toast.info("Storage đang bận", { description: `Audio Center sẽ tự thử lại “${asset.name}” sau ít giây.` });
-              const timer = window.setTimeout(() => { timers.delete(timer); void check(); }, backoffMs[attempt - 1] ?? 2500);
-              timers.add(timer);
+              await new Promise<void>((resolve) => {
+                const timer = window.setTimeout(() => { timers.delete(timer); resolve(); }, backoffMs[attempt - 1] ?? 2500);
+                timers.add(timer);
+              });
+              if (!cancelled) await check();
               return;
             }
             const retryAt = Date.now();
@@ -253,15 +265,27 @@ export function AudioCenterEnhancements({ profile, onProfile, voiceLines, playba
             finish("error", `Storage trả về lỗi HTTP ${response.status}.`);
             return;
           }
-          inspectWithAudio();
+          await inspectWithAudio();
         } catch {
           // Một số trình duyệt chặn hoặc treo HEAD cross-origin; vẫn xác minh bằng metadata Audio.
-          inspectWithAudio();
+          await inspectWithAudio();
+        } finally {
+          if (requestTimeout !== undefined) window.clearTimeout(requestTimeout);
+          if (controller) controllers.delete(controller);
         }
       };
-      void check();
-    });
-    return () => { cancelled = true; timers.forEach((timer) => window.clearTimeout(timer)); timers.clear(); };
+      await check();
+    };
+    const worker = async () => {
+      while (!cancelled) {
+        const asset = queue.shift();
+        if (!asset) return;
+        await checkAsset(asset);
+      }
+    };
+    const workerCount = Math.min(maxConcurrentChecks, queue.length);
+    void Promise.all(Array.from({ length: workerCount }, () => worker()));
+    return () => { cancelled = true; controllers.forEach((controller) => controller.abort()); controllers.clear(); timers.forEach((timer) => window.clearTimeout(timer)); timers.clear(); };
   }, [ambientHealthAssets]);
   function healthBadge(asset: PersonalAudioAsset) {
     const health = healthByAssetId[asset.id];
