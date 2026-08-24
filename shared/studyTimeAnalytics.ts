@@ -1,8 +1,8 @@
 import type { PomodoroSession, ProfileState } from "./study";
 
 export const DEFAULT_STUDY_SUBJECTS = ["Toán", "Lý", "Hóa", "Văn", "Anh"] as const;
-export type StudyTimeGoals = { dailyMinutes: number; weeklyMinutes: number; subjectDailyMinutes: Record<string, number> };
-export const DEFAULT_STUDY_TIME_GOALS: StudyTimeGoals = { dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: {} };
+export type StudyTimeGoals = { dailyMinutes: number; weeklyMinutes: number; subjectDailyMinutes: Record<string, number>; subjectWeeklyMinutes: Record<string, number>; subjectTotalMinutes: Record<string, number> };
+export const DEFAULT_STUDY_TIME_GOALS: StudyTimeGoals = { dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: {}, subjectWeeklyMinutes: {}, subjectTotalMinutes: {} };
 
 type ActivityProfile = Pick<ProfileState, "studyActivity" | "pomodoroHistory" | "studySubjects" | "studyTimeGoals">;
 export type SubjectHistory = { subject: string; totalSeconds: number; yearSeconds: number; monthSeconds: number; days: Array<{ key: string; label: string; seconds: number }>; months: Array<{ key: string; label: string; seconds: number; days: Array<{ key: string; label: string; seconds: number }> }>; years: Array<{ key: string; label: string; seconds: number }> };
@@ -10,8 +10,11 @@ export type SubjectHistory = { subject: string; totalSeconds: number; yearSecond
 export function localDateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
 export function normalizeStudyTimeGoals(value: unknown): StudyTimeGoals {
   const source = value && typeof value === "object" ? value as Partial<StudyTimeGoals> : {};
-  const subjectDailyMinutes = source.subjectDailyMinutes && typeof source.subjectDailyMinutes === "object" ? Object.fromEntries(Object.entries(source.subjectDailyMinutes).flatMap(([subject, minutes]) => { const name = subject.trim().slice(0, 80); const amount = Math.max(0, Math.min(1_440, Math.round(Number(minutes) || 0))); return name && amount > 0 ? [[name, amount]] : []; })) : {};
-  return { dailyMinutes: Math.max(0, Math.min(1_440, Math.round(Number(source.dailyMinutes ?? DEFAULT_STUDY_TIME_GOALS.dailyMinutes) || 0))), weeklyMinutes: Math.max(0, Math.min(10_080, Math.round(Number(source.weeklyMinutes ?? DEFAULT_STUDY_TIME_GOALS.weeklyMinutes) || 0))), subjectDailyMinutes };
+  const readSubjectMinutes = (value: unknown, max: number) => value && typeof value === "object" ? Object.fromEntries(Object.entries(value).flatMap(([subject, minutes]) => { const name = subject.trim().slice(0, 80); const amount = Math.max(0, Math.min(max, Math.round(Number(minutes) || 0))); return name && amount > 0 ? [[name, amount]] : []; })) : {};
+  const subjectDailyMinutes = readSubjectMinutes(source.subjectDailyMinutes, 1_440);
+  const subjectWeeklyMinutes = readSubjectMinutes(source.subjectWeeklyMinutes, 10_080);
+  const subjectTotalMinutes = readSubjectMinutes(source.subjectTotalMinutes, 10_000_000);
+  return { dailyMinutes: Math.max(0, Math.min(1_440, Math.round(Number(source.dailyMinutes ?? DEFAULT_STUDY_TIME_GOALS.dailyMinutes) || 0))), weeklyMinutes: Math.max(0, Math.min(10_080, Math.round(Number(source.weeklyMinutes ?? DEFAULT_STUDY_TIME_GOALS.weeklyMinutes) || 0))), subjectDailyMinutes, subjectWeeklyMinutes, subjectTotalMinutes };
 }
 export function normalizeStudySubjects(value: unknown) {
   const custom = Array.isArray(value) ? value.flatMap((subject) => typeof subject === "string" && subject.trim() ? [subject.trim().slice(0, 80)] : []) : [];

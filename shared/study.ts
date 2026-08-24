@@ -819,6 +819,8 @@ export type StudyTimeGoals = {
   dailyMinutes: number;
   weeklyMinutes: number;
   subjectDailyMinutes: Record<string, number>;
+  subjectWeeklyMinutes: Record<string, number>;
+  subjectTotalMinutes: Record<string, number>;
 };
 
 export type EntertainmentConversionSettings = {
@@ -1144,7 +1146,7 @@ export const emptyProfile = (): ProfileState => ({
   focusMode: false,
   weeklyPomodoroGoalMinutes: 300,
   weeklyPomodoroGoalCompletions: [],
-  studyTimeGoals: { dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: {} },
+  studyTimeGoals: { dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: {}, subjectWeeklyMinutes: {}, subjectTotalMinutes: {} },
   studySubjects: ["Toán", "Lý", "Hóa", "Văn", "Anh"],
   lumiCongratulationMessages: {},
   theme: "light",
@@ -1976,7 +1978,7 @@ export function normalizeProfile(value: unknown): ProfileState {
     autoNightMode: source.autoNightMode === true,
     focusMode: source.focusMode === true,
     weeklyPomodoroGoalMinutes: Math.max(30, Math.min(10_080, Math.round(Number(source.weeklyPomodoroGoalMinutes ?? base.weeklyPomodoroGoalMinutes ?? 300) || base.weeklyPomodoroGoalMinutes || 300))),
-    studyTimeGoals: (() => { const raw = source.studyTimeGoals && typeof source.studyTimeGoals === "object" ? source.studyTimeGoals as Partial<StudyTimeGoals> : {}; const subjectDailyMinutes = raw.subjectDailyMinutes && typeof raw.subjectDailyMinutes === "object" ? Object.fromEntries(Object.entries(raw.subjectDailyMinutes).flatMap(([subject, value]) => { const name = subject.trim().slice(0, 80); const minutes = Math.max(0, Math.min(1_440, Math.round(Number(value) || 0))); return name && minutes > 0 ? [[name, minutes]] : []; })) : {}; return { dailyMinutes: Math.max(0, Math.min(1_440, Math.round(Number(raw.dailyMinutes ?? 180) || 0))), weeklyMinutes: Math.max(0, Math.min(10_080, Math.round(Number(raw.weeklyMinutes ?? 900) || 0))), subjectDailyMinutes }; })(),
+    studyTimeGoals: (() => { const raw = source.studyTimeGoals && typeof source.studyTimeGoals === "object" ? source.studyTimeGoals as Partial<StudyTimeGoals> : {}; const readSubjectMinutes = (value: unknown, max: number) => value && typeof value === "object" ? Object.fromEntries(Object.entries(value).flatMap(([subject, amount]) => { const name = subject.trim().slice(0, 80); const minutes = Math.max(0, Math.min(max, Math.round(Number(amount) || 0))); return name && minutes > 0 ? [[name, minutes]] : []; })) : {}; const subjectDailyMinutes = readSubjectMinutes(raw.subjectDailyMinutes, 1_440); const subjectWeeklyMinutes = readSubjectMinutes(raw.subjectWeeklyMinutes, 10_080); const subjectTotalMinutes = readSubjectMinutes(raw.subjectTotalMinutes, 10_000_000); return { dailyMinutes: Math.max(0, Math.min(1_440, Math.round(Number(raw.dailyMinutes ?? 180) || 0))), weeklyMinutes: Math.max(0, Math.min(10_080, Math.round(Number(raw.weeklyMinutes ?? 900) || 0))), subjectDailyMinutes, subjectWeeklyMinutes, subjectTotalMinutes }; })(),
     entertainmentConversionSettings: normalizeEntertainmentConversionSettings(source.entertainmentConversionSettings),
     studySubjects: (() => { const values = Array.isArray(source.studySubjects) ? source.studySubjects.flatMap((value) => typeof value === "string" && value.trim() ? [value.trim().slice(0, 80)] : []) : []; return Array.from(new Set(["Toán", "Lý", "Hóa", "Văn", "Anh", ...values])).slice(0, 50); })(),
     weeklyPomodoroGoalCompletions: Array.isArray(source.weeklyPomodoroGoalCompletions) ? source.weeklyPomodoroGoalCompletions.flatMap((value) => {

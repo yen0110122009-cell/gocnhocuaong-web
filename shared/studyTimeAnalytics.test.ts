@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { emptyProfile } from "./study";
-import { formatStudyMinutes, goalPercent, normalizeStudySubjects, studySecondsForDay, studySecondsForWeek, subjectHistory, subjectSecondsForDay } from "./studyTimeAnalytics";
+import { emptyProfile, normalizeProfile } from "./study";
+import { formatStudyMinutes, goalPercent, normalizeStudySubjects, normalizeStudyTimeGoals, studySecondsForDay, studySecondsForWeek, subjectHistory, subjectSecondsForDay } from "./studyTimeAnalytics";
 
 const profile = () => ({ ...emptyProfile(), studyActivity: [
   { id: "p-1", occurredAt: "2026-08-24T08:00:00", kind: "pomodoro" as const, quantity: 1, durationSeconds: 1_800, xpEarned: 0 },
@@ -32,6 +32,28 @@ describe("study time analytics", () => {
     expect(subjectSecondsForDay(value, "Toán", new Date("2026-08-24T12:00:00"))).toBe(30 * 60);
     expect(history.days.map((day) => day.key)).toEqual(["2026-08-25", "2026-08-24"]);
     expect(history.months[0].days[0]).toMatchObject({ key: "2026-08-25", seconds: 2_700 });
+  });
+  it("khôi phục mục tiêu ngày, tuần và tổng của môn từ profile", () => {
+    const value = normalizeProfile({ studyTimeGoals: { dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: { Hóa: 60 }, subjectWeeklyMinutes: { Hóa: 300 }, subjectTotalMinutes: { Hóa: 1_800 } } });
+    expect(value.studyTimeGoals).toMatchObject({ subjectDailyMinutes: { Hóa: 60 }, subjectWeeklyMinutes: { Hóa: 300 }, subjectTotalMinutes: { Hóa: 1_800 } });
+  });
+  it("giữ riêng thời gian Hóa theo từng ngày khi tính tổng nhiều ngày", () => {
+    const value = profile();
+    value.pomodoroHistory = [
+      { id: "hoa-1", startedAt: "2026-08-20T08:00:00", endedAt: "2026-08-20T08:45:00", durationMinutes: 45, subject: "Hóa", topic: "Este", sessionNumber: 1, totalSessions: 1, mode: "focus", status: "completed" },
+      { id: "hoa-2", startedAt: "2026-08-23T13:00:00", endedAt: "2026-08-23T14:10:00", durationMinutes: 70, subject: "Hóa", topic: "Amin", sessionNumber: 1, totalSessions: 1, mode: "focus", status: "completed" },
+      { id: "hoa-3", startedAt: "2026-08-24T09:00:00", endedAt: "2026-08-24T09:30:00", durationMinutes: 30, subject: "Hóa", topic: "Polime", sessionNumber: 1, totalSessions: 1, mode: "focus", status: "completed" },
+    ];
+    const history = subjectHistory(value, "Hóa", new Date("2026-08-24T12:00:00"));
+    expect(history.totalSeconds).toBe(145 * 60);
+    expect(history.days.map((day) => [day.key, day.seconds])).toEqual([["2026-08-24", 30 * 60], ["2026-08-23", 70 * 60], ["2026-08-20", 45 * 60]]);
+    expect(subjectSecondsForDay(value, "Hóa", new Date("2026-08-23T20:00:00"))).toBe(70 * 60);
+    expect(subjectSecondsForDay(value, "Hóa", new Date("2026-08-24T12:00:00"))).toBe(30 * 60);
+  });
+  it("chuẩn hóa mục tiêu từng môn theo ngày, tuần và tổng mà vẫn nhận dữ liệu cũ", () => {
+    expect(normalizeStudyTimeGoals({ dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: { Hóa: 60 }, subjectWeeklyMinutes: { Hóa: 300 }, subjectTotalMinutes: { Hóa: 1_800 } })).toEqual({ dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: { Hóa: 60 }, subjectWeeklyMinutes: { Hóa: 300 }, subjectTotalMinutes: { Hóa: 1_800 } });
+    expect(normalizeStudyTimeGoals({ subjectDailyMinutes: { Hóa: 60 } }).subjectWeeklyMinutes).toEqual({});
+    expect(normalizeStudyTimeGoals({ subjectTotalMinutes: { Hóa: 99_999_999 } }).subjectTotalMinutes).toEqual({ Hóa: 10_000_000 });
   });
   it("kiểm tra đầy đủ năm môn mặc định theo tổng thời gian thực", () => {
     const value = profile();
