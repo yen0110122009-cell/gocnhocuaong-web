@@ -12,7 +12,7 @@ export function isLumiWaterAlertSoundId(value: string): value is LumiWaterAlertS
   return LUMI_WATER_ALERT_SOUND_IDS.includes(value as LumiWaterAlertSoundId);
 }
 
-function tone(context: globalThis.AudioContext, frequency: number, start: number, duration: number, volume: number, type: OscillatorType = "sine") {
+function tone(context: globalThis.AudioContext, frequency: number, start: number, duration: number, volume: number, type: OscillatorType = "sine", output: AudioNode = context.destination) {
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   oscillator.type = type;
@@ -20,7 +20,7 @@ function tone(context: globalThis.AudioContext, frequency: number, start: number
   gain.gain.setValueAtTime(0.0001, start);
   gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, Math.min(0.95, volume)), start + 0.02);
   gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(gain).connect(context.destination);
+  oscillator.connect(gain).connect(output);
   oscillator.start(start);
   oscillator.stop(start + duration + 0.03);
 }
@@ -30,10 +30,19 @@ export function playLumiWaterAlert(context: globalThis.AudioContext, soundId: Lu
   if (loudness <= 0) return;
   const repeats = Math.max(1, Math.min(10, Math.round(repeatCount)));
   const durationScale = Math.max(0.5, Math.min(3, durationMultiplier));
-  const base = Math.min(0.9, loudness * 0.075);
+  const outputGain = context.createGain();
+  const limiter = context.createDynamicsCompressor();
+  const base = Math.min(0.9, loudness * 0.1);
   const start = context.currentTime + 0.02;
+  outputGain.gain.setValueAtTime(1.35, start);
+  limiter.threshold.setValueAtTime(-18, start);
+  limiter.knee.setValueAtTime(10, start);
+  limiter.ratio.setValueAtTime(8, start);
+  limiter.attack.setValueAtTime(0.003, start);
+  limiter.release.setValueAtTime(0.22, start);
+  outputGain.connect(limiter).connect(context.destination);
   const playSequence = (sequenceStart: number) => {
-    const notes = (frequencies: number[], interval: number, duration: number, type: OscillatorType = "sine") => frequencies.forEach((frequency, index) => tone(context, frequency, sequenceStart + index * interval * durationScale, duration * durationScale, base, type));
+    const notes = (frequencies: number[], interval: number, duration: number, type: OscillatorType = "sine") => frequencies.forEach((frequency, index) => tone(context, frequency, sequenceStart + index * interval * durationScale, duration * durationScale, base, type, outputGain));
     if (soundId === "water_drop") notes([880, 1174.66], 0.18, 0.38);
     else if (soundId === "soft_chime") notes([659.25, 783.99, 987.77], 0.16, 0.52);
     else if (soundId === "wind_chime") notes([523.25, 659.25, 783.99, 1046.5], 0.13, 0.72);

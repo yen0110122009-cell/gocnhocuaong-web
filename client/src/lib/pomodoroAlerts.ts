@@ -20,7 +20,7 @@ export const isPomodoroAlertSoundId = (value: string): value is PomodoroAlertSou
 
 function clampVolume(value: number) { return Math.max(0, Math.min(10, value)); }
 function clampDuration(value: number) { return Math.max(0.5, Math.min(3, value)); }
-function tone(context: AudioContext, frequency: number, start: number, duration: number, volume: number, type: OscillatorType = "sine") {
+function tone(context: AudioContext, frequency: number, start: number, duration: number, volume: number, type: OscillatorType = "sine", output: AudioNode = context.destination) {
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   oscillator.type = type;
@@ -28,7 +28,7 @@ function tone(context: AudioContext, frequency: number, start: number, duration:
   gain.gain.setValueAtTime(0.0001, start);
   gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, Math.min(0.95, volume)), start + 0.025);
   gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(gain).connect(context.destination);
+  oscillator.connect(gain).connect(output);
   oscillator.start(start);
   oscillator.stop(start + duration + 0.03);
 }
@@ -39,9 +39,18 @@ export function playPomodoroAlert(context: AudioContext, soundId: PomodoroAlertS
   const durationScale = clampDuration(durationMultiplier);
   const repeats = Math.max(1, Math.min(10, Math.round(repeatCount)));
   const start = context.currentTime + 0.02;
-  const base = Math.min(0.9, volume * 0.12);
+  const outputGain = context.createGain();
+  const limiter = context.createDynamicsCompressor();
+  outputGain.gain.setValueAtTime(1.35, start);
+  limiter.threshold.setValueAtTime(-18, start);
+  limiter.knee.setValueAtTime(10, start);
+  limiter.ratio.setValueAtTime(8, start);
+  limiter.attack.setValueAtTime(0.003, start);
+  limiter.release.setValueAtTime(0.22, start);
+  outputGain.connect(limiter).connect(context.destination);
+  const base = Math.min(0.9, volume * 0.15);
   const playSequence = (sequenceStart: number) => {
-    const notes = (frequencies: number[], interval: number, duration: number, type: OscillatorType = "sine", multiplier = 1) => frequencies.forEach((frequency, index) => tone(context, frequency, sequenceStart + index * interval * durationScale, duration * durationScale, base * multiplier, type));
+    const notes = (frequencies: number[], interval: number, duration: number, type: OscillatorType = "sine", multiplier = 1) => frequencies.forEach((frequency, index) => tone(context, frequency, sequenceStart + index * interval * durationScale, duration * durationScale, base * multiplier, type, outputGain));
     if (soundId === "digital_bell") notes([523.25, 659.25, 783.99], 0.2, 0.65);
     else if (soundId === "loud_alarm") notes([880, 880, 880], 0.28, 0.2, "triangle", 1.25);
     else if (soundId === "marimba") notes([440, 554.37, 659.25, 880], 0.15, 0.38, "sine", 0.85);

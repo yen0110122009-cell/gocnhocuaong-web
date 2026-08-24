@@ -49,11 +49,16 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     ]);
     expect(lumiAlertSource).toContain("context.createOscillator()");
     expect(lumiAlertSource).toContain("context.createGain()");
-    expect(pomodoroAlertSource).toContain("const base = Math.min(0.9, volume * 0.12);");
+    expect(pomodoroAlertSource).toContain("const base = Math.min(0.9, volume * 0.15);");
+    expect(pomodoroAlertSource).toContain("createDynamicsCompressor()");
+    expect(pomodoroAlertSource).toContain("outputGain.gain.setValueAtTime(1.35");
     expect(pomodoroAlertSource).toContain("repeatCount");
     expect(pomodoroAlertSource).toContain("durationMultiplier");
     expect(lumiAlertSource).toContain("repeatCount");
     expect(lumiAlertSource).toContain("durationMultiplier");
+    expect(lumiAlertSource).toContain("const base = Math.min(0.9, loudness * 0.1);");
+    expect(lumiAlertSource).toContain("createDynamicsCompressor()");
+    expect(lumiAlertSource).toContain("outputGain.gain.setValueAtTime(1.35");
     expect(lumiAlertSource).not.toContain("new Audio(");
   });
 
