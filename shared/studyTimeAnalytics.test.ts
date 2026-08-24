@@ -50,6 +50,14 @@ describe("study time analytics", () => {
     expect(subjectSecondsForDay(value, "Hóa", new Date("2026-08-23T20:00:00"))).toBe(70 * 60);
     expect(subjectSecondsForDay(value, "Hóa", new Date("2026-08-24T12:00:00"))).toBe(30 * 60);
   });
+  it("ưu tiên ngày bắt đầu khi endedAt của phiên cũ bị dồn vào một mốc", () => {
+    const value = profile();
+    value.pomodoroHistory = [{ id: "hoa-old", startedAt: "2026-08-19T13:00:00", endedAt: "2026-08-23T14:10:00", durationMinutes: 70, subject: "Hóa", topic: "Dữ liệu cũ", sessionNumber: 1, totalSessions: 1, mode: "focus", status: "completed" }];
+    const history = subjectHistory(value, "Hóa", new Date("2026-08-24T12:00:00"));
+    expect(history.totalSeconds).toBe(70 * 60);
+    expect(history.days).toEqual([expect.objectContaining({ key: "2026-08-19", seconds: 70 * 60 })]);
+    expect(subjectSecondsForDay(value, "Hóa", new Date("2026-08-23T20:00:00"))).toBe(0);
+  });
   it("chuẩn hóa mục tiêu từng môn theo ngày, tuần và tổng mà vẫn nhận dữ liệu cũ", () => {
     expect(normalizeStudyTimeGoals({ dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: { Hóa: 60 }, subjectWeeklyMinutes: { Hóa: 300 }, subjectTotalMinutes: { Hóa: 1_800 } })).toEqual({ dailyMinutes: 180, weeklyMinutes: 900, subjectDailyMinutes: { Hóa: 60 }, subjectWeeklyMinutes: { Hóa: 300 }, subjectTotalMinutes: { Hóa: 1_800 } });
     expect(normalizeStudyTimeGoals({ subjectDailyMinutes: { Hóa: 60 } }).subjectWeeklyMinutes).toEqual({});

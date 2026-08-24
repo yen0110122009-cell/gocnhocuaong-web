@@ -21,18 +21,23 @@ export function normalizeStudySubjects(value: unknown) {
   return Array.from(new Set([...DEFAULT_STUDY_SUBJECTS, ...custom])).slice(0, 50);
 }
 function studyDate(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? null : date; }
-function completedFocusSessions(profile: ActivityProfile): PomodoroSession[] { return (profile.pomodoroHistory ?? []).filter((session) => session.mode === "focus" && session.status === "completed" && session.durationMinutes > 0 && Boolean(studyDate(session.endedAt))); }
+function sessionStudyDate(session: PomodoroSession) {
+  const startedAt = studyDate(session.startedAt);
+  if (startedAt && startedAt.getTime() > 0) return startedAt;
+  return studyDate(session.endedAt);
+}
+function completedFocusSessions(profile: ActivityProfile): PomodoroSession[] { return (profile.pomodoroHistory ?? []).filter((session) => session.mode === "focus" && session.status === "completed" && session.durationMinutes > 0 && Boolean(sessionStudyDate(session))); }
 function completedActivitySeconds(profile: ActivityProfile, predicate: (date: Date) => boolean) { return (profile.studyActivity ?? []).filter((activity) => activity.kind !== "wheel").reduce((total, activity) => { const date = studyDate(activity.occurredAt); return date && predicate(date) ? total + Math.max(0, activity.durationSeconds) : total; }, 0); }
 function startOfDay(date: Date) { const value = new Date(date); value.setHours(0, 0, 0, 0); return value; }
 function startOfWeek(date: Date) { const value = startOfDay(date); const day = value.getDay(); value.setDate(value.getDate() - (day === 0 ? 6 : day - 1)); return value; }
 export function studySecondsForDay(profile: ActivityProfile, date = new Date()) { const key = localDateKey(date); return completedActivitySeconds(profile, (value) => localDateKey(value) === key); }
 export function studySecondsForWeek(profile: ActivityProfile, date = new Date()) { const start = startOfWeek(date).getTime(); const end = start + 7 * 86_400_000; return completedActivitySeconds(profile, (value) => value.getTime() >= start && value.getTime() < end); }
 export function subjectNames(profile: ActivityProfile) { return normalizeStudySubjects([...(profile.studySubjects ?? []), ...completedFocusSessions(profile).map((session) => session.subject.trim()).filter(Boolean)]); }
-function subjectSessionSeconds(profile: ActivityProfile, subject: string, predicate: (date: Date) => boolean) { return completedFocusSessions(profile).filter((session) => session.subject.trim() === subject).reduce((total, session) => { const date = studyDate(session.endedAt); return date && predicate(date) ? total + Math.max(0, session.durationMinutes * 60) : total; }, 0); }
+function subjectSessionSeconds(profile: ActivityProfile, subject: string, predicate: (date: Date) => boolean) { return completedFocusSessions(profile).filter((session) => session.subject.trim() === subject).reduce((total, session) => { const date = sessionStudyDate(session); return date && predicate(date) ? total + Math.max(0, session.durationMinutes * 60) : total; }, 0); }
 export function subjectSecondsForDay(profile: ActivityProfile, subject: string, date = new Date()) { const key = localDateKey(date); return subjectSessionSeconds(profile, subject, (value) => localDateKey(value) === key); }
 export function subjectSecondsForWeek(profile: ActivityProfile, subject: string, date = new Date()) { const start = startOfWeek(date).getTime(); const end = start + 7 * 86_400_000; return subjectSessionSeconds(profile, subject, (value) => value.getTime() >= start && value.getTime() < end); }
 export function subjectHistory(profile: ActivityProfile, subject: string, anchor = new Date()): SubjectHistory {
-  const rows = completedFocusSessions(profile).filter((session) => session.subject.trim() === subject).flatMap((session) => { const date = studyDate(session.endedAt); return date ? [{ date, seconds: Math.max(0, session.durationMinutes * 60) }] : []; });
+  const rows = completedFocusSessions(profile).filter((session) => session.subject.trim() === subject).flatMap((session) => { const date = sessionStudyDate(session); return date ? [{ date, seconds: Math.max(0, session.durationMinutes * 60) }] : []; });
   const currentYear = String(anchor.getFullYear());
   const currentMonth = `${currentYear}-${String(anchor.getMonth() + 1).padStart(2, "0")}`;
   const totalSeconds = rows.reduce((sum, row) => sum + row.seconds, 0);
