@@ -71,12 +71,12 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("modal-backdrop");
     expect(source).toContain("lumi-popup-modal");
     expect(source).toContain("lumi-timer-badge");
-    expect(source).toContain("lumi-popup-timer-card");
+    expect(source).not.toContain("lumi-popup-timer-card");
     expect(source).toContain("lumi-pomodoro-status-chip");
     expect(source).toContain("Lumi đang học cùng bạn");
     expect(source).toContain("Lumi đang nghỉ cùng bạn");
     expect(source).toContain("Đã xong phiên học · chờ nghỉ");
-    expect(source).toContain("Thời gian Pomodoro ${display}");
+    expect(source).toContain("Lumi đang đếm ngược ${display}");
     expect(source).toContain('role="timer"');
     expect(source).toContain("pomodoro_lumi_timer_badge_visible");
     expect(source).toContain("const lumiTimerBadge = showLumiDialog ?");
