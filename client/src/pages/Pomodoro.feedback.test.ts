@@ -93,7 +93,8 @@ describe("Pomodoro feedback contract", () => {
   it("ưu tiên voice vi-VN và vẫn nói khi browser chưa tải voices ngay lập tức", () => {
     expect(source).toContain("speakLumiVietnamese");
     expect(speech).toContain('utterance.lang = "vi-VN"');
-    expect(speech).toContain('voice.lang.toLocaleLowerCase() === "vi-vn"');
+    expect(speech).toContain('voice.lang.replace("_", "-").toLocaleLowerCase().startsWith("vi")');
+    expect(speech).toContain("isNatural");
     expect(speech).toContain("voiceschanged");
     expect(speech).toContain("synthesis.cancel()");
   });

@@ -59,7 +59,8 @@ const presetsSource = readFileSync(resolve(process.cwd(), "client/src/lib/lumiPr
     expect(pomodoroSource).toContain("Bắt đầu phiên");
     expect(pomodoroSource).toContain("window.speechSynthesis");
     expect(speechSource).toContain('utterance.lang = "vi-VN"');
-    expect(speechSource).toContain('voice.lang.toLocaleLowerCase() === "vi-vn"');
+    expect(speechSource).toContain('voice.lang.replace("_", "-").toLocaleLowerCase().startsWith("vi")');
+    expect(speechSource).toContain("isNatural");
     expect(pomodoroSource).not.toContain("new Audio(");
   });
 

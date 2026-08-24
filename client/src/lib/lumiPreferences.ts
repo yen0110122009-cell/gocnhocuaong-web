@@ -1,4 +1,45 @@
 export const LUMI_SPEECH_STORAGE_KEY = "lumi_speech_enabled";
+export const LUMI_SPEECH_RATE_STORAGE_KEY = "lumi_speech_rate";
+export const LUMI_SPEECH_VOLUME_STORAGE_KEY = "lumi_speech_volume";
+export const DEFAULT_LUMI_SPEECH_RATE = 0.96;
+export const DEFAULT_LUMI_SPEECH_VOLUME = 1;
+
+export type LumiSpeechSettings = {
+  rate: number;
+  volume: number;
+};
+
+const clampSpeechRate = (value: number) => Math.min(1.5, Math.max(0.6, value));
+const clampSpeechVolume = (value: number) => Math.min(1, Math.max(0, value));
+
+export function normalizeLumiSpeechSettings(value: Partial<LumiSpeechSettings> | null | undefined): LumiSpeechSettings {
+  const rate = typeof value?.rate === "number" && Number.isFinite(value.rate) ? value.rate : DEFAULT_LUMI_SPEECH_RATE;
+  const volume = typeof value?.volume === "number" && Number.isFinite(value.volume) ? value.volume : DEFAULT_LUMI_SPEECH_VOLUME;
+  return { rate: clampSpeechRate(rate), volume: clampSpeechVolume(volume) };
+}
+
+export function readLumiSpeechSettings(): LumiSpeechSettings {
+  try {
+    const savedRate = storage()?.getItem(LUMI_SPEECH_RATE_STORAGE_KEY);
+    const savedVolume = storage()?.getItem(LUMI_SPEECH_VOLUME_STORAGE_KEY);
+    return normalizeLumiSpeechSettings({
+      rate: savedRate === null || savedRate === undefined ? undefined : Number(savedRate),
+      volume: savedVolume === null || savedVolume === undefined ? undefined : Number(savedVolume),
+    });
+  } catch {
+    return normalizeLumiSpeechSettings(undefined);
+  }
+}
+
+export function saveLumiSpeechSettings(value: Partial<LumiSpeechSettings>) {
+  const settings = normalizeLumiSpeechSettings(value);
+  try {
+    storage()?.setItem(LUMI_SPEECH_RATE_STORAGE_KEY, String(settings.rate));
+    storage()?.setItem(LUMI_SPEECH_VOLUME_STORAGE_KEY, String(settings.volume));
+  } catch { /* storage may be unavailable */ }
+  return settings;
+}
+
 export const LUMI_WATER_MESSAGE_STORAGE_KEY = "lumi_water_message";
 export const LUMI_DIALOGUE_LINES_STORAGE_KEY = "lumi_dialogue_lines";
 export const DEFAULT_LUMI_WATER_MESSAGE = "Đã đến giờ uống một ngụm nước ấm rồi nè bạn ơi! ☕💧";

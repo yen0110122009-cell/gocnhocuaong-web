@@ -33,6 +33,10 @@ describe("Bạn đồng hành Lumi · Kaomoji", () => {
     const lumi = source("client/src/components/ExperienceStudio.tsx");
     const speech = source("client/src/lib/lumiSpeech.ts");
     expect(lumi).toContain("AI đọc thoại");
+    expect(lumi).toContain("Tốc độ đọc Lumi");
+    expect(lumi).toContain("Âm lượng đọc Lumi");
+    expect(lumi).toContain("Nghe thử cài đặt");
+    expect(lumi).toContain("saveLumiSpeechSettings");
     expect(lumi).toContain("speakLumiVietnamese");
     expect(speech).toContain('utterance.lang = "vi-VN"');
     expect(speech).toContain("LUMI_SPEECH_UNAVAILABLE_EVENT");
