@@ -54,8 +54,7 @@ describe("Góc học tập end-to-end contracts", () => {
     expect(pomodoro).toContain("playLumiWaterAlert");
     expect(pomodoro).toContain("playPomodoroAlert");
     expect(pomodoro).toContain("triggerPomodoroAlert");
-    expect(pomodoro).toContain("stopLumiSpeech");
-    expect(source("client/src/lib/lumiSpeech.ts")).toContain("window.speechSynthesis");
+    expect(pomodoro).toContain("window.speechSynthesis");
     expect(pomodoro).toContain("Pomodoro không phát nhạc nền");
     expect(pomodoro).not.toContain("startBackground");
     expect(pomodoro).not.toContain("backgroundVolume");

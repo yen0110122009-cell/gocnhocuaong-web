@@ -7,7 +7,7 @@ import { dialogueGroupForEmotion, dialoguesForGroup, LUMI_DIALOGUE_GROUPS, readL
 import { readLumiSpeechPreference, saveLumiSpeechPreference } from "../lib/lumiPreferences";
 import { PersistentCollapsible } from "./PersistentCollapsible";
 import { LUMI_CHECKIN_OPTIONS, LUMI_WELCOME, lumiKaomojiForEmotion } from "../lib/lumiPresets";
-import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumi as speakLumiWithAudio, speakLumiVietnamese, stopLumiSpeech } from "../lib/lumiSpeech";
+import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
 import { DEFAULT_LUMI_MULTI_DIALOGUES, LUMI_MULTI_DIALOGUES_EVENT, readLumiMultiDialogues, restoreLumiCustomKaomojiItem, restoreLumiMultiDialogues, saveLumiCustomKaomojiItem, saveLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { DEFAULT_LUMI_KEYWORDS, findLumiKeywordRule, LUMI_KEYWORDS_EVENT, readLumiKeywords, saveLumiKeywords, type LumiKeywordRule } from "../lib/lumiKeywords";
 
@@ -25,7 +25,7 @@ export type ExperienceStudioProps = {
 const quickFeelings = LUMI_CHECKIN_OPTIONS;
 
 function speakLumi(text: string, enabled: boolean) {
-  void speakLumiWithAudio(text, enabled);
+  speakLumiVietnamese(text, enabled);
 }
 
 export function ExperienceStudio({ selected, onSelect, profile, onProfile, onStartTwoMinutes }: ExperienceStudioProps) {
@@ -105,7 +105,7 @@ export function ExperienceStudio({ selected, onSelect, profile, onProfile, onSta
   function setSpeech(value: boolean) {
     setSpeechEnabled(value);
     saveLumiSpeechPreference(value);
-    if (!value) stopLumiSpeech();
+    if (!value) window.speechSynthesis?.cancel();
     if (profile && onProfile) onProfile({ ...profile, lumiSpeechEnabled: value }, `Đã ${value ? "bật" : "tắt"} AI đọc thoại cho Lumi.`);
   }
 
