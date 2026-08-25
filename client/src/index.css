@@ -2722,3 +2722,15 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
 @media (max-width: 760px) { .study-overview-heading { align-items: flex-start; flex-direction: column; } .study-overview-status { align-self: flex-start; } .study-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .study-overview-main-grid { grid-template-columns: 1fr; } }
 @media (max-width: 460px) { .study-kpi-card { padding: .8rem; } .study-kpi-icon { width: 2rem; height: 2rem; } .study-subject-layout { grid-template-columns: 1fr; } .study-donut { width: min(58vw, 180px); } .study-card-heading { align-items: flex-start; flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { .study-heatmap-cell { transition: none; } }
+
+/* Deep focus mode: keeps only the active subject, timer and progress. */
+.deep-focus-shell { display: grid; min-height: min(68vh, 42rem); place-items: center; align-content: center; padding: clamp(1.25rem, 5vw, 3rem); text-align: center; background: radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--scene-accent, var(--positive)) 18%, transparent), transparent 42%), color-mix(in srgb, var(--scene-card, var(--paper)) 96%, transparent); }
+.deep-focus-shell__top { display: flex; width: min(100%, 36rem); align-items: flex-start; justify-content: space-between; gap: 1rem; text-align: left; }
+.deep-focus-shell__timer { margin-top: clamp(2rem, 8vh, 5rem); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: clamp(4.5rem, 16vw, 10rem); font-weight: 950; letter-spacing: -.08em; line-height: .95; text-shadow: 0 12px 30px var(--scene-shadow, rgb(47 33 30 / .14)); }
+.deep-focus-shell__progress { margin: 1rem 0 0; color: var(--scene-accent, var(--positive)); font-size: 1rem; font-weight: 900; }
+.deep-focus-shell__meter { width: min(100%, 32rem); height: .7rem; margin-top: 1rem; overflow: hidden; border: 1px solid color-mix(in srgb, var(--scene-border, var(--paper-muted)) 38%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--scene-page, var(--paper)) 35%, var(--scene-card, var(--paper))); }
+.deep-focus-shell__meter span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--scene-accent, var(--positive)), var(--scene-accent-alt, var(--scene-accent, var(--positive)))); transition: width .25s var(--ease-out); }
+@media (max-width: 460px) { .deep-focus-shell { min-height: 62vh; } .deep-focus-shell__top { align-items: stretch; flex-direction: column; } .deep-focus-shell__top .secondary-button { align-self: flex-start; } }
+@media (prefers-reduced-motion: reduce) { .deep-focus-shell__meter span { transition: none; } }
+
+.study-helper-text { margin: .8rem .1rem 0; color: var(--scene-muted, var(--ink-muted)); font-size: .7rem; line-height: 1.5; }

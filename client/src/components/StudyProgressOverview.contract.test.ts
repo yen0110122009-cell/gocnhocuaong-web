@@ -14,15 +14,19 @@ describe("Study progress overview dashboard contract", () => {
     expect(source).toContain("recentSessions");
     expect(source).toContain("subjectRows");
     expect(source).toContain("weekCells");
+    expect(source).toContain("study-helper-text");
+    expect(source).toContain("Math.round(item.seconds / totalFocusSeconds * 100)");
+    expect(source).toContain("color-mix(in srgb, var(--scene-accent, #c62828)");
   });
 
   it("không thêm Chiêm tinh/Phân tích AI và dùng token theme", () => {
     expect(source).not.toContain("Chiêm tinh");
     expect(source).not.toContain("AI phân tích");
-    expect(source).toContain("var(--scene-accent)");
+    expect(source).toContain("var(--scene-accent,");
     expect(css).toContain(".study-progress-overview");
     expect(css).toContain(".study-kpi-grid");
     expect(css).toContain(".study-donut");
     expect(css).toContain(".study-heatmap-grid");
+    expect(css).toContain(".study-helper-text");
   });
 });

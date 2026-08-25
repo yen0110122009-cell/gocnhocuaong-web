@@ -27,6 +27,7 @@ export type PersistedPomodoroSession = {
   pomodoroAlerts?: PomodoroAlertSettings;
   pomodoroAmbientMix?: { morning: number; storm: number };
   compactMode: boolean;
+  deepFocusMode?: boolean;
   miniPlayerPinned: boolean;
   miniPlayerX: number;
   miniPlayerY: number;
@@ -77,6 +78,7 @@ export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null =
         storm: finiteNumber(value.pomodoroAmbientMix?.storm, 75, 0, 100),
       },
       compactMode: value.compactMode === true,
+      deepFocusMode: value.deepFocusMode === true,
       miniPlayerPinned: value.miniPlayerPinned === true,
       miniPlayerX: finiteNumber(value.miniPlayerX, 78, 8, 92),
       miniPlayerY: finiteNumber(value.miniPlayerY, 78, 12, 88),
