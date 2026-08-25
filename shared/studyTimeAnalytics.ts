@@ -27,15 +27,15 @@ function sessionStudyDate(session: PomodoroSession) {
   if (startedAt && startedAt.getTime() > 0) return startedAt;
   return studyDate(session.endedAt);
 }
-function completedFocusSessions(profile: ActivityProfile): PomodoroSession[] { return (profile.pomodoroHistory ?? []).filter((session) => session.mode === "focus" && session.status === "completed" && session.durationMinutes > 0 && Boolean(sessionStudyDate(session))); }
-type StudyRow = { date: Date; seconds: number; subject?: string; isPomodoro: boolean };
-function completedStudyRows(profile: ActivityProfile): StudyRow[] {
-  const sessions = completedFocusSessions(profile);
-  const pomodoroRows = sessions.flatMap((session) => { const date = sessionStudyDate(session); return date ? [{ date, seconds: Math.max(0, session.durationMinutes * 60), subject: session.subject.trim() || "Tự học", isPomodoro: true }] : []; });
+function recordedFocusSessions(profile: ActivityProfile): PomodoroSession[] { return (profile.pomodoroHistory ?? []).filter((session) => session.mode === "focus" && (session.status === "completed" || (session.status === "abandoned" && session.elapsedSeconds !== undefined && session.elapsedSeconds > 0)) && (session.elapsedSeconds ?? session.durationMinutes * 60) > 0 && Boolean(sessionStudyDate(session))); }
+type StudyRow = { date: Date; seconds: number; subject?: string; isPomodoro: boolean; completedPomodoro?: boolean };
+function recordedStudyRows(profile: ActivityProfile): StudyRow[] {
+  const sessions = recordedFocusSessions(profile);
+  const pomodoroRows = sessions.flatMap((session) => { const date = sessionStudyDate(session); return date ? [{ date, seconds: Math.max(0, session.elapsedSeconds ?? session.durationMinutes * 60), subject: session.subject.trim() || "Tự học", isPomodoro: true, completedPomodoro: session.status === "completed" }] : []; });
   const otherRows = (profile.studyActivity ?? []).filter((activity) => activity.kind !== "wheel" && activity.kind !== "pomodoro").flatMap((activity) => { const date = studyDate(activity.occurredAt); return date ? [{ date, seconds: Math.max(0, activity.durationSeconds), isPomodoro: false }] : []; });
   return [...pomodoroRows, ...otherRows];
 }
-function completedActivitySeconds(profile: ActivityProfile, predicate: (date: Date) => boolean) { return completedStudyRows(profile).reduce((total, row) => predicate(row.date) ? total + row.seconds : total, 0); }
+function completedActivitySeconds(profile: ActivityProfile, predicate: (date: Date) => boolean) { return recordedStudyRows(profile).reduce((total, row) => predicate(row.date) ? total + row.seconds : total, 0); }
 function startOfDay(date: Date) { const value = new Date(date); value.setHours(0, 0, 0, 0); return value; }
 function startOfWeek(date: Date) { const value = startOfDay(date); const day = value.getDay(); value.setDate(value.getDate() - (day === 0 ? 6 : day - 1)); return value; }
 export function studySecondsForDay(profile: ActivityProfile, date = new Date()) { const key = localDateKey(date); return completedActivitySeconds(profile, (value) => localDateKey(value) === key); }
@@ -44,7 +44,7 @@ export function studyDayHistory(profile: ActivityProfile, anchor = new Date(), d
   const end = startOfDay(anchor).getTime() + 86_400_000;
   const start = end - Math.max(1, Math.floor(days)) * 86_400_000;
   const map = new Map<string, { seconds: number; subjects: Map<string, number>; pomodoroSessions: number }>();
-  completedStudyRows(profile).forEach((row) => {
+  recordedStudyRows(profile).forEach((row) => {
     if (row.date.getTime() < start || row.date.getTime() >= end) return;
     const key = localDateKey(row.date);
     const current = map.get(key) ?? { seconds: 0, subjects: new Map<string, number>(), pomodoroSessions: 0 };
@@ -52,7 +52,7 @@ export function studyDayHistory(profile: ActivityProfile, anchor = new Date(), d
     if (row.isPomodoro) {
       const subject = row.subject?.trim() || "Hoạt động khác";
       current.subjects.set(subject, (current.subjects.get(subject) ?? 0) + row.seconds);
-      current.pomodoroSessions += 1;
+      if (row.completedPomodoro) current.pomodoroSessions += 1;
     } else {
       current.subjects.set("Hoạt động khác", (current.subjects.get("Hoạt động khác") ?? 0) + row.seconds);
     }
@@ -61,12 +61,12 @@ export function studyDayHistory(profile: ActivityProfile, anchor = new Date(), d
   const labelDate = (key: string) => new Date(`${key}T12:00:00`).toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" });
   return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0])).map(([key, value]) => ({ key, label: labelDate(key), seconds: value.seconds, subjectCount: value.subjects.size, subjects: Array.from(value.subjects.entries()).sort((a, b) => b[1] - a[1]).map(([subject, seconds]) => ({ subject, seconds })), pomodoroSessions: value.pomodoroSessions }));
 }
-export function subjectNames(profile: ActivityProfile) { return normalizeStudySubjects([...(profile.studySubjects ?? []), ...completedFocusSessions(profile).map((session) => session.subject.trim()).filter(Boolean)]); }
-function subjectSessionSeconds(profile: ActivityProfile, subject: string, predicate: (date: Date) => boolean) { return completedFocusSessions(profile).filter((session) => session.subject.trim() === subject).reduce((total, session) => { const date = sessionStudyDate(session); return date && predicate(date) ? total + Math.max(0, session.durationMinutes * 60) : total; }, 0); }
+export function subjectNames(profile: ActivityProfile) { return normalizeStudySubjects([...(profile.studySubjects ?? []), ...recordedFocusSessions(profile).map((session) => session.subject.trim()).filter(Boolean)]); }
+function subjectSessionSeconds(profile: ActivityProfile, subject: string, predicate: (date: Date) => boolean) { return recordedFocusSessions(profile).filter((session) => session.subject.trim() === subject).reduce((total, session) => { const date = sessionStudyDate(session); return date && predicate(date) ? total + Math.max(0, session.elapsedSeconds ?? session.durationMinutes * 60) : total; }, 0); }
 export function subjectSecondsForDay(profile: ActivityProfile, subject: string, date = new Date()) { const key = localDateKey(date); return subjectSessionSeconds(profile, subject, (value) => localDateKey(value) === key); }
 export function subjectSecondsForWeek(profile: ActivityProfile, subject: string, date = new Date()) { const start = startOfWeek(date).getTime(); const end = start + 7 * 86_400_000; return subjectSessionSeconds(profile, subject, (value) => value.getTime() >= start && value.getTime() < end); }
 export function subjectHistory(profile: ActivityProfile, subject: string, anchor = new Date()): SubjectHistory {
-  const rows = completedFocusSessions(profile).filter((session) => session.subject.trim() === subject).flatMap((session) => { const date = sessionStudyDate(session); return date ? [{ date, seconds: Math.max(0, session.durationMinutes * 60) }] : []; });
+  const rows = recordedFocusSessions(profile).filter((session) => session.subject.trim() === subject).flatMap((session) => { const date = sessionStudyDate(session); return date ? [{ date, seconds: Math.max(0, session.elapsedSeconds ?? session.durationMinutes * 60) }] : []; });
   const currentYear = String(anchor.getFullYear());
   const currentMonth = `${currentYear}-${String(anchor.getMonth() + 1).padStart(2, "0")}`;
   const totalSeconds = rows.reduce((sum, row) => sum + row.seconds, 0);

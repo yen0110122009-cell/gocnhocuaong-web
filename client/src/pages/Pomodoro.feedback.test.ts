@@ -42,8 +42,17 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("setSeconds(recovered)");
     expect(source).toContain("setPendingTransition(pendingTransitionForSavedPomodoro(saved))");
     expect(source).toContain("setRunning(saved.running && recovered > 0)");
-    expect(source).toContain("setGoalCompletedSessions(saved.goalCompletedSessions ?? 0)");
+    expect(source).toContain("setGoalCompletedSessions(repairPomodoroGoalCounter");
     expect(source).toContain("Đã khôi phục phiên Pomodoro");
+  });
+
+  it("cho phép kết thúc hoàn toàn phiên và vẫn lưu thời gian thực tế", () => {
+    expect(source).toContain("function endSessionCompletely()");
+    expect(source).toContain('status: "abandoned"');
+    expect(source).toContain("elapsedPomodoroSeconds");
+    expect(source).toContain("elapsedSeconds");
+    expect(source).toContain("Kết thúc hoàn toàn");
+    expect(source).toContain("studyActivity: [activityRow");
   });
 
   it("lưu ngữ cảnh học gồm môn, nội dung và ghi chú", () => {

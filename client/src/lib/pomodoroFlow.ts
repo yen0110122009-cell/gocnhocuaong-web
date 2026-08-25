@@ -77,6 +77,12 @@ export function resetPomodoroForGoalChange(focusMinutes: number) {
   };
 }
 
+export function elapsedPomodoroSeconds(focusMinutes: number, secondsRemaining: number) {
+  const plannedSeconds = Math.max(0, Math.floor(Number(focusMinutes) || 0) * 60);
+  const remaining = Math.max(0, Math.floor(Number(secondsRemaining) || 0));
+  return Math.max(0, Math.min(plannedSeconds, plannedSeconds - remaining));
+}
+
 export function pomodoroStartSeconds(input: {
   mode: PomodoroFlowMode;
   pendingTransition: "break" | "focus" | null;

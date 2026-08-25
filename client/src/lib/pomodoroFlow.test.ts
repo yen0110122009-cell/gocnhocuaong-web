@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, repairPomodoroGoalCounter, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak, shouldClaimPomodoroCompletion } from "./pomodoroFlow";
+import { currentPomodoroSessionNumber, elapsedPomodoroSeconds, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, repairPomodoroGoalCounter, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak, shouldClaimPomodoroCompletion } from "./pomodoroFlow";
 
 describe("pomodoroFlow", () => {
   it("shows the first focus session as 1 of the selected goal", () => {
@@ -80,5 +80,12 @@ describe("pomodoroFlow", () => {
   it("giữ độc lập thời lượng 50/10 với bộ đếm số phiên", () => {
     expect(pomodoroStartSeconds({ mode: "focus", pendingTransition: null, seconds: 0, focusMinutes: 50, shortBreakMinutes: 10, longBreakMinutes: 20 })).toBe(3000);
     expect(focusCompletionTransition({ completedFocusSessions: 0, totalSessions: 4, autoAdvance: true, shortBreakMinutes: 10, longBreakMinutes: 20 })).toEqual({ completedFocusSessions: 1, mode: "shortBreak", pendingTransition: null, seconds: 600, running: true, goalReached: false });
+  });
+
+  it("tính đúng số giây đã học khi kết thúc sớm và không ghi vượt thời lượng", () => {
+    expect(elapsedPomodoroSeconds(50, 600)).toBe(2400);
+    expect(elapsedPomodoroSeconds(50, 1)).toBe(2999);
+    expect(elapsedPomodoroSeconds(50, 3001)).toBe(0);
+    expect(elapsedPomodoroSeconds(50, -10)).toBe(3000);
   });
 });

@@ -16,6 +16,19 @@ describe("dữ liệu kế hoạch legacy được bảo toàn", () => {
     expect(profile.studyActivity[0].durationSeconds).toBe(1_500);
   });
 
+  it("giữ nguyên phiên completed cũ và chuẩn hóa đúng phiên Pomodoro kết thúc sớm", () => {
+    const profile = normalizeProfile({
+      pomodoroHistory: [
+        { id: "completed-old", subject: "Hóa", topic: "Nguyên tử", durationMinutes: 50, startedAt: "2026-08-20T08:00:00.000Z", endedAt: "2026-08-20T08:50:00.000Z", sessionNumber: 1, totalSessions: 4, mode: "focus", status: "completed" },
+        { id: "stopped-early", subject: "Toán", topic: "Hàm số", durationMinutes: 12, elapsedSeconds: 725, startedAt: "2026-08-25T08:00:00.000Z", endedAt: "2026-08-25T08:12:05.000Z", sessionNumber: 2, totalSessions: 4, mode: "focus", status: "abandoned" },
+      ],
+      studyActivity: [{ id: "stopped-early-activity", occurredAt: "2026-08-25T08:12:05.000Z", kind: "pomodoro", quantity: 1, durationSeconds: 725, xpEarned: 0 }],
+    });
+    expect(profile.pomodoroHistory[0]).toMatchObject({ id: "completed-old", durationMinutes: 50, status: "completed" });
+    expect(profile.pomodoroHistory[1]).toMatchObject({ id: "stopped-early", durationMinutes: 725 / 60, elapsedSeconds: 725, status: "abandoned" });
+    expect(profile.studyActivity[0].durationSeconds).toBe(725);
+  });
+
   it("không tự tạo Kế hoạch mới khi hồ sơ cũ không có dữ liệu", () => {
     const profile = normalizeProfile({});
     expect(profile.studyPlanItems).toEqual([]);

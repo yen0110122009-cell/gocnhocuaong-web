@@ -23,6 +23,15 @@ describe("study time analytics", () => {
     expect(studySecondsForDay(value, new Date("2026-08-24T12:00:00"))).toBe(1_800);
     expect(studySecondsForWeek(value, new Date("2026-08-26T12:00:00"))).toBe(18_000);
   });
+  it("tính thời gian phiên kết thúc sớm theo elapsedSeconds nhưng không tính là phiên hoàn thành", () => {
+    const value = profile();
+    value.pomodoroHistory = [{ id: "stopped", startedAt: "2026-08-24T10:00:00", endedAt: "2026-08-24T10:02:05", durationMinutes: 2, elapsedSeconds: 125, subject: "Lý", topic: "Cơ học", sessionNumber: 1, totalSessions: 4, mode: "focus", status: "abandoned" }];
+    value.studyActivity = [];
+    expect(studySecondsForDay(value, new Date("2026-08-24T12:00:00"))).toBe(125);
+    expect(subjectHistory(value, "Lý", new Date("2026-08-24T12:00:00")).totalSeconds).toBe(125);
+    expect(studyDayHistory(value, new Date("2026-08-24T12:00:00"), 1)[0]).toMatchObject({ seconds: 125, pomodoroSessions: 0 });
+  });
+
   it("lấy đủ Pomodoro hoàn thành khi studyActivity thiếu và không đếm trùng khi đã có activity", () => {
     const value = profile();
     value.studyActivity = [{ id: "p-1", occurredAt: "2026-08-24T08:00:00", kind: "pomodoro", quantity: 1, durationSeconds: 1_800, xpEarned: 0 }];
