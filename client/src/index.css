@@ -2759,3 +2759,9 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
 @media (max-width: 760px) { .study-week-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 460px) { .study-week-summary-grid { gap: .4rem; } .study-week-summary-grid > div { padding: .55rem; } .study-heatmap-grid { gap: .22rem; } .study-heatmap-cell { min-height: 2.9rem; } .study-heatmap-cell__day, .study-heatmap-cell strong { font-size: .55rem; } }
 @media (prefers-reduced-motion: reduce) { .study-week-target-progress span { transition: none; } }
+
+/* Mobile deep-focus polish: safe areas, readable timer and touch targets. */
+.deep-focus-shell { width: 100%; padding-block: max(1.25rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-bottom)); }
+.deep-focus-shell__timer { max-width: 100%; overflow-wrap: anywhere; }
+.deep-focus-shell .primary-button, .deep-focus-shell .secondary-button { min-height: 2.75rem; }
+@media (max-width: 460px) { .deep-focus-shell { min-height: calc(100dvh - 2rem); padding-inline: 1rem; } .deep-focus-shell__timer { font-size: clamp(3.75rem, 21vw, 6rem); letter-spacing: -.06em; } .deep-focus-shell__meter { width: 100%; } }

@@ -67,7 +67,10 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("lumi-avatar-box");
     expect(source).toContain("lumi-kaomoji-text");
     expect(source).toContain("lumi-kaomoji-text--long");
-    expect(source).toContain("lumi-quick-feelings-grid");
+    expect(css).toContain(".lumi-quick-feelings-grid");
+    expect(css).toContain(".deep-focus-shell");
+    expect(css).toContain("safe-area-inset-bottom");
+    expect(css).toContain("min-height: calc(100dvh - 2rem)");
     expect(source).toContain("modal-backdrop");
     expect(source).toContain("lumi-popup-modal");
     expect(source).not.toContain("lumi-timer-badge");
@@ -90,6 +93,7 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("Hãy chọn hoặc nhập môn học trước khi bắt đầu.");
     expect(source).toContain("deepFocusMode");
     expect(source).toContain("Chế độ tập trung sâu");
+    expect(source).toContain("aria-label={`Thời gian còn lại ${display}`}");
     expect(source).toContain("sessionSummary");
     expect(source).toContain("Tổng kết phiên học");
     expect(source).toContain("Nội dung phiên học");
