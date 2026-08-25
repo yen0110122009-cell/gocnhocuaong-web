@@ -1,5 +1,15 @@
 export type PomodoroFlowMode = "focus" | "shortBreak" | "longBreak";
 
+export function repairPomodoroGoalCounter(input: { mode: PomodoroFlowMode; running: boolean; pendingTransition?: "break" | "focus" | null; completedFocusSessions: number; totalSessions: number }) {
+  const total = Math.max(1, Math.floor(input.totalSessions));
+  const completed = Math.max(0, Math.min(total, Math.floor(input.completedFocusSessions)));
+  // Ở trạng thái focus, counter đã chạm mục tiêu chỉ hợp lệ khi đang chờ
+  // chuyển tiếp rõ ràng. Nếu không có pendingTransition thì đây là state cũ
+  // bị lệch và phải mở đầu chu kỳ mới từ phiên 1.
+  if (input.mode === "focus" && !input.pendingTransition && completed >= total) return 0;
+  return completed;
+}
+
 export function currentPomodoroSessionNumber(mode: PomodoroFlowMode, completedFocusSessions: number, totalSessions: number) {
   const total = Math.max(1, Math.floor(totalSessions));
   const completed = Math.max(0, Math.floor(completedFocusSessions));
@@ -21,6 +31,14 @@ export function pendingTransitionForSavedPomodoro(input: { pendingTransition?: "
   if (input.pendingTransition) return input.pendingTransition;
   if (input.seconds !== 0 || (input.goalCompletedSessions ?? 0) >= input.totalSessions) return null;
   return input.mode === "focus" ? "focus" as const : "break" as const;
+}
+
+export function completedFocusSessionsForActiveFocus(completedFocusSessions: number, totalSessions: number) {
+  const total = Math.max(1, Math.floor(totalSessions));
+  const completed = Math.max(0, Math.floor(completedFocusSessions));
+  // Khi đang ở một phiên focus, completed không thể đã chạm mục tiêu. Đây là
+  // lớp bảo vệ cho state cũ/cross-tab từng lưu 4/4 rồi mở lại phiên mới.
+  return completed >= total ? 0 : completed;
 }
 
 export function focusCompletionTransition(input: { completedFocusSessions: number; totalSessions: number; autoAdvance: boolean; shortBreakMinutes: number; longBreakMinutes: number }) {

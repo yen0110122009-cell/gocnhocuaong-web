@@ -19,7 +19,7 @@ import { dialoguesForGroup, LUMI_CUSTOM_DIALOGUES_EVENT, readLumiCustomDialogues
 import { LUMI_CHECKIN_OPTIONS, LUMI_FOCUS_MESSAGE, LUMI_REST_MESSAGE, LUMI_WATER_MESSAGE, LUMI_WATER_PRAISE, LUMI_WELCOME, lumiKaomojiForEmotion, lumiKaomojiForPomodoro, lumiRoutineGroup, lumiRoutineMessage } from "../lib/lumiPresets";
 import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiSpeech";
 import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, pickRandomLumiText, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
-import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldClaimPomodoroCompletion } from "../lib/pomodoroFlow";
+import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, repairPomodoroGoalCounter, resetPomodoroForGoalChange, shouldClaimPomodoroCompletion } from "../lib/pomodoroFlow";
 import { subjectNames } from "../../../shared/studyTimeAnalytics";
 import { pickLumiStateScript, readLumiStateScripts } from "../lib/lumiStateScripts";
 
@@ -74,7 +74,7 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   const [activity, setActivity] = useState<Activity>((restored?.activity as Activity) ?? "theory");
   const [notes, setNotes] = useState(restored?.notes ?? "");
   const [totalSessions, setTotalSessions] = useState(restored?.totalSessions ?? 4);
-  const [goalCompletedSessions, setGoalCompletedSessions] = useState(restored?.goalCompletedSessions ?? 0);
+  const [goalCompletedSessions, setGoalCompletedSessions] = useState(() => restored ? repairPomodoroGoalCounter({ mode: restored.mode, running: restored.running, pendingTransition: restored.pendingTransition, completedFocusSessions: restored.goalCompletedSessions ?? 0, totalSessions: restored.totalSessions }) : 0);
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(restored?.sessionStartedAt ?? null);
   const [compactMode, setCompactMode] = useState(restored?.compactMode ?? false);
   const [deepFocusMode, setDeepFocusMode] = useState(restored?.deepFocusMode ?? false);
@@ -171,7 +171,8 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
       const saved = readPersistedPomodoro(undefined, pomodoroStorageKey);
       if (!saved) return;
       const recovered = recoverRunningSeconds(saved);
-      setSeconds(recovered); setMode(saved.mode); setRunning(saved.running && recovered > 0); setPendingTransition(pendingTransitionForSavedPomodoro(saved)); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(saved.goalCompletedSessions ?? 0); setSessionStartedAt(saved.sessionStartedAt); setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak);
+      const savedPendingTransition = pendingTransitionForSavedPomodoro(saved); const savedRunning = saved.running && recovered > 0;
+      setSeconds(recovered); setMode(saved.mode); setRunning(savedRunning); setPendingTransition(savedPendingTransition); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(repairPomodoroGoalCounter({ mode: saved.mode, running: savedRunning, pendingTransition: savedPendingTransition, completedFocusSessions: saved.goalCompletedSessions ?? 0, totalSessions: saved.totalSessions })); setSessionStartedAt(saved.sessionStartedAt); setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak);
     };
     window.addEventListener("storage", onPomodoroStorage);
     return () => window.removeEventListener("storage", onPomodoroStorage);

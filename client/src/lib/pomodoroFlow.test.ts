@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak, shouldClaimPomodoroCompletion } from "./pomodoroFlow";
+import { currentPomodoroSessionNumber, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, repairPomodoroGoalCounter, resetPomodoroForGoalChange, shouldCelebrateAndEnterBreak, shouldClaimPomodoroCompletion } from "./pomodoroFlow";
 
 describe("pomodoroFlow", () => {
   it("shows the first focus session as 1 of the selected goal", () => {
@@ -65,5 +65,20 @@ describe("pomodoroFlow", () => {
     expect(pomodoroStartSeconds({ mode: "shortBreak", pendingTransition: "break", seconds: 0, focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 })).toBe(300);
     expect(pomodoroStartSeconds({ mode: "focus", pendingTransition: "focus", seconds: 0, focusMinutes: 45, shortBreakMinutes: 10, longBreakMinutes: 20 })).toBe(2_700);
     expect(pomodoroStartSeconds({ mode: "shortBreak", pendingTransition: "break", seconds: 0, focusMinutes: 45, shortBreakMinutes: 10, longBreakMinutes: 20 })).toBe(600);
+  });
+
+  it("sửa state focus đứng yên 4/4 về phiên đầu tiên của chu kỳ mới", () => {
+    expect(repairPomodoroGoalCounter({ mode: "focus", running: false, pendingTransition: null, completedFocusSessions: 4, totalSessions: 4 })).toBe(0);
+    expect(currentPomodoroSessionNumber("focus", 0, 4)).toBe(1);
+  });
+
+  it("giữ 4/4 khi đang ở nghỉ dài hoặc chờ bắt đầu phiên focus kế tiếp", () => {
+    expect(repairPomodoroGoalCounter({ mode: "longBreak", running: false, pendingTransition: "break", completedFocusSessions: 4, totalSessions: 4 })).toBe(4);
+    expect(repairPomodoroGoalCounter({ mode: "focus", running: false, pendingTransition: "focus", completedFocusSessions: 4, totalSessions: 4 })).toBe(4);
+  });
+
+  it("giữ độc lập thời lượng 50/10 với bộ đếm số phiên", () => {
+    expect(pomodoroStartSeconds({ mode: "focus", pendingTransition: null, seconds: 0, focusMinutes: 50, shortBreakMinutes: 10, longBreakMinutes: 20 })).toBe(3000);
+    expect(focusCompletionTransition({ completedFocusSessions: 0, totalSessions: 4, autoAdvance: true, shortBreakMinutes: 10, longBreakMinutes: 20 })).toEqual({ completedFocusSessions: 1, mode: "shortBreak", pendingTransition: null, seconds: 600, running: true, goalReached: false });
   });
 });

@@ -46,4 +46,18 @@ describe("pomodoroPersistence", () => {
     clearPersistedPomodoro(storage);
     expect(storage.getItem(POMODORO_SESSION_KEY)).toBeNull();
   });
+
+  it("repairs a stale focus 4/4 snapshot instead of restoring it as the next session", () => {
+    const storage = memoryStorage();
+    writePersistedPomodoro({ ...session, mode: "focus", running: false, seconds: 0, pendingTransition: null, totalSessions: 4, goalCompletedSessions: 4 }, storage);
+    const restored = readPersistedPomodoro(storage);
+    expect(restored?.goalCompletedSessions).toBe(0);
+    expect(restored?.mode).toBe("focus");
+  });
+
+  it("preserves 4/4 while the saved state is explicitly waiting for the long break", () => {
+    const storage = memoryStorage();
+    writePersistedPomodoro({ ...session, mode: "longBreak", running: false, seconds: 0, pendingTransition: "break", totalSessions: 4, goalCompletedSessions: 4 }, storage);
+    expect(readPersistedPomodoro(storage)?.goalCompletedSessions).toBe(4);
+  });
 });

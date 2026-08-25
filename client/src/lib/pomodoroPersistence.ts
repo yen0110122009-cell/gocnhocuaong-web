@@ -1,4 +1,5 @@
 import { normalizePomodoroAlertSettings, type PomodoroAlertSettings } from "../../../shared/study";
+import { repairPomodoroGoalCounter } from "./pomodoroFlow";
 
 export type PersistedPomodoroMode = "focus" | "shortBreak" | "longBreak";
 
@@ -51,22 +52,26 @@ export function readPersistedPomodoro(storage: Pick<Storage, "getItem"> | null =
     if (!raw) return null;
     const value = JSON.parse(raw) as Partial<PersistedPomodoroSession>;
     if (!value || (value.mode !== "focus" && value.mode !== "shortBreak" && value.mode !== "longBreak")) return null;
+    const totalSessions = finiteNumber(value.totalSessions, 4, 1, 12);
+    const running = value.running === true;
+    const pendingTransition = value.pendingTransition === "break" || value.pendingTransition === "focus" ? value.pendingTransition : null;
+    const goalCompletedSessions = repairPomodoroGoalCounter({ mode: value.mode, running, pendingTransition, completedFocusSessions: finiteNumber(value.goalCompletedSessions, 0, 0, 12), totalSessions });
     return {
       focus: finiteNumber(value.focus, 25, 1, 120),
       shortBreak: finiteNumber(value.shortBreak, 5, 1, 30),
       longBreak: finiteNumber(value.longBreak, 15, 1, 45),
       seconds: finiteNumber(value.seconds, 25 * 60, 0, 120 * 60),
       mode: value.mode,
-      running: value.running === true,
+      running,
       autoAdvance: value.autoAdvance !== false,
-      pendingTransition: value.pendingTransition === "break" || value.pendingTransition === "focus" ? value.pendingTransition : null,
+      pendingTransition,
       subject: typeof value.subject === "string" ? value.subject : "",
       topic: typeof value.topic === "string" ? value.topic : "",
       activity: typeof value.activity === "string" ? value.activity : "theory",
       notes: typeof value.notes === "string" ? value.notes.slice(0, 2_000) : "",
       checkedPlanItemIds: Array.isArray(value.checkedPlanItemIds) ? Array.from(new Set(value.checkedPlanItemIds.map(String).map((id) => id.trim()).filter(Boolean))).slice(0, 30) : [],
-      totalSessions: finiteNumber(value.totalSessions, 4, 1, 12),
-      goalCompletedSessions: finiteNumber(value.goalCompletedSessions, 0, 0, 12),
+      totalSessions,
+      goalCompletedSessions,
       sessionStartedAt: typeof value.sessionStartedAt === "string" ? value.sessionStartedAt : null,
       backgroundSound: typeof value.backgroundSound === "string" ? value.backgroundSound : "Mưa nhẹ",
       backgroundVolume: finiteNumber(value.backgroundVolume, 68, 0, 100),
