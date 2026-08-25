@@ -24,6 +24,10 @@ describe("Study progress overview dashboard contract", () => {
     expect(source).toContain("study-week-target-progress");
     expect(source).toContain("study-heatmap-cell__day");
     expect(source).toContain("data-level");
+    expect(source).toContain("selectedDayKey");
+    expect(source).toContain("study-heatmap-detail");
+    expect(source).toContain("downloadWeeklyReport");
+    expect(source).toContain("Tải báo cáo học tập tuần");
   });
 
   it("không thêm Chiêm tinh/Phân tích AI và dùng token theme", () => {
@@ -38,5 +42,7 @@ describe("Study progress overview dashboard contract", () => {
     expect(css).toContain(".study-week-summary-grid");
     expect(css).toContain(".study-week-target-progress");
     expect(css).toContain(".study-heatmap-cell__day");
+    expect(css).toContain(".study-heatmap-detail");
+    expect(css).toContain(".study-heatmap-hint");
   });
 });

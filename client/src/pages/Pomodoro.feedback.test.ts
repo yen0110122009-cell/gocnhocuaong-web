@@ -101,6 +101,9 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("setGoalCompletedSessions(0); setSeconds(focus * 60)");
     expect(source).toContain("setFocus(value.focus); setShortBreak(value.short); setLongBreak(value.long)");
     expect(source).toContain("Chọn phiên mới");
+    expect(source).toContain("Dùng phiên gần nhất");
+    expect(source).toContain("Lưu nhịp hiện tại");
+    expect(source).toContain("pomodoro_personal_presets");
     expect(source).toContain("Mở phần chọn môn");
     expect(source).toContain("openSubjectPickerArea");
     expect(source).toContain("pomodoro-subject-picker");

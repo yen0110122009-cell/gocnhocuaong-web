@@ -2765,3 +2765,18 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
 .deep-focus-shell__timer { max-width: 100%; overflow-wrap: anywhere; }
 .deep-focus-shell .primary-button, .deep-focus-shell .secondary-button { min-height: 2.75rem; }
 @media (max-width: 460px) { .deep-focus-shell { min-height: calc(100dvh - 2rem); padding-inline: 1rem; } .deep-focus-shell__timer { font-size: clamp(3.75rem, 21vw, 6rem); letter-spacing: -.06em; } .deep-focus-shell__meter { width: 100%; } }
+
+.study-card-actions { display: flex; align-items: center; gap: .5rem; }
+.study-icon-button { display: inline-grid; min-width: 2.25rem; min-height: 2.25rem; place-items: center; border: 1px solid color-mix(in srgb, var(--scene-accent, #c62828) 24%, var(--scene-border, #ead8c4)); border-radius: 999px; background: color-mix(in srgb, var(--scene-card, #fffdf8) 86%, transparent); color: var(--scene-text, #3f2721); transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out); }
+.study-icon-button:hover { background: color-mix(in srgb, var(--scene-accent, #c62828) 12%, var(--scene-card, #fffdf8)); transform: translateY(-1px); }
+.study-icon-button:active { transform: scale(.97); }
+.study-heatmap-cell { appearance: none; width: 100%; min-height: 5rem; padding: .55rem .35rem; border: 1px solid color-mix(in srgb, var(--scene-border, #ead8c4) 72%, transparent); border-radius: .9rem; color: var(--scene-text, #3f2721); cursor: pointer; text-align: center; transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out), border-color 160ms var(--ease-out); }
+.study-heatmap-cell:hover, .study-heatmap-cell[aria-pressed="true"] { border-color: var(--scene-accent, #c62828); box-shadow: 0 8px 20px var(--scene-shadow, rgb(47 33 30 / .12)); transform: translateY(-2px); }
+.study-heatmap-cell:focus-visible, .study-icon-button:focus-visible { outline: 3px solid color-mix(in srgb, var(--scene-accent, #c62828) 42%, transparent); outline-offset: 2px; }
+.study-heatmap-detail { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin-top: 1rem; padding: .9rem 1rem; border: 1px solid color-mix(in srgb, var(--scene-accent, #c62828) 22%, var(--scene-border, #ead8c4)); border-radius: 1rem; background: color-mix(in srgb, var(--scene-accent, #c62828) 7%, var(--scene-card, #fffdf8)); color: var(--scene-text, #3f2721); font-size: .82rem; }
+.study-heatmap-detail > div:first-child { display: grid; gap: .15rem; }
+.study-heatmap-detail > div:first-child span, .study-heatmap-detail__subjects { color: var(--scene-muted, #745f58); }
+.study-heatmap-detail__subjects { display: flex; flex-wrap: wrap; gap: .45rem; }
+.study-heatmap-detail__subjects span { padding: .28rem .55rem; border-radius: 999px; background: color-mix(in srgb, var(--scene-accent-alt, #f4b942) 18%, var(--scene-card, #fffdf8)); color: var(--scene-text, #3f2721); font-weight: 800; }
+.study-heatmap-hint { margin: 1rem 0 0; color: var(--scene-muted, #745f58); font-size: .8rem; font-weight: 700; }
+@media (max-width: 520px) { .study-card-actions { align-items: flex-end; flex-direction: column; gap: .35rem; } .study-heatmap-cell { min-height: 4.6rem; font-size: .72rem; } .study-heatmap-cell strong { display: block; margin-top: .2rem; font-size: .66rem; line-height: 1.1; } .study-heatmap-detail { align-items: stretch; flex-direction: column; } }
