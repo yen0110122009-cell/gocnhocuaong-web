@@ -17,6 +17,13 @@ describe("Study progress overview dashboard contract", () => {
     expect(source).toContain("study-helper-text");
     expect(source).toContain("Math.round(item.seconds / totalFocusSeconds * 100)");
     expect(source).toContain("color-mix(in srgb, var(--scene-accent, #c62828)");
+    expect(source).toContain("study-week-summary-grid");
+    expect(source).toContain("weeklyRemainingSeconds");
+    expect(source).toContain("activeWeekDays");
+    expect(source).toContain("weekPomodoroSessions");
+    expect(source).toContain("study-week-target-progress");
+    expect(source).toContain("study-heatmap-cell__day");
+    expect(source).toContain("data-level");
   });
 
   it("không thêm Chiêm tinh/Phân tích AI và dùng token theme", () => {
@@ -28,5 +35,8 @@ describe("Study progress overview dashboard contract", () => {
     expect(css).toContain(".study-donut");
     expect(css).toContain(".study-heatmap-grid");
     expect(css).toContain(".study-helper-text");
+    expect(css).toContain(".study-week-summary-grid");
+    expect(css).toContain(".study-week-target-progress");
+    expect(css).toContain(".study-heatmap-cell__day");
   });
 });
