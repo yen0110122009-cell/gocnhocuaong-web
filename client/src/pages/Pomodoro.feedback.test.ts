@@ -93,12 +93,17 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("sessionSummary");
     expect(source).toContain("Tổng kết phiên học");
     expect(source).toContain("Nội dung phiên học");
-    expect(source).toContain("Thời gian học (phút)");
+    expect(source).toContain("Thời lượng theo nhịp Pomodoro đang chọn");
     expect(source).toContain("Chọn phiên mới");
+    expect(source).toContain("Mở phần chọn môn");
+    expect(source).toContain("openSubjectPickerArea");
+    expect(source).toContain("pomodoro-subject-picker");
     expect(source).toContain("onPointerDown={startLumiPopupDrag}");
     expect(source).toContain("lumiPopupPosition");
     expect(css).toContain(".pomodoro-pinned-widget");
     expect(css).toContain("z-index: 9999 !important");
+    expect(css).toContain("min-height: 100dvh");
+    expect(css).toContain("subject-confirmation-modal");
     expect(css).toContain(".modal-backdrop");
     expect(css).toContain("z-index: 9000 !important");
     expect(css).toContain(".lumi-popup-modal");

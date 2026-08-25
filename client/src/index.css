@@ -2734,3 +2734,10 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
 @media (prefers-reduced-motion: reduce) { .deep-focus-shell__meter span { transition: none; } }
 
 .study-helper-text { margin: .8rem .1rem 0; color: var(--scene-muted, var(--ink-muted)); font-size: .7rem; line-height: 1.5; }
+
+/* Full-screen session handoff: the next-subject prompt is intentionally prominent. */
+.modal-backdrop { width: 100vw; min-height: 100vh; min-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; }
+.subject-confirmation-modal, .session-summary-modal { max-height: min(90dvh, 42rem); overflow-y: auto; border-radius: 20px; }
+.subject-confirmation-modal { box-shadow: 0 24px 70px rgb(15 23 42 / .28); }
+.session-summary-modal { box-shadow: 0 24px 70px rgb(120 53 15 / .22); }
+@media (max-width: 460px) { .subject-confirmation-modal, .session-summary-modal { max-height: calc(100dvh - 1.5rem); padding: 1rem; } }
