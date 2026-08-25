@@ -63,5 +63,7 @@ describe("pomodoroFlow", () => {
     expect(pomodoroStartSeconds({ mode: "focus", pendingTransition: null, seconds: 0, focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 })).toBe(1500);
     expect(pomodoroStartSeconds({ mode: "focus", pendingTransition: "focus", seconds: 0, focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 })).toBe(1500);
     expect(pomodoroStartSeconds({ mode: "shortBreak", pendingTransition: "break", seconds: 0, focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 })).toBe(300);
+    expect(pomodoroStartSeconds({ mode: "focus", pendingTransition: "focus", seconds: 0, focusMinutes: 45, shortBreakMinutes: 10, longBreakMinutes: 20 })).toBe(2_700);
+    expect(pomodoroStartSeconds({ mode: "shortBreak", pendingTransition: "break", seconds: 0, focusMinutes: 45, shortBreakMinutes: 10, longBreakMinutes: 20 })).toBe(600);
   });
 });
