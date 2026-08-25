@@ -90,6 +90,11 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain("Hãy chọn hoặc nhập môn học trước khi bắt đầu.");
     expect(source).toContain("deepFocusMode");
     expect(source).toContain("Chế độ tập trung sâu");
+    expect(source).toContain("sessionSummary");
+    expect(source).toContain("Tổng kết phiên học");
+    expect(source).toContain("Nội dung phiên học");
+    expect(source).toContain("Thời gian học (phút)");
+    expect(source).toContain("Chọn phiên mới");
     expect(source).toContain("onPointerDown={startLumiPopupDrag}");
     expect(source).toContain("lumiPopupPosition");
     expect(css).toContain(".pomodoro-pinned-widget");
