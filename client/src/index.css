@@ -2706,10 +2706,10 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
 .study-subject-legend strong { font-size: .76rem; font-weight: 900; }
 .study-subject-legend small { margin-top: .08rem; color: var(--scene-muted, var(--ink-muted)); font-size: .66rem; }
 .study-heatmap-card { padding-bottom: 1rem; }
-.study-heatmap { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .7rem; margin-top: 1rem; }
-.study-heatmap-labels { display: grid; grid-template-rows: repeat(7, 1fr); gap: .35rem; color: var(--scene-muted, var(--ink-muted)); font-size: .66rem; font-weight: 850; }
-.study-heatmap-labels span { display: grid; min-height: 1.45rem; place-items: center; }
+.study-heatmap { display: grid; gap: .45rem; margin-top: 1rem; }
 .study-heatmap-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; }
+.study-heatmap-labels { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; color: var(--scene-muted, var(--ink-muted)); font-size: .66rem; font-weight: 850; }
+.study-heatmap-labels span { display: grid; min-height: 1.2rem; place-items: center; }
 .study-heatmap-cell { min-height: 1.45rem; border: 1px solid color-mix(in srgb, var(--scene-border, var(--paper-muted)) 22%, transparent); border-radius: .42rem; transition: transform .16s ease, filter .16s ease; }
 .study-heatmap-cell:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .study-heatmap-footer { justify-content: flex-end; margin-top: .7rem; color: var(--scene-muted, var(--ink-muted)); font-size: .64rem; }
