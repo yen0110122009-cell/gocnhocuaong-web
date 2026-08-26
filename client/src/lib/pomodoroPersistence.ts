@@ -38,7 +38,34 @@ export type PersistedPomodoroSession = {
 };
 
 export const POMODORO_SESSION_KEY = "study_pomodoro_session_v4";
+export type PomodoroTiming = { focus: number; shortBreak: number; longBreak: number };
 export function pomodoroSessionStorageKey(accountId?: string) { return accountId ? `${POMODORO_SESSION_KEY}:${encodeURIComponent(accountId)}` : POMODORO_SESSION_KEY; }
+export function pomodoroTimingStorageKey(accountId?: string) { return `${pomodoroSessionStorageKey(accountId)}:timing`; }
+
+function normalizeTiming(value: Partial<PomodoroTiming> | null | undefined): PomodoroTiming {
+  return {
+    focus: finiteNumber(value?.focus, 25, 1, 120),
+    shortBreak: finiteNumber(value?.shortBreak, 5, 1, 30),
+    longBreak: finiteNumber(value?.longBreak, 15, 1, 45),
+  };
+}
+
+export function readPersistedPomodoroTiming(storage: Pick<Storage, "getItem"> | null = typeof window === "undefined" ? null : window.localStorage, key = pomodoroTimingStorageKey()) {
+  if (!storage) return null;
+  try {
+    const raw = storage.getItem(key);
+    if (!raw) return null;
+    const value = JSON.parse(raw) as Partial<PomodoroTiming>;
+    return normalizeTiming(value);
+  } catch {
+    return null;
+  }
+}
+
+export function writePersistedPomodoroTiming(timing: PomodoroTiming, storage: Pick<Storage, "setItem"> | null = typeof window === "undefined" ? null : window.localStorage, key = pomodoroTimingStorageKey()) {
+  if (!storage) return;
+  try { storage.setItem(key, JSON.stringify(normalizeTiming(timing))); } catch { /* Storage may be unavailable. */ }
+}
 
 function finiteNumber(value: unknown, fallback: number, min: number, max: number) {
   const number = Number(value);

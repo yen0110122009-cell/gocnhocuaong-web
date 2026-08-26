@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { POMODORO_SESSION_KEY, clearPersistedPomodoro, pomodoroSessionStorageKey, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro, type PersistedPomodoroSession } from "./pomodoroPersistence";
+import { POMODORO_SESSION_KEY, clearPersistedPomodoro, pomodoroSessionStorageKey, pomodoroTimingStorageKey, readPersistedPomodoro, readPersistedPomodoroTiming, recoverRunningSeconds, writePersistedPomodoro, writePersistedPomodoroTiming, type PersistedPomodoroSession } from "./pomodoroPersistence";
 
 const session: Omit<PersistedPomodoroSession, "savedAt"> = {
   focus: 25, shortBreak: 5, longBreak: 15, seconds: 1490, mode: "focus", running: true,
@@ -15,6 +15,15 @@ function memoryStorage() {
 }
 
 describe("pomodoroPersistence", () => {
+  it("giữ nhịp 50/10/20 trong kho timing riêng của tài khoản", () => {
+    const storage = memoryStorage();
+    const key = pomodoroTimingStorageKey("account-50-10");
+    writePersistedPomodoroTiming({ focus: 50, shortBreak: 10, longBreak: 20 }, storage, key);
+    expect(readPersistedPomodoroTiming(storage, key)).toEqual({ focus: 50, shortBreak: 10, longBreak: 20 });
+    writePersistedPomodoro({ ...session, focus: 25, shortBreak: 5, longBreak: 15 }, storage, pomodoroSessionStorageKey("account-50-10"));
+    expect(readPersistedPomodoroTiming(storage, key)?.focus).toBe(50);
+  });
+
   it("round-trips the running session and pin/compact state", () => {
     const storage = memoryStorage();
     writePersistedPomodoro(session, storage);

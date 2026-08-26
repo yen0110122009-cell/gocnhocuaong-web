@@ -10,7 +10,7 @@ import {
   type LumiWaterSettings,
   type ProfileState,
 } from "../../../shared/study";
-import { pomodoroSessionStorageKey, readPersistedPomodoro, recoverRunningSeconds, writePersistedPomodoro } from "../lib/pomodoroPersistence";
+import { pomodoroSessionStorageKey, pomodoroTimingStorageKey, readPersistedPomodoro, readPersistedPomodoroTiming, recoverRunningSeconds, writePersistedPomodoro, writePersistedPomodoroTiming } from "../lib/pomodoroPersistence";
 import { LUMI_WATER_ALERT_SOUNDS, isLumiWaterAlertSoundId, playLumiWaterAlert } from "../lib/lumiAlerts";
 import { POMODORO_ALERT_SOUNDS, isPomodoroAlertSoundId, playPomodoroAlert } from "../lib/pomodoroAlerts";
 import { DEFAULT_LUMI_WATER_MESSAGE, readLumiSpeechPreference, readLumiWaterMessage, readLumiWaterNextReminderAt, readLumiWaterSettings, saveLumiSpeechPreference, saveLumiWaterMessage, saveLumiWaterNextReminderAt, saveLumiWaterSettings } from "../lib/lumiPreferences";
@@ -60,11 +60,14 @@ type AudioContextConstructor = new () => AudioContext;
 export default function Pomodoro({ profile, config, accountId, onProfile, onView, onOpenDetached, isVisible = true }: Props) {
   const detachedWindow = isDetachedPomodoroWindow();
   const pomodoroStorageKey = useMemo(() => pomodoroSessionStorageKey(accountId), [accountId]);
+  const pomodoroTimingKey = useMemo(() => pomodoroTimingStorageKey(accountId), [accountId]);
   const restored = useMemo(() => readPersistedPomodoro(undefined, pomodoroStorageKey), [pomodoroStorageKey]);
-  const [focus, setFocus] = useState(restored?.focus ?? 25);
-  const [shortBreak, setShortBreak] = useState(restored?.shortBreak ?? 5);
-  const [longBreak, setLongBreak] = useState(restored?.longBreak ?? 15);
-  const [seconds, setSeconds] = useState(() => restored ? recoverRunningSeconds(restored) : 25 * 60);
+  const restoredTiming = useMemo(() => readPersistedPomodoroTiming(undefined, pomodoroTimingKey), [pomodoroTimingKey]);
+  const initialTiming = restoredTiming ?? { focus: restored?.focus ?? 25, shortBreak: restored?.shortBreak ?? 5, longBreak: restored?.longBreak ?? 15 };
+  const [focus, setFocus] = useState(initialTiming.focus);
+  const [shortBreak, setShortBreak] = useState(initialTiming.shortBreak);
+  const [longBreak, setLongBreak] = useState(initialTiming.longBreak);
+  const [seconds, setSeconds] = useState(() => restored ? recoverRunningSeconds(restored) : initialTiming.focus * 60);
   const [mode, setMode] = useState<Mode>(restored?.mode ?? "focus");
   const [running, setRunning] = useState(restored?.running ?? false);
   const [autoAdvance, setAutoAdvance] = useState(restored?.autoAdvance ?? false);
@@ -141,8 +144,9 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   useEffect(() => {
     if (lastPersistedSignatureRef.current === persistenceSignature && seconds !== 0 && seconds % 5 !== 0) return;
     lastPersistedSignatureRef.current = persistenceSignature;
+      writePersistedPomodoroTiming({ focus, shortBreak, longBreak }, undefined, pomodoroTimingKey);
       writePersistedPomodoro({ focus, shortBreak, longBreak, seconds, mode, running, autoAdvance, pendingTransition, subject, topic, activity, notes, totalSessions, goalCompletedSessions, sessionStartedAt, alertVolume: 0, pomodoroAlerts: pomodoroAlertSettings, compactMode, deepFocusMode, miniPlayerPinned, miniPlayerX: miniPlayerPosition.x, miniPlayerY: miniPlayerPosition.y, lumiPopupX: lumiPopupPosition.x, lumiPopupY: lumiPopupPosition.y }, undefined, pomodoroStorageKey);
-  }, [seconds, persistenceSignature, pomodoroStorageKey]);
+  }, [seconds, persistenceSignature, pomodoroStorageKey, pomodoroTimingKey]);
   useEffect(() => {
     if (!detachedWindow) return;
     const writeLease = () => { try { window.localStorage.setItem(DETACHED_POMODORO_ACTIVE_KEY, String(Date.now())); } catch { /* localStorage may be unavailable */ } };
@@ -167,16 +171,25 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   }, [running, detachedWindow, detachedWindowActive]);
   useEffect(() => {
     const onPomodoroStorage = (event: StorageEvent) => {
+      if (event.key === pomodoroTimingKey) {
+        const timing = readPersistedPomodoroTiming(undefined, pomodoroTimingKey);
+        if (!timing) return;
+        setFocus(timing.focus); setShortBreak(timing.shortBreak); setLongBreak(timing.longBreak);
+        if (!running && mode === "focus") setSeconds(timing.focus * 60);
+        return;
+      }
       if (event.key !== pomodoroStorageKey) return;
       const saved = readPersistedPomodoro(undefined, pomodoroStorageKey);
+      const timing = readPersistedPomodoroTiming(undefined, pomodoroTimingKey);
       if (!saved) return;
+      if (timing && (saved.focus !== timing.focus || saved.shortBreak !== timing.shortBreak || saved.longBreak !== timing.longBreak)) return;
       const recovered = recoverRunningSeconds(saved);
       const savedPendingTransition = pendingTransitionForSavedPomodoro(saved); const savedRunning = saved.running && recovered > 0;
-      setSeconds(recovered); setMode(saved.mode); setRunning(savedRunning); setPendingTransition(savedPendingTransition); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(repairPomodoroGoalCounter({ mode: saved.mode, running: savedRunning, pendingTransition: savedPendingTransition, completedFocusSessions: saved.goalCompletedSessions ?? 0, totalSessions: saved.totalSessions })); setSessionStartedAt(saved.sessionStartedAt); setFocus(saved.focus); setShortBreak(saved.shortBreak); setLongBreak(saved.longBreak);
+      setSeconds(recovered); setMode(saved.mode); setRunning(savedRunning); setPendingTransition(savedPendingTransition); setTotalSessions(saved.totalSessions); setGoalCompletedSessions(repairPomodoroGoalCounter({ mode: saved.mode, running: savedRunning, pendingTransition: savedPendingTransition, completedFocusSessions: saved.goalCompletedSessions ?? 0, totalSessions: saved.totalSessions })); setSessionStartedAt(saved.sessionStartedAt); setFocus(timing?.focus ?? saved.focus); setShortBreak(timing?.shortBreak ?? saved.shortBreak); setLongBreak(timing?.longBreak ?? saved.longBreak);
     };
     window.addEventListener("storage", onPomodoroStorage);
     return () => window.removeEventListener("storage", onPomodoroStorage);
-  }, [detachedWindow, pomodoroStorageKey]);
+  }, [detachedWindow, mode, pomodoroStorageKey, pomodoroTimingKey, running]);
   useEffect(() => {
     if (seconds !== 0 || completionHandled.current || pendingTransition !== null) return;
     let cancelled = false;

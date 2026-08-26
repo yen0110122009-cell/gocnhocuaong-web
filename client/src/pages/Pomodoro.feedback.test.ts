@@ -54,6 +54,9 @@ describe("Pomodoro feedback contract", () => {
     expect(source).toContain('status: "abandoned"');
     expect(source).toContain("elapsedPomodoroSeconds");
     expect(source).toContain("elapsedSeconds");
+    expect(source).toContain("startedAt = sessionStartedAt ??");
+    expect(source).toContain("pomodoroTimingStorageKey");
+    expect(source).toContain("const initialTiming = restoredTiming ??");
     expect(source).toContain("Kết thúc hoàn toàn");
     expect(source).toContain("studyActivity: [activityRow");
   });
