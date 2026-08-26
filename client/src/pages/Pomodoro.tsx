@@ -547,12 +547,18 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
   }
   function reset() { if (running && !window.confirm("Đặt lại phiên đang chạy? Thời gian chưa hoàn thành sẽ không được ghi nhận.")) return; setRunning(false); setPendingTransition(null); setMode("focus"); setGoalCompletedSessions(0); setSeconds(focus * 60); setSessionStartedAt(null); setSubjectConfirmationOpen(false); setSessionSummary(null); completionHandled.current = false; }
   function endSessionCompletely() {
-    if (mode !== "focus" || !sessionStartedAt) { reset(); toast.info("Đã kết thúc trạng thái Pomodoro hiện tại."); return; }
+    const activeFocus = mode === "focus" && running;
+    if (!activeFocus) {
+      setRunning(false); setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); setSubjectConfirmationOpen(false); setSessionSummary(null); completionHandled.current = false;
+      toast.info("Đã kết thúc trạng thái Pomodoro hiện tại.");
+      return;
+    }
     if (!window.confirm("Kết thúc hoàn toàn phiên này? Thời gian đã học sẽ được lưu, phần còn lại không tính.")) return;
     const endedAt = new Date().toISOString();
     const elapsedSeconds = elapsedPomodoroSeconds(focus, seconds);
+    const startedAt = sessionStartedAt ?? new Date(Date.now() - elapsedSeconds * 1_000).toISOString();
     const activityLabel = activities.find((item) => item.id === activity)?.label ?? "Học tập";
-    const interruptedSession: PomodoroSession = { id: crypto.randomUUID(), startedAt: sessionStartedAt, endedAt, durationMinutes: elapsedSeconds / 60, elapsedSeconds, subject: subject.trim() || "Tự học", topic: topic.trim() || activityLabel, activity: activityLabel, notes: notes.trim() || undefined, sessionNumber: Math.min(totalSessions, goalCompletedSessions + 1), totalSessions, mode: "focus", status: "abandoned" };
+    const interruptedSession: PomodoroSession = { id: crypto.randomUUID(), startedAt, endedAt, durationMinutes: elapsedSeconds / 60, elapsedSeconds, subject: subject.trim() || "Tự học", topic: topic.trim() || activityLabel, activity: activityLabel, notes: notes.trim() || undefined, sessionNumber: Math.min(totalSessions, goalCompletedSessions + 1), totalSessions, mode: "focus", status: "abandoned" };
     const activityRow = { id: `pomodoro-${interruptedSession.id}`, occurredAt: endedAt, kind: "pomodoro" as const, quantity: 1, durationSeconds: elapsedSeconds, xpEarned: 0 };
     onProfile({ ...profile, pomodoroHistory: [interruptedSession, ...profile.pomodoroHistory].slice(0, 500), studyActivity: [activityRow, ...profile.studyActivity].slice(0, 2_000) }, elapsedSeconds > 0 ? `Đã lưu ${Math.floor(elapsedSeconds / 60)} phút học trước khi kết thúc phiên.` : "Đã kết thúc phiên; chưa có đủ thời gian để ghi phút học.");
     setRunning(false); setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); setSubjectConfirmationOpen(false); setSessionSummary(null); completionHandled.current = false;

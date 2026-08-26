@@ -48,6 +48,9 @@ describe("Pomodoro feedback contract", () => {
 
   it("cho phép kết thúc hoàn toàn phiên và vẫn lưu thời gian thực tế", () => {
     expect(source).toContain("function endSessionCompletely()");
+    expect(source).toContain("const activeFocus = mode === \"focus\" && running");
+    expect(source).toContain("setRunning(false); setPendingTransition(null); setMode(\"focus\")");
+    expect(source).not.toContain('if (mode !== "focus" || !sessionStartedAt) { reset();');
     expect(source).toContain('status: "abandoned"');
     expect(source).toContain("elapsedPomodoroSeconds");
     expect(source).toContain("elapsedSeconds");
