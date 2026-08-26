@@ -32,6 +32,7 @@ describe("learning persistence wiring", () => {
 });
 
 describe("quiz attempt persistence wiring", () => {
+  const source = readFileSync(join(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
   const quizSource = readFileSync(join(process.cwd(), "client/src/pages/QuizEnhanced.tsx"), "utf8");
 
   it("keeps the completed attempt payload on the profile-save path", () => {
@@ -40,5 +41,11 @@ describe("quiz attempt persistence wiring", () => {
     expect(quizSource).toContain("onProfile");
     expect(quizSource).toContain("flagged");
     expect(quizSource).toContain("completedAt");
+  });
+
+  it("preserves line breaks in Flashcard faces and quiz answer options", () => {
+    expect(source).toContain("whitespace-pre-line break-words font-display text-3xl");
+    expect(quizSource).toContain("whitespace-pre-line break-words rounded-xl border");
+    expect(quizSource).toContain("whitespace-pre-line break-words font-display text-2xl");
   });
 });
