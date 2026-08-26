@@ -834,27 +834,6 @@ export type StudyTimeGoals = {
   subjectTotalMinutes: Record<string, number>;
 };
 
-export type EntertainmentConversionSettings = {
-  studyBlockMinutes: number;
-  entertainmentMinutesPerBlock: number;
-  dailyCapMinutes: number;
-};
-
-export const DEFAULT_ENTERTAINMENT_CONVERSION_SETTINGS: EntertainmentConversionSettings = {
-  studyBlockMinutes: 30,
-  entertainmentMinutesPerBlock: 10,
-  dailyCapMinutes: 120,
-};
-
-export function normalizeEntertainmentConversionSettings(value: unknown): EntertainmentConversionSettings {
-  const source = value && typeof value === "object" ? value as Partial<EntertainmentConversionSettings> : {};
-  return {
-    studyBlockMinutes: Math.max(1, Math.min(180, Math.round(Number(source.studyBlockMinutes ?? DEFAULT_ENTERTAINMENT_CONVERSION_SETTINGS.studyBlockMinutes) || DEFAULT_ENTERTAINMENT_CONVERSION_SETTINGS.studyBlockMinutes))),
-    entertainmentMinutesPerBlock: Math.max(0, Math.min(120, Math.round(Number(source.entertainmentMinutesPerBlock ?? DEFAULT_ENTERTAINMENT_CONVERSION_SETTINGS.entertainmentMinutesPerBlock) || 0))),
-    dailyCapMinutes: Math.max(0, Math.min(1_440, Math.round(Number(source.dailyCapMinutes ?? DEFAULT_ENTERTAINMENT_CONVERSION_SETTINGS.dailyCapMinutes) || 0))),
-  };
-}
-
 export type ProfileState = {
   xp: number;
   level: number;
@@ -920,8 +899,6 @@ export type ProfileState = {
   weeklyPomodoroGoalCompletions?: WeeklyPomodoroGoalCompletion[];
   /** Mục tiêu thời gian học mới, độc lập với Kế hoạch ngày đã ngừng hiển thị. */
   studyTimeGoals?: StudyTimeGoals;
-  /** Tỷ lệ quy đổi thời gian Pomodoro hoàn thành thành thời gian giải trí. */
-  entertainmentConversionSettings?: EntertainmentConversionSettings;
   /** Danh sách môn học dùng để phân loại lịch sử Pomodoro. */
   studySubjects?: string[];
   lumiCongratulationMessages?: Partial<Record<EmotionThemeId, LumiCongratulationMessage[]>>;
@@ -1127,7 +1104,6 @@ export const emptyProfile = (): ProfileState => ({
   pomodoroLumiSupportMode: "encouragement",
   lumiSpeechEnabled: true,
   lumiWaterSettings: DEFAULT_LUMI_WATER_SETTINGS,
-  entertainmentConversionSettings: DEFAULT_ENTERTAINMENT_CONVERSION_SETTINGS,
   studyPlanItems: [],
       planFragments: 0,
     dailyPhoneRewardSettings: { baseMinutes: 10, bonusMinutesPerStudyBlock: 5 },
@@ -1992,7 +1968,6 @@ export function normalizeProfile(value: unknown): ProfileState {
     focusMode: source.focusMode === true,
     weeklyPomodoroGoalMinutes: Math.max(30, Math.min(10_080, Math.round(Number(source.weeklyPomodoroGoalMinutes ?? base.weeklyPomodoroGoalMinutes ?? 300) || base.weeklyPomodoroGoalMinutes || 300))),
     studyTimeGoals: (() => { const raw = source.studyTimeGoals && typeof source.studyTimeGoals === "object" ? source.studyTimeGoals as Partial<StudyTimeGoals> : {}; const readSubjectMinutes = (value: unknown, max: number) => value && typeof value === "object" ? Object.fromEntries(Object.entries(value).flatMap(([subject, amount]) => { const name = subject.trim().slice(0, 80); const minutes = Math.max(0, Math.min(max, Math.round(Number(amount) || 0))); return name && minutes > 0 ? [[name, minutes]] : []; })) : {}; const subjectDailyMinutes = readSubjectMinutes(raw.subjectDailyMinutes, 1_440); const subjectWeeklyMinutes = readSubjectMinutes(raw.subjectWeeklyMinutes, 10_080); const subjectTotalMinutes = readSubjectMinutes(raw.subjectTotalMinutes, 10_000_000); return { dailyMinutes: Math.max(0, Math.min(1_440, Math.round(Number(raw.dailyMinutes ?? 180) || 0))), weeklyMinutes: Math.max(0, Math.min(10_080, Math.round(Number(raw.weeklyMinutes ?? 900) || 0))), subjectDailyMinutes, subjectWeeklyMinutes, subjectTotalMinutes }; })(),
-    entertainmentConversionSettings: normalizeEntertainmentConversionSettings(source.entertainmentConversionSettings),
     studySubjects: (() => { const values = Array.isArray(source.studySubjects) ? source.studySubjects.flatMap((value) => typeof value === "string" && value.trim() ? [value.trim().slice(0, 80)] : []) : []; return Array.from(new Set(["Toán", "Lý", "Hóa", "Văn", "Anh", ...values])).slice(0, 50); })(),
     weeklyPomodoroGoalCompletions: Array.isArray(source.weeklyPomodoroGoalCompletions) ? source.weeklyPomodoroGoalCompletions.flatMap((value) => {
       const item = value && typeof value === "object" ? value as Partial<WeeklyPomodoroGoalCompletion> : null;

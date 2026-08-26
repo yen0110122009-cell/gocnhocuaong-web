@@ -23,6 +23,13 @@ describe("study time analytics", () => {
     expect(studySecondsForDay(value, new Date("2026-08-24T12:00:00"))).toBe(1_800);
     expect(studySecondsForWeek(value, new Date("2026-08-26T12:00:00"))).toBe(18_000);
   });
+  it("giữ ngày 06/08 trong lịch sử khi xem khoảng thời gian dài", () => {
+    const value = profile();
+    value.pomodoroHistory = [{ id: "august-six", startedAt: "2026-08-06T08:00:00", endedAt: "2026-08-06T08:25:00", durationMinutes: 25, subject: "Hóa", topic: "Ôn bài", sessionNumber: 1, totalSessions: 4, mode: "focus" as const, status: "completed" as const }];
+    const history = studyDayHistory(value, new Date("2026-08-26T12:00:00"), 3650);
+    expect(history).toEqual([expect.objectContaining({ key: "2026-08-06", seconds: 1_500, subjects: [expect.objectContaining({ subject: "Hóa", seconds: 1_500 })] })]);
+  });
+
   it("tính thời gian phiên kết thúc sớm theo elapsedSeconds nhưng không tính là phiên hoàn thành", () => {
     const value = profile();
     value.pomodoroHistory = [{ id: "stopped", startedAt: "2026-08-24T10:00:00", endedAt: "2026-08-24T10:02:05", durationMinutes: 2, elapsedSeconds: 125, subject: "Lý", topic: "Cơ học", sessionNumber: 1, totalSessions: 4, mode: "focus", status: "abandoned" }];
