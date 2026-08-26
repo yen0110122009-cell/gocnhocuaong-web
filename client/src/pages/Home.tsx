@@ -60,6 +60,7 @@ import { isGitHubPages, noEmailLoginHint, openFullstackLogin } from "@/lib/runti
 import { cloudLoadConfig, cloudLoadProfile, cloudLogin, cloudRestoreSession, cloudSaveConfig, cloudSaveProfile, cloudSignOut, cloudStateWarning } from "@/lib/cloudStateAuth";
 import { errorForLogin, friendlyAppError } from "@/lib/appErrors";
 import { clearPendingProfileSync, pendingProfileSync, pendingProfileSyncCount, queueProfileSync } from "@/lib/profileSyncQueue";
+import { mergePomodoroHistoryRecovery } from "../lib/pomodoroHistoryRecovery";
 
 type View = "dashboard" | "goals" | "lumi" | "focus" | "pomodoro" | "knowledge" | "history" | "exam" | "progress" | "studio" | "ai-import" | "flashcards" | "quizzes" | "learning-trash" | "achievements" | "museum" | "wheel" | "account" | "admin" | "mistakes" | "energy" | "health" | "lab" | "appearance";
 const SESSION_KEY = "study_historia_session_v1";
@@ -205,6 +206,7 @@ export default function Home() {
   const saveConfig = trpc.study.config.save.useMutation();
   useEffect(() => { if (profileData.data?.profile) setProfile(normalizeProfile(profileData.data.profile)); }, [profileData.data]);
   useEffect(() => { if (!isGitHubPages) return; let active = true; void cloudRestoreSession().then(async (data) => { if (!active || !data) return; setSession(data); const [nextProfile, nextConfig] = await Promise.all([cloudLoadProfile(data.account.id), cloudLoadConfig()]); if (active) { setProfile(nextProfile); setConfig(nextConfig); } }).catch(() => undefined); return () => { active = false; }; }, []);
+  useEffect(() => { if (!session || session.account.isGuest) return; const merged = mergePomodoroHistoryRecovery(profile, session.account.id); if (merged === profile) return; setProfile(merged); if (isGitHubPages) void cloudSaveProfile(session.account.id, merged).catch(() => undefined); }, [isGitHubPages, profile, session]);
   useEffect(() => { if (configData.data) setConfig(configData.data as AppConfig); }, [configData.data]);
   useEffect(() => {
     if (!profileData.error || session?.account.isGuest) return;

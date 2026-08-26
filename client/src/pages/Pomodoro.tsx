@@ -21,6 +21,7 @@ import { LUMI_SPEECH_UNAVAILABLE_EVENT, speakLumiVietnamese } from "../lib/lumiS
 import { findLumiKaomojiDialogue, LUMI_MULTI_DIALOGUES_EVENT, pickRandomLumiDialogue, pickRandomLumiText, readLumiMultiDialogues, type LumiKaomojiDialogueEntry } from "../lib/lumiMultiDialogues";
 import { currentPomodoroSessionNumber, elapsedPomodoroSeconds, focusCompletionTransition, nextPomodoroBreakMode, pendingTransitionForSavedPomodoro, pomodoroStartSeconds, repairPomodoroGoalCounter, resetPomodoroForGoalChange, shouldClaimPomodoroCompletion } from "../lib/pomodoroFlow";
 import { subjectNames } from "../../../shared/studyTimeAnalytics";
+import { appendPomodoroHistoryRecovery } from "../lib/pomodoroHistoryRecovery";
 import { pickLumiStateScript, readLumiStateScripts } from "../lib/lumiStateScripts";
 
 type Mode = "focus" | "shortBreak" | "longBreak";
@@ -572,6 +573,7 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
     const startedAt = sessionStartedAt ?? new Date(Date.now() - elapsedSeconds * 1_000).toISOString();
     const activityLabel = activities.find((item) => item.id === activity)?.label ?? "Học tập";
     const interruptedSession: PomodoroSession = { id: crypto.randomUUID(), startedAt, endedAt, durationMinutes: elapsedSeconds / 60, elapsedSeconds, subject: subject.trim() || "Tự học", topic: topic.trim() || activityLabel, activity: activityLabel, notes: notes.trim() || undefined, sessionNumber: Math.min(totalSessions, goalCompletedSessions + 1), totalSessions, mode: "focus", status: "abandoned" };
+    appendPomodoroHistoryRecovery(accountId, interruptedSession);
     const activityRow = { id: `pomodoro-${interruptedSession.id}`, occurredAt: endedAt, kind: "pomodoro" as const, quantity: 1, durationSeconds: elapsedSeconds, xpEarned: 0 };
     onProfile({ ...profile, pomodoroHistory: [interruptedSession, ...profile.pomodoroHistory].slice(0, 500), studyActivity: [activityRow, ...profile.studyActivity].slice(0, 2_000) }, elapsedSeconds > 0 ? `Đã lưu ${Math.floor(elapsedSeconds / 60)} phút học trước khi kết thúc phiên.` : "Đã kết thúc phiên; chưa có đủ thời gian để ghi phút học.");
     setRunning(false); setPendingTransition(null); setMode("focus"); setSeconds(focus * 60); setSessionStartedAt(null); setSubjectConfirmationOpen(false); setSessionSummary(null); completionHandled.current = false;
@@ -581,6 +583,7 @@ export default function Pomodoro({ profile, config, accountId, onProfile, onView
     const transition = focusCompletionTransition({ completedFocusSessions: goalCompletedSessions, totalSessions, autoAdvance, shortBreakMinutes: shortBreak, longBreakMinutes: longBreak });
     const session: PomodoroSession = { id: crypto.randomUUID(), startedAt: sessionStartedAt ?? new Date(Date.now() - focus * 60_000).toISOString(), endedAt, durationMinutes: focus, elapsedSeconds: focus * 60, subject: subject.trim() || "Tự học", topic: topic.trim() || activityLabel, activity: activityLabel, notes: notes.trim() || undefined, sessionNumber: transition.completedFocusSessions, totalSessions, mode: "focus", status: "completed" };
     setSessionSummary({ subject: session.subject, topic: session.topic, durationMinutes: session.durationMinutes, sessionNumber: session.sessionNumber, totalSessions: session.totalSessions });
+    appendPomodoroHistoryRecovery(accountId, session);
     const activityRow = { id: `pomodoro-${session.id}`, occurredAt: endedAt, kind: "pomodoro" as const, quantity: 1, durationSeconds: focus * 60, xpEarned: 0 };
     onProfile({ ...profile, pomodoroHistory: [session, ...profile.pomodoroHistory].slice(0, 500), studyActivity: [activityRow, ...profile.studyActivity].slice(0, 2_000) }, transition.goalReached ? "Đã đạt mục tiêu Pomodoro." : "Đã lưu phiên Pomodoro vào Lịch sử học.");
     setGoalCompletedSessions(transition.completedFocusSessions); setSessionStartedAt(null); setMode(transition.mode); setSeconds(transition.seconds); setRunning(transition.running); setPendingTransition(transition.pendingTransition); completionHandled.current = false;
