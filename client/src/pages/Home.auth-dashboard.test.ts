@@ -89,4 +89,21 @@ describe("new resilience feedback contracts", () => {
     expect(source).toContain("friendlyLoginError");
     expect(source).toContain("Thử lại đăng nhập");
   });
+
+  it("supports remembering the session without storing the password", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+    expect(source).toContain("Ghi nhớ đăng nhập trên thiết bị này");
+    expect(source).toContain("REMEMBERED_SESSION_KEY");
+    expect(source).toContain("localStorage.getItem(REMEMBERED_SESSION_KEY)");
+    expect(source).toContain("localStorage.removeItem(REMEMBERED_SESSION_KEY)");
+    expect(source).not.toContain("localStorage.setItem(REMEMBERED_SESSION_KEY, JSON.stringify(data.password)");
+  });
+
+  it("keeps cloud remembered sessions separate from password data", () => {
+    const source = readFileSync(resolve(process.cwd(), "client/src/lib/cloudStateAuth.ts"), "utf8");
+    expect(source).toContain("REMEMBERED_CLOUD_SESSION_KEY");
+    expect(source).toContain("input.rememberLogin === true");
+    expect(source).toContain("localStorage.removeItem(REMEMBERED_CLOUD_SESSION_KEY)");
+    expect(source).not.toContain("localStorage.setItem(REMEMBERED_CLOUD_SESSION_KEY, input.password");
+  });
 });

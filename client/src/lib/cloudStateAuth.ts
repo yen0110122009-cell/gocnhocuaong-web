@@ -7,6 +7,7 @@ const SUPABASE_URL = normalizeSupabaseBaseUrl(String(import.meta.env.VITE_SUPABA
 const SUPABASE_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "");
 const REST_URL = `${SUPABASE_URL}/rest/v1/app_state`;
 const CLOUD_SESSION_KEY = "gocnhocuaong_cloud_session_v1";
+const REMEMBERED_CLOUD_SESSION_KEY = "gocnhocuaong_cloud_session_remembered_v1";
 const STATE_KEY = "__gocnhocuaong";
 const PROFILE_CACHE_KEY_PREFIX = "gocnhocuaong_profile_cache_v1:";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -83,10 +84,11 @@ function publicCloudAccount(account: CloudAccount): StudyAccount {
   const { passwordHash: _passwordHash, normalizedName: _normalizedName, ...publicAccount } = account;
   return publicAccount;
 }
-function storedCloudSession(): StudySession | null { try { const raw = sessionStorage.getItem(CLOUD_SESSION_KEY); if (!raw) return null; const session = JSON.parse(raw) as StudySession; return new Date(session.expiresAt).getTime() > Date.now() ? session : null; } catch { return null; } }
-function saveCloudSession(session: StudySession) { sessionStorage.setItem(CLOUD_SESSION_KEY, JSON.stringify(session)); }
+function parseStoredSession(raw: string | null): StudySession | null { if (!raw) return null; try { const session = JSON.parse(raw) as StudySession; return new Date(session.expiresAt).getTime() > Date.now() ? session : null; } catch { return null; } }
+function storedCloudSession(): StudySession | null { try { return parseStoredSession(sessionStorage.getItem(CLOUD_SESSION_KEY)) ?? parseStoredSession(localStorage.getItem(REMEMBERED_CLOUD_SESSION_KEY)); } catch { return null; } }
+function saveCloudSession(session: StudySession, remember = false) { sessionStorage.setItem(CLOUD_SESSION_KEY, JSON.stringify(session)); if (remember) localStorage.setItem(REMEMBERED_CLOUD_SESSION_KEY, JSON.stringify(session)); }
 
-export async function cloudLogin(input: { name: string; password: string; code: string }): Promise<StudySession> {
+export async function cloudLogin(input: { name: string; password: string; code: string; rememberLogin?: boolean }): Promise<StudySession> {
   const name = input.name.trim(); const normalizedName = normalizeName(name); const code = input.code.trim().toUpperCase();
   if (!name || !input.password || !code) throw new Error("Vui lòng nhập đủ tên, mật khẩu và mã tài khoản.");
   if (input.password.length < 6) throw new Error("Mật khẩu cần có ít nhất 6 ký tự.");
@@ -103,7 +105,7 @@ export async function cloudLogin(input: { name: string; password: string; code: 
   if (!account.passwordHash) account.passwordHash = passwordHash;
   account.lastActiveAt = new Date().toISOString();
   await savePayload(row, { ...payload, updatedAt: new Date().toISOString() });
-  const session = sessionFor(account); saveCloudSession(session); return session;
+  const session = sessionFor(account); saveCloudSession(session, input.rememberLogin === true); return session;
 }
 
 export async function cloudRestoreSession(): Promise<StudySession | null> {
@@ -113,6 +115,7 @@ export async function cloudRestoreSession(): Promise<StudySession | null> {
 export async function cloudSignOut() {
   const session = storedCloudSession();
   sessionStorage.removeItem(CLOUD_SESSION_KEY);
+  localStorage.removeItem(REMEMBERED_CLOUD_SESSION_KEY);
   if (!session) return;
   try {
     const row = await loadRow(); const payload = parseCloudStatePayload(row); const account = payload.accounts.find((item) => item.id === session.account.id);
