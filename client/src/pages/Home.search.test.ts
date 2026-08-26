@@ -17,4 +17,13 @@ describe("global learning search", () => {
     expect(source).toContain("Pomodoro");
     expect(source).not.toMatch(/Todo|Habit|Journal|Schedule/);
   });
+
+  it("filters quizzes using the metadata returned by AI", () => {
+    expect(source).toContain("Lọc đề theo môn học");
+    expect(source).toContain("Lọc đề theo lớp học");
+    expect(source).toContain("Lọc đề theo chủ đề");
+    expect(source).toContain("Lọc đề theo độ khó");
+    expect(source).toContain("quizQuery");
+    expect(source).toContain("filteredQuizzes");
+  });
 });
