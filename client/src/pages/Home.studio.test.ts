@@ -44,7 +44,7 @@ describe("quiz attempt persistence wiring", () => {
   });
 
   it("preserves line breaks in Flashcard faces and quiz answer options", () => {
-    expect(source).toContain("whitespace-pre-line break-words font-display text-3xl");
+    expect(source).toContain("max-h-[55vh] overflow-y-auto whitespace-pre-line break-words font-display text-2xl");
     expect(quizSource).toContain("whitespace-pre-line break-words rounded-xl border");
     expect(quizSource).toContain("whitespace-pre-line break-words font-display text-2xl");
   });

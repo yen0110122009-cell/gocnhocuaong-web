@@ -59,6 +59,27 @@ describe("AI learning-content metadata and multiline contract", () => {
     expect(validation.questions[0]?.explanation).toContain("\nGiải thích dòng hai");
   });
 
+  it("creates a multiline math quiz sample without flattening formulas", () => {
+    const validation = validateExternalAiData(JSON.stringify({
+      metadata: { title: "Đề mẫu Toán 9 – Hàm số", subject: "Toán", purpose: "Kiểm tra công thức", grade: "Lớp 9", topic: "Hàm số bậc nhất", difficulty: "Nâng cao" },
+      questions: [{
+        type: "multiple",
+        question: "Cho hàm số y = 2x + 1.\nTính y khi x = 3.",
+        options: ["A. y = 5", "B. y = 7\nVì y = 2 × 3 + 1", "C. y = 8", "D. y = 9"],
+        answer: "B. y = 7\nVì y = 2 × 3 + 1",
+        explanation: "Thay x = 3 vào công thức:\ny = 2 × 3 + 1 = 7.\nVậy đáp án đúng là B.",
+        deepExplanation: { formula: "y = ax + b\nVới a = 2, b = 1", solutionSteps: ["Bước 1: Thay x = 3.", "Bước 2: Tính y = 2 × 3 + 1 = 7."] },
+      }],
+    }));
+    expect(validation.valid).toBe(true);
+    const quiz = convertImportToQuiz(validation, { ...validation.metadata, title: "Đề mẫu Toán 9 – Hàm số", subject: "Toán", topic: "Hàm số bậc nhất" });
+    expect(quiz.questions[0]?.prompt).toContain("\nTính y khi x = 3.");
+    expect(quiz.questions[0]?.options?.[1]).toContain("\nVì y = 2 × 3 + 1");
+    expect(quiz.questions[0]?.answer).toContain("\nVì y = 2 × 3 + 1");
+    expect(quiz.questions[0]?.explanation).toContain("\ny = 2 × 3 + 1 = 7.");
+    expect(quiz.questions[0]?.deepExplanation?.formula).toContain("\nVới a = 2, b = 1");
+  });
+
   it("creates a multiline quiz sample without flattening options or explanations", () => {
     const validation = validateExternalAiData(JSON.stringify({
       metadata: { title: "Đề mẫu Sinh học 10", subject: "Sinh học", purpose: "Ôn tập", grade: "Lớp 10", topic: "Tế bào", difficulty: "Cơ bản" },
