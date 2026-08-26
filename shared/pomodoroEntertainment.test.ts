@@ -27,6 +27,13 @@ describe("pomodoro entertainment conversion", () => {
     expect(entertainmentMinutesFromStudy(300, settings)).toBe(60);
   });
 
+  it("không quy đổi phiên kết thúc sớm thành thời gian giải trí", () => {
+    const value = makeProfile();
+    value.pomodoroHistory = [{ id: "stopped-early", startedAt: "2026-08-24T11:00:00", endedAt: "2026-08-24T11:40:00", durationMinutes: 40, elapsedSeconds: 2_400, subject: "Hóa", topic: "Bài tập", sessionNumber: 3, totalSessions: 4, mode: "focus" as const, status: "abandoned" as const }, ...value.pomodoroHistory];
+    expect(dailyEntertainmentReward(value, new Date("2026-08-24T12:00:00"), { studyBlockMinutes: 30, entertainmentMinutesPerBlock: 10, dailyCapMinutes: 120 })).toEqual({ studyMinutes: 105, entertainmentMinutes: 30 });
+    expect(weeklyEntertainmentReward(value, new Date("2026-08-26T12:00:00"))).toEqual({ studyMinutes: 135, entertainmentMinutes: 40 });
+  });
+
   it("chỉ tính focus completed trong ngày và tuần hiện tại", () => {
     const value = makeProfile();
     expect(dailyEntertainmentReward(value, new Date("2026-08-24T12:00:00"), { studyBlockMinutes: 45, entertainmentMinutesPerBlock: 15, dailyCapMinutes: 120 })).toEqual({ studyMinutes: 105, entertainmentMinutes: 30 });
