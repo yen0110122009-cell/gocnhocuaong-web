@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildExternalAiPrompt, convertImportToFlashcards, validateExternalAiData } from "./aiDataImport";
+import { buildExternalAiPrompt, convertImportToFlashcards, convertImportToQuiz, validateExternalAiData } from "./aiDataImport";
 
 describe("AI learning-content metadata and multiline contract", () => {
   it("requires the full study metadata in the external AI prompt", () => {
@@ -57,5 +57,24 @@ describe("AI learning-content metadata and multiline contract", () => {
     expect(validation.valid).toBe(true);
     expect(validation.questions[0]).toMatchObject({ prompt: "Câu hỏi dòng một\nCâu hỏi dòng hai", answer: "Đáp án dòng một\nĐáp án dòng hai" });
     expect(validation.questions[0]?.explanation).toContain("\nGiải thích dòng hai");
+  });
+
+  it("creates a multiline quiz sample without flattening options or explanations", () => {
+    const validation = validateExternalAiData(JSON.stringify({
+      metadata: { title: "Đề mẫu Sinh học 10", subject: "Sinh học", purpose: "Ôn tập", grade: "Lớp 10", topic: "Tế bào", difficulty: "Cơ bản" },
+      questions: [{
+        type: "multiple",
+        question: "Bào quan nào là nơi diễn ra hô hấp tế bào?\nNêu lý do.",
+        options: ["A. Nhân tế bào", "B. Ti thể\n— bào quan tạo năng lượng", "C. Ribosome", "D. Không bào"],
+        answer: "B. Ti thể\n— bào quan tạo năng lượng",
+        explanation: "Ti thể thực hiện hô hấp tế bào.\nQuá trình này tạo năng lượng cho hoạt động của tế bào.",
+      }],
+    }));
+    expect(validation.valid).toBe(true);
+    const quiz = convertImportToQuiz(validation, { ...validation.metadata, title: "Đề mẫu Sinh học 10", subject: "Sinh học", topic: "Tế bào" });
+    expect(quiz.questions[0]?.prompt).toContain("\nNêu lý do.");
+    expect(quiz.questions[0]?.options?.[1]).toContain("\n— bào quan tạo năng lượng");
+    expect(quiz.questions[0]?.answer).toContain("\n— bào quan tạo năng lượng");
+    expect(quiz.questions[0]?.explanation).toContain("\nQuá trình này tạo năng lượng");
   });
 });
