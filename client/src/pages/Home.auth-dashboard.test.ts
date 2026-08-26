@@ -105,5 +105,9 @@ describe("new resilience feedback contracts", () => {
     expect(source).toContain("input.rememberLogin === true");
     expect(source).toContain("localStorage.removeItem(REMEMBERED_CLOUD_SESSION_KEY)");
     expect(source).not.toContain("localStorage.setItem(REMEMBERED_CLOUD_SESSION_KEY, input.password");
+    expect(source).toContain("function mergeById");
+    expect(source).toContain("let profileSaveQueue: Promise<void> = Promise.resolve()");
+    expect(source).toContain("mergeById(cached.pomodoroHistory, incoming.pomodoroHistory)");
+    expect(source).toContain("mergeById(cloudProfile.pomodoroHistory, normalized.pomodoroHistory)");
   });
 });

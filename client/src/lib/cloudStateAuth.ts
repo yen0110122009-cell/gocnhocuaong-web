@@ -156,10 +156,22 @@ export async function cloudLoadProfile(accountId: string): Promise<ProfileState>
     throw error;
   }
 }
-export async function cloudSaveProfile(accountId: string, profile: ProfileState) {
-  const normalized = normalizeProfile(profile);
+function mergeById<T extends { id: string }>(current: T[], incoming: T[]) {
+  const merged = new Map(current.map((item) => [item.id, item]));
+  incoming.forEach((item) => merged.set(item.id, item));
+  return Array.from(merged.values());
+}
+let profileSaveQueue: Promise<void> = Promise.resolve();
+export function cloudSaveProfile(accountId: string, profile: ProfileState) {
+  const incoming = normalizeProfile(profile);
+  const cached = readCachedCloudProfile(accountId);
+  const normalized = cached ? normalizeProfile({ ...incoming, pomodoroHistory: mergeById(cached.pomodoroHistory, incoming.pomodoroHistory), studyActivity: mergeById(cached.studyActivity, incoming.studyActivity) }) : incoming;
   cacheProfile(accountId, normalized);
-  const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.profiles[accountId] = normalized; payload.updatedAt = new Date().toISOString(); await savePayload(row, payload);
+  const save = profileSaveQueue.then(async () => {
+    const row = await loadRow(); const payload = parseCloudStatePayload(row); const cloudProfile = payload.profiles[accountId] ? normalizeProfile(payload.profiles[accountId]) : emptyProfile(); payload.profiles[accountId] = normalizeProfile({ ...normalized, pomodoroHistory: mergeById(cloudProfile.pomodoroHistory, normalized.pomodoroHistory), studyActivity: mergeById(cloudProfile.studyActivity, normalized.studyActivity) }); payload.updatedAt = new Date().toISOString(); await savePayload(row, payload);
+  });
+  profileSaveQueue = save.catch(() => undefined);
+  return save;
 }
 export async function cloudLoadConfig(): Promise<AppConfig> { return parseCloudStatePayload(await loadRow()).config; }
 export async function cloudSaveConfig(config: AppConfig) { const row = await loadRow(); const payload = parseCloudStatePayload(row); payload.config = config; payload.updatedAt = new Date().toISOString(); await savePayload(row, payload); }
