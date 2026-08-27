@@ -2780,3 +2780,27 @@ html[data-animations="off"] .pomodoro-goal-fireworks > span {
 .study-heatmap-detail__subjects span { padding: .28rem .55rem; border-radius: 999px; background: color-mix(in srgb, var(--scene-accent-alt, #f4b942) 18%, var(--scene-card, #fffdf8)); color: var(--scene-text, #3f2721); font-weight: 800; }
 .study-heatmap-hint { margin: 1rem 0 0; color: var(--scene-muted, #745f58); font-size: .8rem; font-weight: 700; }
 @media (max-width: 520px) { .study-card-actions { align-items: flex-end; flex-direction: column; gap: .35rem; } .study-heatmap-cell { min-height: 4.6rem; font-size: .72rem; } .study-heatmap-cell strong { display: block; margin-top: .2rem; font-size: .66rem; line-height: 1.1; } .study-heatmap-detail { align-items: stretch; flex-direction: column; } }
+
+/* Nền PWA mới: biểu tượng gọn ở vùng trái, trung tâm/phải là vùng an toàn cho nội dung. */
+.pwa-login-shell,
+#root > div.min-h-screen.pwa-background-shell {
+  background-color: #fffaf1 !important;
+  background-image: linear-gradient(90deg, rgba(255, 250, 241, .16), rgba(255, 250, 241, .62) 58%, rgba(255, 250, 241, .9)), url("./assets/pwa-background-clean.webp") !important;
+  background-position: 15% center, 15% center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+.dark #root > div.min-h-screen.pwa-background-shell {
+  background-color: #241b18 !important;
+  background-image: linear-gradient(90deg, rgba(36, 27, 24, .64), rgba(36, 27, 24, .78) 58%, rgba(36, 27, 24, .94)), url("./assets/pwa-background-clean.webp") !important;
+}
+
+@media (max-width: 767px) {
+  .pwa-login-shell,
+  #root > div.min-h-screen.pwa-background-shell {
+    background-position: 12% center, 12% center !important;
+    background-attachment: scroll !important;
+  }
+}

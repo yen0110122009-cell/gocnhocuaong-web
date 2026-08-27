@@ -10,6 +10,11 @@ describe("PWA installation contract", () => {
     expect(main).toContain("navigator.serviceWorker.register");
     expect(home).toContain("beforeinstallprompt");
     expect(home).toContain("Cài ứng dụng");
+    expect(home).toContain("pwa-login-shell");
+    expect(home).toContain("pwa-background-shell");
+    const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
+    expect(css).toContain("pwa-background-clean.webp");
+    expect(css).toContain("background-position: 15% center");
     expect(manifest).toContain('"display": "standalone"');
     expect(manifest).toContain('"lang": "vi-VN"');
   });
