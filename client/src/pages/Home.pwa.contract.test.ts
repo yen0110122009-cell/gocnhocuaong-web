@@ -17,6 +17,14 @@ describe("PWA installation contract", () => {
     expect(css).toContain("background-position: 15% center");
     expect(manifest).toContain('"display": "standalone"');
     expect(manifest).toContain('"lang": "vi-VN"');
+    expect(manifest).toContain('pwa-icon-192.png');
+    expect(manifest).toContain('pwa-icon-512.png');
+    expect(manifest).toContain('"theme_color": "#d99a28"');
+    const html = readFileSync(resolve(process.cwd(), "client/index.html"), "utf8");
+    expect(html).toContain('pwa-icon-192.png');
+    const sw = readFileSync(resolve(process.cwd(), "client/public/sw.js"), "utf8");
+    expect(sw).toContain("gocnhocuaong-shell-v2-pwa-icon");
+    expect(sw).toContain("pwa-icon-512.png");
   });
 });
 

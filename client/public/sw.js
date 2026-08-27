@@ -1,6 +1,6 @@
-const CACHE_NAME = "gocnhocuaong-shell-v1";
+const CACHE_NAME = "gocnhocuaong-shell-v2-pwa-icon";
 const BASE_PATH = "/gocnhocuaong-web/";
-const SHELL = [BASE_PATH, `${BASE_PATH}manifest.webmanifest`, `${BASE_PATH}icon.svg`];
+const SHELL = [BASE_PATH, `${BASE_PATH}manifest.webmanifest`, `${BASE_PATH}pwa-icon-192.png`, `${BASE_PATH}pwa-icon-512.png`];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

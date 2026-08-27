@@ -5,11 +5,12 @@
   "lang": "vi-VN",
   "dir": "ltr",
   "display": "standalone",
-  "background_color": "#fffdf8",
-  "theme_color": "#c62828",
+  "background_color": "#fffaf1",
+  "theme_color": "#d99a28",
   "start_url": "/gocnhocuaong-web/",
   "scope": "/gocnhocuaong-web/",
   "icons": [
-    { "src": "/gocnhocuaong-web/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "/gocnhocuaong-web/pwa-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/gocnhocuaong-web/pwa-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
